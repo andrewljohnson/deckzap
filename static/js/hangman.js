@@ -8,3 +8,7 @@ var questionDiv = document.createElement("p");
 questionDiv.style = "font-weight:bold"
 questionDiv.innerHTML = "Enter a letter to guess at the clue, but don't guess too man times!"
 gameDiv.appendChild(questionDiv);
+
+document.addEventListener('keydown', function (event) {
+	alert(event.key);
+});
