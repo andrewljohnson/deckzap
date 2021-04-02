@@ -325,6 +325,19 @@ class CoFXConsumer(WebsocketConsumer):
                 }
             )
 
+        if event == 'SELECT_ENTITY':
+            # send message to players
+            message["game"] = game_dict
+            message['event'] = event
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': message
+                }
+            )
+
         if event == 'NEXT_ROOM':
             message['event'] = event
             async_to_sync(self.channel_layer.group_send)(

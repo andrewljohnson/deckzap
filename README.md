@@ -1,6 +1,8 @@
 # demogames
 Demo games for a board and card game platform.
 
+http://128.199.11.126:8000/
+
 # Set up on Digital Ocean
 
 Based on: https://github.com/mitchtabian/HOWTO-django-channels-daphne/blob/master/README.md

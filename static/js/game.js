@@ -160,6 +160,33 @@ gameSocket.onmessage = function (e) {
             for (let card of game.opponent().in_play) {
                 opponentInPlayDiv.appendChild(cardSprite(card, username));
             }
+            if (data["username"] == game.thisPlayer().username) {
+                for (let childCardDiv of document.getElementById("in_play").children) {
+                    if (childCardDiv.id == "card_"+data["attacking_card"]) {
+                        childCardDiv.style.backgroundColor = "gray";
+                    }
+                }
+
+            }
+            if (data["username"] == game.opponent().username) {
+                for (let childCardDiv of document.getElementById("opponent_in_play").children) {
+                    if (childCardDiv.id == "card_"+data["attacking_card"]) {
+                        childCardDiv.style.backgroundColor = "gray";
+                    }
+                }
+
+            }
+            break;
+        case "SELECT_ENTITY":
+            var game = new CoFXGame(username, data["game"]);
+            if (data["username"] == game.opponent().username) {
+                for (let childCardDiv of document.getElementById("opponent_in_play").children) {
+                    if (childCardDiv.id == "card_"+data["card"]) {
+                        childCardDiv.style.backgroundColor = "orange";
+                    }
+                }
+
+            }
             break;
         default:
             console.log("No event")
@@ -229,6 +256,10 @@ function cardSprite(card, username) {
             } else {
                 cardDiv.style.backgroundColor = "orange";                
                 lastSelectedCard = card;
+                gameSocket.send(JSON.stringify({
+                    "event": "SELECT_ENTITY",
+                    "message": {"card":card.id, "username":username}
+                }));
             }                 
         }
         console.log(lastSelectedCard);
