@@ -1,7 +1,9 @@
 var roomCode = document.getElementById("data_store").getAttribute("room_code");
 var username = document.getElementById("data_store").getAttribute("username");
 
-var connectionString = 'ws://' + window.location.host + '/ws/play/' + roomCode + '/';
+var protocol = 'https:' ? 'wss://' : 'ws://';
+
+var connectionString = protocol + window.location.host + '/ws/play/' + roomCode + '/';
 const gameSocket = new WebSocket(connectionString);
 
 class CoFXGame {
@@ -87,6 +89,11 @@ gameSocket.onmessage = function (e) {
             handDiv.innerHTML = '';
             for (let card of game.thisPlayer().hand) {
                 handDiv.appendChild(cardSprite(card, username));
+            }
+            if (data["username"] == game.thisPlayer().username) {
+                for (let childCardDiv of document.getElementById("in_play").children) {
+                    childCardDiv.style.backgroundColor = "red";
+                }
             }
             document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
             document.getElementById("opponent_mana").innerHTML = game.opponent().mana + " mana";
@@ -183,6 +190,20 @@ function cardSprite(card, username) {
                 "message": {"card":card.id, "username":username}
             }));
         }
+        if (cardDiv.parentElement == document.getElementById("in_play")) {    
+            if (cardDiv.style.backgroundColor == "darkgray") {
+                // do nothing, already attacked
+            } else if (cardDiv.style.backgroundColor == "orange")   {
+                gameSocket.send(JSON.stringify({
+                    "event": "ATTACK_FACE",
+                    "message": {"card":card.id, "username":username}
+                }));
+                cardDiv.style.backgroundColor = "darkgray";                
+            } else {
+                cardDiv.style.backgroundColor = "orange";                
+            }                 
+        }
+
     };
 
     return cardDiv;

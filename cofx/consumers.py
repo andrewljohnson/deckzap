@@ -195,8 +195,6 @@ class CoFXConsumer(WebsocketConsumer):
                 }
             )
 
-            
-
         if event == 'PLAY_CARD':
             current_player_index = game.turn % 2
             current_player = game.players[current_player_index]
@@ -232,6 +230,42 @@ class CoFXConsumer(WebsocketConsumer):
                     'message': message
                 }
             )
+
+        if event == 'ATTACK_FACE':
+            current_player_index = game.turn % 2
+            current_player = game.players[current_player_index]
+            opponent_index = (game.turn + 1) % 2
+            opponent = game.players[opponent_index]
+            card_id = message["card"]
+            index = -1
+            player = -1
+            in_play_card = None
+
+            if (message["username"] != current_player.username):
+                print("can't attack on opponent's turn")
+                return
+            for card in current_player.in_play:
+                if card.id == card_id:
+                    in_play_card = card
+
+            opponent.hit_points -= in_play_card.power
+
+            game_dict = game.as_dict()
+
+            with open(self.room_name, 'w') as outfile:
+                json.dump(game_dict, outfile)
+
+            message['event'] = event
+            message['game'] = game_dict
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': message
+                }
+            )
+
+
 
         if event == 'NEXT_ROOM':
             message['event'] = event
