@@ -125,18 +125,19 @@ gameSocket.onmessage = function (e) {
                 document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
                 document.getElementById("opponent_mana").innerHTML = game.opponent().mana + " mana";
                 document.getElementById("mana").innerHTML = game.thisPlayer().mana + " mana";
+                if (card.card_type == "Entity") {
+                    if (data["username"] == game.thisPlayer().username) {
+                        document.getElementById("in_play").appendChild(document.getElementById("card_"+card.id)); 
+                    } else {
+                        let cardDiv = cardSprite(card, username)
+                        document.getElementById("opponent_in_play").appendChild(cardDiv);                         
+                    }
+                }
                 handDiv.innerHTML = '';
                 for (let card of game.thisPlayer().hand) {
                     handDiv.appendChild(cardSprite(card, username));
                 }
                 document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
-                if (card.card_type == "Entity") {
-                    if (data["username"] == game.thisPlayer().username) {
-                        document.getElementById("in_play").appendChild(document.getElementById("card_"+card.id)); 
-                    } 
-                    let cardDiv = cardSprite(card, username)
-                    document.getElementById("opponent_in_play").appendChild(cardDiv); 
-                }
             break;
         case "END_TURN":
                 var game = new CoFXGame(username, data["game"]);
