@@ -133,7 +133,7 @@ gameSocket.onmessage = function (e) {
                 if (card.card_type == "Entity") {
                     if (data["username"] == game.thisPlayer().username) {
                         document.getElementById("in_play").appendChild(document.getElementById("card_"+card.id)); 
-                    }
+                    } 
                     let cardDiv = cardSprite(card, username)
                     document.getElementById("opponent_in_play").appendChild(cardDiv); 
                 }
