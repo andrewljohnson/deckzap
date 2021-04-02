@@ -6,6 +6,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 import cofx.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'demogames.settings')
+django.setup()
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
