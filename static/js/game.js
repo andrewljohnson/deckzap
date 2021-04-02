@@ -6,6 +6,7 @@ var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
 var connectionString = protocol + window.location.host + '/ws/play/' + roomCode + '/';
 const gameSocket = new WebSocket(connectionString);
 var lastSelectedCard = null;
+var lastSelectedCardInHand = null;
 
 class CoFXGame {
 
@@ -51,6 +52,10 @@ class CoFXCard {
         this.toughness = info["toughness"];            
         this.cost = info["cost"];            
         this.damage = info["damage"];            
+        this.turn_played = info["turn_played"];            
+        this.card_type = info["card_type"];            
+        this.description = info["description"];            
+        this.abilities = info["abilities"];            
     }
 }
 
@@ -64,6 +69,10 @@ gameSocket.onclose = function (e) {
 gameSocket.onmessage = function (e) {
     let data = JSON.parse(e.data)["payload"];
     let event = data["event"];
+    var inPlayDiv = document.getElementById("in_play");
+    let opponentInPlayDiv = document.getElementById("opponent_in_play");
+    let handDiv = document.getElementById("hand");
+
     switch (event) {
         case "JOIN":
             if ("game" in data) {
@@ -81,20 +90,19 @@ gameSocket.onmessage = function (e) {
                 document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length + " cards";
                 document.getElementById("username").innerHTML = game.thisPlayer().username + " (me)";
                 document.getElementById("hit_points").innerHTML = game.thisPlayer().hit_points + " hp";
-                document.getElementById("in_play").style = 'height:150px;width:630px;background-color:black;';
-                document.getElementById("opponent_in_play").style = 'height:150px;width:630px;background-color:black;';
-                document.getElementById("hand").style = 'height:150px;width:630px;background-color:yellow;';
+                document.getElementById("in_play").style = 'height:110px;width:610px;background-color:black;';
+                document.getElementById("opponent_in_play").style = 'height:110px;width:610px;background-color:black;';
+                document.getElementById("hand").style = 'height:110px;width:100%;background-color:yellow;';
             }
                 break;
         case "START_TURN":
             var game = new CoFXGame(username, data["game"]);
-            let handDiv = document.getElementById("hand");
             handDiv.innerHTML = '';
             for (let card of game.thisPlayer().hand) {
                 handDiv.appendChild(cardSprite(card, username));
             }
             if (data["username"] == game.thisPlayer().username) {
-                document.getElementById("end-turn-button").style.backgroundColor = "gray";
+                document.getElementById("end-turn-button").style.backgroundColor = "red";
                 document.getElementById("end-turn-button").style.pointerEvents = "auto";
                 for (let childCardDiv of document.getElementById("in_play").children) {
                     childCardDiv.style.backgroundColor = "red";
@@ -103,19 +111,32 @@ gameSocket.onmessage = function (e) {
             document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
             document.getElementById("opponent_mana").innerHTML = game.opponent().mana + " mana";
             document.getElementById("mana").innerHTML = game.thisPlayer().mana + " mana";
+
+            // refresh cards so turn_played gets set for summoning sickness
+            inPlayDiv.innerHTML = '';
+            for (let card of game.thisPlayer().in_play) {
+                inPlayDiv.appendChild(cardSprite(card, username));
+            }
+
             break;
         case "PLAY_CARD":
                 var game = new CoFXGame(username, data["game"]);
                 let card = new CoFXCard(data["card"]);
-                document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length;
+                document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
                 document.getElementById("opponent_mana").innerHTML = game.opponent().mana + " mana";
                 document.getElementById("mana").innerHTML = game.thisPlayer().mana + " mana";
-                if (data["username"] == game.thisPlayer().username) {
-                        document.getElementById("in_play").appendChild(document.getElementById("card_"+card.id)); 
-                    return;
+                handDiv.innerHTML = '';
+                for (let card of game.thisPlayer().hand) {
+                    handDiv.appendChild(cardSprite(card, username));
                 }
-                let cardDiv = cardSprite(card, username)
-                document.getElementById("opponent_in_play").appendChild(cardDiv); 
+                document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
+                if (card.card_type == "Entity") {
+                    if (data["username"] == game.thisPlayer().username) {
+                        document.getElementById("in_play").appendChild(document.getElementById("card_"+card.id)); 
+                    }
+                    let cardDiv = cardSprite(card, username)
+                    document.getElementById("opponent_in_play").appendChild(cardDiv); 
+                }
             break;
         case "END_TURN":
                 var game = new CoFXGame(username, data["game"]);
@@ -144,18 +165,32 @@ gameSocket.onmessage = function (e) {
             document.getElementById("opponent_hit_points").innerHTML = game.opponent().hit_points + " hp";
             document.getElementById("hit_points").innerHTML = game.thisPlayer().hit_points + " hp";
 
+            if (data["username"] == game.opponent().username) {
+                for (let childCardDiv of document.getElementById("opponent_in_play").children) {
+                    if (childCardDiv.id == "card_"+data["card"]) {
+                        childCardDiv.style.backgroundColor = "gray";
+                    }
+                }
+                document.getElementById("player1").style.backgroundColor = "red";
+                setTimeout(function() {
+                    document.getElementById("player1").style.backgroundColor = "lightgray";
+                }, 400);
+            } else  {
+                document.getElementById("opponent").style.backgroundColor = "red";
+                setTimeout(function() {
+                    document.getElementById("opponent").style.backgroundColor = "lightgray";
+                }, 400);                
+            }
             if (game.opponent().hit_points <= 0 || game.thisPlayer().hit_points <= 0) {
                 alert("GAME OVER");
             }
             break;
         case "ATTACK_ENTITY":
             var game = new CoFXGame(username, data["game"]);
-            let inPlayDiv = document.getElementById("in_play");
             inPlayDiv.innerHTML = '';
             for (let card of game.thisPlayer().in_play) {
                 inPlayDiv.appendChild(cardSprite(card, username));
             }
-            let opponentInPlayDiv = document.getElementById("opponent_in_play");
             opponentInPlayDiv.innerHTML = '';
             for (let card of game.opponent().in_play) {
                 opponentInPlayDiv.appendChild(cardSprite(card, username));
@@ -188,6 +223,44 @@ gameSocket.onmessage = function (e) {
 
             }
             break;
+        case "CAST_SPELL_ON_ENTITY":
+            var game = new CoFXGame(username, data["game"]);
+            inPlayDiv.innerHTML = '';
+            for (let card of game.thisPlayer().in_play) {
+                inPlayDiv.appendChild(cardSprite(card, username));
+            }
+            opponentInPlayDiv.innerHTML = '';
+            for (let card of game.opponent().in_play) {
+                opponentInPlayDiv.appendChild(cardSprite(card, username));
+            }
+            handDiv.innerHTML = '';
+            for (let card of game.thisPlayer().hand) {
+                handDiv.appendChild(cardSprite(card, username));
+            }
+            document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
+            break;
+        case "CAST_SPELL_ON_OPPONENT":
+            var game = new CoFXGame(username, data["game"]);
+            document.getElementById("opponent_hit_points").innerHTML = game.opponent().hit_points + " hp";
+            if (game.opponent().hit_points <= 0) {
+                alert("GAME OVER");
+            }
+            handDiv.innerHTML = '';
+            for (let card of game.thisPlayer().hand) {
+                handDiv.appendChild(cardSprite(card, username));
+            }
+            document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
+        case "CAST_SPELL_ON_SELF":
+            var game = new CoFXGame(username, data["game"]);
+            document.getElementById("hit_points").innerHTML = game.thisPlayer().hit_points + " hp";
+            if (game.opponent().hit_points <= 0) {
+                alert("GAME OVER");
+            }
+            handDiv.innerHTML = '';
+            for (let card of game.thisPlayer().hand) {
+                handDiv.appendChild(cardSprite(card, username));
+            }
+            document.getElementById("opponent_card_count").innerHTML = game.opponent().hand.length+ " cards";
         default:
             console.log("No event")
     }
@@ -195,6 +268,7 @@ gameSocket.onmessage = function (e) {
 
 function endTurn() {
     lastSelectedCard = null;
+    lastSelectedCardInHand = null;
     document.getElementById("end-turn-button").style.pointerEvents = "none";
     document.getElementById("end-turn-button").style.backgroundColor = "lightgray";
     gameSocket.send(JSON.stringify({
@@ -221,7 +295,7 @@ function transformToAssocArray( prmstr ) {
 function cardSprite(card, username) {
     let cardDiv = document.createElement("div");
     cardDiv.id = "card_" + card.id;
-    cardDiv.style = 'height:138px;width:90px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px';
+    cardDiv.style = 'height:100px;width:75px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px';
 
     let nameDiv = document.createElement("div");
     nameDiv.innerHTML = card.name;
@@ -231,16 +305,44 @@ function cardSprite(card, username) {
     costDiv.innerHTML = "Cost: " + card.cost;
     cardDiv.appendChild(costDiv)
 
-    let powerToughnessDiv = document.createElement("div");
-    powerToughnessDiv.innerHTML = card.power + "/" + (card.toughness - card.damage);
-    cardDiv.appendChild(powerToughnessDiv)
+    let cardTypeDiv = document.createElement("div");
+    cardTypeDiv.innerHTML = card.card_type;
+    cardDiv.appendChild(cardTypeDiv)
+
+    if (card.description) {
+        let descriptionDiv = document.createElement("div");
+        descriptionDiv.innerHTML = card.description;
+        cardDiv.appendChild(descriptionDiv);
+    }
+
+    if (card.card_type == "Entity") {
+        let powerToughnessDiv = document.createElement("div");
+        powerToughnessDiv.innerHTML = card.power + "/" + (card.toughness - card.damage);
+        cardDiv.appendChild(powerToughnessDiv);
+    }
 
     cardDiv.onclick = function() { 
-        if (cardDiv.parentElement == document.getElementById("hand")) {                            
-            gameSocket.send(JSON.stringify({
-                "event": "PLAY_CARD",
-                "message": {"card":card.id, "username":username}
-            }));
+        if (cardDiv.parentElement == document.getElementById("hand")) {  
+            if (card.card_type == "Entity") {
+                gameSocket.send(JSON.stringify({
+                    "event": "PLAY_CARD",
+                    "message": {"card":card.id, "username":username}
+                }));                
+            } else {
+                if (cardDiv.style.backgroundColor == "orange")   {
+                    cardDiv.style.backgroundColor = "red";                
+                    lastSelectedCardInHand = null;
+                    if (card.name == "Think") {                
+                        gameSocket.send(JSON.stringify({
+                            "event": "PLAY_CARD",
+                            "message": {"card":card.id, "username":username}
+                        }));                
+                    }
+                } else {
+                    cardDiv.style.backgroundColor = "orange";                
+                    lastSelectedCardInHand = card;
+                }
+            }                          
         }
         if (cardDiv.parentElement == document.getElementById("in_play")) {    
             if (cardDiv.style.backgroundColor == "darkgray") {
@@ -254,16 +356,16 @@ function cardSprite(card, username) {
                 cardDiv.style.backgroundColor = "darkgray";                
                 lastSelectedCard = null;
             } else {
-                cardDiv.style.backgroundColor = "orange";                
-                lastSelectedCard = card;
-                gameSocket.send(JSON.stringify({
-                    "event": "SELECT_ENTITY",
-                    "message": {"card":card.id, "username":username}
-                }));
+                if (card.turn_played != -1) {
+                    cardDiv.style.backgroundColor = "orange";                
+                    lastSelectedCard = card;
+                    gameSocket.send(JSON.stringify({
+                        "event": "SELECT_ENTITY",
+                        "message": {"card":card.id, "username":username}
+                    }));                    
+                }
             }                 
         }
-        console.log(lastSelectedCard);
-        console.log(cardDiv.parentElement);
         if (lastSelectedCard && cardDiv.parentElement == document.getElementById("opponent_in_play")) {
             gameSocket.send(JSON.stringify({
                 "event": "ATTACK_ENTITY",
@@ -271,10 +373,44 @@ function cardSprite(card, username) {
             }));            
         }    
 
+        if (lastSelectedCardInHand
+            && (cardDiv.parentElement == document.getElementById("opponent_in_play") || cardDiv.parentElement == document.getElementById("in_play"))) {
+            gameSocket.send(JSON.stringify({
+                "event": "CAST_SPELL_ON_ENTITY", 
+                "message": {"target_card":card.id, "spell_card":lastSelectedCardInHand.id, "username":username}
+            }));            
+        }    
+
     };
 
     return cardDiv;
 
+}
+
+document.getElementById("opponent").onclick = function() {
+    for (let childCardDiv of document.getElementById("in_play").children) {
+        if (childCardDiv.style.backgroundColor == "orange") {
+            childCardDiv.style.backgroundColor = "gray";
+            gameSocket.send(JSON.stringify({
+                "event": "ATTACK_FACE",
+                "message": {"card":parseInt(childCardDiv.id.slice(5)), "username":username}
+            }));
+            childCardDiv.style.backgroundColor = "darkgray";                
+            lastSelectedCard = null;
+            lastSelectedCardInHand = null;
+        }
+    }
+    for (let childCardDiv of document.getElementById("hand").children) {
+        if (childCardDiv.style.backgroundColor == "orange") {
+            gameSocket.send(JSON.stringify({
+                "event": "CAST_SPELL_ON_OPPONENT",
+                "message": {"card":parseInt(childCardDiv.id.slice(5)), "username":username}
+            }));
+            childCardDiv.style.backgroundColor = "red";                
+            lastSelectedCard = null;
+            lastSelectedCardInHand = null;
+        }
+    }
 }
 
 function connect() {
@@ -290,6 +426,7 @@ function connect() {
         }, 100);
     }
 }
+connect();
 
 function nextRoom() {
     gameSocket.send(JSON.stringify({
@@ -298,4 +435,7 @@ function nextRoom() {
     }));
 }
 
-connect();
+function viewHelp() {
+    alert("1. Click cards in hand to play them.\n2. To attack, click your entity, then your opponent's.\n3. To attack your opponent's face, double click an entity or click your entity then the opponent.\n4. To cast a spell at your opponent's entity, click your spell, then your opponent's entity.\n5. To cast a spell at your opponent's face, click a spell or click a spell then the opponent.\n6. Entities can't attack the turn they come into play.");
+}
+

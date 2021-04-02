@@ -1,5 +1,6 @@
 import json
 import math
+import random
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 # from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -11,12 +12,32 @@ class CoFXGame:
         self.players = []
         self.cards = []
         self.turn = 0
+        self.all_cards = [
+            CoFXCard(0, "CatKin", 2, 2, 1, 0),
+            CoFXCard(0, "CatKin", 2, 2, 1, 0),
+            CoFXCard(0, "CatKin", 2, 2, 1, 0),
+            CoFXCard(0, "CatKin", 2, 2, 1, 0),
+            CoFXCard(0, "CatKin", 2, 2, 1, 0),
+            CoFXCard(0, "CatKin", 2, 2, 1, 0),
+            CoFXCard(0, "PantherKin", 3, 3, 2, 0),
+            CoFXCard(0, "PantherKin", 3, 3, 2, 0),
+            CoFXCard(0, "PantherKin", 3, 3, 2, 0),
+            CoFXCard(0, "LionKin", 4, 4, 3, 0),
+            CoFXCard(0, "LionKin", 4, 4, 3, 0),
+            CoFXCard(0, "Beastmaster", 4, 5, 4, 0),
+            CoFXCard(0, "Beastmaster", 4, 5, 4, 0),
+            CoFXCard(0, "Ogre", 5, 6, 5, 0),
+            CoFXCard(0, "Dragon", 6, 7, 6, 0),
+            CoFXCard(0, "Kill", 0, 0, 0, 3, card_type="Spell", description="Kill an opponent's entity.", abilities=["kill"]),
+            CoFXCard(0, "Zap", 3, 0, 0, 0, card_type="Spell", description="Deal 3 damage.", abilities=["damage_entity", "damage_player"]),
+            CoFXCard(0, "Think", 2, 0, 0, 0, card_type="Spell", description="Draw 2 cards.", abilities=["draw_cards"]),
+        ]
 
         if info:
             for u in info["players"]:
                 self.players.append(CoFXPlayer(self, u))
             for c_info in info["cards"]:
-                self.cards.append(CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"]))
+                self.cards.append(CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"], c_info["turn_played"], c_info["card_type"], c_info["description"], c_info["abilities"]))
             self.turn = int(info["turn"])
 
     def as_dict(self):
@@ -27,11 +48,8 @@ class CoFXGame:
         }
 
     def new_card(self):
-        card = None
-        if len(self.cards) % 2 == 0:
-            card = CoFXCard(len(self.cards), "Big Bug", 3, 2, 1, 0)
-        else:
-            card = CoFXCard(len(self.cards), "Fat Oryx", 3, 4, 1, 0)
+        card = self.all_cards[random.randint(0, len(self.all_cards) - 1)]
+        card.id = len(self.cards)
         self.cards.append(card)
         return card
 
@@ -47,8 +65,8 @@ class CoFXPlayer:
             self.hand = []
             self.in_play = []
         else:
-            self.hand = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"]) for c_info in info["hand"]]
-            self.in_play = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"]) for c_info in info["in_play"]]
+            self.hand = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"], c_info["turn_played"], c_info["card_type"], c_info["description"], c_info["abilities"]) for c_info in info["hand"]]
+            self.in_play = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"], c_info["turn_played"], c_info["card_type"], c_info["description"], c_info["abilities"]) for c_info in info["in_play"]]
             self.hit_points = info["hit_points"]
             self.mana = info["mana"]
 
@@ -70,22 +88,27 @@ class CoFXPlayer:
 
     def play_card(self, card):
         self.hand.remove(card)
-        self.in_play.append(card)
+        if card.card_type == "Entity":
+            self.in_play.append(card)
         self.mana -= card.cost
 
 
 class CoFXCard:
 
-    def __init__(self, card_id, name, power, toughness, cost, damage):
+    def __init__(self, card_id, name, power, toughness, cost, damage, turn_played=-1, card_type="Entity", description=None, abilities=[]):
         self.id = card_id
         self.name = name
         self.power = power
         self.toughness = toughness
         self.cost = cost
         self.damage = damage
+        self.turn_played = turn_played
+        self.card_type = card_type
+        self.description = description
+        self.abilities = abilities
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness} (damage: {self.damage}) (id: {self.id})" 
+        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.abilities}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played})" 
 
     def as_dict(self):
         return {
@@ -95,6 +118,10 @@ class CoFXCard:
             "toughness": self.toughness,
             "cost": self.cost,
             "damage": self.damage,
+            "turn_played": self.turn_played,
+            "card_type": self.card_type,
+            "description": self.description,
+            "abilities": self.abilities,
         }
 
 
@@ -163,7 +190,7 @@ class CoFXConsumer(WebsocketConsumer):
             print(f"Received START_TURN event from player {message_player.username}")
             if game.turn == 0:
                 if len(message_player.hand) == 0:
-                    message_player.draw(4)
+                    message_player.draw(6)
             else:
                     message_player.draw(1)
             
@@ -228,6 +255,11 @@ class CoFXConsumer(WebsocketConsumer):
                 print("card costs too much")
                 return
 
+            if "draw_cards" in played_card.abilities:
+                print ("has draw_cards ability")
+                current_player.draw(played_card.power)
+
+            played_card.turn_played = game.turn
             current_player.play_card(played_card)
             game_dict = game.as_dict()
 
@@ -279,7 +311,6 @@ class CoFXConsumer(WebsocketConsumer):
                 }
             )
 
-
         if event == 'ATTACK_ENTITY':
             current_player_index = game.turn % 2
             current_player = game.players[current_player_index]
@@ -326,6 +357,113 @@ class CoFXConsumer(WebsocketConsumer):
             )
 
         if event == 'SELECT_ENTITY':
+            current_player_index = game.turn % 2
+            current_player = game.players[current_player_index]
+            if (message["username"] != current_player.username):
+                print("can't select entities on opponent's turn")
+                return
+
+            attacking_card = None
+            for card in current_player.in_play:
+                if card.id == message["card"]:
+                    if card.turn_played == game.turn:
+                        print("can't select entities on opponent's turn")
+                        return
+
+            # send message to players
+            message["game"] = game_dict
+            message['event'] = event
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': message
+                }
+            )
+
+        if event == "CAST_SPELL_ON_ENTITY":
+            current_player_index = game.turn % 2
+            current_player = game.players[current_player_index]
+            if (message["username"] != current_player.username):
+                print("can't cast spell on opponent's turn")
+                return
+
+            spell_card = None
+            for card in current_player.hand:
+                if card.id == message["spell_card"]:
+                    spell_card = card
+            current_player.hand.remove(spell_card)
+
+            opponent_index = (game.turn + 1) % 2
+            opponent = game.players[opponent_index]
+            target_card = None
+            target_player = None
+            
+            for card in opponent.in_play:
+                if card.id == message["target_card"]:
+                    target_card = card
+                    target_player = opponent
+            
+            for card in current_player.in_play:
+                if card.id == message["target_card"]:
+                    target_card = card
+                    target_player = current_player
+
+            if "kill" in spell_card.abilities:
+                target_player.in_play.remove(target_card) 
+
+            if "damage_entity" in spell_card.abilities:
+                print ("has damage_entity ability")
+                target_card.damage += spell_card.power
+                if target_card.damage >= target_card.toughness:
+                    target_player.in_play.remove(target_card) 
+
+            game_dict = game.as_dict()
+            with open(self.room_name, 'w') as outfile:
+                json.dump(game_dict, outfile)
+
+            # send message to players
+            message["game"] = game_dict
+            message['event'] = event
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': message
+                }
+            )
+
+        if event == "CAST_SPELL_ON_OPPONENT":
+            current_player_index = game.turn % 2
+            current_player = game.players[current_player_index]
+            if (message["username"] != current_player.username):
+                print("can't cast spell on opponent's turn")
+                return
+
+            spell_card = None
+            for card in current_player.hand:
+                if card.id == message["card"]:
+                    spell_card = card
+            current_player.hand.remove(spell_card)
+
+            opponent_index = (game.turn + 1) % 2
+            opponent = game.players[opponent_index]
+            target_player = None
+
+            if "damage_player" not in spell_card.abilities:
+                print("spell can't target players")
+                return
+
+            if "damage_player" in spell_card.abilities:
+                print ("has damage_player ability")
+                opponent.hit_points -= spell_card.power
+
+            game_dict = game.as_dict()
+            with open(self.room_name, 'w') as outfile:
+                json.dump(game_dict, outfile)
+
             # send message to players
             message["game"] = game_dict
             message['event'] = event
