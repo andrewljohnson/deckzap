@@ -3,3 +3,4 @@ gunicorn==20.0.4
 channels==3.0.3
 whitenoise==5.2.0
 daphne==3.0.1
+python-decouple==3.3
