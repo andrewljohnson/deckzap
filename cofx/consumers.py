@@ -179,6 +179,22 @@ class CoFXConsumer(WebsocketConsumer):
 
         if event == 'END_TURN':
             game.turn += 1
+            game_dict = game.as_dict()
+            with open(self.room_name, 'w') as outfile:
+                json.dump(game_dict, outfile)
+
+            # send message to players
+            message["game"] = game_dict
+            message['event'] = event
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': message
+                }
+            )
+
             
 
         if event == 'PLAY_CARD':

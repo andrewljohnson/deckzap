@@ -111,6 +111,13 @@ gameSocket.onmessage = function (e) {
                 document.getElementById("opponent_in_play").appendChild(cardDiv); 
             break;
         case "END_TURN":
+                var game = new CoFXGame(username, data["game"]);
+                if (data["username"] == game.opponent().username) {
+                    gameSocket.send(JSON.stringify({
+                        "event": "START_TURN",
+                        "message": {"username":username}
+                    }));
+                }
             break;
         case "NEXT_ROOM":
             var url = location.host + location.pathname;
