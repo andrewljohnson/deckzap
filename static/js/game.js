@@ -104,11 +104,13 @@ gameSocket.onmessage = function (e) {
                 }
                 let cardDiv = document.createElement("div");
                 cardDiv.id = "card_" + card.id;
-                cardDiv.style = 'height:150px;width:90px;background-color:red;';
+                cardDiv.style = 'height:150px;width:90px;background-color:red;border-width: 1px;border-color: white;';
                 let nameDiv = document.createElement("div");
                 nameDiv.innerHTML = card.name;
                 cardDiv.appendChild(nameDiv)
                 document.getElementById("opponent_in_play").appendChild(cardDiv); 
+            break;
+        case "END_TURN":
             break;
         case "NEXT_ROOM":
             var url = location.host + location.pathname;
@@ -153,7 +155,7 @@ function transformToAssocArray( prmstr ) {
 function cardSprite(card, username) {
     let cardDiv = document.createElement("div");
     cardDiv.id = "card_" + card.id;
-    cardDiv.style = 'height:150px;width:90px;background-color:red;';
+    cardDiv.style = 'height:138px;width:90px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px';
 
     let nameDiv = document.createElement("div");
     nameDiv.innerHTML = card.name;
