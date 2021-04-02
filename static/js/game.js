@@ -91,6 +91,7 @@ gameSocket.onmessage = function (e) {
                 handDiv.appendChild(cardSprite(card, username));
             }
             if (data["username"] == game.thisPlayer().username) {
+                document.getElementById("end-turn-button").style.backgroundColor = "gray";
                 for (let childCardDiv of document.getElementById("in_play").children) {
                     childCardDiv.style.backgroundColor = "red";
                 }
@@ -139,12 +140,19 @@ gameSocket.onmessage = function (e) {
                 }, 100); 
             }
             break;
+        case "ATTACK_FACE":
+            var game = new CoFXGame(username, data["game"]);
+            document.getElementById("opponent_hit_points").innerHTML = game.opponent().hit_points + " hp";
+            document.getElementById("hit_points").innerHTML = game.thisPlayer().hit_points + " hp";
+            break;
         default:
             console.log("No event")
     }
 };
 
 function endTurn() {
+    document.getElementById("end-turn-button").style.pointerEvents = "none";
+    document.getElementById("end-turn-button").style.backgroundColor = "lightgray";
     gameSocket.send(JSON.stringify({
         "event": "END_TURN",
         "message": {"username":username}

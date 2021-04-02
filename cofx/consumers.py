@@ -158,6 +158,8 @@ class CoFXConsumer(WebsocketConsumer):
             if game.turn == 0:
                 if len(message_player.hand) == 0:
                     message_player.draw(4)
+            else:
+                    message_player.draw(1)
             
             message_player.mana = math.floor(game.turn/2) + 1
 
@@ -178,6 +180,12 @@ class CoFXConsumer(WebsocketConsumer):
             )
 
         if event == 'END_TURN':
+            current_player_index = game.turn % 2
+            current_player = game.players[current_player_index]
+            if (message["username"] != current_player.username):
+                print("can't end turn on opponent's turn")
+                return
+
             game.turn += 1
             game_dict = game.as_dict()
             with open(self.room_name, 'w') as outfile:
