@@ -16,7 +16,7 @@ class CoFXGame:
             for u in info["players"]:
                 self.players.append(CoFXPlayer(self, u))
             for c_info in info["cards"]:
-                self.cards.append(CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"]))
+                self.cards.append(CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"]))
             self.turn = int(info["turn"])
 
     def as_dict(self):
@@ -27,7 +27,11 @@ class CoFXGame:
         }
 
     def new_card(self):
-        card = CoFXCard(len(self.cards), "Big Bug", 3, 2, 1)
+        card = None
+        if len(self.cards) % 2 == 0:
+            card = CoFXCard(len(self.cards), "Big Bug", 3, 2, 1, 0)
+        else:
+            card = CoFXCard(len(self.cards), "Fat Oryx", 3, 4, 1, 0)
         self.cards.append(card)
         return card
 
@@ -43,8 +47,8 @@ class CoFXPlayer:
             self.hand = []
             self.in_play = []
         else:
-            self.hand = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"]) for c_info in info["hand"]]
-            self.in_play = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"]) for c_info in info["in_play"]]
+            self.hand = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"]) for c_info in info["hand"]]
+            self.in_play = [CoFXCard(c_info["id"], c_info["name"], c_info["power"], c_info["toughness"], c_info["cost"], c_info["damage"]) for c_info in info["in_play"]]
             self.hit_points = info["hit_points"]
             self.mana = info["mana"]
 
@@ -72,15 +76,16 @@ class CoFXPlayer:
 
 class CoFXCard:
 
-    def __init__(self, card_id, name, power, toughness, cost):
+    def __init__(self, card_id, name, power, toughness, cost, damage):
         self.id = card_id
         self.name = name
         self.power = power
         self.toughness = toughness
         self.cost = cost
+        self.damage = damage
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness} (id: {self.id})" 
+        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness} (damage: {self.damage}) (id: {self.id})" 
 
     def as_dict(self):
         return {
@@ -89,6 +94,7 @@ class CoFXCard:
             "power": self.power,
             "toughness": self.toughness,
             "cost": self.cost,
+            "damage": self.damage,
         }
 
 
@@ -274,6 +280,50 @@ class CoFXConsumer(WebsocketConsumer):
             )
 
 
+        if event == 'ATTACK_ENTITY':
+            current_player_index = game.turn % 2
+            current_player = game.players[current_player_index]
+            if (message["username"] != current_player.username):
+                print("can't attack on opponent's turn")
+                return
+
+            attacking_card = None
+            for card in current_player.in_play:
+                if card.id == message["attacking_card"]:
+                    attacking_card = card
+
+            opponent_index = (game.turn + 1) % 2
+            opponent = game.players[opponent_index]
+            defending_card = None
+            for card in opponent.in_play:
+                if card.id == message["defending_card"]:
+                    defending_card = card
+
+
+            attacking_card.damage += defending_card.power
+            defending_card.damage += attacking_card.power
+
+            if attacking_card.damage >= attacking_card.toughness:
+                current_player.in_play.remove(attacking_card)
+            if defending_card.damage >= defending_card.toughness:
+                opponent.in_play.remove(defending_card)
+
+            game_dict = game.as_dict()
+
+            with open(self.room_name, 'w') as outfile:
+                json.dump(game_dict, outfile)
+
+            # send message to players
+            message["game"] = game_dict
+            message['event'] = event
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': message
+                }
+            )
 
         if event == 'NEXT_ROOM':
             message['event'] = event

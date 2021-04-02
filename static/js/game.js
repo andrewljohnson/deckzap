@@ -3,8 +3,9 @@ var username = document.getElementById("data_store").getAttribute("username");
 
 const url = new URL(window.location.href);
 var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-var connectionString = protocol + window.location.host + ':8001/ws/play/' + roomCode + '/';
+var connectionString = protocol + window.location.host + '/ws/play/' + roomCode + '/';
 const gameSocket = new WebSocket(connectionString);
+var lastSelectedCard = null;
 
 class CoFXGame {
 
@@ -38,6 +39,7 @@ class CoFXPlayer {
         this.hit_points = info["hit_points"];            
         this.mana = info["mana"];   
         this.hand = info["hand"].map(e => (new CoFXCard(e)))          
+        this.in_play = info["in_play"].map(e => (new CoFXCard(e)))          
     }
 }
 
@@ -48,6 +50,7 @@ class CoFXCard {
         this.power = info["power"];            
         this.toughness = info["toughness"];            
         this.cost = info["cost"];            
+        this.damage = info["damage"];            
     }
 }
 
@@ -111,12 +114,7 @@ gameSocket.onmessage = function (e) {
                         document.getElementById("in_play").appendChild(document.getElementById("card_"+card.id)); 
                     return;
                 }
-                let cardDiv = document.createElement("div");
-                cardDiv.id = "card_" + card.id;
-                cardDiv.style = 'height:150px;width:90px;background-color:red;border-width: 1px;border-color: white;';
-                let nameDiv = document.createElement("div");
-                nameDiv.innerHTML = card.name;
-                cardDiv.appendChild(nameDiv)
+                let cardDiv = cardSprite(card, username)
                 document.getElementById("opponent_in_play").appendChild(cardDiv); 
             break;
         case "END_TURN":
@@ -150,12 +148,26 @@ gameSocket.onmessage = function (e) {
                 alert("GAME OVER");
             }
             break;
+        case "ATTACK_ENTITY":
+            var game = new CoFXGame(username, data["game"]);
+            let inPlayDiv = document.getElementById("in_play");
+            inPlayDiv.innerHTML = '';
+            for (let card of game.thisPlayer().in_play) {
+                inPlayDiv.appendChild(cardSprite(card, username));
+            }
+            let opponentInPlayDiv = document.getElementById("opponent_in_play");
+            opponentInPlayDiv.innerHTML = '';
+            for (let card of game.opponent().in_play) {
+                opponentInPlayDiv.appendChild(cardSprite(card, username));
+            }
+            break;
         default:
             console.log("No event")
     }
 };
 
 function endTurn() {
+    lastSelectedCard = null;
     document.getElementById("end-turn-button").style.pointerEvents = "none";
     document.getElementById("end-turn-button").style.backgroundColor = "lightgray";
     gameSocket.send(JSON.stringify({
@@ -193,7 +205,7 @@ function cardSprite(card, username) {
     cardDiv.appendChild(costDiv)
 
     let powerToughnessDiv = document.createElement("div");
-    powerToughnessDiv.innerHTML = card.power + "/" + card.toughness;
+    powerToughnessDiv.innerHTML = card.power + "/" + (card.toughness - card.damage);
     cardDiv.appendChild(powerToughnessDiv)
 
     cardDiv.onclick = function() { 
@@ -206,16 +218,27 @@ function cardSprite(card, username) {
         if (cardDiv.parentElement == document.getElementById("in_play")) {    
             if (cardDiv.style.backgroundColor == "darkgray") {
                 // do nothing, already attacked
+                lastSelectedCard = null;
             } else if (cardDiv.style.backgroundColor == "orange")   {
                 gameSocket.send(JSON.stringify({
                     "event": "ATTACK_FACE",
                     "message": {"card":card.id, "username":username}
                 }));
                 cardDiv.style.backgroundColor = "darkgray";                
+                lastSelectedCard = null;
             } else {
                 cardDiv.style.backgroundColor = "orange";                
+                lastSelectedCard = card;
             }                 
         }
+        console.log(lastSelectedCard);
+        console.log(cardDiv.parentElement);
+        if (lastSelectedCard && cardDiv.parentElement == document.getElementById("opponent_in_play")) {
+            gameSocket.send(JSON.stringify({
+                "event": "ATTACK_ENTITY",
+                "message": {"defending_card":card.id, "attacking_card":lastSelectedCard.id, "username":username}
+            }));            
+        }    
 
     };
 
