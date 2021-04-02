@@ -3,7 +3,7 @@ var username = document.getElementById("data_store").getAttribute("username");
 
 const url = new URL(window.location.href);
 var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-var connectionString = protocol + window.location.host + '/ws/play/' + roomCode + '/';
+var connectionString = protocol + window.location.host + ':8001/ws/play/' + roomCode + '/';
 const gameSocket = new WebSocket(connectionString);
 
 class CoFXGame {
@@ -92,6 +92,7 @@ gameSocket.onmessage = function (e) {
             }
             if (data["username"] == game.thisPlayer().username) {
                 document.getElementById("end-turn-button").style.backgroundColor = "gray";
+                document.getElementById("end-turn-button").style.pointerEvents = "auto";
                 for (let childCardDiv of document.getElementById("in_play").children) {
                     childCardDiv.style.backgroundColor = "red";
                 }
@@ -144,6 +145,10 @@ gameSocket.onmessage = function (e) {
             var game = new CoFXGame(username, data["game"]);
             document.getElementById("opponent_hit_points").innerHTML = game.opponent().hit_points + " hp";
             document.getElementById("hit_points").innerHTML = game.thisPlayer().hit_points + " hp";
+
+            if (game.opponent().hit_points <= 0 || game.thisPlayer().hit_points <= 0) {
+                alert("GAME OVER");
+            }
             break;
         default:
             console.log("No event")
