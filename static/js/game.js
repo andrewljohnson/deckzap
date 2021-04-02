@@ -1,8 +1,8 @@
 var roomCode = document.getElementById("data_store").getAttribute("room_code");
 var username = document.getElementById("data_store").getAttribute("username");
 
-var protocol = 'https:' ? 'wss://' : 'ws://';
-
+const url = new URL(window.location.href);
+var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
 var connectionString = protocol + window.location.host + '/ws/play/' + roomCode + '/';
 const gameSocket = new WebSocket(connectionString);
 
