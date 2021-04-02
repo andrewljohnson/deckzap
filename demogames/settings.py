@@ -77,7 +77,7 @@ TEMPLATES = [
 # Channels
 # ASGI_APPLICATION = "demogames.asgi.application"
 WSGI_APPLICATION = f'{config("PROJECT_NAME")}.wsgi.application'
-ASGI_APPLICATION = f'{config("PROJECT_NAME")}.routing.application'
+ASGI_APPLICATION = f'{config("PROJECT_NAME")}.asgi.application'
 
 
 
