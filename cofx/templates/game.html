@@ -26,6 +26,7 @@
                 <div class=card_container id=in_play></div>
             </div>
             <div id=right>
+                <div id=turn-label>Turn 0 (setting up)</div>
                 <a id=end-turn-button onclick=GameRoom.endTurn()>End Turn</a>
                 <div id=menu> 
                     <div id=title>CoFX - room_{{room_code}}</div>
@@ -145,6 +146,9 @@
     }
 
                         
+    * {
+        user-select:none;
+    }
 
 </style>
 

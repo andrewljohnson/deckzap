@@ -17,11 +17,12 @@ from django.contrib import admin
 from django.urls import path
 from cofx.views import game
 from cofx.views import index
-from ss.views import hangman
+from ss.views import hangman, dnd
 
 urlpatterns = [
     path('admin/', admin.site.urls),
   	path('', index),
   	path('play/<room_code>', game),
     path('ss/hangman', hangman),
+    path('ss/dnd', dnd),
  ]

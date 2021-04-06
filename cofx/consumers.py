@@ -54,8 +54,10 @@ class CoFXGame:
         defending_card.damage += attacking_card.power
         if attacking_card.damage >= attacking_card.toughness:
             self.current_player().in_play.remove(attacking_card)
+            self.current_player().played_pile.append(attacking_card)  
         if defending_card.damage >= defending_card.toughness:
             self.opponent().in_play.remove(defending_card)
+            self.opponent().played_pile.append(defending_card)  
 
 
 class CoFXPlayer:
@@ -81,15 +83,17 @@ class CoFXPlayer:
             self.hand = []
             self.in_play = []
             self.deck = []
+            self.played_pile = []
         else:
             self.hand = [CoFXCard(c_info) for c_info in info["hand"]]
             self.in_play = [CoFXCard(c_info) for c_info in info["in_play"]]
             self.hit_points = info["hit_points"]
             self.mana = info["mana"]
             self.deck = [CoFXCard(c_info) for c_info in info["deck"]]
+            self.played_pile = [CoFXCard(c_info) for c_info in info["played_pile"]]
 
     def __repr__(self):
-        return f"{self.username} - {self.hit_points} hp, {self.mana} mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck"
+        return f"{self.username} - {self.hit_points} hp, {self.mana} mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile"
 
     def as_dict(self):
         return {
@@ -99,10 +103,15 @@ class CoFXPlayer:
             "hand": [c.as_dict() for c in self.hand],
             "in_play": [c.as_dict() for c in self.in_play],
             "deck": [c.as_dict() for c in self.deck],
+            "played_pile": [c.as_dict() for c in self.played_pile],
         }
 
     def draw(self, number_of_cards):
         for i in range(0,number_of_cards):
+            if len(self.deck) == 0:
+                for c in self.played_pile:
+                    self.deck.append(c)
+                self.played_pile = [] 
             self.hand.append(self.deck.pop())
 
     def do_draw_effect_on_player(self, card, target_player_username, amount):
@@ -122,11 +131,13 @@ class CoFXPlayer:
         target_card.damage += amount
         if target_card.damage >= target_card.toughness:
             target_player.in_play.remove(target_card) 
+            target_player.played_pile.append(target_card)  
 
     def do_kill_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_player.in_play.remove(target_card) 
-
+        target_player.played_pile.append(target_card)  
+    
     def in_play_card(self, card_id):
         for card in self.in_play:
             if card.id == card_id:
@@ -162,6 +173,8 @@ class CoFXPlayer:
 
         if card.card_type == "Entity":
             self.in_play.append(card)
+        else:
+            self.played_pile.append(card)            
 
         if len(card.effects) > 0:
             for e in card.effects:

@@ -53,7 +53,7 @@ class GameUX {
         let handDiv = document.getElementById("hand");
         handDiv.innerHTML = '';
         for (let card of GameUX.thisPlayer(game).hand) {
-            handDiv.appendChild(GameUX.cardSprite(card, GameUX.username));
+            handDiv.appendChild(GameUX.cardSprite(game, card, GameUX.username));
         }
     }
 
@@ -61,7 +61,7 @@ class GameUX {
         var inPlayDiv = document.getElementById("in_play");
         inPlayDiv.innerHTML = '';
         for (let card of GameUX.thisPlayer(game).in_play) {
-            inPlayDiv.appendChild(GameUX.cardSprite(card, GameUX.username));
+            inPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.username));
         }        
     }
 
@@ -69,7 +69,7 @@ class GameUX {
         let opponentInPlayDiv = document.getElementById("opponent_in_play");
         opponentInPlayDiv.innerHTML = '';
         for (let card of GameUX.opponent(game).in_play) {
-            opponentInPlayDiv.appendChild(GameUX.cardSprite(card, GameUX.username));
+            opponentInPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.username));
         }
     }
 
@@ -105,13 +105,13 @@ class GameUX {
         }
     }
 
-    static disableCardAfterAttack(game, attackingPlayer) {
+    static disableCardAfterAttack(game, attackingPlayer, attackingCard) {
         var container = "opponent_in_play"
         if (attackingPlayer == GameUX.thisPlayer(game).username) {
             container = "in_play";
         }
         for (let childCardDiv of document.getElementById(container).children) {
-            if (childCardDiv.id == "card_"+data["card"]) {
+            if (childCardDiv.id == "card_"+attackingCard) {
                 childCardDiv.style.backgroundColor = "gray";
             }
         }
@@ -127,11 +127,11 @@ class GameUX {
         }
     }
 
-    static cardSprite(card, username) {
+    static cardSprite(game, card, username) {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
-        cardDiv.style = 'height:100px;width:75px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px';
+        cardDiv.style = 'cursor: pointer;height:100px;width:75px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px';
 
         let nameDiv = document.createElement("div");
         nameDiv.innerHTML = card.name;
@@ -187,7 +187,7 @@ class GameUX {
                     cardDiv.style.backgroundColor = "darkgray";                
                     GameUX.lastSelectedCard = null;
                 } else {
-                    if (card.turn_played != -1) {
+                    if (card.turn_played < game.turn) {
                         cardDiv.style.backgroundColor = "orange";                
                         GameUX.lastSelectedCard = cardDiv;
                         GameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
@@ -272,8 +272,8 @@ class GameUX {
         GameUX.updateInPlay(game);
     }
 
-    static updateForAttack(game, attackingUser) {
-        if (data["defending_card"]) {
+    static updateForAttack(game, attackingUser, attackingCard, defendingCard) {
+        if (defendingCard) {
             GameUX.updateInPlay(game);
             GameUX.updateOpponentInPlay(game);
         } else {
@@ -281,7 +281,7 @@ class GameUX {
             GameUX.updateHitPoints(game);
             GameUX.showDamage(game, attackingUser);
         }
-        GameUX.disableCardAfterAttack(game, attackingUser);
+        GameUX.disableCardAfterAttack(game, attackingUser, attackingCard);
     }
 
     static updateForPlayCard(game) {
@@ -301,7 +301,7 @@ class GameUX {
     
     static showFXSelectionView(game, decks) {
         document.getElementById("room").style.display = "none";
-        
+        document.getElementById("room").innerHTML = "";
         var fxSelector = document.getElementById("fx_selector");
         fxSelector.style.display = "block";
 
@@ -634,7 +634,7 @@ class GameRoom {
                             }
                             break;
                         case "ATTACK":
-                            GameUX.updateForAttack(game, data["username"]);
+                            GameUX.updateForAttack(game, data["username"], data["attacking_card"], data["defending_card"]);
                             break;
                         case "SELECT_ENTITY":
                             GameUX.selectEntity(game, data["username"], data["card"]);
