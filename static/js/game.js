@@ -4,6 +4,7 @@ class GameUX {
     static lastSelectedCardInHand = null;
 
     static username = document.getElementById("data_store").getAttribute("username");
+    static gameType = document.getElementById("data_store").getAttribute("game_type");
 
     static thisPlayer(game) {
         for(let player of game.players) {
@@ -48,7 +49,14 @@ class GameUX {
     static updateOpponentCardCount(game) {
         document.getElementById("opponent_card_count").innerHTML = GameUX.opponent(game).hand.length + " cards";                    
     }
-
+    static updateTurnLabel(game) {
+        if (game.turn % 2 == 0 && GameUX.username == game.players[0].username
+            || game.turn % 2 == 1 && GameUX.username == game.players[1].username) {
+            document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
+        } else {
+            document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
+        }
+    }
     static updateHand(game) {
         let handDiv = document.getElementById("hand");
         handDiv.innerHTML = '';
@@ -76,6 +84,7 @@ class GameUX {
     static enableEndTurnButton() {
         document.getElementById("end-turn-button").style.backgroundColor = "red";
         document.getElementById("end-turn-button").style.pointerEvents = "auto";
+        document.getElementById("end-turn-button").innerHTML = "End Turn";
     }
 
     static updateForEndTurn() {
@@ -83,6 +92,7 @@ class GameUX {
         GameUX.lastSelectedCardInHand = null;
         document.getElementById("end-turn-button").style.backgroundColor = "lightgray";
         document.getElementById("end-turn-button").style.pointerEvents = "none";
+        document.getElementById("end-turn-button").innerHTML = "Opponent's Turn";
     }
    
     static enableInPlayEntities() {
@@ -131,19 +141,21 @@ class GameUX {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
-        cardDiv.style = 'cursor: pointer;height:100px;width:75px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px';
+        cardDiv.style = 'cursor: pointer;height:120px;width:75px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px;font-size:12px';
 
-        let nameDiv = document.createElement("div");
+        let nameDiv = document.createElement("b");
         nameDiv.innerHTML = card.name;
         cardDiv.appendChild(nameDiv)
 
-        let costDiv = document.createElement("div");
-        costDiv.innerHTML = "Cost: " + card.cost;
-        cardDiv.appendChild(costDiv)
+        if (card.card_type != "Effect") {
+            let costDiv = document.createElement("div");
+            costDiv.innerHTML = "Cost: " + card.cost;
+            cardDiv.appendChild(costDiv)
 
-        let cardTypeDiv = document.createElement("div");
-        cardTypeDiv.innerHTML = card.card_type;
-        cardDiv.appendChild(cardTypeDiv)
+            let cardTypeDiv = document.createElement("div");
+            cardTypeDiv.innerHTML = card.card_type;
+            cardDiv.appendChild(cardTypeDiv)            
+        }
 
         if (card.description) {
             let descriptionDiv = document.createElement("div");
@@ -168,6 +180,10 @@ class GameUX {
                         cardDiv.style.backgroundColor = "red";                
                         GameUX.lastSelectedCardInHand = null;
                         if (card.name == "Think") {           
+                            var effect_targets = {};
+                            effect_targets[card.effects[0].id] = {"id": GameUX.username, "target_type":"player"};
+                            GameRoom.sendPlayMoveEvent("PLAY_CARD", {"card":card.id, "effect_targets": effect_targets});
+                        } else if (card.name == "Make Entity" || card.name == "Make Spell" || card.name == "Make Global Effect") {     
                             var effect_targets = {};
                             effect_targets[card.effects[0].id] = {"id": GameUX.username, "target_type":"player"};
                             GameRoom.sendPlayMoveEvent("PLAY_CARD", {"card":card.id, "effect_targets": effect_targets});
@@ -260,13 +276,17 @@ class GameUX {
 
     static updateForStartTurn(game) {
         GameUX.updateHand(game);
-        if (GameUX.username == GameUX.thisPlayer(game).username) {
+        if (game.turn % 2 == 0 && GameUX.username == game.players[0].username
+            || game.turn % 2 == 1 && GameUX.username == game.players[1].username) {
             GameUX.enableEndTurnButton();
             GameUX.enableInPlayEntities();
+        } else {
+            GameUX.updateForEndTurn();            
         }
         GameUX.updateOpponentCardCount(game);
         GameUX.updateOpponentMana(game);
         GameUX.updateMana(game);
+        GameUX.updateTurnLabel(game);
 
         // refresh cards so turn_played gets set for summoning sickness
         GameUX.updateInPlay(game);
@@ -299,9 +319,24 @@ class GameUX {
         GameUX.updateHand(game);
     }
     
+    static showCardSelectionView(cards, game, username) {
+        document.getElementById("room").style.display = "none";
+        document.getElementById("card_selector").innerHTML = "";
+        var cardSelector = document.getElementById("card_selector");
+        cardSelector.style.display = "block";
+        for (var card of cards) {
+            var cs = GameUX.cardSprite(card, game, username);
+            cs.onclick = function () {
+                alert("choose card " + card.name);
+            };
+            cardSelector.appendChild(cs);
+        }
+
+    }
+
     static showFXSelectionView(game, decks) {
         document.getElementById("room").style.display = "none";
-        document.getElementById("room").innerHTML = "";
+        document.getElementById("fx_selector").innerHTML = "";
         var fxSelector = document.getElementById("fx_selector");
         fxSelector.style.display = "block";
 
@@ -530,6 +565,38 @@ class GameUX {
     static showGame() {
         document.getElementById("room").style.display = "block";
         document.getElementById("fx_selector").style.display = "none";
+        document.getElementById("make_selector").style.display = "none";
+    }
+
+    static showMakeView(game) {
+        document.getElementById("room").style.display = "none";
+        document.getElementById("make_selector").innerHTML = "";
+        var makeSelector = document.getElementById("make_selector");
+        makeSelector.style.display = "block";
+
+        var cards = GameUX.thisPlayer(game).make_to_resolve;
+
+        var h1 = document.createElement("h1");
+        h1.innerHTML = "Make a Card"
+        makeSelector.appendChild(h1);
+        makeSelector.appendChild(document.createElement('br'));
+        makeSelector.appendChild(document.createElement('br'));
+
+        var cardContainerDiv = document.createElement('div');
+        cardContainerDiv.classList.add("card_container");
+        makeSelector.appendChild(cardContainerDiv);
+
+        for (let card of cards) {
+            let cardDiv = GameUX.cardSprite(game, card, GameUX.username);
+            cardContainerDiv.appendChild(cardDiv);
+            cardDiv.onclick = function() {
+                if (card.starting_effect) {
+                    GameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
+                } else {
+                    GameRoom.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
+                }
+            };
+        }
     }
 
 }
@@ -555,10 +622,11 @@ class GameRoom {
     }
 
     static setupSocket() {
+        const gameType = document.getElementById("data_store").getAttribute("game_type");
         const roomCode = document.getElementById("data_store").getAttribute("room_code");
         const url = new URL(window.location.href);
         var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-        var connectionString = protocol + window.location.host + '/ws/play/' + roomCode + '/';
+        var connectionString = protocol + window.location.host + '/ws/play/' + gameType + '/' + roomCode + '/';
         GameRoom.gameSocket = new WebSocket(connectionString);
 
         GameRoom.gameSocket.onclose = function (e) {
@@ -592,7 +660,7 @@ class GameRoom {
                     var url = location.host + location.pathname;
                     var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
                     var usernameParameter = getSearchParameters()["username"];
-                    var nextRoomUrl = "/play/" + roomNumber + "?username=" + usernameParameter;
+                    var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
                     if (data["username"] == usernameParameter) {
                        window.location.href = nextRoomUrl;
                     } else {
@@ -616,10 +684,14 @@ class GameRoom {
                         case "JOIN":
                             if (game) {
                                 if (game.players.length == 2 && GameUX.username == game.players[0].username) {
-                                    if (game.starting_effects.length != 2) {
-                                      GameRoom.sendPlayMoveEvent("ENTER_FX_SELECTION", {})
-                                    } else {
-                                       GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
+                                    if (GameUX.gameType == "deckbuilder") {
+                                           GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
+                                    } else {  // ccg
+                                        if (game.starting_effects.length != 2) {
+                                          GameRoom.sendPlayMoveEvent("ENTER_FX_SELECTION", {})
+                                        } else {
+                                           GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
+                                        }                                        
                                     }
                                 }
                                 GameUX.updateForGameStart(game);         
@@ -641,6 +713,17 @@ class GameRoom {
                             break;
                         case "PLAY_CARD":
                             GameUX.updateForPlayCard(game);
+                            if (data["is_make_effect"] && data["username"] == GameUX.username) {
+                                GameUX.showMakeView(game);
+                            }
+                            break;
+                        case "MAKE_EFFECT":
+                        case "MAKE_CARD":
+                            if (data["username"] == GameUX.thisPlayer(game).username) {
+                                GameUX.showGame();
+                            }
+                            GameUX.updateHand(game);
+                            GameUX.updateOpponentCardCount(game);
                             break;
                         case "ENTER_FX_SELECTION":
                             GameUX.showFXSelectionView(game, data["decks"]);

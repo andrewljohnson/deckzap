@@ -1,0 +1,111 @@
+    #all_but_player_hand {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .avatar {
+        margin: 10px auto;
+        width: 300px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        background-color: lightgray;
+        border-radius: 6px;
+    }
+
+    .avatar div {
+        padding-left: 3px;
+    }
+    
+    .avatar_image {
+        width: 100px;
+        border-radius: 6px;
+    }
+
+    .card_container {
+        border-radius: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;        
+    }
+
+    #middle_long_row {
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;        
+    }
+    #title {
+        color:lightgray;
+        clear:both;
+        width: 100%;
+        text-align: center;
+    }
+
+    #end-turn-button {
+        display: block;
+        width: 120px;
+        background-color: red;
+        color: white;
+        border-radius: 6px;
+        border: white 1px;
+        text-decoration: none;
+        font-size: 18px;
+        padding: 10px;
+        text-align:center;
+    }
+
+    #menu {
+        margin-top:30px;
+    }
+
+    .menu-button {
+        display: block;
+        width: 130px;
+        background-color: white;
+        border-radius: 6px;
+        border: gray 1px solid;
+        text-decoration: none;
+        font-size: 12px;
+        padding: 5px;
+        text-align:center;
+        margin-top:5px;
+    }
+
+    #hand {
+        margin-top: 10px;
+    }
+
+    #right {
+        padding-left:10px;
+    }
+
+    #in_play {
+        height:130px;width:610px;background-color:black;
+    }
+
+    #opponent_in_play {
+        height:130px;width:610px;background-color:black;
+    }
+
+    #hand {
+        height:130px;width:100%;background-color:yellow;    
+    }
+
+                        
+    * {
+        user-select:none;
+    }
+
+    .modal_view {
+        text-align:center;margin: 0 auto;width:80%;display:none;
+    }
+
+    #turn_label {
+        width:100%;
+        text-align:center;
+        margin-top:5px;
+    }
+
+
