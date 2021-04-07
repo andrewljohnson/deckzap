@@ -684,9 +684,10 @@ class GameRoom {
                         case "JOIN":
                             if (game) {
                                 if (game.players.length == 2 && GameUX.username == game.players[0].username) {
-                                    if (GameUX.gameType == "deckbuilder") {
+                                    console.log(GameUX.gameType);
+                                    if (GameUX.gameType == "ingame") {
                                            GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
-                                    } else {  // ccg
+                                    } else {  // pregame
                                         if (game.starting_effects.length != 2) {
                                           GameRoom.sendPlayMoveEvent("ENTER_FX_SELECTION", {})
                                         } else {

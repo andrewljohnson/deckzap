@@ -2,15 +2,10 @@
 
 {% block content %}
 <div class="wrapper">
-  <h1>Welcome to Elements</h1>
-  <p>Wizard battle card games. Free to play, non-collectible.</p>
-  <p>Play the mainstream, or create your own version to invite people to.</p>
-  <form method="POST">
-    {% csrf_token %}
-    <input type="submit" class="button" value="Play Games" />
-    <!-- input type="submit" class="button" value="Create Game" / onclick="alert('not implemented')" -->
-</form>
-
+  <h1>Play a Game</h1>
+  <p>Choose one of the games to play.</p>
+    <a href=/play/ingame>In-game Deckbuilder (In Queue: {{in_queue.ingame}})</a><br/>
+    <a href=/play/pregame>Pre-game Deckbuilder (In Queue: {{in_queue.ingame}}</a>
 </div>
 
     <!-- div class='form-control'>

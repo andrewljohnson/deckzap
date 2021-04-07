@@ -20,7 +20,8 @@ class CoFXGame:
         json_data = open('cofx/cofx_cards.json')
         card_json = json.load(json_data)  
         for c_info in card_json:
-            self.all_cards.append(CoFXCard(c_info))
+            if c_info["name"] != "Make Global Effect":
+               self.all_cards.append(CoFXCard(c_info))
 
         if info:
             for u in info["players"]:
@@ -369,6 +370,19 @@ class CoFXConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         print("Disconnected")
+
+        try:
+            json_data = open("queue_database.json")
+            queue_database = json.load(json_data) 
+        except:
+            queue_database = {"ingame": {"open_games":[], "starting_id":3000}, "pregame": {"open_games":[], "starting_id":3000}}
+
+        if int(self.room_name) in queue_database[self.game_type]["open_games"]:
+            queue_database[self.game_type]["open_games"].remove(int(self.room_name))
+
+        with open("queue_database.json", 'w') as outfile:
+            json.dump(queue_database, outfile)
+
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name
@@ -428,9 +442,9 @@ class CoFXConsumer(WebsocketConsumer):
                     game.players.append(CoFXPlayer(game, {"username":message["username"]}, new=True))
                 if len (game.players) == 2 and len(game.players[0].hand) == 0 and True: # is deckbuilder
                     for p in game.players:
-                        for card_name in ["Make Entity", "Make Spell", "Make Global Effect"]:
+                        for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]: #"Make Global Effect"
                             p.add_to_deck(card_name, 1)
-                        p.draw(3)
+                        p.draw(4)
                 else:
                     print(f"an extra player tried to join players {[p.username for p in game.players]}")
             else:
@@ -441,8 +455,7 @@ class CoFXConsumer(WebsocketConsumer):
                     return
             if move_type == 'START_TURN':
                 if game.turn != 0:
-                    if game.game_type == "ccg" or game.turn != 1: #deckbuilder style doens't draw turn 1
-                        game.current_player().draw(1 + game.starting_effects.count("draw_extra_card"))
+                    game.current_player().draw(1 + game.starting_effects.count("draw_extra_card"))
                 game.current_player().mana = math.floor(game.turn/2) + 2
             elif move_type == 'END_TURN':
                 game.turn += 1
