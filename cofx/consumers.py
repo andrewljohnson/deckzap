@@ -56,9 +56,11 @@ class CoFXGame:
         if attacking_card.damage >= attacking_card.toughness:
             self.current_player().in_play.remove(attacking_card)
             self.current_player().played_pile.append(attacking_card)  
+            attacking_card.damage = 0
         if defending_card.damage >= defending_card.toughness:
             self.opponent().in_play.remove(defending_card)
             self.opponent().played_pile.append(defending_card)  
+            defending_card.damage = 0
 
 
 class CoFXPlayer:
@@ -138,11 +140,13 @@ class CoFXPlayer:
         if target_card.damage >= target_card.toughness:
             target_player.in_play.remove(target_card) 
             target_player.played_pile.append(target_card)  
+            target_card.damage = 0
 
     def do_kill_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_player.in_play.remove(target_card) 
         target_player.played_pile.append(target_card)  
+        target_card.damage = 0
     
     def do_make_effect(self, card, target_player_username, make_type, amount):
         target_player = self.game.players[0]
@@ -162,6 +166,22 @@ class CoFXPlayer:
                 "card_type": "Effect",
                 "description": "New spells players make cost 1 more",
                 "starting_effect": "spells_cost_more"
+            }
+            effects.append(CoFXCard(card_info))
+            card_info = {
+                "name": "Expensive Entities",
+                "cost": 0,
+                "card_type": "Effect",
+                "description": "New entities players make cost 1 more",
+                "starting_effect": "entities_cost_more"
+            }
+            effects.append(CoFXCard(card_info))
+            card_info = {
+                "name": "Draw More",
+                "cost": 0,
+                "card_type": "Effect",
+                "description": "Players draw an extra card on their turn.",
+                "starting_effect": "draw_extra_card"
             }
             effects.append(CoFXCard(card_info))
             self.make_to_resolve = effects
