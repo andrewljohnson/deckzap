@@ -90,5 +90,41 @@
 			"name": "counter",
 			"id": 0
 		}]
+	},
+	{
+		"name": "Make Entity",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 entities to make and add to your hand.",
+		"effects": [{
+			"name": "make",
+			"make_type": "Entity",
+			"amount": 1,
+			"id": 0
+		}]
+	},
+	{
+		"name": "Make Spell",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 spells to make and add to your hand.",
+		"effects": [{
+			"name": "make",
+			"make_type": "Spell",
+			"amount": 1,
+			"id": 0
+		}]
+	},
+	{
+		"name": "Make Global Effect",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 global effects to affect all players",
+		"effects": [{
+			"name": "make",
+			"make_type": "Global",
+			"amount": 1,
+			"id": 0
+		}]
 	}
 ]

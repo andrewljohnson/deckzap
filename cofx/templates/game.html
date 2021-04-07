@@ -26,8 +26,8 @@
                 <div class=card_container id=in_play></div>
             </div>
             <div id=right>
-                <div id=turn-label>Turn 0 (setting up)</div>
                 <a id=end-turn-button onclick=GameRoom.endTurn()>End Turn</a>
+                <div id=turn_label>Turn 0 (setting up)</div>
                 <div id=menu> 
                     <div id=title>CoFX - room_{{room_code}}</div>
                     <a class=menu-button onclick=GameUX.viewHelp()>Help</a>
@@ -47,109 +47,13 @@
     <div class=card_container id=hand></div>
 </div>
 
-<div id=fx_selector style="text-align:center;margin: 0 auto;width:80%;display:none"></div>
+<div id=fx_selector class="modal_view"></div>
 
-<div id="data_store" room_code = {{room_code}} username = {{username}}></div>
+<div id=make_selector class="modal_view"></div>
 
-<style>
-    #all_but_player_hand {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-    }
+<div id="data_store" game_type = {{game_type}} room_code = {{room_code}} username = {{username}}></div>
 
-    .avatar {
-        margin: 10px auto;
-        width: 300px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        background-color: lightgray;
-        border-radius: 6px;
-    }
+<link rel="stylesheet" href="/static/css/base.css">
 
-    .avatar div {
-        padding-left: 3px;
-    }
-    
-    .avatar_image {
-        width: 100px;
-        border-radius: 6px;
-    }
-
-    .card_container {
-        border-radius: 6px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;        
-    }
-
-    #middle_long_row {
-        margin: 0 auto;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;        
-    }
-    #title {
-        color:lightgray;
-        clear:both;
-    }
-
-    #end-turn-button {
-        display: block;
-        width: 100px;
-        background-color: red;
-        color: white;
-        border-radius: 6px;
-        border: white 1px;
-        text-decoration: none;
-        font-size: 24px;
-        padding: 10px;
-        text-align:center;
-    }
-
-    #menu {
-        margin-top:30px;
-    }
-
-    .menu-button {
-        display: block;
-        width: 110px;
-        background-color: white;
-        border-radius: 6px;
-        border: gray 1px solid;
-        text-decoration: none;
-        font-size: 12px;
-        padding: 5px;
-        text-align:center;
-        margin-top:5px;
-    }
-
-    #hand {
-        margin-top: 10px;
-    }
-
-    #right {
-        padding-left:10px;
-    }
-
-    #in_play {
-        height:110px;width:610px;background-color:black;
-    }
-
-    #opponent_in_play {
-        height:110px;width:610px;background-color:black;
-    }
-
-    #hand {
-        height:110px;width:100%;background-color:yellow;    
-    }
-
-                        
-    * {
-        user-select:none;
-    }
-
-</style>
 
 {% endblock content %}
