@@ -30,7 +30,12 @@ def game(request, room_code, game_type):
 
 def games(request):
     game_types = ["ingame", "pregame"]
-    return render(request, "games.html", {"game_types": game_types})
+    try:
+        json_data = open("queue_database.json")
+        queue_database = json.load(json_data) 
+    except:
+        queue_database = {"ingame": {"open_games":[], "starting_id":3000}, "pregame": {"open_games":[], "starting_id":3000}}
+    return render(request, "games.html", {"game_types": game_types, "queue_database": queue_database})
 
 
 def find_game(request, game_type):
