@@ -12,7 +12,7 @@
   <h2>Player Built</h2>
   <ul>
     {% for g in custom_games %}
-    <li><a href=/play/custom/{{g.id}}>{{g.username}}'s Game, Deckbuilder Type: {{g.gametype}} (In Queue: {{g.open_games|length}})</a></li>
+    <li><a href=/play/custom/{{g.id}}>{{g.username}}'s Game, Deckbuilder Type: {{g.game_type}} (In Queue: {{g.open_games|length}})</a></li>
     {% endfor %}
   </ul>
 </div>

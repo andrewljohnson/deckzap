@@ -160,7 +160,6 @@ class GameUX {
 
         if (card.card_type != "Effect") {
             let costDiv = document.createElement("div");
-            // costDiv.innerHTML = "Cost: " + card.cost;
             costDiv.innerHTML = GameUX.manaString(card.cost, card.cost);
             cardDiv.appendChild(costDiv)
 
@@ -640,6 +639,12 @@ class GameRoom {
         const url = new URL(window.location.href);
         var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
         var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.gameType + '/' + roomCode + '/';
+
+        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
+        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
+        if (isCustom != "False") {
+            var connectionString = protocol + window.location.host + '/ws/play_custom/' + customGameId + '/' + roomCode + '/';
+        }
         GameRoom.gameSocket = new WebSocket(connectionString);
 
         GameRoom.gameSocket.onclose = function (e) {
@@ -674,6 +679,11 @@ class GameRoom {
                     var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
                     var usernameParameter = getSearchParameters()["username"];
                     var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
+                    const isCustom = document.getElementById("data_store").getAttribute("is_custom");
+                    const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
+                    if (isCustom != "False") {
+                        nextRoomUrl = "/play/custom/" + customGameId + '/' + roomNumber + "?username=" + usernameParameter;
+                    }
                     if (data["username"] == usernameParameter) {
                        window.location.href = nextRoomUrl;
                     } else {

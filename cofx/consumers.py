@@ -63,6 +63,82 @@ class CoFXGame:
             defending_card.damage = 0
 
 
+    def play_move(self, event, message):
+        if event == "PLAY_MOVE":
+            move_type = message["move_type"]
+            print(f"Move Type: {move_type}")
+
+            if move_type == 'CHOOSE_STARTING_EFFECT':
+                self.starting_effects.append(message["id"])
+                player = self.players[0]
+                if player.username != message["username"]:
+                    player = self.players[1]
+
+                player_db = JsonDB().update_deck_in_player_database(player.username, message["card_counts"], JsonDB().player_database())
+
+                if len(self.starting_effects) == 2:
+                    for p in self.players:
+                        for card_name in player_db[p.username]["card_counts"].keys():
+                            p.add_to_deck(card_name, int(player_db[p.username]["card_counts"][card_name]))
+                        random.shuffle(p.deck)
+                        p.draw(6)
+            elif move_type == 'ENTER_FX_SELECTION':
+                message["decks"] = {}
+                player_db = JsonDB().player_database()
+                for p in self.players:
+                    if "card_counts" in player_db[p.username]:
+                        message["decks"][p.username] = player_db[p.username]["card_counts"] 
+                pass
+            elif move_type == 'JOIN':
+                if len(self.players) >= 2:
+                    print(f"an extra player tried to join players {[p.username for p in self.players]}")
+                elif len(self.players) <= 1:
+                    if len(self.players) == 0 or len(self.players) == 1 and self.players[0].username != message["username"]:
+                        self.players.append(CoFXPlayer(self, {"username":message["username"]}, new=True))
+                if len(self.players) == 2 and len(self.players[0].hand) == 0 and self.game_type == "ingame":
+                    for p in self.players:
+                        for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]: #"Make Global Effect"
+                            p.add_to_deck(card_name, 1)
+                        p.draw(4)
+            else:
+                current_player = self.current_player()
+                opponent = self.opponent()
+                if (message["username"] != current_player.username):
+                    print(f"can't {event} {move_type} on opponent's turn")
+                    return None, None
+            if move_type == 'START_TURN':
+                if self.turn != 0:
+                    self.current_player().draw(1 + self.starting_effects.count("draw_extra_card"))
+                self.current_player().mana = math.floor(self.turn/2) + 2
+            elif move_type == 'END_TURN':
+                self.turn += 1
+            elif move_type == 'SELECT_ENTITY':
+                if not current_player.can_select(message["card"]):
+                    # don't send the message to the clients to highlight the card
+                    return
+            elif move_type == 'ATTACK':
+                if "defending_card" in message:
+                    self.resolve_combat(
+                        current_player.in_play_card(message["card"]), 
+                        opponent.in_play_card(message["defending_card"])
+                    )
+                else:
+                    opponent.hit_points -= current_player.in_play_card(message["card"]).power
+            elif move_type == 'PLAY_CARD':
+                played_card = current_player.play_card(message["card"], message)
+                if played_card:
+                    message["played_card"] = True
+                    message["card"] = played_card.as_dict()
+                    if played_card.card_type == "Spell" and played_card.effects[0].name == "make":
+                        message["is_make_effect"] = True
+            elif move_type == 'MAKE_CARD':
+                current_player.add_to_deck(message["card_name"], 1, add_to_hand=True)
+            elif move_type == 'MAKE_EFFECT':
+                self.starting_effects.append(message["card"]["starting_effect"])
+
+        return message, self.as_dict()
+
+
 class CoFXPlayer:
 
     def __init__(self, game, info, new=False):
@@ -187,9 +263,6 @@ class CoFXPlayer:
         while not card3 or card3.card_type != make_type:
             card3 = random.choice(self.game.all_cards)
         self.make_to_resolve = [card1, card2, card3]
-
-        # make 3 random cards of the given type
-        # send an event to the user to choose from the make_pile, and display make pile on front end
 
     def in_play_card(self, card_id):
         for card in self.in_play:
@@ -349,7 +422,7 @@ class CoFXConsumer(WebsocketConsumer):
         self.game_type = self.scope['url_route']['kwargs']['game_type']
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
-        self.db_name = self.game_type + self.room_name
+        self.db_name = f"standard-{self.game_type}-{self.room_name}"
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
@@ -359,9 +432,7 @@ class CoFXConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         print("Disconnected")
-
         JsonDB().remove_from_queue_database(self.game_type, int(self.room_name), JsonDB().queue_database())
-
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name
@@ -377,86 +448,11 @@ class CoFXConsumer(WebsocketConsumer):
             return
 
         game_dict = JsonDB().game_database(self.db_name)
-        game = CoFXGame(self.game_type, info=game_dict)            
-
-        if event == "PLAY_MOVE":
-            move_type = message["move_type"]
-            print(f"Move Type: {move_type}")
-
-            if move_type == 'CHOOSE_STARTING_EFFECT':
-                game.starting_effects.append(message["id"])
-                player = game.players[0]
-                if player.username != message["username"]:
-                    player = game.players[1]
-
-                player_db = JsonDB().player_database()
-                player_db = JsonDB().update_deck_in_player_database(player.username, message["card_counts"], player_db)
-
-                if len(game.starting_effects) == 2:
-                    for p in game.players:
-                        for card_name in player_db[p.username]["card_counts"].keys():
-                            p.add_to_deck(card_name, int(player_db[p.username]["card_counts"][card_name]))
-                        random.shuffle(p.deck)
-                        p.draw(6)
-
-            elif move_type == 'ENTER_FX_SELECTION':
-                message["decks"] = {}
-                player_db = JsonDB().player_database()
-                for p in game.players:
-                    if "card_counts" in player_db[p.username]:
-                        message["decks"][p.username] = player_db[p.username]["card_counts"] 
-                pass
-            elif move_type == 'JOIN':
-                if len(game.players) >= 2:
-                    print(f"an extra player tried to join players {[p.username for p in game.players]}")
-                elif len(game.players) <= 1:
-                    if len(game.players) == 0 or len(game.players) == 1 and game.players[0].username != message["username"]:
-                        game.players.append(CoFXPlayer(game, {"username":message["username"]}, new=True))
-                if len(game.players) == 2 and len(game.players[0].hand) == 0 and game.game_type == "ingame":
-                    for p in game.players:
-                        for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]: #"Make Global Effect"
-                            p.add_to_deck(card_name, 1)
-                        p.draw(4)
-            else:
-                current_player = game.current_player()
-                opponent = game.opponent()
-                if (message["username"] != current_player.username):
-                    print(f"can't {event} {move_type} on opponent's turn")
-                    return
-            if move_type == 'START_TURN':
-                if game.turn != 0:
-                    game.current_player().draw(1 + game.starting_effects.count("draw_extra_card"))
-                game.current_player().mana = math.floor(game.turn/2) + 2
-            elif move_type == 'END_TURN':
-                game.turn += 1
-            elif move_type == 'SELECT_ENTITY':
-                if not current_player.can_select(message["card"]):
-                    # don't send the message to the clients to highlight the card
-                    return
-            elif move_type == 'ATTACK':
-                if "defending_card" in message:
-                    game.resolve_combat(
-                        current_player.in_play_card(message["card"]), 
-                        opponent.in_play_card(message["defending_card"])
-                    )
-                else:
-                    opponent.hit_points -= current_player.in_play_card(message["card"]).power
-            elif move_type == 'PLAY_CARD':
-                played_card = current_player.play_card(message["card"], message)
-                if played_card:
-                    message["played_card"] = True
-                    message["card"] = played_card.as_dict()
-                    if played_card.card_type == "Spell" and played_card.effects[0].name == "make":
-                        message["is_make_effect"] = True
-            elif move_type == 'MAKE_CARD':
-                game.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
-            elif move_type == 'MAKE_EFFECT':
-                game.starting_effects.append(message["card"]["starting_effect"])
-
-        game_dict = game.as_dict()
-        JsonDB().save_game_database(game_dict, self.db_name)
-
-        self.send_game_message(game_dict, event, move_type, message)
+        game = CoFXGame(self.game_type, info=game_dict)        
+        message, game_dict = game.play_move(event, message)    
+        if game_dict:
+            JsonDB().save_game_database(game_dict, self.db_name)
+            self.send_game_message(game_dict, event, message["move_type"], message)
 
     def send_game_message(self, game_dict, event, move_type, message):
         # send current-game-related message to players
@@ -482,3 +478,33 @@ class CoFXConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'payload': message
         }))
+
+
+class CoFXCustomConsumer(CoFXConsumer):
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_code']
+        self.room_group_name = 'room_%s' % self.room_name
+        self.custom_game_id = self.scope['url_route']['kwargs']['custom_game_id']
+        self.db_name = f"custom-{self.custom_game_id}-{self.room_name}"
+  
+        cgd = JsonDB().custom_game_database()
+        self.game_type = None
+        for game in cgd["games"]:
+            if game["id"] == int(self.custom_game_id):
+                self.game_type = game["game_type"]            
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+        self.accept()
+
+    def disconnect(self, close_code):
+        print("Disconnected")
+
+        JsonDB().remove_custom_from_queue_database(int(self.custom_game_id), int(self.room_name), JsonDB().queue_database())
+
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )

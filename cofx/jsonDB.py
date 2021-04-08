@@ -23,11 +23,13 @@ class JsonDB:
             json_data = open("database/custom_game_database.json")
             custom_game_database = json.load(json_data) 
         except:
-            custom_game_database = {"games": []}
+            custom_game_database = {"games": [], "starting_id":0}
         return custom_game_database
 
     def save_to_custom_game_database(self, game_info, custom_game_database):
         custom_game_database["games"].append(game_info)
+        game_info["id"] = custom_game_database["starting_id"]
+        custom_game_database["starting_id"] += 1
         with open("database/custom_game_database.json", 'w') as outfile:
             json.dump(custom_game_database, outfile)
 
@@ -40,19 +42,35 @@ class JsonDB:
         return queue_database
     
     def join_game_in_queue_database(self, game_type, queue_database):
+        return self.room_code_for_type(game_type, queue_database)
+
+    def join_custom_game_in_queue_database(self, custom_game_id, queue_database):
+        game_type = f"custom-{custom_game_id}"
+        if not game_type in queue_database:
+            queue_database[game_type] = {"open_games":[], "starting_id":0}
+        return self.room_code_for_type(game_type, queue_database)
+
+    def room_code_for_type(self, game_type, queue_database):
         if len(queue_database[game_type]["open_games"]) > 0:
             room_code = queue_database[game_type]["open_games"].pop()
         else:
             room_code = queue_database[game_type]["starting_id"]
             queue_database[game_type]["starting_id"] += 1
             queue_database[game_type]["open_games"].append(room_code)
-        return room_code
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
+        return room_code
 
     def remove_from_queue_database(self, game_type, room_code, queue_database):
         if room_code in queue_database[game_type]["open_games"]:
             queue_database[game_type]["open_games"].remove(room_code)
+        with open("database/queue_database.json", 'w') as outfile:
+            json.dump(queue_database, outfile)
+
+    def remove_custom_from_queue_database(self, custom_game_id, room_code, queue_database):
+        db_id = f"custom-{custom_game_id}"
+        if room_code in queue_database[db_id]["open_games"]:
+            queue_database[db_id]["open_games"].remove(room_code)
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
 
