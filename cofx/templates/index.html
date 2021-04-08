@@ -2,18 +2,14 @@
 
 {% block content %}
 <div class="wrapper">
-  <h1>Welcome to CoFX Game</h1>
+  <h1>Wizard Card Game Universe (WCGU)</h1>
+  <p>Wizard battle card games. Free to play, non-collectible.</p>
+  <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
   <form method="POST">
     {% csrf_token %}
-    <div class='form-control'>
-      <label for="room">Room id</label>
-      <input id="room" type="text" name="room_code" required />
-    </div>
-    <div class='form-control'>
-      <label for="room">Username</label>
-      <input id="username" type="text" name="username" required />
-    </div>
-    <input type="submit" class="button" value="Start Game" />
-</div>
+    <input type="submit" class="button" value="Play Games" name="menu" />
+    <input type="submit" class="button" value="Create Game" name="menu"/>
 </form>
+
+</div>
 {% endblock content %}

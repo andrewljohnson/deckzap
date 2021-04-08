@@ -1,103 +1,60 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block javascript %}
+<script src = "{% static 'js/game.js' %}"></script>
+<script type="text/javascript">
+    GameRoom.connect();
+</script>
+{% endblock javascript %}
+
 {% block content %}
 
-<div>
-    <div id=all_but_footer> 
-        <div id=left>
-            <div class=avatar id =opponent>
-                <img class=avatar_image src="{% static 'images/bear.png' %}" alt="tiger" />
-                <div>
-                    <div id=opponent_username></div>
-                    <div id=opponent_hit_points></div>
-                    <div id=opponent_mana></div>
-                    <div id=opponent_card_count></div>
-                </div>
+<div id=room>
+    <div id=all_but_player_hand> 
+        <div class=avatar id=opponent onclick=GameUX.opponentClick()>
+            <img class=avatar_image src="{% static 'images/bear.png' %}" alt="tiger" />
+            <div>
+                <div id=opponent_username></div>
+                <div id=opponent_hit_points></div>
+                <div id=opponent_mana></div>
+                <div id=opponent_card_count></div>
             </div>
+        </div>
+        <div id=middle_long_row>
             <div>
                 <div class=card_container id=opponent_in_play></div>
                 <div class=card_container id=in_play></div>
-                <div class=card_container id=hand></div>
             </div>
-            <div class=avatar id=player1>
-                <img class=avatar_image src="{% static 'images/tiger.png' %}" alt="tiger" />
-                <div>
-                    <div id=username></div>
-                    <div id=hit_points></div>
-                    <div id=mana></div>
+            <div id=right>
+                <a id=end-turn-button onclick=GameRoom.endTurn()>End Turn</a>
+                <div id=turn_label>Turn 0 (setting up)</div>
+                <div id=menu> 
+                    <div id=title>CoFX - room_{{room_code}}</div>
+                    <a class=menu-button onclick=GameUX.viewHelp()>Help</a>
+                    <a class=menu-button onclick=GameRoom.nextRoom()>New Game</a>
                 </div>
             </div>
         </div>
-        <div id=right>
-            <a id=end-turn-button onclick=endTurn()>End Turn</a>
+        <div class=avatar id=player1>
+            <img class=avatar_image src="{% static 'images/tiger.png' %}" alt="tiger" />
+            <div>
+                <div id=username></div>
+                <div id=hit_points></div>
+                <div id=mana></div>
+            </div>
         </div>
     </div>
-    <div id=footer>CoFX - room_{{room_code}} - <a href=# onclick=nextRoom()>New Game</a></div>
+    <div class=card_container id=hand></div>
+    <div id=game_log><div id=game_log_inner></div></div>
 </div>
 
-<div id="data_store" room_code = {{room_code}} username = {{username}}></div>
+<div id=fx_selector class="modal_view"></div>
 
-<style>
-    .avatar {
-        margin: 10px auto;
-        width: 300px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        background-color: lightgray;
-        border-radius: 6px;
-    }
+<div id=make_selector class="modal_view"></div>
 
-    .avatar div {
-        padding-left: 3px;
-    }
-    
-    .avatar_image {
-        width: 100px;
-        border-radius: 6px;
-    }
+<div id="data_store" game_type = {{game_type}} room_code = {{room_code}} username = {{username}}></div>
 
-    .card_container {
-        border-radius: 6px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;        
-    }
-
-    #all_but_footer {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    #footer {
-        color:lightgray;
-        clear:both;
-        padding-top:60px;
-    }
-
-    #end-turn-button {
-        display: block;
-        width: 100px;
-        background-color: gray;
-        color: white;
-        border-radius: 6px;
-        border: white 1px;
-        text-decoration: none;
-        font-size: 24px;
-        padding: 10px;
-        text-align:center;
-    }
-
-    #hand {
-        margin-top: 10px;
-    }
-
-    #right {
-        padding-left:10px;
-    }
-
-</style>
+<link rel="stylesheet" href="/static/css/base.css">
 
 {% endblock content %}

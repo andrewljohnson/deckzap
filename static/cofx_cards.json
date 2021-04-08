@@ -1,0 +1,85 @@
+[{
+		"name": "CatKin",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1
+	},
+
+	{
+		"name": "PantherKin",
+		"power": 3,
+		"toughness": 3,
+		"cost": 2
+	},
+	{
+		"name": "LionKin",
+		"power": 4,
+		"toughness": 4,
+		"cost": 3
+	},
+	{
+		"name": "Beastmaster",
+		"power": 4,
+		"toughness": 5,
+		"cost": 4
+	},
+	{
+		"name": "Ogre",
+		"power": 5,
+		"toughness": 6,
+		"cost": 5
+	},
+	{
+		"name": "Dragon",
+		"power": 6,
+		"toughness": 7,
+		"cost": 6
+	},
+	{
+		"name": "Kill",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Kill an opponent's entity.",
+		"effects": [{
+			"name": "kill",
+			"id": 0
+		}]
+	},
+	{
+		"name": "Zap",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Deal 3 damage.",
+		"effects": [{
+			"name": "damage",
+			"amount": 3,
+			"id": 0
+		}]
+	},
+	{
+		"name": "Think",
+		"cost": 0,
+		"card_type": "Spell",
+		"description": "Draw 2 cards.",
+		"effects": [{
+			"name": "draw",
+			"amount": 2,
+			"id": 0
+		}]
+	},
+	{
+		"name": "Siz Pop",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Deal 1 damage. Draw 1 card.",
+		"effects": [{
+			"name": "damage",
+			"amount": 1,
+			"id": 0
+		}, {
+			"name": "draw",
+			"amount": 1,
+			"id": 1
+		}]
+	}
+]

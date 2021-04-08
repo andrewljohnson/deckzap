@@ -1,0 +1,65 @@
+<h1>D&D Character Maker</h1>
+<button onclick=showRaceChoice()>Get Started</button>
+<div id=form></div>
+
+<script>
+
+	var hasShownClassPicker = false;
+
+	function showRaceChoice() {
+		var raceH2 = document.createElement("h2");
+		raceH2.innerHTML = "Race";
+		document.getElementById("form").appendChild(raceH2);
+		var listOfRaces = ['human', 'elf', 'dwarf', "tiefling", "dragonborn"];
+		for (var race of listOfRaces) {
+			var radioButton = document.createElement("input");
+			radioButton.id = race;
+			radioButton.type = "radio";
+			radioButton.name = "race";
+			radioButton.value = race;
+			radioButton.onclick = function() {
+				if (!hasShownClassPicker) {
+					hasShownClassPicker = true;
+					var listOfClasses = ['wizard', 'warrior', 'sorcerer', "warlock", "bard"];
+					showClassPicker(listOfClasses);
+				}
+
+			}
+			document.getElementById("form").appendChild(radioButton);
+			var label = document.createElement("label");
+			label.for = race;
+			label.innerHTML = race;
+			document.getElementById("form").appendChild(label);
+		}
+	}
+
+	function showClassPicker(listOfClasses) {
+					var raceH2 = document.createElement("h2");
+					raceH2.innerHTML = "Class";
+					document.getElementById("form").appendChild(raceH2);
+		var listOfRaces = ['human', 'elf', 'dwarf', "tiefling", "dragonborn"];
+		for (var race of listOfRaces) {
+			var radioButton = document.createElement("input");
+			radioButton.id = race;
+			radioButton.type = "radio";
+			radioButton.name = "race";
+			radioButton.value = race;
+			radioButton.onclick = function() {
+				if (!hasShownClassPicker) {
+					hasShownClassPicker = true;
+					var raceH2 = document.createElement("h2");
+					raceH2.innerHTML = "Class";
+					document.getElementById("form").appendChild(raceH2);
+					var listOfClasses = ['wizard', 'warrior', 'sorcerer', "warlock", "bard"];
+					showClassPicker(listOfClasses);
+				}
+
+			}
+			document.getElementById("form").appendChild(radioButton);
+			var label = document.createElement("label");
+			label.for = race;
+			label.innerHTML = race;
+			document.getElementById("form").appendChild(label);
+		}
+	}
+</script>
