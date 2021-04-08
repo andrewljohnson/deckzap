@@ -5,6 +5,7 @@ import random
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from cofx.jsonDB import JsonDB
 
 
 class CoFXGame:
@@ -17,9 +18,7 @@ class CoFXGame:
         self.starting_effects = []
 
         self.all_cards = []
-        json_data = open('cofx/cofx_cards.json')
-        card_json = json.load(json_data)  
-        for c_info in card_json:
+        for c_info in JsonDB().all_cards():
             if c_info["name"] != "Make Global Effect":
                self.all_cards.append(CoFXCard(c_info))
 
@@ -69,17 +68,7 @@ class CoFXPlayer:
     def __init__(self, game, info, new=False):
         self.username = info["username"]
 
-        try:
-            json_data = open("player_database.json")
-            player_db = json.load(json_data) 
-        except:
-            player_db = {}
-
-        if self.username not in player_db:
-            player_db[self.username] = {}
-        with open("player_database.json", 'w') as outfile:
-            json.dump(player_db, outfile)
-
+        JsonDB().add_to_player_database(self.username, JsonDB().player_database())
         self.game = game
         if new:
             self.hit_points = 30
@@ -371,17 +360,7 @@ class CoFXConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         print("Disconnected")
 
-        try:
-            json_data = open("queue_database.json")
-            queue_database = json.load(json_data) 
-        except:
-            queue_database = {"ingame": {"open_games":[], "starting_id":3000}, "pregame": {"open_games":[], "starting_id":3000}}
-
-        if int(self.room_name) in queue_database[self.game_type]["open_games"]:
-            queue_database[self.game_type]["open_games"].remove(int(self.room_name))
-
-        with open("queue_database.json", 'w') as outfile:
-            json.dump(queue_database, outfile)
+        JsonDB().remove_from_queue_database(self.game_type, int(self.room_name), JsonDB().queue_database())
 
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
@@ -397,12 +376,7 @@ class CoFXConsumer(WebsocketConsumer):
             self.send_game_message(None, event, None, message)
             return
 
-        game_dict = None
-        try:
-            json_data = open(self.db_name)
-            game_dict = json.load(json_data) 
-        except:
-            print("making a new game")
+        game_dict = JsonDB().game_database(self.db_name)
         game = CoFXGame(self.game_type, info=game_dict)            
 
         if event == "PLAY_MOVE":
@@ -415,11 +389,8 @@ class CoFXConsumer(WebsocketConsumer):
                 if player.username != message["username"]:
                     player = game.players[1]
 
-                json_data = open("player_database.json")
-                player_db = json.load(json_data) 
-                player_db[player.username]["card_counts"] = message["card_counts"]
-                with open("player_database.json", 'w') as outfile:
-                    json.dump(player_db, outfile)
+                player_db = JsonDB().player_database()
+                player_db = JsonDB().update_deck_in_player_database(player.username, message["card_counts"], player_db)
 
                 if len(game.starting_effects) == 2:
                     for p in game.players:
@@ -430,22 +401,22 @@ class CoFXConsumer(WebsocketConsumer):
 
             elif move_type == 'ENTER_FX_SELECTION':
                 message["decks"] = {}
-                json_data = open("player_database.json")
-                player_db = json.load(json_data) 
+                player_db = JsonDB().player_database()
                 for p in game.players:
                     if "card_counts" in player_db[p.username]:
                         message["decks"][p.username] = player_db[p.username]["card_counts"] 
                 pass
             elif move_type == 'JOIN':
-                if len(game.players) <= 1:
-                    game.players.append(CoFXPlayer(game, {"username":message["username"]}, new=True))
-                if len (game.players) == 2 and len(game.players[0].hand) == 0 and game.game_type == "ingame":
+                if len(game.players) >= 2:
+                    print(f"an extra player tried to join players {[p.username for p in game.players]}")
+                elif len(game.players) <= 1:
+                    if len(game.players) == 0 or len(game.players) == 1 and game.players[0].username != message["username"]:
+                        game.players.append(CoFXPlayer(game, {"username":message["username"]}, new=True))
+                if len(game.players) == 2 and len(game.players[0].hand) == 0 and game.game_type == "ingame":
                     for p in game.players:
                         for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]: #"Make Global Effect"
                             p.add_to_deck(card_name, 1)
                         p.draw(4)
-                else:
-                    print(f"an extra player tried to join players {[p.username for p in game.players]}")
             else:
                 current_player = game.current_player()
                 opponent = game.opponent()
@@ -483,8 +454,7 @@ class CoFXConsumer(WebsocketConsumer):
                 game.starting_effects.append(message["card"]["starting_effect"])
 
         game_dict = game.as_dict()
-        with open(self.db_name, 'w') as outfile:
-            json.dump(game_dict, outfile)
+        JsonDB().save_game_database(game_dict, self.db_name)
 
         self.send_game_message(game_dict, event, move_type, message)
 

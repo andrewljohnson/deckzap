@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="wrapper">
+  <h1>Create a New Game in the Wizard Card Game Universe</h1>
+  <p>Choose deckbuilder type and what cards to use.</p>
+  <form method="POST">
+    {% csrf_token %}
+    <label for=username>Your Username:</label><br /> 
+    <input name=username id=username></input>
+    <br /><br />
+
+    <label for=gametype>Game Deckbuilder Type</label><br /> 
+    <input type="radio" id="ingame" name="gametype" value="ingame" checked="checked">
+    <label for="ingame">In-Game</label>
+    <input type="radio" id="pregame" name="gametype" value="pregame">
+    <label for="pregame">Pre-Game</label>
+    <br /><br />
+    <button class=big-green-button type="submit" value="Create Game">Create Game</button>
+  </form>
+  <p class=error>{{error}}</p>
+</div>
+<link rel="stylesheet" href="/static/css/base.css">
+{% endblock content %}

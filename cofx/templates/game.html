@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block javascript %}
+<script src = "{% static 'js/game.js' %}"></script>
 <script type="text/javascript">
     GameRoom.connect();
 </script>
@@ -55,6 +56,5 @@
 <div id="data_store" game_type = {{game_type}} room_code = {{room_code}} username = {{username}}></div>
 
 <link rel="stylesheet" href="/static/css/base.css">
-
 
 {% endblock content %}

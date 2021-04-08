@@ -2,31 +2,14 @@
 
 {% block content %}
 <div class="wrapper">
-  <h1>Welcome to Elements</h1>
+  <h1>Wizard Card Game Universe (WCGU)</h1>
   <p>Wizard battle card games. Free to play, non-collectible.</p>
-  <p>Play the mainstream, or create your own version to invite people to.</p>
+  <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
   <form method="POST">
     {% csrf_token %}
-    <input type="submit" class="button" value="Play Games" />
-    <!-- input type="submit" class="button" value="Create Game" / onclick="alert('not implemented')" -->
+    <input type="submit" class="button" value="Play Games" name="menu" />
+    <input type="submit" class="button" value="Create Game" name="menu"/>
 </form>
 
 </div>
-
-    <!-- div class='form-control'>
-      <label for="room">Username</label>
-      <input id="username" type="text" name="username" required />
-    </div>
-    <h2>Digital CCG Style</h2>
-    <div class='form-control'>
-      <label for="room">Room id</label>
-      <input id="room" type="text" name="room_code_ccg" required />
-    </div>
-    <h2>Digital Deckbuilder PVP Style</h2>
-    <div class='form-control'>
-      <label for="room">Room id</label>
-      <input id="room" type="text" name="room_code_pvp" required />
-    </div>
-    <input type="submit" class="button" value="Start Game" />
-</div-->
 {% endblock content %}

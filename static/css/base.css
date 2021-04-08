@@ -12,6 +12,7 @@
         align-items: center;
         background-color: lightgray;
         border-radius: 6px;
+        cursor: pointer;
     }
 
     .avatar div {
@@ -41,6 +42,14 @@
         clear:both;
         width: 100%;
         text-align: center;
+    }
+
+    .light-gray-button {
+        width:250px;height:100px;margin-top:30px;background-color:lightgray;color:white;font-size:24px;
+    }
+
+    .big-green-button {
+        width:250px;height:100px;margin-top:30px;background-color:green;color:white;font-size:24px;
     }
 
     #end-turn-button {
@@ -118,6 +127,16 @@
     #game_log_inner {
         overflow-y: scroll;
         height: 120px;
+    }
+
+    a {
+        cursor: pointer;
+    }
+
+    .error {
+        color: red;
+        font-weight: bold;
+        font-size: 18px;
     }
 
 

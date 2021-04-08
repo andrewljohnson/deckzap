@@ -5,12 +5,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoFX</title>
+    <title>Wizard Card Game Universe (WCGU)</title>
 </head>
 <body>
 {% block content %}
 {% endblock content %}
-<script src = "{% static 'js/game.js' %}"></script>
+<div id=footer>
+	{% if request.path != '/' %}
+		<hr style="margin-top:60px;" />
+		Wizard Card Game Universe - <a href=/>Home</div>
+	{% endif %}
+</div>
 {% block javascript %}
 {% endblock javascript %}
 </body>

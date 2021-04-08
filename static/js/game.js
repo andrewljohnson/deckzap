@@ -514,7 +514,7 @@ class GameUX {
         button.id = "startGameButton";
         button.innerHTML = "Start Game";
         button.disabled = true;
-        button.style  = "width:250px;height:100px;margin-top:30px;background-color:lightgray;color:white;font-size:24px"
+        button.classList = ["light-gray-button"];
         button.onclick = function() {
             this.disabled = true;
             button.style.backgroundColor = "lightgray"
@@ -710,9 +710,14 @@ class GameRoom {
                                         }                                        
                                     }
                                 }
+                                line.innerHTML = data.username + " joins";
+                                if (game.players.length == 1) {
+                                    line.innerHTML += "<br/><div>Waiting for opponent...</div>"
+                                }
                                 GameUX.updateForGameStart(game);         
+                            } else {
+
                             }
-                            line.innerHTML = data.username + " joins";
                             break;
                         case "START_TURN":
                             line.innerHTML = data.username + "'s turn " + "(turn " + game.turn + ")";
