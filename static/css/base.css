@@ -108,4 +108,16 @@
         margin-top:5px;
     }
 
+    #game_log {
+        border : 1px solid lightgray;
+        width:100%;
+        margin-top:10px;
+        overflow: hidden;
+    }
+
+    #game_log_inner {
+        overflow-y: scroll;
+        height: 120px;
+    }
+
 

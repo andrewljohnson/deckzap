@@ -429,7 +429,6 @@ class CoFXConsumer(WebsocketConsumer):
                         p.draw(6)
 
             elif move_type == 'ENTER_FX_SELECTION':
-                # just tell the UX to show the FX selection view
                 message["decks"] = {}
                 json_data = open("player_database.json")
                 player_db = json.load(json_data) 
@@ -440,7 +439,7 @@ class CoFXConsumer(WebsocketConsumer):
             elif move_type == 'JOIN':
                 if len(game.players) <= 1:
                     game.players.append(CoFXPlayer(game, {"username":message["username"]}, new=True))
-                if len (game.players) == 2 and len(game.players[0].hand) == 0 and True: # is deckbuilder
+                if len (game.players) == 2 and len(game.players[0].hand) == 0 and game.game_type == "ingame":
                     for p in game.players:
                         for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]: #"Make Global Effect"
                             p.add_to_deck(card_name, 1)
@@ -474,6 +473,7 @@ class CoFXConsumer(WebsocketConsumer):
             elif move_type == 'PLAY_CARD':
                 played_card = current_player.play_card(message["card"], message)
                 if played_card:
+                    message["played_card"] = True
                     message["card"] = played_card.as_dict()
                     if played_card.card_type == "Spell" and played_card.effects[0].name == "make":
                         message["is_make_effect"] = True
