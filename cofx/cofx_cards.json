@@ -36,7 +36,7 @@
 	},
 	{
 		"name": "Kill",
-		"cost": 2,
+		"cost": 4,
 		"card_type": "Spell",
 		"description": "Kill an opponent's entity.",
 		"effects": [{
@@ -46,7 +46,7 @@
 	},
 	{
 		"name": "Zap",
-		"cost": 1,
+		"cost": 2,
 		"card_type": "Spell",
 		"description": "Deal 3 damage.",
 		"effects": [{
@@ -57,12 +57,12 @@
 	},
 	{
 		"name": "Think",
-		"cost": 1,
+		"cost": 3,
 		"card_type": "Spell",
-		"description": "Draw 2 cards.",
+		"description": "Draw 3 cards.",
 		"effects": [{
 			"name": "draw",
-			"amount": 2,
+			"amount": 3,
 			"id": 0
 		}]
 	},
