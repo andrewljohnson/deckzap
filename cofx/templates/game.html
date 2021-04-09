@@ -29,12 +29,12 @@
                 <div class=card_container id=in_play></div>
             </div>
             <div id=right>
-                <a id=end-turn-button onclick=GameRoom.endTurn()>End Turn</a>
+                <a id=end-turn-button onclick=GameUX.endTurn()>End Turn</a>
                 <div id=turn_label>Turn 0 (setting up)</div>
                 <div id=menu> 
                     <div id=title>CoFX - room_{{room_code}}</div>
                     <a class=menu-button onclick=GameUX.viewHelp()>Help</a>
-                    <a class=menu-button onclick=GameRoom.nextRoom()>New Game</a>
+                    <a class=menu-button onclick=GameUX.nextRoom()>New Game</a>
                 </div>
             </div>
         </div>
