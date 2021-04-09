@@ -41,9 +41,8 @@ class CoFXConsumer(WebsocketConsumer):
 
         game_dict = JsonDB().game_database(self.db_name)
         game = CoFXGame(self.game_type, info=game_dict)        
-        message, game_dict = game.play_move(event, message)    
+        message, game_dict = game.play_move(event, message, self.db_name)    
         if game_dict:
-            JsonDB().save_game_database(game_dict, self.db_name)
             self.send_game_message(game_dict, event, message["move_type"], message)
 
     def send_game_message(self, game_dict, event, move_type, message):

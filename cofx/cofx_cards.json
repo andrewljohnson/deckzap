@@ -57,9 +57,9 @@
 	},
 	{
 		"name": "Think",
-		"cost": 2,
+		"cost": 1,
 		"card_type": "Spell",
-		"description": "Draw 3 cards.",
+		"description": "Draw 2 cards.",
 		"effects": [{
 			"name": "draw",
 			"amount": 2,
@@ -95,7 +95,7 @@
 		"name": "Make Entity",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Choose 1 of 3 entities to make and add to your hand.",
+		"description": "Choose 1 of 3 entities to make and add to your deck.",
 		"effects": [{
 			"name": "make",
 			"make_type": "Entity",
@@ -107,7 +107,7 @@
 		"name": "Make Spell",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Choose 1 of 3 spells to make and add to your hand.",
+		"description": "Choose 1 of 3 spells to make and add to your deck.",
 		"effects": [{
 			"name": "make",
 			"make_type": "Spell",
