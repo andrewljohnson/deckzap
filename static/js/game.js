@@ -49,7 +49,8 @@ class GameUX {
     }
 
     static updatePlayerBorder(game) {
-        if (GameUX.thisPlayer(game).can_be_targetted) {
+        if (GameUX.thisPlayer(game).can_be_targetted && (game.turn % 2 == 0 && GameUX.username == game.players[0].username
+                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)) {
             document.getElementById("player1").style.border = "4px solid orange";    
         } else {            
             document.getElementById("player1").style.border = "4px solid #765C48";    
@@ -57,7 +58,8 @@ class GameUX {
     }
 
     static updateOpponentBorder(game) {
-        if (GameUX.opponent(game).can_be_targetted) {
+        if (GameUX.opponent(game).can_be_targetted && (game.turn % 2 == 0 && GameUX.username == game.players[0].username
+                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)) {
             document.getElementById("opponent").style.border = "4px solid orange";    
         } else {            
             document.getElementById("opponent").style.border = "4px solid #765C48";    
@@ -153,21 +155,27 @@ class GameUX {
         } else {
             cardDiv.style.backgroundColor = "#C4A484";            
         }
-        if (card.can_cast) {
-            cardDiv.style.border = "3px solid yellow";                
-        } else if (card.can_be_targetted) {
-            cardDiv.style.border = "3px solid orange";                
-        } else if (
-                card.attacked == false 
-                && card.turn_played > -1 
-                && card.turn_played < game.turn 
-                && card.owner_username == GameUX.thisPlayer(game).username
-                && (game.turn % 2 == 0 && card.owner_username == game.players[0].username
-            || game.turn % 2 == 1 && card.owner_username == game.players[1].username)) {
-            cardDiv.style.border = "3px solid yellow";                
+        if ((game.turn % 2 == 0 && GameUX.username == game.players[0].username
+                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)) {
+            if (card.can_cast) {
+                cardDiv.style.border = "3px solid yellow";                
+            } else if (card.can_be_targetted) {
+                cardDiv.style.border = "3px solid orange";                
+            } else if (
+                    card.attacked == false 
+                    && card.turn_played > -1 
+                    && card.turn_played < game.turn 
+                    && card.owner_username == GameUX.thisPlayer(game).username
+                    && (game.turn % 2 == 0 && card.owner_username == game.players[0].username
+                || game.turn % 2 == 1 && card.owner_username == game.players[1].username)) {
+                cardDiv.style.border = "3px solid yellow";                
+            } else {
+                cardDiv.style.border = "3px solid #DFBF9F";                            
+            }
         } else {
             cardDiv.style.border = "3px solid #DFBF9F";                            
         }
+
         let nameDiv = document.createElement("b");
         nameDiv.innerHTML = card.name;
         cardDiv.appendChild(nameDiv)
@@ -177,9 +185,9 @@ class GameUX {
             costDiv.innerHTML = GameUX.manaString(card.cost, card.cost);
             cardDiv.appendChild(costDiv)
 
-            let cardTypeDiv = document.createElement("div");
-            cardTypeDiv.innerHTML = card.card_type;
-            cardDiv.appendChild(cardTypeDiv)            
+            // let cardTypeDiv = document.createElement("div");
+            // cardTypeDiv.innerHTML = card.card_type;
+            // cardDiv.appendChild(cardTypeDiv)            
         }
 
         if (card.description) {
@@ -781,14 +789,10 @@ class GameRoom {
                             GameUX.updateOpponentBorder(game);
                             break;
                         case "SELECT_ENTITY":
-                            GameUX.updateInPlay(game);
-                            GameUX.updateOpponentInPlay(game);
-                            GameUX.updatePlayerBorder(game);
-                            GameUX.updateOpponentBorder(game);
+                            GameUX.updateForPlayCard(game);
                             break;
                         case "SELECT_OPPONENT_ENTITY":
-                            GameUX.updateInPlay(game);
-                            GameUX.updateOpponentInPlay(game);
+                            GameUX.updateForPlayCard(game);
                             break;
                         case "SELECT_CARD_IN_HAND":
                             GameUX.updateForPlayCard(game);
@@ -800,7 +804,7 @@ class GameRoom {
                                 GameUX.updateForPlayCard(game);
                                 if (data["is_make_effect"] && data["username"] == GameUX.username) {
                                     GameUX.showMakeView(game);
-                                }                               
+                                }
                             }
                             break;
                         case "MAKE_EFFECT":
@@ -821,6 +825,14 @@ class GameRoom {
                             break;
                         case "ENTER_FX_SELECTION":
                             GameUX.showFXSelectionView(game, data["decks"]);
+                            break;
+                        break;
+                        case "SELECT_SELF":
+                            GameUX.updateForPlayCard(game);
+                            break;
+                        break;
+                        case "SELECT_OPPONENT":
+                            GameUX.updateForPlayCard(game);
                             break;
                         break;
                     }
