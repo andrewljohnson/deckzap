@@ -10,8 +10,8 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        background-color: #C4A484;
-        border: 4px solid #765C48;
+        background-color: #DFBF9F;
+        border: 4px solid #C4A484;
         border-radius: 6px;
         cursor: pointer;
     }

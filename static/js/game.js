@@ -49,8 +49,7 @@ class GameUX {
     }
 
     static updatePlayerBorder(game) {
-        if (GameUX.thisPlayer(game).can_be_targetted && (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)) {
+        if (GameUX.thisPlayer(game).can_be_targetted && GameUX.isActivePlayer(game)) {
             document.getElementById("player1").style.border = "4px solid orange";    
         } else {            
             document.getElementById("player1").style.border = "4px solid #765C48";    
@@ -58,8 +57,7 @@ class GameUX {
     }
 
     static updateOpponentBorder(game) {
-        if (GameUX.opponent(game).can_be_targetted && (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)) {
+        if (GameUX.opponent(game).can_be_targetted && GameUX.isActivePlayer(game)) {
             document.getElementById("opponent").style.border = "4px solid orange";    
         } else {            
             document.getElementById("opponent").style.border = "4px solid #765C48";    
@@ -98,12 +96,7 @@ class GameUX {
         document.getElementById("opponent_played_pile_count").innerHTML = "Played: " + GameUX.opponent(game).played_pile.length + " cards";                    
     }
     static updateTurnLabel(game) {
-        if (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-            || game.turn % 2 == 1 && GameUX.username == game.players[1].username) {
-            document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
-        } else {
-            document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
-        }
+        document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
     }
     static updateHand(game) {
         let handDiv = document.getElementById("hand");
@@ -136,11 +129,16 @@ class GameUX {
         }
         document.getElementById(avatar).style.backgroundColor = "red";
         setTimeout(function() {
-            document.getElementById(avatar).style.backgroundColor = "#C4A484";
+            document.getElementById(avatar).style.backgroundColor = "#DFBF9F";
         }, 400);
         if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
             alert("GAME OVER");
         }
+    }
+
+    static isActivePlayer(game) {
+        return (game.turn % 2 == 0 && GameUX.username == game.players[0].username
+                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)
     }
 
     static cardSprite(game, card, username) {
@@ -153,10 +151,9 @@ class GameUX {
         } else if (card.selected) {
             cardDiv.style.backgroundColor = "orange";                            
         } else {
-            cardDiv.style.backgroundColor = "#C4A484";            
+            cardDiv.style.backgroundColor = "#DFBF9F";            
         }
-        if ((game.turn % 2 == 0 && GameUX.username == game.players[0].username
-                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)) {
+        if (GameUX.isActivePlayer(game)) {
             if (card.can_cast) {
                 cardDiv.style.border = "3px solid yellow";                
             } else if (card.can_be_targetted) {
@@ -165,15 +162,13 @@ class GameUX {
                     card.attacked == false 
                     && card.turn_played > -1 
                     && card.turn_played < game.turn 
-                    && card.owner_username == GameUX.thisPlayer(game).username
-                    && (game.turn % 2 == 0 && card.owner_username == game.players[0].username
-                || game.turn % 2 == 1 && card.owner_username == game.players[1].username)) {
+                    && card.owner_username == GameUX.thisPlayer(game).username) {
                 cardDiv.style.border = "3px solid yellow";                
             } else {
-                cardDiv.style.border = "3px solid #DFBF9F";                            
+                cardDiv.style.border = "3px solid #C4A484";                            
             }
         } else {
-            cardDiv.style.border = "3px solid #DFBF9F";                            
+            cardDiv.style.border = "3px solid #C4A484";                            
         }
 
         let nameDiv = document.createElement("b");
@@ -244,8 +239,7 @@ class GameUX {
 
     static updateForStartTurn(game) {
         GameUX.updateHand(game);
-        if (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-            || game.turn % 2 == 1 && GameUX.username == game.players[1].username) {
+        if (GameUX.isActivePlayer(game)) {
             GameUX.enableEndTurnButton(game);
         } else {
             GameUX.disableEndTurnButton(game);            
@@ -309,8 +303,7 @@ class GameUX {
         GameUX.updatePlayedPileCount(game);
         GameUX.updateOpponentDeckCount(game);
         GameUX.updateOpponentPlayedPileCount(game);
-        if (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-            || game.turn % 2 == 1 && GameUX.username == game.players[1].username) {
+        if (GameUX.isActivePlayer(game)) {
             GameUX.enableEndTurnButton(game);
         }
         GameUX.updatePlayerBorder(game);
@@ -796,8 +789,6 @@ class GameRoom {
                             break;
                         case "SELECT_CARD_IN_HAND":
                             GameUX.updateForPlayCard(game);
-                            GameUX.updatePlayerBorder(game);
-                            GameUX.updateOpponentBorder(game);
                             break;
                         case "PLAY_CARD":
                             if (data["played_card"]) {

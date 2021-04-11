@@ -157,10 +157,7 @@ class CoFXGame:
                 targetting_the_entity = False
                 if self.current_player().entity_with_effect_to_target:
                     targetting_the_entity = True
-                    if self.current_player().entity_with_effect_to_target:
-                        message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message, db_name)
-                    else: 
-                        message = self.select_target(self.current_player().entity_with_effect_to_target, message, db_name)
+                    message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message, db_name)
                 else:
                     for card in self.current_player().hand:
                         if card.selected:
@@ -435,6 +432,7 @@ class CoFXPlayer:
             target_card.damage = 0
             target_card.attacked = False
             target_card.selected = False
+            target_card.turn_played = -1
 
     def do_kill_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -443,6 +441,7 @@ class CoFXPlayer:
         target_card.damage = 0
         target_card.attacked = False
         target_card.selected = False
+        target_card.turn_played = -1
 
     def do_unwind_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -451,6 +450,7 @@ class CoFXPlayer:
         target_card.damage = 0
         target_card.attacked = False
         target_card.selected = False
+        target_card.turn_played = -1
     
     def do_make_effect(self, card, target_player_username, make_type, amount):
         target_player = self.game.players[0]
