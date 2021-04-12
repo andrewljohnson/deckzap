@@ -1,7 +1,24 @@
 [		
 	{
+		"name": "Mana Sprite",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "You have an extra mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"amount": 1,
+			"id": 0
+		}],
+		"effects_leave_play": [{
+			"name": "decrease_max_mana",
+			"amount": 1,
+			"id": 0
+		}]
+	},
+	{
 		"name": "Smart CatKin",
-		"power": 2,
+		"power": 1,
 		"toughness": 2,
 		"cost": 1,
 		"description": "Draw a card.",
@@ -25,9 +42,9 @@
 	},
 	{
 		"name": "Angry PantherKin",
-		"power": 2,
+		"power": 1,
 		"toughness": 1,
-		"cost": 1,
+		"cost": 2,
 		"description": "Deal 2 damage.",
 		"effects": [{
 			"name": "damage",

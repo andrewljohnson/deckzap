@@ -47,28 +47,27 @@ class CoFXGame:
                 if card.id == card_id:
                     return card, p
 
+    def send_card_to_played_pile(self, card, player):
+        player.in_play.remove(card)
+        player.played_pile.append(card)  
+        card.attacked = False
+        card.selected = False
+        card.damage = 0
+        for e in card.effects_leave_play:
+            if e.name == "decrease_max_mana":
+                player.max_mana -= e.amount
+
     def resolve_combat(self, attacking_card, defending_card):
         attacking_card.damage += defending_card.power
         defending_card.damage += attacking_card.power
-
         attacking_card.attacked = True
         attacking_card.selected = False
-
         if attacking_card.damage >= attacking_card.toughness:
-            self.current_player().in_play.remove(attacking_card)
-            self.current_player().played_pile.append(attacking_card)  
-            attacking_card.attacked = False
-            attacking_card.selected = False
-            attacking_card.damage = 0
+            self.send_card_to_played_pile(attacking_card,self.current_player())
         if defending_card.damage >= defending_card.toughness:
-            self.opponent().in_play.remove(defending_card)
-            self.opponent().played_pile.append(defending_card)  
-            defending_card.attacked = False
-            defending_card.selected = False
-            defending_card.damage = 0
+            self.send_card_to_played_pile(defending_card,self.opponent())
 
     def play_move(self, event, message, db_name):
-        action_is_selection = False
 
         if event == "PLAY_MOVE":
             move_type = message["move_type"]
@@ -90,6 +89,7 @@ class CoFXGame:
                         for card_name in player_db[p.username]["card_counts"].keys():
                             p.add_to_deck(card_name, int(player_db[p.username]["card_counts"][card_name]))
                         random.shuffle(p.deck)
+                        p.max_mana = 0
                         p.draw(6)
             elif move_type == 'ENTER_FX_SELECTION':
                 message["decks"] = {}
@@ -106,100 +106,69 @@ class CoFXGame:
                         self.players.append(CoFXPlayer(self, {"username":message["username"]}, new=True))
                 if len(self.players) == 2 and len(self.players[0].hand) == 0 and self.game_type == "ingame":
                     for p in self.players:
-                        for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]: #"Make Global Effect"
+                        for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
                             p.add_to_deck(card_name, 1)
                         random.shuffle(p.deck)
+                        p.max_mana = 1
                         p.draw(2)
             else:
                 if (message["username"] != self.current_player().username):
                     print(f"can't {event} {move_type} on opponent's turn")
                     return None, None
             if move_type == 'START_TURN':
-                if self.turn != 0:
-                    self.current_player().draw(1 + self.starting_effects.count("draw_extra_card"))
-                self.current_player().mana = math.floor(self.turn/2) + 2
-                for card in self.current_player().in_play:
-                    card.attacked = False
-                    card.selected = False
+                self.current_player().start_turn()
             elif move_type == 'END_TURN':
                 self.turn += 1
             elif move_type == 'SELECT_CARD_IN_HAND':
-                notarget_spells = ["Think", "Make Entity", "Make Spell", "Make Global Effect"]
                 for card in self.current_player().hand:
                     if card.id == message["card"]:
-                        if card.name == "Counterspell":
+                        if card.is_counter_spell():
                             print(f"can't select counterspell on own turn")
                             return None, None
                         elif card.cost <= self.current_player().mana:
-                            if card.selected and card.name in ["Unwind", "Kill", "Zap", "Siz Pop"]:
+                            if card.selected and card.needs_targets():
                                 card.selected = False
                             elif card.selected:
                                 message["move_type"] = "PLAY_CARD"
                                 self.play_move('PLAY_MOVE', message, db_name)
                                 # play card
-                            elif card.card_type == "Entity" or card.name in notarget_spells:
+                            elif card.card_type == "Entity" or not card.needs_targets():
                                 message["move_type"] = "PLAY_CARD"
                                 self.play_move('PLAY_MOVE', message, db_name)
                             else:
                                 selection = True
-                                card.selected = True
-                                if card.name in ["Zap", "Siz Pop"]:
-                                    self.set_targets_for_damage_effect()
-                                if card.name in ["Kill", "Unwind"]:
-                                    self.set_targets_for_creature_effect()
+                                card.select_and_set_targets(self)
                         else:
                             print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")
                             return None, None
 
             elif move_type == 'SELECT_ENTITY':
-                targetting_the_entity = False
                 if self.current_player().entity_with_effect_to_target:
-                    targetting_the_entity = True
                     message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message, db_name)
-                else:
-                    for card in self.current_player().hand:
-                        if card.selected:
-                            targetting_the_entity = True
-                            message = self.select_target(card, message, db_name)
-
-                if not targetting_the_entity:
-                    if not self.current_player().can_select(message["card"]):
-                        # don't send the message to the clients to highlight the card
-                        return None, None
-                    in_play_card = self.current_player().in_play_card(message["card"])
-
-                    if in_play_card.selected:
+                elif self.current_player().has_selected_card():  
+                    message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message, db_name)
+                elif self.current_player().controls_entity(message["card"]):
+                    if self.current_player().in_play_entity_is_selected(message["card"]):                
                         message["move_type"] = "ATTACK"
                         self.play_move('PLAY_MOVE', message, db_name)                    
+                    elif self.current_player().can_select(message["card"]):
+                        self.current_player().select_in_play(message["card"])
                     else:
-                        in_play_card.selected = True
-                        for c in self.opponent().in_play:
-                            c.can_be_targetted = True
-                        self.opponent().can_be_targetted = True
-                        selection = True
-            elif move_type == 'SELECT_OPPONENT_ENTITY':
-                defending_card = self.opponent().in_play_card(message["card"])
-                if self.current_player().entity_with_effect_to_target:
-                    message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message, db_name)
-                else:               
-                    selected_entity = None
-                    for entity in self.current_player().in_play:
-                        if entity.selected:
-                            selected_entity = entity
-                    selected_card = None
-                    for card in self.current_player().hand:
-                        if card.selected:
-                            selected_card = card
+                        return None, None
+                elif not self.current_player().controls_entity(message["card"], message):
+                    defending_card = self.opponent().in_play_card(message["card"])
+                    selected_entity = self.current_player.selected_entity()
                     if selected_entity:
                         message["move_type"] = "ATTACK"
                         message["card"] = selected_entity.id
                         message["defending_card"] = defending_card.id
                         self.play_move('PLAY_MOVE', message, db_name)                    
-                    elif selected_card:
-                        message = self.select_target(selected_card, message, db_name)
                     else:
                         print(f"nothing selected to target {defending_card.name}")
                         return None, None
+                else:
+                    print("Should never get here")
+                                
             elif move_type == 'SELECT_OPPONENT' or move_type == 'SELECT_SELF':
                 if self.current_player().entity_with_effect_to_target:
                     if move_type == 'SELECT_OPPONENT':
@@ -212,7 +181,7 @@ class CoFXGame:
                         if card.selected:
                             target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
                             casting_spell = True
-                            message = self.select_target_player(target_player, card, message, db_name)
+                            message = self.select_player_target_for_spell(target_player.username, card, message, db_name)
 
                     if not casting_spell:
                         for card in self.current_player().in_play:
@@ -258,8 +227,7 @@ class CoFXGame:
                 self.starting_effects.append(message["card"]["starting_effect"])
                 self.current_player().make_to_resolve = []
 
-            if not action_is_selection:
-                self.highlight_can_cast()
+            self.highlight_can_cast()
 
 
         JsonDB().save_game_database(self.as_dict(), db_name)
@@ -300,13 +268,14 @@ class CoFXGame:
             else:
                 card.can_cast = False
 
-    def select_target(self, card_to_target, message, db_name):
-        message["move_type"] = "PLAY_CARD"
-        my_card = self.current_player().in_play_card(message["card"])
-        if not my_card:
-            my_card = self.opponent().in_play_card(message["card"])
+    def select_entity_target(self, card_to_target, message, db_name, move_type):
+        old_move_type = message["move_type"]
+        message["move_type"] = move_type
+        selected_card = self.current_player().in_play_card(message["card"])
+        if not selected_card:
+            selected_card = self.opponent().in_play_card(message["card"])
         effect_targets = {}
-        effect_targets[card_to_target.effects[0].id] = {"id": my_card.id, "target_type":"entity"}            
+        effect_targets[card_to_target.effects[0].id] = {"id": selected_card.id, "target_type":"entity"}            
         # hack for siz pop
         if len(card_to_target.effects) == 2:
             effect_targets[card_to_target.effects[1].id] = {"id": message["username"], "target_type":"player"}
@@ -314,25 +283,18 @@ class CoFXGame:
         message["card"] = card_to_target.id
         card_to_target.selected = False
         self.play_move('PLAY_MOVE', message, db_name)       
-        return message             
-
-    def select_entity_target_for_entity_effect(self, entity_with_effect_to_target, message, db_name):
-        old_move_type = message["move_type"]
-        message["move_type"] = "RESOLVE_ENTITY_EFFECT"
-        my_card = self.current_player().in_play_card(message["card"])
-        if not my_card:
-            my_card = self.opponent().in_play_card(message["card"])
-        effect_targets = {}
-        effect_targets[entity_with_effect_to_target.effects[0].id] = {"id": my_card.id, "target_type":"entity"}            
-        message["effect_targets"] = effect_targets
-        message["card"] = entity_with_effect_to_target.id
-        self.play_move('PLAY_MOVE', message, db_name)       
         message["move_type"] = old_move_type
         return message             
 
-    def select_player_target_for_entity_effect(self, username, entity_with_effect_to_target, message, db_name):
+    def select_entity_target_for_spell(self, card_to_target, message, db_name):
+        return self.select_entity_target(card_to_target, message, db_name, "PLAY_CARD")
+
+    def select_entity_target_for_entity_effect(self, entity_with_effect_to_target, message, db_name):
+        return self.select_entity_target(entity_with_effect_to_target, message, db_name, "RESOLVE_ENTITY_EFFECT")
+
+    def select_player_target(self, username, entity_with_effect_to_target, message, db_name, move_type):
         old_move_type = message["move_type"]
-        message["move_type"] = "RESOLVE_ENTITY_EFFECT"
+        message["move_type"] = move_type
         effect_targets = {}
         effect_targets[entity_with_effect_to_target.effects[0].id] = {"id": username, "target_type":"player"}            
         message["effect_targets"] = effect_targets
@@ -341,18 +303,12 @@ class CoFXGame:
         message["move_type"] = old_move_type
         return message             
 
-    def select_target_player(self, target_player, card, message, db_name):
-        message["move_type"] = "PLAY_CARD"
-        effect_targets = {}
-        effect_targets[card.effects[0].id] = {"id": target_player.username, "target_type":"player"}            
-        # hack for siz pop
-        if len(card.effects) == 2:
-            effect_targets[card.effects[1].id] = {"id": message["username"], "target_type":"player"}
-        message["effect_targets"] = effect_targets
-        message["card"] = card.id
-        card.selected = False
-        self.play_move('PLAY_MOVE', message, db_name)                    
-        return message             
+    def select_player_target_for_spell(self, username, card, message, db_name):
+        return self.select_player_target(username, card, message, db_name, "PLAY_CARD")
+
+    def select_player_target_for_entity_effect(self, username, entity_with_effect_to_target, message, db_name):
+        return self.select_player_target(username, entity_with_effect_to_target, message, db_name, "RESOLVE_ENTITY_EFFECT")
+
 
 class CoFXPlayer:
 
@@ -364,6 +320,7 @@ class CoFXPlayer:
         if new:
             self.hit_points = 30
             self.mana = 0
+            self.max_mana = 0
             self.hand = []
             self.in_play = []
             self.deck = []
@@ -376,6 +333,7 @@ class CoFXPlayer:
             self.in_play = [CoFXCard(c_info) for c_info in info["in_play"]]
             self.hit_points = info["hit_points"]
             self.mana = info["mana"]
+            self.max_mana = info["max_mana"]
             self.deck = [CoFXCard(c_info) for c_info in info["deck"]]
             self.played_pile = [CoFXCard(c_info) for c_info in info["played_pile"]]
             self.make_to_resolve = [CoFXCard(c_info) for c_info in info["make_to_resolve"]]
@@ -383,13 +341,14 @@ class CoFXPlayer:
             self.entity_with_effect_to_target = CoFXCard(info["entity_with_effect_to_target"]) if info["entity_with_effect_to_target"] else None
 
     def __repr__(self):
-        return f"{self.username} - {self.hit_points} hp, {self.mana} mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_targetted {self.can_be_targetted}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}"
+        return f"{self.username} - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_targetted {self.can_be_targetted}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}"
 
     def as_dict(self):
         return {
             "username": self.username,
             "hit_points": self.hit_points,
             "mana": self.mana,
+            "max_mana": self.max_mana,
             "hand": [c.as_dict() for c in self.hand],
             "in_play": [c.as_dict() for c in self.in_play],
             "deck": [c.as_dict() for c in self.deck],
@@ -414,6 +373,12 @@ class CoFXPlayer:
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
         target_player.draw(amount)
+
+    def do_increase_max_mana_effect_on_player(self, card, target_player_username, amount):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+        target_player.max_mana += 1
 
     def do_damage_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -542,6 +507,7 @@ class CoFXPlayer:
                         self.game.opponent().mana -= o_card.cost
                         return card, True
 
+        card.can_cast = False
         if card.card_type == "Entity":
             self.in_play.append(card)
             card.turn_played = self.game.turn
@@ -562,12 +528,10 @@ class CoFXPlayer:
                         for e in card.effects:
                             if not "effect_targets" in message:
                                 effect_targets = {}
-                                if e.name == "draw":           
-                                        effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":"player"};
+                                if e.name == "draw" or e.name == "increase_max_mana":           
+                                    effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":"player"};
                                 message["effect_targets"] = effect_targets
                             self.do_card_effect(card, e, message["effect_targets"])
-
-                    
             else:
                 for e in card.effects:
                     if not "effect_targets" in message:
@@ -597,18 +561,20 @@ class CoFXPlayer:
             self.do_card_effect(card, e, message["effect_targets"])
 
     def do_card_effect(self, card, e, effect_targets):
-        if e.name == "draw":
+        if e.name == "increase_max_mana":
+            self.do_increase_max_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+        elif e.name == "draw":
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
-        if e.name == "damage":
+        elif e.name == "damage":
             if effect_targets[e.id]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             else:
                 self.do_damage_effect_on_entity(card, effect_targets[e.id]["id"], e.amount)
-        if e.name == "kill":
+        elif e.name == "kill":
             self.do_kill_effect_on_entity(card, effect_targets[e.id]["id"])
-        if e.name == "unwind":
+        elif e.name == "unwind":
             self.do_unwind_effect_on_entity(card, effect_targets[e.id]["id"])
-        if e.name == "make":
+        elif e.name == "make":
             self.do_make_effect(card, effect_targets[e.id]["id"], e.make_type, e.amount)
 
     def add_to_deck(self, card_name, count, add_to_hand=False):
@@ -653,6 +619,59 @@ class CoFXPlayer:
                 card.power = max(0, card.power)
         return card
 
+    def start_turn(self):
+        if self.game.turn != 0:
+            self.draw(1 + self.game.starting_effects.count("draw_extra_card"))
+        self.max_mana += 1
+        self.mana = self.max_mana
+        for card in self.in_play:
+            card.attacked = False
+            card.selected = False
+
+    def has_selected_card(self):
+        for c in self.hand:
+            if c.selected:
+                return True
+        return False
+
+    def controls_entity(self, card_id):
+        for c in self.in_play:
+            if c.id == card_id:
+                return True
+        return False
+
+    def select_in_play(self, card_id):
+        for c in self.in_play:
+            c.selected = False
+            if c.id == card_id:
+                in_play_card = c  
+        in_play_card.selected = True
+        for c in self.game.opponent().in_play:
+            c.can_be_targetted = True
+        self.game.opponent().can_be_targetted = True
+
+    def has_selected_entity(self):
+        for c in self.in_play:
+            if c.selected:
+                return True
+        return False
+
+    def in_play_entity_is_selected(self, card_id):
+        for c in self.in_play:
+            if c.id == card_id and c.selected:
+                return True
+        return False
+
+    def selected_entity(self):
+        for entity in self.in_play:
+            if entity.selected:
+                return entity
+
+    def selected_spell(self):
+        for card in self.hand:
+            if card.selected:
+                return card
+
 
 class CoFXCard:
 
@@ -673,9 +692,10 @@ class CoFXCard:
         self.can_cast = info["can_cast"] if "can_cast" in info else False
         self.can_be_targetted = info["can_be_targetted"] if "can_be_targetted" in info else False
         self.owner_username = info["owner_username"] if "owner_username" in info else None
+        self.effects_leave_play = [CoFXCardEffect(e) for e in info["effects_leave_play"]] if "effects_leave_play" in info else []
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username})" 
+        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {effects_leave_play})" 
 
     def as_dict(self):
         return {
@@ -695,8 +715,29 @@ class CoFXCard:
             "can_cast": self.can_cast,
             "can_be_targetted": self.can_be_targetted,
             "owner_username": self.owner_username,
+            "effects_leave_play": [e.as_dict() for e in self.effects_leave_play],
         }
 
+    def needs_targets(self):
+        for e in self.effects:
+            if e.name == "damage" or e.name == "kill" or e.name == "unwind":
+                return True
+        return False # draw, make, increase_max_mana
+
+    def select_and_set_targets(self, game):
+        self.selected = True
+        for e in self.effects:
+            if e.name == "damage":
+                game.set_targets_for_damage_effect()
+            if e.name == "kill" or e.name == "unwind":
+                game.set_targets_for_creature_effect()
+
+
+    def is_counter_spell(self):
+        for e in self.effects:
+            if e.name == "counter":
+                return True
+        return False                        
 
 class CoFXCardEffect:
     def __init__(self, info):

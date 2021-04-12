@@ -34,7 +34,7 @@ class GameUX {
     }
 
     static updateMana(game) {
-        document.getElementById("mana").innerHTML = "Mana: " + GameUX.manaString(Math.floor(game.turn/2.0)+2, GameUX.thisPlayer(game).mana);
+        document.getElementById("mana").innerHTML = "Mana: " + GameUX.manaString(GameUX.thisPlayer(game).max_mana, GameUX.thisPlayer(game).mana);
     }
     static manaString(maxMana, currentMana) {
         var manaString = "";
@@ -78,7 +78,7 @@ class GameUX {
     }
 
     static updateOpponentMana(game) {
-        document.getElementById("opponent_mana").innerHTML = "Mana: " + GameUX.manaString(Math.floor(game.turn/2.0)+2, GameUX.opponent(game).mana);
+        document.getElementById("opponent_mana").innerHTML = "Mana: " + GameUX.manaString(GameUX.opponent(game).max_mana, GameUX.opponent(game).mana);
     }
     static updateOpponentCardCount(game) {
         document.getElementById("opponent_card_count").innerHTML = "Hand: " + GameUX.opponent(game).hand.length + " cards";                    
@@ -200,10 +200,8 @@ class GameUX {
         cardDiv.onclick = function() { 
             if (cardDiv.parentElement == document.getElementById("hand")) {  
                 GameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-            } else if (cardDiv.parentElement == document.getElementById("in_play")) { 
+            } else { 
                 GameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
-            } else if (cardDiv.parentElement == document.getElementById("opponent_in_play")) { 
-                GameRoom.sendPlayMoveEvent("SELECT_OPPONENT_ENTITY", {"card":card.id});
             }
         }
         return cardDiv;
@@ -240,10 +238,6 @@ class GameUX {
     }
    
     static refresh(game) {
-        if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
-            alert("GAME OVER");
-        }
-
         if (GameUX.opponent(game)) {
             if (GameUX.isActivePlayer(game)) {
                 GameUX.enableEndTurnButton(game);
@@ -267,6 +261,12 @@ class GameUX {
             GameUX.updatePlayedPileCount(game);
             GameUX.updatePlayerBorder(game);
         }
+        if (GameUX.opponent(game) && GameUX.thisPlayer(game)) {
+            if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
+                alert("GAME OVER");
+            }
+        }
+
 
         
     }
@@ -737,9 +737,6 @@ class GameRoom {
                             GameUX.refresh(game);
                             break;
                         case "SELECT_ENTITY":
-                            GameUX.refresh(game);
-                            break;
-                        case "SELECT_OPPONENT_ENTITY":
                             GameUX.refresh(game);
                             break;
                         case "SELECT_CARD_IN_HAND":
