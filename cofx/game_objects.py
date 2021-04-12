@@ -16,7 +16,6 @@ class CoFXGame:
 
         self.all_cards = []
         for c_info in JsonDB().all_cards():
-            #if c_info["name"] != "Make Global Effect":
             self.all_cards.append(CoFXCard(c_info))
 
         if info:
@@ -141,7 +140,6 @@ class CoFXGame:
                         else:
                             print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")
                             return None, None
-
             elif move_type == 'SELECT_ENTITY':
                 if self.current_player().entity_with_effect_to_target:
                     message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message, db_name)
@@ -167,8 +165,7 @@ class CoFXGame:
                         print(f"nothing selected to target {defending_card.name}")
                         return None, None
                 else:
-                    print("Should never get here")
-                                
+                    print("Should never get here")                                
             elif move_type == 'SELECT_OPPONENT' or move_type == 'SELECT_SELF':
                 if self.current_player().entity_with_effect_to_target:
                     if move_type == 'SELECT_OPPONENT':
@@ -190,7 +187,6 @@ class CoFXGame:
                                 message["move_type"] = "ATTACK"
                                 self.play_move('PLAY_MOVE', message, db_name)                    
                                 card.selected = False
-
             elif move_type == 'ATTACK':
                 card_id = message["card"]
                 attacking_card = self.current_player().in_play_card(card_id)
