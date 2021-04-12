@@ -11,7 +11,6 @@ class JsonDB:
             custom_game_database = json.load(json_data) 
             return custom_game_database
         except:
-            print("need to make a new game for that ID")
             return None
 
     def save_game_database(self, game_dict, game_id):

@@ -35,6 +35,23 @@
 		"cost": 1
 	},
 	{
+		"name": "Mana Tree",
+		"power": 0,
+		"toughness": 7,
+		"cost": 3,
+		"description": "You have an extra mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"amount": 1,
+			"id": 0
+		}],
+		"effects_leave_play": [{
+			"name": "decrease_max_mana",
+			"amount": 1,
+			"id": 0
+		}]
+	},
+	{
 		"name": "PantherKin",
 		"power": 3,
 		"toughness": 3,

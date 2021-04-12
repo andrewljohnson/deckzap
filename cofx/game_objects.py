@@ -13,6 +13,7 @@ class CoFXGame:
         self.turn = 0
         self.next_card_id = 0
         self.starting_effects = []
+        self.decks_to_set = None
 
         self.all_cards = []
         for c_info in JsonDB().all_cards():
@@ -24,6 +25,7 @@ class CoFXGame:
             self.turn = int(info["turn"])
             self.next_card_id = int(info["next_card_id"])
             self.starting_effects = info["starting_effects"] if "starting_effects" in info else []
+            self.decks_to_set = info["decks_to_set"]
 
     def as_dict(self):
         return {
@@ -32,6 +34,7 @@ class CoFXGame:
             "next_card_id": self.next_card_id, 
             "starting_effects": self.starting_effects, 
             "all_cards": [c.as_dict() for c in self.all_cards], 
+            "decks_to_set": self.decks_to_set, 
         }
 
     def current_player(self):
@@ -52,6 +55,7 @@ class CoFXGame:
         card.attacked = False
         card.selected = False
         card.damage = 0
+        card.turn_played = -1
         for e in card.effects_leave_play:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
@@ -90,12 +94,13 @@ class CoFXGame:
                         random.shuffle(p.deck)
                         p.max_mana = 0
                         p.draw(6)
+                    self.send_start_turn()
             elif move_type == 'ENTER_FX_SELECTION':
-                message["decks"] = {}
+                self.decks_to_set = {}
                 player_db = JsonDB().player_database()
                 for p in self.players:
                     if "card_counts" in player_db[p.username]:
-                        message["decks"][p.username] = player_db[p.username]["card_counts"] 
+                        self.decks_to_set[p.username] = player_db[p.username]["card_counts"] 
                 pass
             elif move_type == 'JOIN':
                 if len(self.players) >= 2:
@@ -110,6 +115,8 @@ class CoFXGame:
                         random.shuffle(p.deck)
                         p.max_mana = 1
                         p.draw(2)
+                if len(self.players) == 2 and self.players[0].max_mana == 1 and self.turn == 0:
+                    self.send_start_game(message, db_name)
             else:
                 if (message["username"] != self.current_player().username):
                     print(f"can't {event} {move_type} on opponent's turn")
@@ -118,6 +125,7 @@ class CoFXGame:
                 self.current_player().start_turn()
             elif move_type == 'END_TURN':
                 self.turn += 1
+                self.current_player().start_turn()
             elif move_type == 'SELECT_CARD_IN_HAND':
                 for card in self.current_player().hand:
                     if card.id == message["card"]:
@@ -211,8 +219,6 @@ class CoFXGame:
                     played_card.can_cast = False
                     message["card"] = played_card.as_dict()
                     message["played_card"] = True
-                    if not was_countered and played_card.card_type == "Spell" and played_card.effects[0].name == "make":
-                        message["is_make_effect"] = True
             elif move_type == 'RESOLVE_ENTITY_EFFECT':
                 self.current_player().resolve_entity_effect(message["card"], message)
                 self.current_player().entity_with_effect_to_target = None
@@ -227,6 +233,27 @@ class CoFXGame:
 
         JsonDB().save_game_database(self.as_dict(), db_name)
         return message, self.as_dict()
+
+    def send_start_game(self, message, db_name):
+        if self.game_type == "ingame":
+            self.send_start_turn(message, db_name)
+        else:  # pregame
+            if game.starting_effects.length != 2:
+                # old_move_type = message["move_type"]
+                message["move_type"] = "ENTER_FX_SELECTION"
+                self.play_move("PLAY_MOVE", message, db_name)
+                # message["move_type"] = old_move_type                                            
+            else:
+                self.send_start_turn(message, db_name)
+
+    def send_start_turn(self, message, db_name):
+        #old_move_type = message["move_type"]
+        message["move_type"] = "START_TURN"
+        #old_username = message["username"]
+        message["username"] = self.players[0].username
+        self.play_move("PLAY_MOVE", message, db_name)
+        #message["move_type"] = old_move_type
+        #message["username"] = old_username
 
     def unhighlight_everything(self):
         for card in self.opponent().in_play:
@@ -254,6 +281,7 @@ class CoFXGame:
 
     def highlight_can_cast(self):
         for card in self.current_player().hand:
+            print(f"HIGHLIGHT CAN CAST {card}")
             if self.current_player().mana >= card.cost:
                 card.can_cast = True
                 if card.name == "Kill" or card.name == "Unwind":
@@ -394,12 +422,7 @@ class CoFXPlayer:
 
     def do_kill_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
-        target_player.in_play.remove(target_card) 
-        target_player.played_pile.append(target_card)  
-        target_card.damage = 0
-        target_card.attacked = False
-        target_card.selected = False
-        target_card.turn_played = -1
+        self.game.send_card_to_played_pile(target_card, target_player)
 
     def do_unwind_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -587,7 +610,6 @@ class CoFXPlayer:
                 self.hand.append(new_card)
             else:
                 self.deck.append(new_card)
-        print(f"added {count} {card_name}, deck has size {len(self.deck)}")
 
     def modify_new_card(self, game, card):
         if card.card_type == "Spell":            
@@ -615,6 +637,7 @@ class CoFXPlayer:
         return card
 
     def start_turn(self):
+        print(f"self.start turn {self}")
         if self.game.turn != 0:
             self.draw(1 + self.game.starting_effects.count("draw_extra_card"))
         self.max_mana += 1
@@ -690,7 +713,7 @@ class CoFXCard:
         self.effects_leave_play = [CoFXCardEffect(e) for e in info["effects_leave_play"]] if "effects_leave_play" in info else []
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {effects_leave_play})" 
+        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play})" 
 
     def as_dict(self):
         return {
