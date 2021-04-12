@@ -80,24 +80,31 @@ class GameUX {
     static updateOpponentMana(game) {
         document.getElementById("opponent_mana").innerHTML = "Mana: " + GameUX.manaString(GameUX.opponent(game).max_mana, GameUX.opponent(game).mana);
     }
+
     static updateOpponentCardCount(game) {
         document.getElementById("opponent_card_count").innerHTML = "Hand: " + GameUX.opponent(game).hand.length + " cards";                    
     }
+
     static updateDeckCount(game) {
         document.getElementById("deck_count").innerHTML = "Deck: " + GameUX.thisPlayer(game).deck.length + " cards";                    
     }
+
     static updateOpponentDeckCount(game) {
         document.getElementById("opponent_deck_count").innerHTML = "Deck: " + GameUX.opponent(game).deck.length + " cards";                    
     }
+
     static updatePlayedPileCount(game) {
         document.getElementById("played_pile_count").innerHTML = "Played: " + GameUX.thisPlayer(game).played_pile.length + " cards";                    
     }
+
     static updateOpponentPlayedPileCount(game) {
         document.getElementById("opponent_played_pile_count").innerHTML = "Played: " + GameUX.opponent(game).played_pile.length + " cards";                    
     }
+
     static updateTurnLabel(game) {
         document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
     }
+
     static updateHand(game) {
         let handDiv = document.getElementById("hand");
         handDiv.innerHTML = '';
@@ -179,10 +186,6 @@ class GameUX {
             let costDiv = document.createElement("div");
             costDiv.innerHTML = GameUX.manaString(card.cost, card.cost);
             cardDiv.appendChild(costDiv)
-
-            // let cardTypeDiv = document.createElement("div");
-            // cardTypeDiv.innerHTML = card.card_type;
-            // cardDiv.appendChild(cardTypeDiv)            
         }
 
         if (card.description) {
@@ -199,20 +202,20 @@ class GameUX {
 
         cardDiv.onclick = function() { 
             if (cardDiv.parentElement == document.getElementById("hand")) {  
-                GameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+                GameUX.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
             } else { 
-                GameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+                GameUX.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
             }
         }
         return cardDiv;
     }
 
     static selfClick () {
-        GameRoom.sendPlayMoveEvent("SELECT_SELF", {});
+        GameUX.sendPlayMoveEvent("SELECT_SELF", {});
     }
 
     static opponentClick () {
-        GameRoom.sendPlayMoveEvent("SELECT_OPPONENT", {});
+        GameUX.sendPlayMoveEvent("SELECT_OPPONENT", {});
     }
 
     static viewHelp() {
@@ -267,11 +270,18 @@ class GameUX {
             }
         }
 
-
-        
+        if (game.decks_to_set) { // game.starting_effects.length == 2
+            GameUX.showFXSelectionView(game);
+        } else if (GameUX.thisPlayer(game).make_to_resolve.length) {
+            GameUX.showMakeView(game);
+        } else {
+            GameUX.showGame();
+        }                           
     }
     
-    static showFXSelectionView(game, decks) {
+    static showFXSelectionView(game) {
+
+        let decks = game.decks_to_set;
         document.getElementById("fx_selector").innerHTML = "";
         var fxSelector = document.getElementById("fx_selector");
         fxSelector.style.display = "block";
@@ -293,28 +303,15 @@ class GameUX {
         th.innerHTML = "Entities";
         table.appendChild(th);
 
-
         var tr = document.createElement("tr");
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Name";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Power";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Toughness";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Cost";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
+        tr.appendChild(tdForTitle("Name"));
+        tr.appendChild(tdForTitle("Power"));
+        tr.appendChild(tdForTitle("Toughness"));
+        tr.appendChild(tdForTitle("Cost"));
+        tr.appendChild(tdForTitle("Power"));
+        var td = tdForTitle("# In Deck");
         td.style.color = 'blue';
-        td.innerHTML = "# In Deck";
+        td.style.border = "1px solid black";
         tr.appendChild(td);
         table.appendChild(tr);
 
@@ -335,22 +332,12 @@ class GameUX {
         table.appendChild(th);
 
         var tr = document.createElement("tr");
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Name";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Description";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Cost";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
+        tr.appendChild(tdForTitle("Name"));
+        tr.appendChild(tdForTitle("Description"));
+        tr.appendChild(tdForTitle("Cost"));
+        var td = tdForTitle("# In Deck");
         td.style.color = 'blue';
-        td.innerHTML = "# In Deck";
+        td.style.border = "1px solid black";
         tr.appendChild(td);
         table.appendChild(tr);
 
@@ -363,7 +350,6 @@ class GameUX {
 
         fxSelector.appendChild(document.createElement("br"));
         fxSelector.appendChild(document.createElement("br"));
-
 
         var h1 = document.createElement("h1");
         h1.innerHTML = "Choose FX"
@@ -394,14 +380,8 @@ class GameUX {
 
         var tr = document.createElement("tr");
         table.appendChild(tr);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Choose 1";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Effect";
-        tr.appendChild(td);
+        tr.appendChild(tdForTitle("Choose 1"));
+        tr.appendChild(tdForTitle("Effect"));
 
         for(var o of options) {
             var input = document.createElement("input");
@@ -418,19 +398,14 @@ class GameUX {
             var label = document.createElement("label"); 
             label.for = o.id;
             label.innerHTML = o.label;
-
             var tr = document.createElement("tr");
             table.appendChild(tr);
-            var td = document.createElement("td");
-            td.style.border = "1px solid black";
+            var td = tdForTitle("");
             td.appendChild(input);
             tr.appendChild(td);
-
-            var td = document.createElement("td");
-            td.style.border = "1px solid black";
+            var td = tdForTitle("");
             td.appendChild(label);
             tr.appendChild(td);
-
         }  
 
         var button = document.createElement("button");
@@ -535,9 +510,9 @@ class GameUX {
             cardContainerDiv.appendChild(cardDiv);
             cardDiv.onclick = function() {
                 if (card.starting_effect) {
-                    GameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
+                    GameUX.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
                 } else {
-                    GameRoom.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
+                    GameUX.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
                 }
             };
         }
@@ -553,15 +528,8 @@ class GameUX {
         document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
     }
 
-    static nextRoom() {
-        GameRoom.gameSocket.send(JSON.stringify({
-            "event": "NEXT_ROOM",
-            "message": {"username":GameUX.username}
-        }));
-    }
-
     static endTurn() {
-        GameRoom.sendPlayMoveEvent("END_TURN", {});
+        GameUX.sendPlayMoveEvent("END_TURN", {});
     }
 
     static chooseEffect(game, effect_id) {
@@ -570,7 +538,7 @@ class GameUX {
             var input = document.getElementById(c.name);
             info["card_counts"][c.name] = input.value
         }
-        GameRoom.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
+        GameUX.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
     }
 
     static logMessage(game, data) {
@@ -614,8 +582,24 @@ class GameUX {
         }
         GameUX.scrollLogToEnd()
     }
-}
 
+    static nextRoom() {
+        GameRoom.gameSocket.send(JSON.stringify({
+            "event": "NEXT_ROOM",
+            "message": {"username":GameUX.username}
+        }));
+    }
+
+    static sendPlayMoveEvent(move_type, info) {
+        info["move_type"] = move_type
+        info["username"] = GameUX.username
+        GameRoom.gameSocket.send(JSON.stringify({
+            "event": "PLAY_MOVE", 
+            "message": info
+        }));                
+    }
+
+}
 
 
 class GameRoom {
@@ -627,7 +611,7 @@ class GameRoom {
             GameRoom.setupSocket();
         }
         if (GameRoom.gameSocket.readyState == WebSocket.OPEN) {
-            GameRoom.sendPlayMoveEvent("JOIN", {});
+            GameUX.sendPlayMoveEvent("JOIN", {});
             console.log('WebSockets connection created.');
         } else {
             setTimeout(function () {
@@ -637,17 +621,7 @@ class GameRoom {
     }
 
     static setupSocket() {
-        const roomCode = document.getElementById("data_store").getAttribute("room_code");
-        const url = new URL(window.location.href);
-        var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-        var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.gameType + '/' + roomCode + '/';
-
-        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
-        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
-        if (isCustom != "False") {
-            var connectionString = protocol + window.location.host + '/ws/play_custom/' + customGameId + '/' + roomCode + '/';
-        }
-        GameRoom.gameSocket = new WebSocket(connectionString);
+        GameRoom.gameSocket = new WebSocket(GameRoom.roomSocketUrl());
 
         GameRoom.gameSocket.onclose = function (e) {
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
@@ -658,123 +632,20 @@ class GameRoom {
 
         GameRoom.gameSocket.onmessage = function (e) {
             let data = JSON.parse(e.data)["payload"];
-            let event = data["event"];
-
-            switch (event) {
+            switch (data["event"]) {
                 case "NEXT_ROOM":
-                    function getSearchParameters() {
-                        var prmstr = window.location.search.substr(1);
-                        return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
-                    }
-
-                    function transformToAssocArray( prmstr ) {
-                        var params = {};
-                        var prmarr = prmstr.split("&");
-                        for ( var i = 0; i < prmarr.length; i++) {
-                            var tmparr = prmarr[i].split("=");
-                            params[tmparr[0]] = tmparr[1];
-                        }
-                        return params;
-                    }
-
-                    var url = location.host + location.pathname;
-                    var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
-                    var usernameParameter = getSearchParameters()["username"];
-                    var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
-                    const isCustom = document.getElementById("data_store").getAttribute("is_custom");
-                    const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
-                    if (isCustom != "False") {
-                        nextRoomUrl = "/play/custom/" + customGameId + '/' + roomNumber + "?username=" + usernameParameter;
-                    }
                     if (data["username"] == usernameParameter) {
-                       window.location.href = nextRoomUrl;
+                       window.location.href = GameRoom.nextRoomUrl();
                     } else {
                         setTimeout(function(){
-                            window.location.href = nextRoomUrl;
+                            window.location.href = GameRoom.nextRoomUrl();
                         }, 100); 
                     }
                     break;
                 case "PLAY_MOVE":
-                    let move_type = data["move_type"];
-                    var game = "game" in data ? data["game"] : null;
+                    let game = data["game"];
+                    GameUX.refresh(game);
                     GameUX.logMessage(game, data);
-                    switch (move_type) {
-                        case "CHOOSE_STARTING_EFFECT":
-                            if (game.starting_effects.length == 2) {
-                                GameUX.showGame();
-                                if (GameUX.username == game.players[0].username) {
-                                    GameRoom.sendPlayMoveEvent("START_TURN", {})
-                                }
-                            }
-                            break
-                        case "JOIN":
-                            if (game) {
-                                if (game.players.length == 2 && GameUX.username == game.players[0].username) {
-                                    if (GameUX.gameType == "ingame") {
-                                           GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
-                                    } else {  // pregame
-                                        if (game.starting_effects.length != 2) {
-                                          GameRoom.sendPlayMoveEvent("ENTER_FX_SELECTION", {})
-                                        } else {
-                                           GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
-                                        }                                        
-                                    }
-                                }
-                                GameUX.refresh(game);         
-                            } else {
-
-                            }
-                            break;
-                        case "START_TURN":
-                            GameUX.refresh(game);
-                            break;
-                        case "END_TURN":
-                            if (data["username"] == GameUX.opponent(game).username) {
-                                GameRoom.sendPlayMoveEvent("START_TURN", {})
-                            }
-                            break;
-                        case "ATTACK":
-                            GameUX.refresh(game);
-                            break;
-                        case "SELECT_ENTITY":
-                            GameUX.refresh(game);
-                            break;
-                        case "SELECT_CARD_IN_HAND":
-                            GameUX.refresh(game);
-                            break;
-                        case "PLAY_CARD":
-                            if (data["played_card"]) {
-                                GameUX.refresh(game);
-                                if (data["is_make_effect"] && data["username"] == GameUX.username) {
-                                    GameUX.showMakeView(game);
-                                }
-                            }
-                            break;
-                        case "MAKE_EFFECT":
-                            if (data["username"] == GameUX.thisPlayer(game).username) {
-                                GameUX.showGame();
-                            }
-                            GameUX.refresh(game);
-                            break;
-                        case "MAKE_CARD":
-                            if (data["username"] == GameUX.thisPlayer(game).username) {
-                                GameUX.showGame();
-                            }
-                            GameUX.refresh(game);
-                            break;
-                        case "ENTER_FX_SELECTION":
-                            GameUX.showFXSelectionView(game, data["decks"]);
-                            break;
-                        break;
-                        case "SELECT_SELF":
-                            GameUX.refresh(game);
-                            break;
-                        break;
-                        case "SELECT_OPPONENT":
-                            GameUX.refresh(game);
-                            break;
-                        break;
-                    }
                     break;
                 default:
                     console.log("No event")
@@ -782,12 +653,39 @@ class GameRoom {
         };
     }
 
-    static sendPlayMoveEvent(move_type, info) {
-        info["move_type"] = move_type
-        info["username"] = GameUX.username
-        GameRoom.gameSocket.send(JSON.stringify({
-            "event": "PLAY_MOVE", 
-            "message": info
-        }));                
+    static roomSocketUrl() {
+        const roomCode = document.getElementById("data_store").getAttribute("room_code");
+        const url = new URL(window.location.href);
+        var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
+        var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.gameType + '/' + roomCode + '/';
+
+        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
+        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
+        if (isCustom != "False") {
+            connectionString = protocol + window.location.host + '/ws/play_custom/' + customGameId + '/' + roomCode + '/';
+        }
+        return connectionString;
     }
+
+    static nextRoomUrl() {
+        var url = location.host + location.pathname;
+        var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
+        var usernameParameter = getSearchParameters()["username"];
+        var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
+        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
+        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
+        if (isCustom != "False") {
+            nextRoomUrl = "/play/custom/" + customGameId + '/' + roomNumber + "?username=" + usernameParameter;
+        }
+        return nextRoomUrl;
+    }
+
 }
+
+function tdForTitle(title) {
+    var td = document.createElement("td");
+    td.style.border = "1px solid black";
+    td.innerHTML = title;
+    return tdForTitle;
+}
+
