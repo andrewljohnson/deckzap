@@ -5,20 +5,29 @@ class GameUX {
     static oldOpponentHP = 30;
     static oldSelfHP = 30;
 
+    static usernameOrP1(game) {
+        if (GameUX.username in [game.players[0].username, game.players[1].username]) {
+            return GameUX.username;
+        }
+        return game.players[0].username;
+    }
+
+
     static thisPlayer(game) {
         for(let player of game.players) {
             if (player.username == GameUX.username) {
                 return player
             }
         }
+        return game.players[0];
     }
 
     static opponent(game) {
-        for(let player of game.players) {
-            if (player.username != GameUX.username) {
-                return player
-            }
+        let thisPlayer = GameUX.thisPlayer(game);
+        if (thisPlayer == game.players[1]) {
+            return game.players[0];
         }
+        return game.players[1];
     }
 
     static updateUsername(game) {
@@ -109,7 +118,7 @@ class GameUX {
         let handDiv = document.getElementById("hand");
         handDiv.innerHTML = '';
         for (let card of GameUX.thisPlayer(game).hand) {
-            handDiv.appendChild(GameUX.cardSprite(game, card, GameUX.username));
+            handDiv.appendChild(GameUX.cardSprite(game, card, GameUX.usernameOrP1(game)));
         }
     }
 
@@ -117,7 +126,7 @@ class GameUX {
         var inPlayDiv = document.getElementById("in_play");
         inPlayDiv.innerHTML = '';
         for (let card of GameUX.thisPlayer(game).in_play) {
-            inPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.username));
+            inPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.usernameOrP1(game)));
         }        
     }
 
@@ -125,7 +134,7 @@ class GameUX {
         let opponentInPlayDiv = document.getElementById("opponent_in_play");
         opponentInPlayDiv.innerHTML = '';
         for (let card of GameUX.opponent(game).in_play) {
-            opponentInPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.username));
+            opponentInPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.usernameOrP1(game)));
         }
     }
 
@@ -144,8 +153,8 @@ class GameUX {
     }
 
     static isActivePlayer(game) {
-        return (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)
+        return (game.turn % 2 == 0 && GameUX.usernameOrP1(game) == game.players[0].username
+                || game.turn % 2 == 1 && GameUX.usernameOrP1(game) == game.players[1].username)
     }
 
     static cardSprite(game, card, username) {
@@ -428,9 +437,9 @@ class GameUX {
         input.name = "card";
         input.style.color = 'blue';
         input.value = 1;
-        if (GameUX.username in decks) {
-            if (c.name in decks[GameUX.username]) {
-               input.value = decks[GameUX.username][c.name];
+        if (GameUX.usernameOrP1(game) in decks) {
+            if (c.name in decks[GameUX.usernameOrP1(game)]) {
+               input.value = decks[GameUX.usernameOrP1(game)][c.name];
             }
         }
         input.style.width = "50px";
@@ -506,7 +515,7 @@ class GameUX {
         container.appendChild(cardContainerDiv);
 
         for (let card of cards) {
-            let cardDiv = GameUX.cardSprite(game, card, GameUX.username);
+            let cardDiv = GameUX.cardSprite(game, card, GameUX.usernameOrP1(game));
             cardContainerDiv.appendChild(cardDiv);
             cardDiv.onclick = function() {
                 if (card.starting_effect) {
@@ -634,6 +643,7 @@ class GameRoom {
             let data = JSON.parse(e.data)["payload"];
             switch (data["event"]) {
                 case "NEXT_ROOM":
+                    var usernameParameter = getSearchParameters()["username"];
                     if (data["username"] == usernameParameter) {
                        window.location.href = GameRoom.nextRoomUrl();
                     } else {
@@ -689,3 +699,17 @@ function tdForTitle(title) {
     return tdForTitle;
 }
 
+function getSearchParameters() {
+    var prmstr = window.location.search.substr(1);
+    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+}
+
+function transformToAssocArray( prmstr ) {
+    var params = {};
+    var prmarr = prmstr.split("&");
+    for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+    }
+    return params;
+}
