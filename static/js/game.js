@@ -6,7 +6,7 @@ class GameUX {
     static oldSelfHP = 30;
 
     static usernameOrP1(game) {
-        if (GameUX.username in [game.players[0].username, game.players[1].username]) {
+        if (GameUX.username == game.players[0].username || GameUX.username == game.players[1].username) {
             return GameUX.username;
         }
         return game.players[0].username;
