@@ -150,4 +150,8 @@
         font-size: 18px;
     }
 
+    html {
+        max-width:1024px;
+    }
+
 
