@@ -10,7 +10,8 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        background-color: lightgray;
+        background-color: #DFBF9F;
+        border: 4px solid #C4A484;
         border-radius: 6px;
         cursor: pointer;
     }
@@ -20,7 +21,7 @@
     }
     
     .avatar_image {
-        width: 100px;
+        width: 110px;
         border-radius: 6px;
     }
 
@@ -91,15 +92,15 @@
     }
 
     #in_play {
-        height:130px;width:610px;background-color:black;
+        height:130px;width:610px;background-color:#765C48;margin-top:5px;
     }
 
     #opponent_in_play {
-        height:130px;width:610px;background-color:black;
+        height:130px;width:610px;background-color:#765C48;
     }
 
     #hand {
-        height:130px;width:100%;background-color:yellow;    
+        height:130px;width:100%;background-color:#765C48;    
     }
 
                         
@@ -108,7 +109,17 @@
     }
 
     .modal_view {
-        text-align:center;margin: 0 auto;width:80%;display:none;
+        text-align:center;
+        margin: 0 auto;
+        width:100%;
+        height:100%;
+        display:none;
+        position: absolute;
+        top:0;
+        left:0;
+        
+        flex-direction: column;
+        justify-content: center;
     }
 
     #turn_label {
@@ -137,6 +148,10 @@
         color: red;
         font-weight: bold;
         font-size: 18px;
+    }
+
+    html {
+        max-width:1024px;
     }
 
 

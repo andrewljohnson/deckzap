@@ -1,8 +1,55 @@
-[	{
+[		
+	{
+		"name": "Mana Sprite",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "You have an extra mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"amount": 1,
+			"id": 0
+		}],
+		"effects_leave_play": [{
+			"name": "decrease_max_mana",
+			"amount": 1,
+			"id": 0
+		}]
+	},
+	{
+		"name": "Smart CatKin",
+		"power": 1,
+		"toughness": 2,
+		"cost": 1,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"amount": 1,
+			"id": 0
+		}]
+	},
+	{
 		"name": "CatKin",
 		"power": 2,
 		"toughness": 2,
 		"cost": 1
+	},
+	{
+		"name": "Mana Tree",
+		"power": 0,
+		"toughness": 7,
+		"cost": 3,
+		"description": "You have an extra mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"amount": 1,
+			"id": 0
+		}],
+		"effects_leave_play": [{
+			"name": "decrease_max_mana",
+			"amount": 1,
+			"id": 0
+		}]
 	},
 	{
 		"name": "PantherKin",
@@ -11,10 +58,33 @@
 		"cost": 2
 	},
 	{
+		"name": "Angry PantherKin",
+		"power": 1,
+		"toughness": 1,
+		"cost": 2,
+		"description": "Deal 2 damage.",
+		"effects": [{
+			"name": "damage",
+			"amount": 2,
+			"id": 0
+		}]	
+	},
+	{
 		"name": "LionKin",
 		"power": 4,
 		"toughness": 4,
 		"cost": 3
+	},
+	{
+		"name": "Scary LionKin",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+		"description": "Return an entity to its owner's hand.",
+		"effects": [{
+			"name": "unwind",
+			"id": 0
+		}]	
 	},
 	{
 		"name": "Beastmaster",
@@ -35,8 +105,18 @@
 		"cost": 6
 	},
 	{
-		"name": "Kill",
+		"name": "Unwind",
 		"cost": 2,
+		"card_type": "Spell",
+		"description": "Return an entity to its owner's hand.",
+		"effects": [{
+			"name": "unwind",
+			"id": 0
+		}]
+	},
+	{
+		"name": "Kill",
+		"cost": 4,
 		"card_type": "Spell",
 		"description": "Kill an opponent's entity.",
 		"effects": [{
@@ -46,7 +126,7 @@
 	},
 	{
 		"name": "Zap",
-		"cost": 1,
+		"cost": 2,
 		"card_type": "Spell",
 		"description": "Deal 3 damage.",
 		"effects": [{
@@ -57,12 +137,12 @@
 	},
 	{
 		"name": "Think",
-		"cost": 2,
+		"cost": 3,
 		"card_type": "Spell",
 		"description": "Draw 3 cards.",
 		"effects": [{
 			"name": "draw",
-			"amount": 2,
+			"amount": 3,
 			"id": 0
 		}]
 	},
@@ -75,7 +155,8 @@
 			"name": "damage",
 			"amount": 1,
 			"id": 0
-		}, {
+		}, 
+		{
 			"name": "draw",
 			"amount": 1,
 			"id": 1
@@ -85,7 +166,7 @@
 		"name": "Counterspell",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Counter an entity or spell.",
+		"description": "Counter an entity or spell that costs more than 1.",
 		"effects": [{
 			"name": "counter",
 			"id": 0
@@ -95,7 +176,7 @@
 		"name": "Make Entity",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Choose 1 of 3 entities to make and add to your hand.",
+		"description": "Choose 1 of 3 entities to make and add to your deck.",
 		"effects": [{
 			"name": "make",
 			"make_type": "Entity",
@@ -107,7 +188,7 @@
 		"name": "Make Spell",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Choose 1 of 3 spells to make and add to your hand.",
+		"description": "Choose 1 of 3 spells to make and add to your deck.",
 		"effects": [{
 			"name": "make",
 			"make_type": "Spell",

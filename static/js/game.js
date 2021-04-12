@@ -1,10 +1,9 @@
 class GameUX {
 
-    static lastSelectedCard = null;
-    static lastSelectedCardInHand = null;
-
     static username = document.getElementById("data_store").getAttribute("username");
     static gameType = document.getElementById("data_store").getAttribute("game_type");
+    static oldOpponentHP = 30;
+    static oldSelfHP = 30;
 
     static thisPlayer(game) {
         for(let player of game.players) {
@@ -27,11 +26,15 @@ class GameUX {
     }
 
     static updateHitPoints(game) {
+        if(GameUX.thisPlayer(game).hit_points < GameUX.oldSelfHP) {
+            GameUX.oldSelfHP = GameUX.thisPlayer(game).hit_points;
+            GameUX.showDamage(game, GameUX.opponent(game));            
+        }
         document.getElementById("hit_points").innerHTML = GameUX.thisPlayer(game).hit_points + " hp";
     }
 
     static updateMana(game) {
-        document.getElementById("mana").innerHTML = "Mana: " + GameUX.manaString(Math.floor(game.turn/2.0)+2, GameUX.thisPlayer(game).mana);
+        document.getElementById("mana").innerHTML = "Mana: " + GameUX.manaString(GameUX.thisPlayer(game).max_mana, GameUX.thisPlayer(game).mana);
     }
     static manaString(maxMana, currentMana) {
         var manaString = "";
@@ -45,29 +48,63 @@ class GameUX {
         return manaString
     }
 
+    static updatePlayerBorder(game) {
+        if (GameUX.thisPlayer(game).can_be_targetted && GameUX.isActivePlayer(game)) {
+            document.getElementById("player1").style.border = "4px solid orange";    
+        } else {            
+            document.getElementById("player1").style.border = "4px solid #765C48";    
+        }
+    }
+
+    static updateOpponentBorder(game) {
+        if (GameUX.opponent(game).can_be_targetted && GameUX.isActivePlayer(game)) {
+            document.getElementById("opponent").style.border = "4px solid orange";    
+        } else {            
+            document.getElementById("opponent").style.border = "4px solid #765C48";    
+        }
+    }
+
     static updateOpponentUsername(game) {
         GameUX.opponentUsername = GameUX.opponent(game).username;
         document.getElementById("opponent_username").innerHTML = GameUX.opponent(game).username + " (opponent)";
     }
 
     static updateOpponentHitPoints(game) {
+        if(GameUX.opponent(game).hit_points < GameUX.oldOpponentHP) {
+            GameUX.oldOpponentHP = GameUX.opponent(game).hit_points;
+            GameUX.showDamage(game, GameUX.thisPlayer(game));            
+        }
         document.getElementById("opponent_hit_points").innerHTML = GameUX.opponent(game).hit_points + " hp";
     }
 
     static updateOpponentMana(game) {
-        document.getElementById("opponent_mana").innerHTML = "Mana: " + GameUX.manaString(Math.floor(game.turn/2.0)+2, GameUX.opponent(game).mana);
+        document.getElementById("opponent_mana").innerHTML = "Mana: " + GameUX.manaString(GameUX.opponent(game).max_mana, GameUX.opponent(game).mana);
     }
+
     static updateOpponentCardCount(game) {
-        document.getElementById("opponent_card_count").innerHTML = GameUX.opponent(game).hand.length + " cards";                    
+        document.getElementById("opponent_card_count").innerHTML = "Hand: " + GameUX.opponent(game).hand.length + " cards";                    
     }
+
+    static updateDeckCount(game) {
+        document.getElementById("deck_count").innerHTML = "Deck: " + GameUX.thisPlayer(game).deck.length + " cards";                    
+    }
+
+    static updateOpponentDeckCount(game) {
+        document.getElementById("opponent_deck_count").innerHTML = "Deck: " + GameUX.opponent(game).deck.length + " cards";                    
+    }
+
+    static updatePlayedPileCount(game) {
+        document.getElementById("played_pile_count").innerHTML = "Played: " + GameUX.thisPlayer(game).played_pile.length + " cards";                    
+    }
+
+    static updateOpponentPlayedPileCount(game) {
+        document.getElementById("opponent_played_pile_count").innerHTML = "Played: " + GameUX.opponent(game).played_pile.length + " cards";                    
+    }
+
     static updateTurnLabel(game) {
-        if (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-            || game.turn % 2 == 1 && GameUX.username == game.players[1].username) {
-            document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
-        } else {
-            document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
-        }
+        document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
     }
+
     static updateHand(game) {
         let handDiv = document.getElementById("hand");
         handDiv.innerHTML = '';
@@ -92,67 +129,54 @@ class GameUX {
         }
     }
 
-    static enableEndTurnButton() {
-        document.getElementById("end-turn-button").style.backgroundColor = "red";
-        document.getElementById("end-turn-button").style.pointerEvents = "auto";
-        document.getElementById("end-turn-button").innerHTML = "End Turn";
-    }
-
-    static updateForEndTurn() {
-        GameUX.lastSelectedCard = null;
-        GameUX.lastSelectedCardInHand = null;
-        document.getElementById("end-turn-button").style.backgroundColor = "lightgray";
-        document.getElementById("end-turn-button").style.pointerEvents = "none";
-        document.getElementById("end-turn-button").innerHTML = "Opponent's Turn";
-    }
-   
-    static enableInPlayEntities() {
-        for (let childCardDiv of document.getElementById("in_play").children) {
-            childCardDiv.style.backgroundColor = "red";
-        }
-    }
-
     static showDamage(game, target) {
         var avatar = "opponent";
-        if (target == GameUX.opponent(game).username) {
+        if (target == GameUX.opponent(game)) {
             avatar = "player1";
         }
         document.getElementById(avatar).style.backgroundColor = "red";
         setTimeout(function() {
-            document.getElementById(avatar).style.backgroundColor = "lightgray";
+            document.getElementById(avatar).style.backgroundColor = "#DFBF9F";
         }, 400);
         if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
             alert("GAME OVER");
         }
     }
 
-    static disableCardAfterAttack(game, attackingPlayer, attackingCard) {
-        var container = "opponent_in_play"
-        if (attackingPlayer == GameUX.thisPlayer(game).username) {
-            container = "in_play";
-        }
-        for (let childCardDiv of document.getElementById(container).children) {
-            if (childCardDiv.id == "card_"+attackingCard) {
-                childCardDiv.style.backgroundColor = "gray";
-            }
-        }
-    }
-
-    static selectEntity(game, selectingPlayer, card_id) {
-        if (selectingPlayer == GameUX.opponent(game).username) {
-            for (let childCardDiv of document.getElementById("opponent_in_play").children) {
-                if (childCardDiv.id == "card_"+card_id) {
-                    childCardDiv.style.backgroundColor = "orange";
-                }
-            }
-        }
+    static isActivePlayer(game) {
+        return (game.turn % 2 == 0 && GameUX.username == game.players[0].username
+                || game.turn % 2 == 1 && GameUX.username == game.players[1].username)
     }
 
     static cardSprite(game, card, username) {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
-        cardDiv.style = 'cursor: pointer;height:120px;width:75px;background-color:red;border-width: 1px;border-color: white;border-style: solid;border-radius:4px;padding:5px;font-size:12px';
+        cardDiv.style = 'margin-right:2px;cursor: pointer;height:114px;width:71px;border-radius:4px;padding:5px;font-size:12px';
+        if (card.attacked) {
+            cardDiv.style.backgroundColor = "#C4A484";                
+        } else if (card.selected) {
+            cardDiv.style.backgroundColor = "orange";                            
+        } else {
+            cardDiv.style.backgroundColor = "#DFBF9F";            
+        }
+        if (GameUX.isActivePlayer(game)) {
+            if (card.can_cast) {
+                cardDiv.style.border = "3px solid yellow";                
+            } else if (card.can_be_targetted) {
+                cardDiv.style.border = "3px solid orange";                
+            } else if (
+                    card.attacked == false 
+                    && card.turn_played > -1 
+                    && card.turn_played < game.turn 
+                    && card.owner_username == GameUX.thisPlayer(game).username) {
+                cardDiv.style.border = "3px solid yellow";                
+            } else {
+                cardDiv.style.border = "3px solid #C4A484";                            
+            }
+        } else {
+            cardDiv.style.border = "3px solid #C4A484";                            
+        }
 
         let nameDiv = document.createElement("b");
         nameDiv.innerHTML = card.name;
@@ -160,13 +184,8 @@ class GameUX {
 
         if (card.card_type != "Effect") {
             let costDiv = document.createElement("div");
-            // costDiv.innerHTML = "Cost: " + card.cost;
             costDiv.innerHTML = GameUX.manaString(card.cost, card.cost);
             cardDiv.appendChild(costDiv)
-
-            let cardTypeDiv = document.createElement("div");
-            cardTypeDiv.innerHTML = card.card_type;
-            cardDiv.appendChild(cardTypeDiv)            
         }
 
         if (card.description) {
@@ -183,176 +202,90 @@ class GameUX {
 
         cardDiv.onclick = function() { 
             if (cardDiv.parentElement == document.getElementById("hand")) {  
-                GameUX.lastSelectedCard = null;
-                if (card.card_type == "Entity") {
-                    GameRoom.sendPlayMoveEvent("PLAY_CARD", {"card":card.id});
-                    GameUX.lastSelectedCardInHand = null;
-                } else {
-                    if (cardDiv.style.backgroundColor == "orange")   {
-                        cardDiv.style.backgroundColor = "red";                
-                        GameUX.lastSelectedCardInHand = null;
-                    } else {
-                        cardDiv.style.backgroundColor = "orange";                
-                        GameUX.lastSelectedCardInHand = cardDiv;
-                        if (card.name == "Think") {           
-                                var effect_targets = {};
-                                effect_targets[card.effects[0].id] = {"id": GameUX.username, "target_type":"player"};
-                                GameRoom.sendPlayMoveEvent("PLAY_CARD", {"card":card.id, "effect_targets": effect_targets});
-                                GameUX.lastSelectedCardInHand = null;
-                            } else if (card.name == "Make Entity" || card.name == "Make Spell" || card.name == "Make Global Effect") {     
-                                var effect_targets = {};
-                                effect_targets[card.effects[0].id] = {"id": GameUX.username, "target_type":"player"};
-                                GameRoom.sendPlayMoveEvent("PLAY_CARD", {"card":card.id, "effect_targets": effect_targets});
-                                GameUX.lastSelectedCardInHand = null;
-                            }
-                        }                          
-                    }
+                GameUX.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+            } else { 
+                GameUX.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
             }
-            if (cardDiv.parentElement == document.getElementById("in_play")) {    
-                GameUX.lastSelectedCard = null;
-                if (cardDiv.style.backgroundColor == "darkgray") {
-                    // do nothing, already attacked
-                } else if (cardDiv.style.backgroundColor == "orange")   {
-                    GameRoom.sendPlayMoveEvent("ATTACK", {"card":card.id});
-                    cardDiv.style.backgroundColor = "darkgray";                
-                    GameUX.lastSelectedCard = null;
-                } else {
-                    if (card.turn_played < game.turn) {
-                        cardDiv.style.backgroundColor = "orange";                
-                        GameUX.lastSelectedCard = cardDiv;
-                        GameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
-                    }
-                }                 
-            }
-            if (GameUX.lastSelectedCard && cardDiv.parentElement == document.getElementById("opponent_in_play")) {
-                GameRoom.sendPlayMoveEvent("ATTACK", {"defending_card":card.id, "card":parseInt(GameUX.lastSelectedCard.id.slice(5))});
-                GameUX.lastSelectedCard = null;
-            }    
-
-            if (GameUX.lastSelectedCardInHand
-                && (cardDiv.parentElement == document.getElementById("opponent_in_play") || cardDiv.parentElement == document.getElementById("in_play"))) {
-                var effect_targets = {};
-                effect_targets[GameUX.lastSelectedCardInHand.effects[0].id] = {"id": parseInt(cardDiv.id.slice(5)), "target_type":"entity"};
-                
-                // hack for siz pop
-                if (GameUX.lastSelectedCardInHand.effects.length == 2) {
-                    effect_targets[GameUX.lastSelectedCardInHand.effects[1].id] = {"id": GameUX.username, "target_type":"player"};
-                }
-                GameRoom.sendPlayMoveEvent("PLAY_CARD", {"card":parseInt(GameUX.lastSelectedCardInHand.id.slice(5)), "effect_targets": effect_targets});
-                GameUX.lastSelectedCardInHand = null;
-            }    
-        };
+        }
         return cardDiv;
     }
 
+    static selfClick () {
+        GameUX.sendPlayMoveEvent("SELECT_SELF", {});
+    }
+
     static opponentClick () {
-        if (GameUX.lastSelectedCard) {
-            if (GameUX.lastSelectedCard.style.backgroundColor == "orange") {
-                GameUX.lastSelectedCard.style.backgroundColor = "gray";
-                GameRoom.sendPlayMoveEvent("ATTACK", {"card":parseInt(GameUX.lastSelectedCard.id.slice(5))});
-                GameUX.lastSelectedCard.style.backgroundColor = "darkgray";                
-                GameUX.lastSelectedCard = null;
-                GameUX.lastSelectedCardInHand = null;
-            }
-        } else if (GameUX.lastSelectedCardInHand) {
-            if (GameUX.lastSelectedCardInHand.style.backgroundColor == "orange") {
-                var effect_targets = {};
-                effect_targets[GameUX.lastSelectedCardInHand.effects[0].id] = {"id": GameUX.opponentUsername, "target_type":"player"};
-
-                // hack for siz pop
-                if (GameUX.lastSelectedCardInHand.effects.length == 2) {
-                    effect_targets[GameUX.lastSelectedCardInHand.effects[1].id] = {"id": GameUX.username, "target_type":"player"};
-                }
-
-                GameRoom.sendPlayMoveEvent("PLAY_CARD", {"card":parseInt(GameUX.lastSelectedCardInHand.id.slice(5)), "effect_targets": effect_targets});
-                GameUX.lastSelectedCardInHand.style.backgroundColor = "red";                
-                GameUX.lastSelectedCard = null;
-                GameUX.lastSelectedCardInHand = null;
-            }
-        }
+        GameUX.sendPlayMoveEvent("SELECT_OPPONENT", {});
     }
 
     static viewHelp() {
         alert("1. Click cards in hand to play them.\n2. To attack, click your entity, then your opponent's.\n3. To attack your opponent's face, double click an entity or click your entity then the opponent.\n4. To cast a spell at your opponent's entity, click your spell, then your opponent's entity.\n5. To cast a spell at your opponent's face, click a spell or click a spell then the opponent.\n6. Entities can't attack the turn they come into play.");
     }
+   
+    static enableEndTurnButton(game) {
+        document.getElementById("end-turn-button").style.backgroundColor = "red";
+        if (GameUX.thisPlayer(game).mana == 0) {
+            document.getElementById("end-turn-button").style.border = "4px black solid";
+        } else {            
+            document.getElementById("end-turn-button").style.border = "4px red solid";
+        }
+        document.getElementById("end-turn-button").style.pointerEvents = "auto";
+        document.getElementById("end-turn-button").innerHTML = "End Turn";
+    }
 
-    static updateForGameStart(game) {
+    static disableEndTurnButton(game) {
+        document.getElementById("end-turn-button").style.border = "4px lightgray solid";
+        document.getElementById("end-turn-button").style.backgroundColor = "lightgray";
+        document.getElementById("end-turn-button").style.pointerEvents = "none";
+        document.getElementById("end-turn-button").innerHTML = "Opponent's Turn";
+    }
+   
+    static refresh(game) {
         if (GameUX.opponent(game)) {
-            GameUX.updateOpponentUsername(game);
-            GameUX.updateOpponentHitPoints(game);
+            if (GameUX.isActivePlayer(game)) {
+                GameUX.enableEndTurnButton(game);
+            } else {
+                GameUX.disableEndTurnButton(game);            
+            }
             GameUX.updateOpponentCardCount(game);
+            GameUX.updateOpponentMana(game);
+            GameUX.updateOpponentHitPoints(game);
+            GameUX.updateOpponentInPlay(game);
+            GameUX.updateOpponentDeckCount(game);
+            GameUX.updateOpponentPlayedPileCount(game);
+            GameUX.updateOpponentBorder(game);
         }
         if (GameUX.thisPlayer(game)) {
-            GameUX.updateUsername(game);
+            GameUX.updateMana(game);
             GameUX.updateHitPoints(game);
-        }
-    }
-
-    static updateForStartTurn(game) {
-        GameUX.updateHand(game);
-        if (game.turn % 2 == 0 && GameUX.username == game.players[0].username
-            || game.turn % 2 == 1 && GameUX.username == game.players[1].username) {
-            GameUX.enableEndTurnButton();
-            GameUX.enableInPlayEntities();
-        } else {
-            GameUX.updateForEndTurn();            
-        }
-        GameUX.updateOpponentCardCount(game);
-        GameUX.updateOpponentMana(game);
-        GameUX.updateMana(game);
-        GameUX.updateTurnLabel(game);
-
-        // refresh cards so turn_played gets set for summoning sickness
-        GameUX.updateInPlay(game);
-    }
-
-    static updateForAttack(game, attackingUser, attackingCard, defendingCard) {
-        if (defendingCard) {
             GameUX.updateInPlay(game);
-            GameUX.updateOpponentInPlay(game);
+            GameUX.updateHand(game);
+            GameUX.updateDeckCount(game);
+            GameUX.updatePlayedPileCount(game);
+            GameUX.updatePlayerBorder(game);
+        }
+        if (GameUX.opponent(game) && GameUX.thisPlayer(game)) {
+            if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
+                alert("GAME OVER");
+            }
+        }
+
+        if (game.decks_to_set) { // game.starting_effects.length == 2
+            GameUX.showFXSelectionView(game);
+        } else if (GameUX.thisPlayer(game).make_to_resolve.length) {
+            GameUX.showMakeView(game);
         } else {
-            GameUX.updateOpponentHitPoints(game);
-            GameUX.updateHitPoints(game);
-            GameUX.showDamage(game, attackingUser);
-        }
-        GameUX.disableCardAfterAttack(game, attackingUser, attackingCard);
-    }
-
-    static updateForPlayCard(game) {
-        if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
-            alert("GAME OVER");
-        }
-        GameUX.updateOpponentCardCount(game);
-        GameUX.updateOpponentMana(game);
-        GameUX.updateMana(game);
-        GameUX.updateOpponentHitPoints(game);
-        GameUX.updateHitPoints(game);
-
-        GameUX.updateInPlay(game);
-        GameUX.updateOpponentInPlay(game);
-        GameUX.updateHand(game);
+            GameUX.showGame();
+        }                           
     }
     
-    static showCardSelectionView(cards, game, username) {
-        document.getElementById("room").style.display = "none";
-        document.getElementById("card_selector").innerHTML = "";
-        var cardSelector = document.getElementById("card_selector");
-        cardSelector.style.display = "block";
-        for (var card of cards) {
-            var cs = GameUX.cardSprite(card, game, username);
-            cs.onclick = function () {
-                alert("choose card " + card.name);
-            };
-            cardSelector.appendChild(cs);
-        }
+    static showFXSelectionView(game) {
 
-    }
-
-    static showFXSelectionView(game, decks) {
-        document.getElementById("room").style.display = "none";
+        let decks = game.decks_to_set;
         document.getElementById("fx_selector").innerHTML = "";
         var fxSelector = document.getElementById("fx_selector");
         fxSelector.style.display = "block";
+        fxSelector.style.backgroundColor = "white";
 
         var cards = game.all_cards;
 
@@ -370,28 +303,15 @@ class GameUX {
         th.innerHTML = "Entities";
         table.appendChild(th);
 
-
         var tr = document.createElement("tr");
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Name";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Power";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Toughness";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Cost";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
+        tr.appendChild(tdForTitle("Name"));
+        tr.appendChild(tdForTitle("Power"));
+        tr.appendChild(tdForTitle("Toughness"));
+        tr.appendChild(tdForTitle("Cost"));
+        tr.appendChild(tdForTitle("Power"));
+        var td = tdForTitle("# In Deck");
         td.style.color = 'blue';
-        td.innerHTML = "# In Deck";
+        td.style.border = "1px solid black";
         tr.appendChild(td);
         table.appendChild(tr);
 
@@ -412,22 +332,12 @@ class GameUX {
         table.appendChild(th);
 
         var tr = document.createElement("tr");
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Name";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Description";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Cost";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
+        tr.appendChild(tdForTitle("Name"));
+        tr.appendChild(tdForTitle("Description"));
+        tr.appendChild(tdForTitle("Cost"));
+        var td = tdForTitle("# In Deck");
         td.style.color = 'blue';
-        td.innerHTML = "# In Deck";
+        td.style.border = "1px solid black";
         tr.appendChild(td);
         table.appendChild(tr);
 
@@ -440,7 +350,6 @@ class GameUX {
 
         fxSelector.appendChild(document.createElement("br"));
         fxSelector.appendChild(document.createElement("br"));
-
 
         var h1 = document.createElement("h1");
         h1.innerHTML = "Choose FX"
@@ -471,14 +380,8 @@ class GameUX {
 
         var tr = document.createElement("tr");
         table.appendChild(tr);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Choose 1";
-        tr.appendChild(td);
-        var td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.innerHTML = "Effect";
-        tr.appendChild(td);
+        tr.appendChild(tdForTitle("Choose 1"));
+        tr.appendChild(tdForTitle("Effect"));
 
         for(var o of options) {
             var input = document.createElement("input");
@@ -495,19 +398,14 @@ class GameUX {
             var label = document.createElement("label"); 
             label.for = o.id;
             label.innerHTML = o.label;
-
             var tr = document.createElement("tr");
             table.appendChild(tr);
-            var td = document.createElement("td");
-            td.style.border = "1px solid black";
+            var td = tdForTitle("");
             td.appendChild(input);
             tr.appendChild(td);
-
-            var td = document.createElement("td");
-            td.style.border = "1px solid black";
+            var td = tdForTitle("");
             td.appendChild(label);
             tr.appendChild(td);
-
         }  
 
         var button = document.createElement("button");
@@ -519,7 +417,7 @@ class GameUX {
             this.disabled = true;
             button.style.backgroundColor = "lightgray"
             button.innerHTML = "Waiting for Opponent...";
-            GameRoom.chooseEffect(game, GameUX.startingEffectId) 
+            GameUX.chooseEffect(game, GameUX.startingEffectId) 
         };
         fxSelector.appendChild(button);
     }
@@ -583,194 +481,113 @@ class GameUX {
     }
 
     static showMakeView(game) {
-        document.getElementById("room").style.display = "none";
         document.getElementById("make_selector").innerHTML = "";
         var makeSelector = document.getElementById("make_selector");
-        makeSelector.style.display = "block";
+        makeSelector.style.display = "flex";
+        makeSelector.style.background = "rgba(0, 0, 0, .7)";
+
+        var container = document.createElement("div");
+        container.style.width = 80+ 80*3 + "px";
+        container.style.height = 130+50+100 + "px";
+        container.style.margin = "auto";
+        container.style.backgroundColor = "white";
+        makeSelector.appendChild(container);
 
         var cards = GameUX.thisPlayer(game).make_to_resolve;
 
         var h1 = document.createElement("h1");
         h1.innerHTML = "Make a Card"
-        makeSelector.appendChild(h1);
-        makeSelector.appendChild(document.createElement('br'));
-        makeSelector.appendChild(document.createElement('br'));
+        container.appendChild(h1);
+        container.appendChild(document.createElement('br'));
+        container.appendChild(document.createElement('br'));
 
         var cardContainerDiv = document.createElement('div');
         cardContainerDiv.classList.add("card_container");
-        makeSelector.appendChild(cardContainerDiv);
+        container.appendChild(cardContainerDiv);
 
         for (let card of cards) {
             let cardDiv = GameUX.cardSprite(game, card, GameUX.username);
             cardContainerDiv.appendChild(cardDiv);
             cardDiv.onclick = function() {
                 if (card.starting_effect) {
-                    GameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
+                    GameUX.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
                 } else {
-                    GameRoom.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
+                    GameUX.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
                 }
             };
         }
     }
 
-}
-
-
-
-class GameRoom {
-
-    static gameSocket = null;
-
-    static connect() {
-        if (GameRoom.gameSocket == null) {
-            GameRoom.setupSocket();
-        }
-        if (GameRoom.gameSocket.readyState == WebSocket.OPEN) {
-            GameRoom.sendPlayMoveEvent("JOIN", {});
-            console.log('WebSockets connection created.');
-        } else {
-            setTimeout(function () {
-                GameRoom.connect();
-            }, 100);
-        }
+    static addLogLine() {
+        var line = document.createElement('div');
+        document.getElementById("game_log_inner").appendChild(line);
+        return line;
     }
 
-    static setupSocket() {
-        const roomCode = document.getElementById("data_store").getAttribute("room_code");
-        const url = new URL(window.location.href);
-        var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-        var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.gameType + '/' + roomCode + '/';
-        GameRoom.gameSocket = new WebSocket(connectionString);
+    static scrollLogToEnd() {
+        document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
+    }
 
-        GameRoom.gameSocket.onclose = function (e) {
-            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
-            setTimeout(function () {
-                GameRoom.connect();
-            }, 1000);
-        };
+    static endTurn() {
+        GameUX.sendPlayMoveEvent("END_TURN", {});
+    }
 
-        GameRoom.gameSocket.onmessage = function (e) {
-            let data = JSON.parse(e.data)["payload"];
-            let event = data["event"];
+    static chooseEffect(game, effect_id) {
+        var info = {"id": effect_id, "card_counts":{}};
+        for(var c of game.all_cards) {
+            var input = document.getElementById(c.name);
+            info["card_counts"][c.name] = input.value
+        }
+        GameUX.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
+    }
 
-            switch (event) {
-                case "NEXT_ROOM":
-                    function getSearchParameters() {
-                        var prmstr = window.location.search.substr(1);
-                        return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
-                    }
+    static logMessage(game, data) {
+        let move_type = data["move_type"];
+        var line = GameUX.addLogLine();
+        switch (move_type) {
+            case "CHOOSE_STARTING_EFFECT":
+                line.innerHTML = data.username + " chooses starting effect \"" + data["id"].replace(/_/g, " ") +"\"";
+                break
+            case "JOIN":
+                line.innerHTML = data.username + " joins";
+                if (game.players.length == 1) {
+                    line.innerHTML += "<br/><div>Waiting for opponent...</div>"
+                }
+                break;
+            case "START_TURN":
+                line.innerHTML = data.username + "'s turn " + "(turn " + game.turn + ")";
+                break;
+            case "ATTACK":
+                if (data["defending_card"]) {
+                    line.innerHTML = data.username + " attacks with " + data["card"]["name"] + " into " + data["defending_card"]["name"];
+                } else {
+                    line.innerHTML = data.username + " attacks with " + data["card"]["name"];
+                }
+                break;
+            case "PLAY_CARD":
+                if (data["played_card"]) {
+                    line.innerHTML = data.username + " plays " + data["card"]["name"];
+                }
+                if (data["was_countered"]) {
+                    line.innerHTML += "<br/>COUNTERSPELL from " + data["counter_username"] + " stops " + data["card"]["name"] + ". Boom sucka!";
+                } 
+               break;
+            case "MAKE_EFFECT":
+                line.innerHTML = data.username + " makes " + data["card"]["starting_effect"];
+                break;
+            case "ENTER_FX_SELECTION":
+                line.innerHTML = "Entering effect selection";
+                break;
+            break;
+        }
+        GameUX.scrollLogToEnd()
+    }
 
-                    function transformToAssocArray( prmstr ) {
-                        var params = {};
-                        var prmarr = prmstr.split("&");
-                        for ( var i = 0; i < prmarr.length; i++) {
-                            var tmparr = prmarr[i].split("=");
-                            params[tmparr[0]] = tmparr[1];
-                        }
-                        return params;
-                    }
-
-                    var url = location.host + location.pathname;
-                    var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
-                    var usernameParameter = getSearchParameters()["username"];
-                    var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
-                    if (data["username"] == usernameParameter) {
-                       window.location.href = nextRoomUrl;
-                    } else {
-                        setTimeout(function(){
-                            window.location.href = nextRoomUrl;
-                        }, 100); 
-                    }
-                    break;
-                case "PLAY_MOVE":
-                    let move_type = data["move_type"];
-                    var game = "game" in data ? data["game"] : null;
-                    var line = document.createElement('div');
-                    document.getElementById("game_log_inner").appendChild(line);
-                    switch (move_type) {
-                        case "CHOOSE_STARTING_EFFECT":
-                            if (game.starting_effects.length == 2) {
-                                GameUX.showGame();
-                                if (GameUX.username == game.players[0].username) {
-                                    GameRoom.sendPlayMoveEvent("START_TURN", {})
-                                }
-                            }
-                            line.innerHTML = data.username + " chooses starting effect \"" + data["id"].replace(/_/g, " ") +"\"";
-                            break
-                        case "JOIN":
-                            if (game) {
-                                if (game.players.length == 2 && GameUX.username == game.players[0].username) {
-                                    if (GameUX.gameType == "ingame") {
-                                           GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
-                                    } else {  // pregame
-                                        if (game.starting_effects.length != 2) {
-                                          GameRoom.sendPlayMoveEvent("ENTER_FX_SELECTION", {})
-                                        } else {
-                                           GameRoom.sendPlayMoveEvent("START_TURN", {})                                        
-                                        }                                        
-                                    }
-                                }
-                                line.innerHTML = data.username + " joins";
-                                if (game.players.length == 1) {
-                                    line.innerHTML += "<br/><div>Waiting for opponent...</div>"
-                                }
-                                GameUX.updateForGameStart(game);         
-                            } else {
-
-                            }
-                            break;
-                        case "START_TURN":
-                            line.innerHTML = data.username + "'s turn " + "(turn " + game.turn + ")";
-                            GameUX.updateForStartTurn(game);
-                            break;
-                        case "END_TURN":
-                            if (data["username"] == GameUX.opponent(game).username) {
-                                GameRoom.sendPlayMoveEvent("START_TURN", {})
-                            }
-                            break;
-                        case "ATTACK":
-                            line.innerHTML = data.username + " attacks with " + data["attacking_card"] + " into " + data["defending_card"];
-                            GameUX.updateForAttack(game, data["username"], data["attacking_card"], data["defending_card"]);
-                            break;
-                        case "SELECT_ENTITY":
-                            GameUX.selectEntity(game, data["username"], data["card"]);
-                            break;
-                        case "PLAY_CARD":
-                            if (data["played_card"]) {
-                                line.innerHTML = data.username + " plays " + data["card"]["name"];
-                                GameUX.updateForPlayCard(game);
-                                if (data["is_make_effect"] && data["username"] == GameUX.username) {
-                                    GameUX.showMakeView(game);
-                                }                                
-                            }
-                            break;
-                        case "MAKE_EFFECT":
-                            line.innerHTML = data.username + " makes " + data["card"]["starting_effect"];
-                            if (data["username"] == GameUX.thisPlayer(game).username) {
-                                GameUX.showGame();
-                            }
-                            GameUX.updateHand(game);
-                            GameUX.updateOpponentCardCount(game);
-                            break;
-                        case "MAKE_CARD":
-                            if (data["username"] == GameUX.thisPlayer(game).username) {
-                                GameUX.showGame();
-                            }
-                            GameUX.updateHand(game);
-                            GameUX.updateOpponentCardCount(game);
-                            break;
-                        case "ENTER_FX_SELECTION":
-                            line.innerHTML = "Entering effect selection";
-                            GameUX.showFXSelectionView(game, data["decks"]);
-                            break;
-                        break;
-                    }
-                    break;
-                default:
-                    console.log("No event")
-            }
-            document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
-        };
+    static nextRoom() {
+        GameRoom.gameSocket.send(JSON.stringify({
+            "event": "NEXT_ROOM",
+            "message": {"username":GameUX.username}
+        }));
     }
 
     static sendPlayMoveEvent(move_type, info) {
@@ -782,26 +599,93 @@ class GameRoom {
         }));                
     }
 
-    // methods on buttons in game.html
-
-    static nextRoom() {
-        GameRoom.gameSocket.send(JSON.stringify({
-            "event": "NEXT_ROOM",
-            "message": {"username":GameUX.username}
-        }));
-    }
-
-    static endTurn() {
-        GameUX.updateForEndTurn();
-        GameRoom.sendPlayMoveEvent("END_TURN", {});
-    }
-
-    static chooseEffect(game, effect_id) {
-        var info = {"id": effect_id, "card_counts":{}};
-        for(var c of game.all_cards) {
-            var input = document.getElementById(c.name);
-            info["card_counts"][c.name] = input.value
-        }
-        GameRoom.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
-    }
 }
+
+
+class GameRoom {
+
+    static gameSocket = null;
+
+    static connect() {
+        if (GameRoom.gameSocket == null) {
+            GameRoom.setupSocket();
+        }
+        if (GameRoom.gameSocket.readyState == WebSocket.OPEN) {
+            GameUX.sendPlayMoveEvent("JOIN", {});
+            console.log('WebSockets connection created.');
+        } else {
+            setTimeout(function () {
+                GameRoom.connect();
+            }, 100);
+        }
+    }
+
+    static setupSocket() {
+        GameRoom.gameSocket = new WebSocket(GameRoom.roomSocketUrl());
+
+        GameRoom.gameSocket.onclose = function (e) {
+            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+            setTimeout(function () {
+                GameRoom.connect();
+            }, 1000);
+        };
+
+        GameRoom.gameSocket.onmessage = function (e) {
+            let data = JSON.parse(e.data)["payload"];
+            switch (data["event"]) {
+                case "NEXT_ROOM":
+                    if (data["username"] == usernameParameter) {
+                       window.location.href = GameRoom.nextRoomUrl();
+                    } else {
+                        setTimeout(function(){
+                            window.location.href = GameRoom.nextRoomUrl();
+                        }, 100); 
+                    }
+                    break;
+                case "PLAY_MOVE":
+                    let game = data["game"];
+                    GameUX.refresh(game);
+                    GameUX.logMessage(game, data);
+                    break;
+                default:
+                    console.log("No event")
+            }
+        };
+    }
+
+    static roomSocketUrl() {
+        const roomCode = document.getElementById("data_store").getAttribute("room_code");
+        const url = new URL(window.location.href);
+        var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
+        var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.gameType + '/' + roomCode + '/';
+
+        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
+        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
+        if (isCustom != "False") {
+            connectionString = protocol + window.location.host + '/ws/play_custom/' + customGameId + '/' + roomCode + '/';
+        }
+        return connectionString;
+    }
+
+    static nextRoomUrl() {
+        var url = location.host + location.pathname;
+        var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
+        var usernameParameter = getSearchParameters()["username"];
+        var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
+        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
+        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
+        if (isCustom != "False") {
+            nextRoomUrl = "/play/custom/" + customGameId + '/' + roomNumber + "?username=" + usernameParameter;
+        }
+        return nextRoomUrl;
+    }
+
+}
+
+function tdForTitle(title) {
+    var td = document.createElement("td");
+    td.style.border = "1px solid black";
+    td.innerHTML = title;
+    return tdForTitle;
+}
+
