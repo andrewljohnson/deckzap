@@ -221,42 +221,6 @@ class GameUX {
         alert("1. Click cards in hand to play them.\n2. To attack, click your entity, then your opponent's.\n3. To attack your opponent's face, double click an entity or click your entity then the opponent.\n4. To cast a spell at your opponent's entity, click your spell, then your opponent's entity.\n5. To cast a spell at your opponent's face, click a spell or click a spell then the opponent.\n6. Entities can't attack the turn they come into play.");
     }
    
-    static updateForGameStart(game) {
-        if (GameUX.opponent(game)) {
-            GameUX.updateOpponentUsername(game);
-            GameUX.updateOpponentHitPoints(game);
-            GameUX.updateOpponentCardCount(game);
-            GameUX.updateOpponentDeckCount(game);
-            GameUX.updateOpponentPlayedPileCount(game);
-        }
-        if (GameUX.thisPlayer(game)) {
-            GameUX.updateUsername(game);
-            GameUX.updateHitPoints(game);
-            GameUX.updateDeckCount(game);
-            GameUX.updatePlayedPileCount(game);
-        }
-    }
-
-    static updateForStartTurn(game) {
-        GameUX.updateHand(game);
-        if (GameUX.isActivePlayer(game)) {
-            GameUX.enableEndTurnButton(game);
-        } else {
-            GameUX.disableEndTurnButton(game);            
-        }
-        GameUX.updateOpponentCardCount(game);
-        GameUX.updateOpponentMana(game);
-        GameUX.updateMana(game);
-        GameUX.updateTurnLabel(game);
-        GameUX.updateDeckCount(game);
-        GameUX.updateOpponentDeckCount(game);
-        GameUX.updatePlayedPileCount(game);
-        GameUX.updateOpponentPlayedPileCount(game);
-
-        GameUX.updateInPlay(game);
-        GameUX.updateOpponentInPlay(game);
-    }
-
     static enableEndTurnButton(game) {
         document.getElementById("end-turn-button").style.backgroundColor = "red";
         if (GameUX.thisPlayer(game).mana == 0) {
@@ -275,39 +239,36 @@ class GameUX {
         document.getElementById("end-turn-button").innerHTML = "Opponent's Turn";
     }
    
-    static updateForAttack(game, attackingUser, attackingCard, defendingCard) {
-        GameUX.updateInPlay(game);
-        GameUX.updateOpponentInPlay(game);
-        if (!defendingCard) {
-            GameUX.updateOpponentHitPoints(game);
-            GameUX.updateHitPoints(game);
-            GameUX.showDamage(game, attackingUser);
-        }
-    }
-
-    static updateForPlayCard(game) {
+    static refresh(game) {
         if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
             alert("GAME OVER");
         }
-        GameUX.updateOpponentCardCount(game);
-        GameUX.updateOpponentMana(game);
-        GameUX.updateMana(game);
-        GameUX.updateOpponentHitPoints(game);
-        GameUX.updateHitPoints(game);
 
-        GameUX.updateInPlay(game);
-        GameUX.updateOpponentInPlay(game);
-        GameUX.updateHand(game);
-
-        GameUX.updateDeckCount(game);
-        GameUX.updatePlayedPileCount(game);
-        GameUX.updateOpponentDeckCount(game);
-        GameUX.updateOpponentPlayedPileCount(game);
-        if (GameUX.isActivePlayer(game)) {
-            GameUX.enableEndTurnButton(game);
+        if (GameUX.opponent(game)) {
+            if (GameUX.isActivePlayer(game)) {
+                GameUX.enableEndTurnButton(game);
+            } else {
+                GameUX.disableEndTurnButton(game);            
+            }
+            GameUX.updateOpponentCardCount(game);
+            GameUX.updateOpponentMana(game);
+            GameUX.updateOpponentHitPoints(game);
+            GameUX.updateOpponentInPlay(game);
+            GameUX.updateOpponentDeckCount(game);
+            GameUX.updateOpponentPlayedPileCount(game);
+            GameUX.updateOpponentBorder(game);
         }
-        GameUX.updatePlayerBorder(game);
-        GameUX.updateOpponentBorder(game);
+        if (GameUX.thisPlayer(game)) {
+            GameUX.updateMana(game);
+            GameUX.updateHitPoints(game);
+            GameUX.updateInPlay(game);
+            GameUX.updateHand(game);
+            GameUX.updateDeckCount(game);
+            GameUX.updatePlayedPileCount(game);
+            GameUX.updatePlayerBorder(game);
+        }
+
+        
     }
     
     static showFXSelectionView(game, decks) {
@@ -759,13 +720,13 @@ class GameRoom {
                                         }                                        
                                     }
                                 }
-                                GameUX.updateForGameStart(game);         
+                                GameUX.refresh(game);         
                             } else {
 
                             }
                             break;
                         case "START_TURN":
-                            GameUX.updateForStartTurn(game);
+                            GameUX.refresh(game);
                             break;
                         case "END_TURN":
                             if (data["username"] == GameUX.opponent(game).username) {
@@ -773,26 +734,20 @@ class GameRoom {
                             }
                             break;
                         case "ATTACK":
-                            if (data["defending_card"]) {
-                                GameUX.updateForAttack(game, data["username"], data["card"]["id"], data["defending_card"]["id"]);
-                            } else {
-                                GameUX.updateForAttack(game, data["username"], data["card"]["id"], null);
-                            }
-                            GameUX.updatePlayerBorder(game);
-                            GameUX.updateOpponentBorder(game);
+                            GameUX.refresh(game);
                             break;
                         case "SELECT_ENTITY":
-                            GameUX.updateForPlayCard(game);
+                            GameUX.refresh(game);
                             break;
                         case "SELECT_OPPONENT_ENTITY":
-                            GameUX.updateForPlayCard(game);
+                            GameUX.refresh(game);
                             break;
                         case "SELECT_CARD_IN_HAND":
-                            GameUX.updateForPlayCard(game);
+                            GameUX.refresh(game);
                             break;
                         case "PLAY_CARD":
                             if (data["played_card"]) {
-                                GameUX.updateForPlayCard(game);
+                                GameUX.refresh(game);
                                 if (data["is_make_effect"] && data["username"] == GameUX.username) {
                                     GameUX.showMakeView(game);
                                 }
@@ -802,28 +757,24 @@ class GameRoom {
                             if (data["username"] == GameUX.thisPlayer(game).username) {
                                 GameUX.showGame();
                             }
-                            GameUX.updateHand(game);
-                            GameUX.updateOpponentCardCount(game);
+                            GameUX.refresh(game);
                             break;
                         case "MAKE_CARD":
                             if (data["username"] == GameUX.thisPlayer(game).username) {
                                 GameUX.showGame();
                             }
-                            GameUX.updateHand(game);
-                            GameUX.updateOpponentCardCount(game);
-                            GameUX.updateDeckCount(game);
-                            GameUX.updateOpponentDeckCount(game);
+                            GameUX.refresh(game);
                             break;
                         case "ENTER_FX_SELECTION":
                             GameUX.showFXSelectionView(game, data["decks"]);
                             break;
                         break;
                         case "SELECT_SELF":
-                            GameUX.updateForPlayCard(game);
+                            GameUX.refresh(game);
                             break;
                         break;
                         case "SELECT_OPPONENT":
-                            GameUX.updateForPlayCard(game);
+                            GameUX.refresh(game);
                             break;
                         break;
                     }

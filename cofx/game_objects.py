@@ -16,8 +16,8 @@ class CoFXGame:
 
         self.all_cards = []
         for c_info in JsonDB().all_cards():
-            if c_info["name"] != "Make Global Effect":
-               self.all_cards.append(CoFXCard(c_info))
+            #if c_info["name"] != "Make Global Effect":
+            self.all_cards.append(CoFXCard(c_info))
 
         if info:
             for u in info["players"]:
@@ -66,8 +66,6 @@ class CoFXGame:
             defending_card.attacked = False
             defending_card.selected = False
             defending_card.damage = 0
-
-
 
     def play_move(self, event, message, db_name):
         action_is_selection = False
@@ -126,7 +124,7 @@ class CoFXGame:
             elif move_type == 'END_TURN':
                 self.turn += 1
             elif move_type == 'SELECT_CARD_IN_HAND':
-                notarget_spells = ["Think", "Make Entity", "Make Spell"]
+                notarget_spells = ["Think", "Make Entity", "Make Spell", "Make Global Effect"]
                 for card in self.current_player().hand:
                     if card.id == message["card"]:
                         if card.name == "Counterspell":
