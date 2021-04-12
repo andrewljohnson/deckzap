@@ -225,7 +225,6 @@ class CoFXGame:
 
             self.highlight_can_cast()
 
-
         JsonDB().save_game_database(self.as_dict(), db_name)
         return message, self.as_dict()
 
