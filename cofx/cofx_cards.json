@@ -1,8 +1,9 @@
 [		
 	{
-		"name": "Mana Sprite",
-		"power": 1,
-		"toughness": 1,
+		"name": "Mana Shrub",
+		"race": "elf",
+		"power": 0,
+		"toughness": 3,
 		"cost": 1,
 		"description": "You have an extra mana each turn.",
 		"effects": [{
@@ -17,7 +18,7 @@
 		}]
 	},
 	{
-		"name": "Smart CatKin",
+		"name": "Familiar",
 		"power": 1,
 		"toughness": 2,
 		"cost": 1,
@@ -29,13 +30,27 @@
 		}]
 	},
 	{
-		"name": "CatKin",
+		"name": "PantherKin",
+		"race": "elf",
+		"power": 3,
+		"toughness": 2,
+		"cost": 2
+	},
+	{
+		"name": "Thought Sprite",
+		"race": "elf",
 		"power": 2,
 		"toughness": 2,
-		"cost": 1
+		"cost": 2,
+		"effects": [{
+			"name": "draw",
+			"amount": 1,
+			"id": 0
+		}]
 	},
 	{
 		"name": "Mana Tree",
+		"race": "elf",
 		"power": 0,
 		"toughness": 7,
 		"cost": 3,
@@ -52,10 +67,14 @@
 		}]
 	},
 	{
-		"name": "PantherKin",
-		"power": 3,
-		"toughness": 3,
-		"cost": 2
+		"name": "LionKin",
+		"race": "elf",
+		"power": 4,
+		"toughness": 4,
+		"cost": 2,
+		"abilities": [
+			{"id": 0, "name": "Guard"}
+		]
 	},
 	{
 		"name": "Angry PantherKin",
@@ -70,12 +89,6 @@
 		}]	
 	},
 	{
-		"name": "LionKin",
-		"power": 4,
-		"toughness": 4,
-		"cost": 3
-	},
-	{
 		"name": "Scary LionKin",
 		"power": 2,
 		"toughness": 2,
@@ -87,7 +100,7 @@
 		}]	
 	},
 	{
-		"name": "Beastmaster",
+		"name": "Common Bunger",
 		"power": 4,
 		"toughness": 5,
 		"cost": 4

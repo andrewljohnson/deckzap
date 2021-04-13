@@ -2,8 +2,9 @@
 
 {% block content %}
 <div class="wrapper">
-  <p>Wizard battle card games. Free to play, non-collectible.</p>
+  <p>Wizard battle card games.</p>
   <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
+  <p>Free to play, non-collectible.</p>
   <form method="POST">
     {% csrf_token %}
     <input type="submit" class="button" value="Play Games" name="menu" />

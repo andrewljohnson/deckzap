@@ -204,9 +204,17 @@ class GameUX {
         }
 
         if (card.card_type == "Entity") {
+            if (card.abilities && card.abilities[0].name == "Guard") {
+                let abilitiesDiv = document.createElement("div");
+                abilitiesDiv.innerHTML = card.abilities[0].name;
+                cardDiv.appendChild(abilitiesDiv);
+            }
+
             let powerToughnessDiv = document.createElement("div");
             powerToughnessDiv.innerHTML = card.power + "/" + (card.toughness - card.damage);
             cardDiv.appendChild(powerToughnessDiv);
+
+
         }
 
         cardDiv.onclick = function() { 

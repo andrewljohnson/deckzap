@@ -163,23 +163,42 @@ class CoFXGame:
                     message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message, db_name)
                 elif self.current_player().controls_entity(message["card"]):
                     if self.current_player().in_play_entity_is_selected(message["card"]):                
-                        message["move_type"] = "ATTACK"
-                        self.play_move('PLAY_MOVE', message, db_name)                    
+                        has_guard = False
+                        for c in self.opponent().in_play:
+                            if c.abilities and c.abilities[0].name == "Guard":
+                                has_guard = True
+                        if has_guard:                        
+                            self.current_player().in_play_card(message["card"]).selected = False
+                            print(f"can't attack opponent because an entity has Guard")
+                        else:                 
+                            message["move_type"] = "ATTACK"
+                            self.play_move('PLAY_MOVE', message, db_name)   
                     elif self.current_player().can_select(message["card"]):
                         self.current_player().select_in_play(message["card"])
                     else:
                         return None, None
-                elif not self.current_player().controls_entity(message["card"], message):
+                elif not self.current_player().controls_entity(message["card"]):
                     defending_card = self.opponent().in_play_card(message["card"])
-                    selected_entity = self.current_player.selected_entity()
+                    selected_entity = self.current_player().selected_entity()
                     if selected_entity:
-                        message["move_type"] = "ATTACK"
-                        message["card"] = selected_entity.id
-                        message["defending_card"] = defending_card.id
-                        self.play_move('PLAY_MOVE', message, db_name)                    
+                        has_guard = False
+                        for c in self.opponent().in_play:
+                            if c.abilities and c.abilities[0].name == "Guard":
+                                has_guard = True
+                        if not has_guard or (defending_card.abilities and defending_card.abilities[0].name == "Guard"):                        
+                            message["move_type"] = "ATTACK"
+                            message["card"] = selected_entity.id
+                            message["defending_card"] = defending_card.id
+                            self.play_move('PLAY_MOVE', message, db_name)
+                        else:
+                            print(f"can't attack {defending_card.name} because another entity has Guard")
+                            return None, None                                            
                     else:
                         print(f"nothing selected to target {defending_card.name}")
                         return None, None
+
+
+
                 else:
                     print("Should never get here")                                
             elif move_type == 'SELECT_OPPONENT' or move_type == 'SELECT_SELF':
@@ -199,10 +218,18 @@ class CoFXGame:
                     if not casting_spell:
                         for card in self.current_player().in_play:
                             if card.selected:
-                                message["card"] = card.id
-                                message["move_type"] = "ATTACK"
-                                self.play_move('PLAY_MOVE', message, db_name)                    
-                                card.selected = False
+                                has_guard = False
+                                for c in self.opponent().in_play:
+                                    if c.abilities and c.abilities[0].name == "Guard":
+                                        has_guard = True
+                                if not has_guard:
+                                    message["card"] = card.id
+                                    message["move_type"] = "ATTACK"
+                                    self.play_move('PLAY_MOVE', message, db_name)                    
+                                    card.selected = False
+                                else:
+                                    print(f"can't attack opponent because an entity has Guard")
+                                    return None, None
             elif move_type == 'ATTACK':
                 card_id = message["card"]
                 attacking_card = self.current_player().in_play_card(card_id)
@@ -278,7 +305,6 @@ class CoFXGame:
 
     def highlight_can_cast(self):
         for card in self.current_player().hand:
-            print(f"HIGHLIGHT CAN CAST {card}")
             if self.current_player().mana >= card.cost:
                 card.can_cast = True
                 if card.name == "Kill" or card.name == "Unwind":
@@ -636,7 +662,6 @@ class CoFXPlayer:
         return card
 
     def start_turn(self):
-        print(f"self.start turn {self}")
         if self.game.turn != 0:
             self.draw(1 + self.game.starting_effects.count("draw_extra_card"))
         self.max_mana += 1
@@ -663,9 +688,17 @@ class CoFXPlayer:
             if c.id == card_id:
                 in_play_card = c  
         in_play_card.selected = True
+        
+        has_guard = False
         for c in self.game.opponent().in_play:
-            c.can_be_targetted = True
-        self.game.opponent().can_be_targetted = True
+            if c.abilities and c.abilities[0].name == "Guard":
+                c.can_be_targetted = True
+                has_guard = True
+
+        if not has_guard:
+            for c in self.game.opponent().in_play:
+                c.can_be_targetted = True
+            self.game.opponent().can_be_targetted = True
 
     def has_selected_entity(self):
         for c in self.in_play:
@@ -710,9 +743,10 @@ class CoFXCard:
         self.can_be_targetted = info["can_be_targetted"] if "can_be_targetted" in info else False
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.effects_leave_play = [CoFXCardEffect(e) for e in info["effects_leave_play"]] if "effects_leave_play" in info else []
+        self.abilities = [CoFXCardAbility(a) for a in info["abilities"]] if "abilities" in info and info["abilities"] else None
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play})" 
+        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities})" 
 
     def as_dict(self):
         return {
@@ -733,6 +767,7 @@ class CoFXCard:
             "can_be_targetted": self.can_be_targetted,
             "owner_username": self.owner_username,
             "effects_leave_play": [e.as_dict() for e in self.effects_leave_play],
+            "abilities": [a.as_dict() for a in self.abilities] if self.abilities else None
         }
 
     def needs_targets(self):
@@ -772,5 +807,19 @@ class CoFXCardEffect:
             "name": self.name,
             "amount": self.amount,
             "make_type": self.make_type,
+        }
+
+class CoFXCardAbility:
+    def __init__(self, info):
+        self.id = info["id"]
+        self.name = info["name"]
+
+    def __repr__(self):
+        return f"{self.id} {self.name}"
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
         }
 
