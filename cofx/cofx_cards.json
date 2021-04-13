@@ -42,6 +42,7 @@
 		"power": 2,
 		"toughness": 2,
 		"cost": 2,
+		"description": "Draw a card.",
 		"effects": [{
 			"name": "draw",
 			"amount": 1,
@@ -77,6 +78,23 @@
 		]
 	},
 	{
+		"name": "Common Bunger",
+		"power": 4,
+		"toughness": 5,
+		"cost": 4
+	},
+	{
+		"name": "Training Master",
+		"power": 3,
+		"toughness": 3,
+		"cost": 0,
+		"description": "Double the power of another entity.",
+		"effects": [{
+			"name": "double_power",
+			"id": 0
+		}]	
+	},
+	{
 		"name": "Angry PantherKin",
 		"power": 1,
 		"toughness": 1,
@@ -98,12 +116,6 @@
 			"name": "unwind",
 			"id": 0
 		}]	
-	},
-	{
-		"name": "Common Bunger",
-		"power": 4,
-		"toughness": 5,
-		"cost": 4
 	},
 	{
 		"name": "Ogre",

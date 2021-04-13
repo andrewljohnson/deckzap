@@ -445,6 +445,10 @@ class CoFXPlayer:
             target_card.selected = False
             target_card.turn_played = -1
 
+    def do_double_power_effect_on_entity(self, card, target_entity_id):
+        target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
+        target_card.power *= 2
+
     def do_kill_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         self.game.send_card_to_played_pile(target_card, target_player)
@@ -564,7 +568,7 @@ class CoFXPlayer:
                     if card.name in ["Angry PantherKin"]:
                         self.entity_with_effect_to_target = card
                         self.game.set_targets_for_damage_effect()
-                    elif card.name in ["Scary LionKin"]:
+                    elif card.name in ["Scary LionKin", "Training Master"]:
                         self.entity_with_effect_to_target = card
                         self.game.set_targets_for_creature_effect()
                     else:
@@ -613,6 +617,8 @@ class CoFXPlayer:
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             else:
                 self.do_damage_effect_on_entity(card, effect_targets[e.id]["id"], e.amount)
+        elif e.name == "double_power":
+            self.do_double_power_effect_on_entity(card, effect_targets[e.id]["id"])
         elif e.name == "kill":
             self.do_kill_effect_on_entity(card, effect_targets[e.id]["id"])
         elif e.name == "unwind":
@@ -772,7 +778,7 @@ class CoFXCard:
 
     def needs_targets(self):
         for e in self.effects:
-            if e.name == "damage" or e.name == "kill" or e.name == "unwind":
+            if e.name == "damage" or e.name == "kill" or e.name == "unwind" or e.name == "double_power":
                 return True
         return False # draw, make, increase_max_mana
 
@@ -781,7 +787,7 @@ class CoFXCard:
         for e in self.effects:
             if e.name == "damage":
                 game.set_targets_for_damage_effect()
-            if e.name == "kill" or e.name == "unwind":
+            if e.name == "kill" or e.name == "unwind" or e.name == "double_power":
                 game.set_targets_for_creature_effect()
 
 
