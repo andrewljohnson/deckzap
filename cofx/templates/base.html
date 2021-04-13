@@ -5,18 +5,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wizard Card Game Universe (WCGU)</title>
+    <title>DeckZap - Player Built Card Games</title>
 </head>
 <body>
-{% block content %}
-{% endblock content %}
-<div id=footer>
-	{% if request.path != '/' %}
-		<hr style="margin-top:60px;" />
-		Wizard Card Game Universe - <a href=/>Home</div>
+	{% if not "play" in request.path%}
+		<h1 style="background-color:blue;margin:0;padding:5px;"><a style="color:white;text-decoration:none" href=/>DeckZap</a></h1>
 	{% endif %}
-</div>
-{% block javascript %}
-{% endblock javascript %}
+	{% block content %}
+	{% endblock content %}
+	<div id=footer>
+		{% if request.path != '/' %}
+			<hr style="margin-top:60px;" />
+			<div style="margin-left:5px">DeckZap - Player Built Card Games - <a href=/>Home</a></div>
+		{% endif %}
+	</div>
+	{% block javascript %}
+	{% endblock javascript %}
 </body>
 </html>

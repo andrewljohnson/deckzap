@@ -2,14 +2,28 @@
 
 {% block content %}
 <div class="wrapper">
-  <h1>Wizard Card Game Universe (WCGU)</h1>
   <p>Wizard battle card games. Free to play, non-collectible.</p>
   <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
   <form method="POST">
     {% csrf_token %}
     <input type="submit" class="button" value="Play Games" name="menu" />
     <input type="submit" class="button" value="Create Game" name="menu"/>
-</form>
-
+	</form>
 </div>
+
+<style>
+	input {
+		background-color: blue;
+		color:white;
+		width:150px;
+		height:60px;
+		border: none;
+		border-radius: 4px;
+		font-weight:bold;
+		font-size:18px;
+	}
+</style>
+
+<link rel="stylesheet" href="/static/css/nongame.css">
+
 {% endblock content %}
