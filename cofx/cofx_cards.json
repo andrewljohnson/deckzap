@@ -205,6 +205,21 @@
 		}]
 	},
 	{
+		"name": "Faerie's Blessing",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Give an entity gets +2/+2 permanently.",
+		"effects": [{
+			"name": "add_tokens",
+			"tokens": [{
+				"is_permanent": true,
+				"power_modifier": 2,
+				"toughness_modifier": 2}
+			],
+			"id": 0
+		}]
+	},
+	{
 		"name": "Angry PantherKin",
 		"power": 1,
 		"toughness": 1,
