@@ -278,8 +278,7 @@ class GameUX {
                 alert("GAME OVER");
             }
         }
-
-        if (game.decks_to_set) { // game.starting_effects.length == 2
+        if (game.decks_to_set && game.starting_effects.length != 2) {
             GameUX.showFXSelectionView(game);
         } else if (GameUX.thisPlayer(game).make_to_resolve.length) {
             GameUX.showMakeView(game);
@@ -289,7 +288,6 @@ class GameUX {
     }
     
     static showFXSelectionView(game) {
-
         let decks = game.decks_to_set;
         document.getElementById("fx_selector").innerHTML = "";
         var fxSelector = document.getElementById("fx_selector");
@@ -328,7 +326,7 @@ class GameUX {
             if (c.card_type != "Entity") {
                 continue;
             }
-            GameUX.addRowToTableForCard(c, decks, table);
+            GameUX.addRowToTableForCard(game, c, decks, table);
         }   
 
         table = document.createElement("table");
@@ -354,7 +352,7 @@ class GameUX {
             if (c.card_type != "Spell") {
                 continue;
             }
-            GameUX.addRowToTableForCard(c, decks, table);
+            GameUX.addRowToTableForCard(game, c, decks, table);
         }   
 
         fxSelector.appendChild(document.createElement("br"));
@@ -431,7 +429,7 @@ class GameUX {
         fxSelector.appendChild(button);
     }
 
-    static addRowToTableForCard(c, decks, table) {
+    static addRowToTableForCard(game, c, decks, table) {
         var input = document.createElement("input");
         input.id = c.name;
         input.name = "card";
@@ -696,7 +694,7 @@ function tdForTitle(title) {
     var td = document.createElement("td");
     td.style.border = "1px solid black";
     td.innerHTML = title;
-    return tdForTitle;
+    return td;
 }
 
 function getSearchParameters() {

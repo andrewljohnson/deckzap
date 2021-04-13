@@ -94,29 +94,37 @@ class CoFXGame:
                         random.shuffle(p.deck)
                         p.max_mana = 0
                         p.draw(6)
-                    self.send_start_turn()
-            elif move_type == 'ENTER_FX_SELECTION':
-                self.decks_to_set = {}
-                player_db = JsonDB().player_database()
-                for p in self.players:
-                    if "card_counts" in player_db[p.username]:
-                        self.decks_to_set[p.username] = player_db[p.username]["card_counts"] 
-                pass
+                    self.send_start_first_turn(message, db_name)
             elif move_type == 'JOIN':
                 if len(self.players) >= 2:
                     print(f"an extra player tried to join players {[p.username for p in self.players]}")
                 elif len(self.players) <= 1:
                     if len(self.players) == 0 or len(self.players) == 1 and self.players[0].username != message["username"]:
                         self.players.append(CoFXPlayer(self, {"username":message["username"]}, new=True))
-                if len(self.players) == 2 and len(self.players[0].hand) == 0 and self.game_type == "ingame":
-                    for p in self.players:
-                        for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
-                            p.add_to_deck(card_name, 1)
-                        random.shuffle(p.deck)
-                        p.max_mana = 1
-                        p.draw(2)
+                if len(self.players) == 2 and len(self.players[0].hand) == 0:
+                    if self.game_type == "ingame":
+                        for p in self.players:
+                            for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
+                                p.add_to_deck(card_name, 1)
+                            random.shuffle(p.deck)
+                            p.max_mana = 1
+                            p.draw(2)
+                    else:
+                        self.decks_to_set = {}
                 if len(self.players) == 2 and self.players[0].max_mana == 1 and self.turn == 0:
-                    self.send_start_game(message, db_name)
+                    # configure for game start after 2 joins if not configured yet
+                    if self.game_type == "ingame":
+                        self.send_start_first_turn(message, db_name)
+                    elif self.game_type == "ingame":
+                        if game.starting_effects.length == 2:
+                            self.send_start_first_turn(message, db_name)
+                        else:
+                            player_db = JsonDB().player_database()
+                            for p in self.players:
+                                if "card_counts" in player_db[p.username]:
+                                    self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
+                    else:  # no other game types implemented
+                        pass 
             else:
                 if (message["username"] != self.current_player().username):
                     print(f"can't {event} {move_type} on opponent's turn")
@@ -234,19 +242,8 @@ class CoFXGame:
         JsonDB().save_game_database(self.as_dict(), db_name)
         return message, self.as_dict()
 
-    def send_start_game(self, message, db_name):
-        if self.game_type == "ingame":
-            self.send_start_turn(message, db_name)
-        else:  # pregame
-            if game.starting_effects.length != 2:
-                # old_move_type = message["move_type"]
-                message["move_type"] = "ENTER_FX_SELECTION"
-                self.play_move("PLAY_MOVE", message, db_name)
-                # message["move_type"] = old_move_type                                            
-            else:
-                self.send_start_turn(message, db_name)
-
-    def send_start_turn(self, message, db_name):
+    def send_start_first_turn(self, message, db_name):
+        # TODO: send a new message instead of reconfiguring
         #old_move_type = message["move_type"]
         message["move_type"] = "START_TURN"
         #old_username = message["username"]
@@ -292,6 +289,7 @@ class CoFXGame:
                 card.can_cast = False
 
     def select_entity_target(self, card_to_target, message, db_name, move_type):
+        # TODO: send a new message instead of reconfiguring
         old_move_type = message["move_type"]
         message["move_type"] = move_type
         selected_card = self.current_player().in_play_card(message["card"])
@@ -316,6 +314,7 @@ class CoFXGame:
         return self.select_entity_target(entity_with_effect_to_target, message, db_name, "RESOLVE_ENTITY_EFFECT")
 
     def select_player_target(self, username, entity_with_effect_to_target, message, db_name, move_type):
+        # TODO: send a new message instead of reconfiguring
         old_move_type = message["move_type"]
         message["move_type"] = move_type
         effect_targets = {}
