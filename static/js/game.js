@@ -209,9 +209,16 @@ class GameUX {
                 abilitiesDiv.innerHTML = card.abilities[0].name;
                 cardDiv.appendChild(abilitiesDiv);
             }
-
+            let cardPower = card.power;
+            for (let c of card.tokens) {
+                cardPower += c.power_modifier;
+            }
+            let cardToughness = card.toughness - card.damage;
+            for (let c of card.tokens) {
+                cardToughness += c.toughness_modifier;
+            }
             let powerToughnessDiv = document.createElement("div");
-            powerToughnessDiv.innerHTML = card.power + "/" + (card.toughness - card.damage);
+            powerToughnessDiv.innerHTML = cardPower + "/" + cardToughness;
             cardDiv.appendChild(powerToughnessDiv);
 
 

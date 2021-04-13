@@ -87,12 +87,122 @@
 		"name": "Training Master",
 		"power": 3,
 		"toughness": 3,
-		"cost": 0,
+		"cost": 4,
 		"description": "Double the power of another entity.",
 		"effects": [{
 			"name": "double_power",
 			"id": 0
 		}]	
+	},
+	{
+		"name": "Gold Dragon",
+		"power": 6,
+		"toughness": 6,
+		"cost": 5,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"id": 0,
+			"amount": 1
+		}]	
+	},
+	{
+		"name": "Rainbow Dragon",
+		"power": 6,
+		"toughness": 6,
+		"cost": 5,
+		"description": "Make a spell.",
+		"effects": [{
+			"name": "make",
+			"make_type": "Spell",
+			"amount": 1,
+			"id": 0
+		}]	
+	},
+	{
+		"name": "Faerie Queen",
+		"power": 4,
+		"toughness": 4,
+		"cost": 6,
+		"description": "Draw 4 cards.",
+		"abilities": [
+			{"id": 0, "name": "Guard"}
+		],
+		"effects": [{
+			"name": "draw",
+			"id": 0,
+			"amount": 4
+		}]	
+	},
+	{
+		"name": "Nature's Guardian",
+		"race": "elf",
+		"power": 8,
+		"toughness": 8,
+		"cost": 6,
+		"abilities": [
+			{"id": 0, "name": "Guard"}
+		]
+	},
+	{
+		"name": "Make Entity+",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 entities to make and add to your deck. Draw a card.",
+		"effects": [{
+			"name": "make",
+			"make_type": "Entity",
+			"amount": 1,
+			"id": 0
+		}, 
+		{
+			"name": "draw",
+			"id": 1,
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Make Spell+",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 spells to make and add to your deck. Draw a card.",
+		"effects": [{
+			"name": "make",
+			"make_type": "Spell",
+			"amount": 1,
+			"id": 0
+		},
+		{
+			"name": "draw",
+			"id": 1,
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Forest Ritual",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Get 2 mana this turn",
+		"effects": [{
+			"name": "mana",
+			"amount": 2,
+			"id": 0
+		}]
+	},
+	{
+		"name": "Faerie War Chant",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Give an entity gets +3/+3 this turn.",
+		"effects": [{
+			"name": "add_tokens",
+			"tokens": [{
+				"is_permanent": false,
+				"power_modifier": 3,
+				"toughness_modifier": 3}
+			],
+			"id": 0
+		}]
 	},
 	{
 		"name": "Angry PantherKin",
