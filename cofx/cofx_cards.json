@@ -85,6 +85,7 @@
 	},
 	{
 		"name": "Training Master",
+		"race": "elf",
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
@@ -96,6 +97,7 @@
 	},
 	{
 		"name": "Gold Dragon",
+		"race": "elf",
 		"power": 6,
 		"toughness": 6,
 		"cost": 5,
@@ -108,6 +110,7 @@
 	},
 	{
 		"name": "Rainbow Dragon",
+		"race": "elf",
 		"power": 6,
 		"toughness": 6,
 		"cost": 5,
@@ -121,6 +124,7 @@
 	},
 	{
 		"name": "Faerie Queen",
+		"race": "elf",
 		"power": 4,
 		"toughness": 4,
 		"cost": 6,
@@ -146,6 +150,7 @@
 	},
 	{
 		"name": "Make Entity+",
+		"race": "elf",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 entities to make and add to your deck. Draw a card.",
@@ -163,6 +168,7 @@
 	},
 	{
 		"name": "Make Spell+",
+		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 spells to make and add to your deck. Draw a card.",
@@ -209,6 +215,21 @@
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Give an entity gets +2/+2 permanently.",
+		"effects": [{
+			"name": "add_tokens",
+			"tokens": [{
+				"is_permanent": true,
+				"power_modifier": 2,
+				"toughness_modifier": 2}
+			],
+			"id": 0
+		}]
+	},
+	{
+		"name": "Nature's Blessing",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "All your entities provide a mana each turn",
 		"effects": [{
 			"name": "add_tokens",
 			"tokens": [{
