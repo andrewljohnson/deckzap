@@ -231,11 +231,20 @@
 		"card_type": "Spell",
 		"description": "All your entities provide a mana each turn",
 		"effects": [{
-			"name": "add_tokens",
-			"tokens": [{
+			"name": "add_effects",
+			"effects": [{
 				"is_permanent": true,
-				"power_modifier": 2,
-				"toughness_modifier": 2}
+				"name": "increase_max_mana",
+				"amount": 1,
+				"activate_on_add": true,
+				"effect_type": "effects"
+			},
+				{
+				"is_permanent": true,
+				"name": "decrease_max_mana",
+				"amount": 1,
+				"effect_type": "effects_leave_play"
+			}
 			],
 			"id": 0
 		}]

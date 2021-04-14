@@ -772,9 +772,10 @@ class CoFXCard:
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.effects_leave_play = [CoFXCardEffect(e) for e in info["effects_leave_play"]] if "effects_leave_play" in info else []
         self.abilities = [CoFXCardAbility(a) for a in info["abilities"]] if "abilities" in info and info["abilities"] else None
+        self.added_effects = [CoFXCardEffect(e) for e in info["added_effects"]] if "added_effects" in info else {}
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens})" 
+        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects})" 
 
     def as_dict(self):
         return {
@@ -796,7 +797,8 @@ class CoFXCard:
             "owner_username": self.owner_username,
             "effects_leave_play": [e.as_dict() for e in self.effects_leave_play],
             "abilities": [a.as_dict() for a in self.abilities] if self.abilities else None,
-            "tokens": [t.as_dict() for t in self.tokens] if self.tokens else []
+            "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
+            "added_effects": [e.as_dict() for e in self.added_effects]
         }
 
     def needs_targets(self):
