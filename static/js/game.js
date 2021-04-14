@@ -572,44 +572,10 @@ class GameUX {
         GameUX.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
     }
 
-    static logMessage(game, data) {
-        let move_type = data["move_type"];
-        var line = GameUX.addLogLine();
-        switch (move_type) {
-            case "CHOOSE_STARTING_EFFECT":
-                line.innerHTML = data.username + " chooses starting effect \"" + data["id"].replace(/_/g, " ") +"\"";
-                break
-            case "JOIN":
-                line.innerHTML = data.username + " joins";
-                if (game.players.length == 1) {
-                    line.innerHTML += "<br/><div>Waiting for opponent...</div>"
-                }
-                break;
-            case "START_TURN":
-                line.innerHTML = data.username + "'s turn " + "(turn " + game.turn + ")";
-                break;
-            case "ATTACK":
-                if (data["defending_card"]) {
-                    line.innerHTML = data.username + " attacks with " + data["card"]["name"] + " into " + data["defending_card"]["name"];
-                } else {
-                    line.innerHTML = data.username + " attacks with " + data["card"]["name"];
-                }
-                break;
-            case "PLAY_CARD":
-                if (data["played_card"]) {
-                    line.innerHTML = data.username + " plays " + data["card"]["name"];
-                }
-                if (data["was_countered"]) {
-                    line.innerHTML += "<br/>COUNTERSPELL from " + data["counter_username"] + " stops " + data["card"]["name"] + ". Boom sucka!";
-                } 
-               break;
-            case "MAKE_EFFECT":
-                line.innerHTML = data.username + " makes " + data["card"]["starting_effect"];
-                break;
-            case "ENTER_FX_SELECTION":
-                line.innerHTML = "Entering effect selection";
-                break;
-            break;
+    static logMessage(log_lines) {
+        for (let text of log_lines) {
+            var line = GameUX.addLogLine();
+            line.innerHTML = text
         }
         GameUX.scrollLogToEnd()
     }
@@ -677,7 +643,7 @@ class GameRoom {
                 case "PLAY_MOVE":
                     let game = data["game"];
                     GameUX.refresh(game);
-                    GameUX.logMessage(game, data);
+                    GameUX.logMessage(data["log_lines"]);
                     break;
                 default:
                     console.log("No event")
