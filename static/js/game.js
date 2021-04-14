@@ -170,16 +170,10 @@ class GameUX {
             cardDiv.style.backgroundColor = "#DFBF9F";            
         }
         if (GameUX.isActivePlayer(game)) {
-            if (card.can_cast) {
+            if (card.can_cast || card.can_act) {
                 cardDiv.style.border = "3px solid yellow";                
             } else if (card.can_be_targetted) {
                 cardDiv.style.border = "3px solid orange";                
-            } else if (
-                    card.attacked == false 
-                    && card.turn_played > -1 
-                    && card.turn_played < game.turn 
-                    && card.owner_username == GameUX.thisPlayer(game).username) {
-                cardDiv.style.border = "3px solid yellow";                
             } else {
                 cardDiv.style.border = "3px solid #C4A484";                            
             }
@@ -211,7 +205,7 @@ class GameUX {
         }
 
         if (card.card_type == "Entity") {
-            if (card.abilities && card.abilities[0].name == "Guard") {
+            if (card.abilities) {
                 let abilitiesDiv = document.createElement("div");
                 abilitiesDiv.innerHTML = card.abilities[0].name;
                 cardDiv.appendChild(abilitiesDiv);

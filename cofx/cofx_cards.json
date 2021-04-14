@@ -378,6 +378,64 @@
 		}]
 	},
 	{
+		"name": "Trickster",
+		"race": "elementalkin",
+		"power": 1,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Fire Elemental",
+		"race": "elementalkin",
+		"power": 3,
+		"toughness": 3,
+		"cost": 4,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{
+		"name": "Inferno Elemental",
+		"race": "elementalkin",
+		"power": 5,
+		"toughness": 5,
+		"cost": 5,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{
+		"name": "Lord of the Storm",
+		"race": "elementalkin",
+		"description": "Return all entities to their owners' hands.",
+		"power": 3,
+		"toughness": 3,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		],
+		"effects": [{
+			"name": "unwind",
+			"target_type": "all_entities"
+		}]	
+	},
+	{
 		"name": "Siz Pop",
 		"cost": 1,
 		"card_type": "Spell",

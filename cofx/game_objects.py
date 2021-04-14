@@ -245,6 +245,9 @@ class CoFXGame:
                 else:
                     message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens()}.")
                     self.opponent().hit_points -= attacking_card.power_with_tokens()
+                    if attacking_card.abilities:
+                        if attacking_card.abilities[0].name == "DamageDraw":
+                            self.current_player().draw(attacking_card.abilities[0].amount)
                     attacking_card.attacked = True
                     attacking_card.selected = False
             elif move_type == 'PLAY_CARD':
@@ -266,6 +269,7 @@ class CoFXGame:
                 self.starting_effects.append(message["card"]["starting_effect"])
                 self.current_player().make_to_resolve = []
 
+            self.highlight_can_act()
             self.highlight_can_cast()
 
         JsonDB().save_game_database(self.as_dict(), db_name)
@@ -290,6 +294,7 @@ class CoFXGame:
             card.can_be_targetted = False
         for card in self.current_player().in_play:
             card.can_be_targetted = False
+            card.can_act = False
         for card in self.current_player().hand:
             card.can_cast = False
         self.opponent().can_be_targetted = False
@@ -308,6 +313,11 @@ class CoFXGame:
             card.can_be_targetted = True
         for card in self.current_player().in_play:
             card.can_be_targetted = True
+
+    def highlight_can_act(self):
+        for card in self.current_player().in_play:
+            if self.current_player().can_select(card.id):
+                card.can_act = True
 
     def highlight_can_cast(self):
         for card in self.current_player().hand:
@@ -445,9 +455,21 @@ class CoFXPlayer:
             message["log_lines"].append(f"{self.username} kills {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
             self.do_kill_effect_on_entity(card, effect_targets[e.id]["id"])
         elif e.name == "unwind":
-            target_card, target_player = self.game.get_in_play_for_id(effect_targets[e.id]['id'])
-            message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {target_player}'s hand.")
-            self.do_unwind_effect_on_entity(card, effect_targets[e.id]["id"])
+            if e.target_type == "all_entities":
+                message["log_lines"].append(f"{card.name} returns all entities to their owners' hands.")
+                entities_to_unwind = []
+                for entity in self.in_play:
+                    if entity.id != card.id:
+                        entities_to_unwind.append(entity.id)
+                for entity in self.game.opponent().in_play:
+                    if entity.id != card.id:
+                        entities_to_unwind.append(entity.id)
+                for eid in entities_to_unwind:
+                    self.do_unwind_effect_on_entity(eid)
+            else:
+                target_card, target_player = self.game.get_in_play_for_id(effect_targets[e.id]['id'])
+                message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {target_player.username}'s hand.")
+                self.do_unwind_effect_on_entity(effect_targets[e.id]["id"])
         elif e.name == "make":
             message["log_lines"].append(f"{self.username} plays {card.name}.")
             self.do_make_effect(card, effect_targets[e.id]["id"], e.make_type, e.amount)
@@ -525,7 +547,7 @@ class CoFXPlayer:
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         self.game.send_card_to_played_pile(target_card, target_player)
 
-    def do_unwind_effect_on_entity(self, card, target_entity_id):
+    def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         self.game.send_card_to_played_pile(target_card, target_player)
         target_player.hand.append(target_card)  
@@ -631,11 +653,13 @@ class CoFXPlayer:
     def can_select(self, card_id):
         for card in self.in_play:
             if card.id == card_id:
-                if card.turn_played == self.game.turn:
-                    print("can't select entities that were just summoned")
-                    return False
                 if card.attacked:
                     print("can't select entities that already attacked")
+                    return False
+                if card.turn_played == self.game.turn:
+                    if self.entity_has_fast(card):
+                        return True
+                    print("can't select entities that were just summoned")
                     return False
         return True
 
@@ -827,6 +851,16 @@ class CoFXPlayer:
             return True
         return False
 
+    def entity_has_damage_draw(self, entity):
+        if entity.abilities and entity.abilities[0].name == "DamageDraw":
+            return True
+        return False
+
+    def entity_has_fast(self, entity):
+        if entity.abilities and entity.abilities[0].descriptive_id == "Fast":
+            return True
+        return False
+
 
 class CoFXCard:
 
@@ -852,6 +886,8 @@ class CoFXCard:
         self.effects_leave_play = [CoFXCardEffect(e, idx) for idx, e in enumerate(info["effects_leave_play"])] if "effects_leave_play" in info else []
         self.abilities = [CoFXCardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else None
         self.added_effects = {"effects":[], "effects_leave_play":[]}
+        self.can_act = info["can_act"] if "can_act" in info else False
+
         if "added_effects" in info:
             for idx, e in enumerate(info["added_effects"]["effects"]):
                 self.added_effects["effects"].append(CoFXCardEffect(e, idx))
@@ -859,7 +895,7 @@ class CoFXCard:
                 self.added_effects["effects_leave_play"].append(CoFXCardEffect(e, idx))
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.added_descriptions}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects})" 
+        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.added_descriptions}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects} can_act: {self.can_act})" 
 
     def as_dict(self):
         return {
@@ -878,6 +914,7 @@ class CoFXCard:
             "attacked": self.attacked,
             "selected": self.selected,
             "can_cast": self.can_cast,
+            "can_act": self.can_act,
             "can_be_targetted": self.can_be_targetted,
             "owner_username": self.owner_username,
             "effects_leave_play": [e.as_dict() for e in self.effects_leave_play],
@@ -971,15 +1008,19 @@ class CoFXCardEffect:
 class CoFXCardAbility:
     def __init__(self, info, ability_id):
         self.id = ability_id
+        self.descriptive_id = info["descriptive_id"] if "descriptive_id" in info else None
         self.name = info["name"]
+        self.amount = info["amount"] if "amount" in info else None
 
     def __repr__(self):
-        return f"{self.id} {self.name}"
+        return f"{self.id} {self.name} {self.amount} {self.descriptive_id}"
 
     def as_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "descriptive_id": self.descriptive_id,
+            "amount": self.amount,
         }
 
 class CoFXCardToken:
