@@ -206,7 +206,7 @@
 			"name": "add_tokens",
 			"target_type": "entity",
 			"tokens": [{
-				"is_permanent": false,
+				"turns": 1,
 				"power_modifier": 3,
 				"toughness_modifier": 3
 			}]
@@ -222,7 +222,6 @@
 			"name": "add_tokens",
 			"target_type": "entity",
 			"tokens": [{
-				"is_permanent": true,
 				"power_modifier": 2,
 				"toughness_modifier": 2
 			}]
@@ -238,7 +237,6 @@
 			"name": "add_effects",
 			"effects": [{
 				"target_type": "self_entities",
-				"is_permanent": true,
 				"name": "increase_max_mana",
 				"description": "You have an extra mana each turn.",
 				"amount": 1,
@@ -247,7 +245,6 @@
 			},
 			{
 				"target_type": "self_entities",
-				"is_permanent": true,
 				"name": "decrease_max_mana",
 				"amount": 1,
 				"effect_type": "effects_leave_play"
@@ -264,7 +261,7 @@
 			"name": "add_tokens",
 			"target_type": "self_entities",
 			"tokens": [{
-				"is_permanent": false,
+				"turns": 1,
 				"power_modifier": 4,
 				"toughness_modifier": 4}
 			]
@@ -423,7 +420,7 @@
 		"description": "Return all entities to their owners' hands.",
 		"power": 3,
 		"toughness": 3,
-		"cost": 1,
+		"cost": 6,
 		"abilities": [
 			{
 				"name": "Fast",
@@ -434,6 +431,28 @@
 			"name": "unwind",
 			"target_type": "all_entities"
 		}]	
+	},
+	{
+		"name": "Stiff Wind",
+		"race": "elementalkin",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Target entity can't attack. Draw a card.",
+		"effects": [ 
+			{
+				"name": "add_tokens",
+				"target_type": "entity",
+				"tokens": [{
+					"turns": 2,
+					"set_can_act": false
+			},
+			{
+				"name": "draw",
+				"target_type": "self",
+				"amount": 1
+			}
+		]
+		}]
 	},
 	{
 		"name": "Siz Pop",

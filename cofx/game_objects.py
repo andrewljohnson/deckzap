@@ -279,7 +279,8 @@ class CoFXGame:
         for c in self.current_player().in_play + self.opponent().in_play:
             perm_tokens = []
             for t in c.tokens:
-                if t.is_permanent:
+                t.turns -= 1
+                if t.turns != 0:
                     perm_tokens.append(t)
             c.tokens = perm_tokens
 
@@ -338,10 +339,11 @@ class CoFXGame:
             selected_card = self.opponent().in_play_card(message["card"])
         effect_targets = {}
         effect_targets[card_to_target.effects[0].id] = {"id": selected_card.id, "target_type":"entity"}            
-        # hack for siz pop
+        # hack for siz pop and stiff wind
         if len(card_to_target.effects) == 2:
             effect_targets[card_to_target.effects[1].id] = {"id": message["username"], "target_type":"player"}
         new_message["effect_targets"] = effect_targets
+        print(f"in SET, effect_targets is {effect_targets}")
         new_message["card"] = card_to_target.id
         card_to_target.selected = False
         new_message, _ = self.play_move('PLAY_MOVE', new_message, db_name)       
@@ -477,6 +479,7 @@ class CoFXPlayer:
             message["log_lines"].append(f"{effect_targets[e.id]['id']} gets {e.amount} mana.")
             self.do_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
         elif e.name == "add_tokens":
+            print(effect_targets)
             message["log_lines"].append(f"{self.username} adds tokens to {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
             self.do_add_tokens_effect(e, effect_targets)
         elif e.name == "add_effects":
@@ -572,7 +575,6 @@ class CoFXPlayer:
                 self.do_increase_max_mana_effect_on_player(target_player.username, effect.amount)
 
     def do_add_tokens_effect(self, e, effect_targets):
-        print("ADD TOKENS")
         if e.target_type == "entity":
             for token in e.tokens:
                 self.do_add_token_effect_on_entity(
@@ -656,6 +658,10 @@ class CoFXPlayer:
                 if card.attacked:
                     print("can't select entities that already attacked")
                     return False
+                for t in card.tokens:
+                    if t.set_can_act == False:
+                        print("can't select entities that have can't act tokens")
+                        return False                        
                 if card.turn_played == self.game.turn:
                     if self.entity_has_fast(card):
                         return True
@@ -1025,16 +1031,18 @@ class CoFXCardAbility:
 
 class CoFXCardToken:
     def __init__(self, info):
-        self.is_permanent = info["is_permanent"]
+        self.turns = info["turns"] if "turns" in info else -1
         self.power_modifier = info["power_modifier"] if "power_modifier" in info else 0
         self.toughness_modifier = info["toughness_modifier"] if "toughness_modifier" in info else 0
+        self.set_can_act = info["set_can_act"] if "set_can_act" in info else None
 
     def __repr__(self):
-        return f"{self.is_permanent} {self.power_modifier} {self.toughness_modifier}"
+        return f"{self.turns} {self.power_modifier} {self.toughness_modifier} {self.set_can_act}"
 
     def as_dict(self):
         return {
-            "is_permanent": self.is_permanent,
+            "turns": self.turns,
             "power_modifier": self.power_modifier,
             "toughness_modifier": self.toughness_modifier,
+            "set_can_act": self.set_can_act,
         }
