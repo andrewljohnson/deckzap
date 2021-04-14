@@ -828,21 +828,21 @@ class CoFXCard:
         self.card_type = info["card_type"] if "card_type" in info else "Entity"
         self.description = info["description"] if "description" in info else None
         self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
-        self.effects = [CoFXCardEffect(e) for e in info["effects"]] if "effects" in info else []
+        self.effects = [CoFXCardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.starting_effect = info["starting_effect"] if "starting_effect" in info else None
         self.attacked = info["attacked"] if "attacked" in info else False
         self.selected = info["selected"] if "selected" in info else False
         self.can_cast = info["can_cast"] if "can_cast" in info else False
         self.can_be_targetted = info["can_be_targetted"] if "can_be_targetted" in info else False
         self.owner_username = info["owner_username"] if "owner_username" in info else None
-        self.effects_leave_play = [CoFXCardEffect(e) for e in info["effects_leave_play"]] if "effects_leave_play" in info else []
-        self.abilities = [CoFXCardAbility(a) for a in info["abilities"]] if "abilities" in info and info["abilities"] else None
+        self.effects_leave_play = [CoFXCardEffect(e, idx) for idx, e in enumerate(info["effects_leave_play"])] if "effects_leave_play" in info else []
+        self.abilities = [CoFXCardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else None
         self.added_effects = {"effects":[], "effects_leave_play":[]}
         if "added_effects" in info:
-            for e in info["added_effects"]["effects"]:
-                self.added_effects["effects"].append(CoFXCardEffect(e))
-            for e in info["added_effects"]["effects_leave_play"]:
-                self.added_effects["effects_leave_play"].append(CoFXCardEffect(e))
+            for idx, e in enumerate(info["added_effects"]["effects"]):
+                self.added_effects["effects"].append(CoFXCardEffect(e, idx))
+            for idx, e in enumerate(info["added_effects"]["effects_leave_play"]):
+                self.added_effects["effects_leave_play"].append(CoFXCardEffect(e, idx))
 
     def __repr__(self):
         return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.added_descriptions}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects})" 
@@ -925,8 +925,8 @@ class CoFXCard:
 
 
 class CoFXCardEffect:
-    def __init__(self, info):
-        self.id = info["id"]
+    def __init__(self, info, effect_id):
+        self.id = effect_id
         self.name = info["name"]
         self.description = info["description"] if "description" in info else None
         self.amount = info["amount"] if "amount" in info else None
@@ -935,7 +935,7 @@ class CoFXCardEffect:
         self.effect_type = info["effect_type"] if "effect_type" in info else None
         self.target_type = info["target_type"] if "target_type" in info else None
         self.tokens = [CoFXCardToken(t) for t in info["tokens"]] if "tokens" in info else []
-        self.effects = [CoFXCardEffect(e) for e in info["effects"]] if "effects" in info else []
+        self.effects = [CoFXCardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
 
     def __repr__(self):
         return f"{self.id} {self.name} {self.amount} {self.description} {self.target_type} {self.make_type} {self.tokens} {self.effect_type} {self.effects} {self.activate_on_add}"
@@ -955,8 +955,8 @@ class CoFXCardEffect:
         }
 
 class CoFXCardAbility:
-    def __init__(self, info):
-        self.id = info["id"]
+    def __init__(self, info, ability_id):
+        self.id = ability_id
         self.name = info["name"]
 
     def __repr__(self):
