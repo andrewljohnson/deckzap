@@ -233,13 +233,16 @@
 		"effects": [{
 			"name": "add_effects",
 			"effects": [{
+				"id": 0,
 				"is_permanent": true,
 				"name": "increase_max_mana",
+				"description": "You have an extra mana each turn.",
 				"amount": 1,
 				"activate_on_add": true,
 				"effect_type": "effects"
 			},
 				{
+				"id": 1,
 				"is_permanent": true,
 				"name": "decrease_max_mana",
 				"amount": 1,

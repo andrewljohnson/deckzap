@@ -202,6 +202,13 @@ class GameUX {
             descriptionDiv.innerHTML = card.description;
             cardDiv.appendChild(descriptionDiv);
         }
+        if (card.added_descriptions.length) {
+            for (let d of card.added_descriptions) {
+                let descriptionDiv = document.createElement("div");
+                descriptionDiv.innerHTML = d;
+                cardDiv.appendChild(descriptionDiv);                
+            }
+        }
 
         if (card.card_type == "Entity") {
             if (card.abilities && card.abilities[0].name == "Guard") {
@@ -218,7 +225,6 @@ class GameUX {
             for (let c of card.tokens) {
                 cardToughness += c.toughness_modifier;
             }
-            
            }
             let powerToughnessDiv = document.createElement("div");
             powerToughnessDiv.innerHTML = cardPower + "/" + cardToughness;
