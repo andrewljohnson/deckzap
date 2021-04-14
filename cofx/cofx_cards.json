@@ -186,6 +186,7 @@
 	},
 	{
 		"name": "Forest Ritual",
+		"race": "elf",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Get 2 mana this turn",
@@ -197,6 +198,7 @@
 	},
 	{
 		"name": "Faerie War Chant",
+		"race": "elf",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Give an entity gets +3/+3 this turn.",
@@ -212,6 +214,7 @@
 	},
 	{
 		"name": "Faerie's Blessing",
+		"race": "elf",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Give an entity gets +2/+2 permanently.",
@@ -227,6 +230,7 @@
 	},
 	{
 		"name": "Nature's Blessing",
+		"race": "elf",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "All your entities provide a mana each turn",
@@ -253,12 +257,40 @@
 		}]
 	},
 	{
-		"name": "Offering to Nature",
+		"name": "Nature Rises",
+		"race": "elf",
 		"cost": 1,
+		"card_type": "Spell",
+		"description": "All your entities get +4/+4 this turn.",
+		"effects": [{
+			"name": "add_tokens_to_all",
+			"tokens": [{
+				"is_permanent": false,
+				"power_modifier": 4,
+				"toughness_modifier": 4}
+			],
+			"id": 0
+		}]
+	},
+	{
+		"name": "Offering to Nature",
+		"race": "elf",
+		"cost": 3,
 		"card_type": "Spell",
 		"description": "Summon a random entity from your deck.",
 		"effects": [{
 			"name": "summon_from_deck",
+			"id": 0
+		}]
+	},
+	{
+		"name": "Tame Time",
+		"race": "elf",
+		"cost": 5,
+		"card_type": "Spell",
+		"description": "Take an extra turn right away.",
+		"effects": [{
+			"name": "take_extra_turn",
 			"id": 0
 		}]
 	},

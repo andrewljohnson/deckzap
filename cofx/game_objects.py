@@ -139,12 +139,7 @@ class CoFXGame:
             if move_type == 'START_TURN':
                 self.current_player().start_turn()
             elif move_type == 'END_TURN':
-                for c in self.current_player().in_play + self.opponent().in_play:
-                    perm_tokens = []
-                    for t in c.tokens:
-                        if t.is_permanent:
-                            perm_tokens.append(t)
-                    c.tokens = perm_tokens
+                self.remove_temporary_tokens()
                 self.turn += 1
                 self.current_player().start_turn()
             elif move_type == 'SELECT_CARD_IN_HAND':
@@ -281,6 +276,14 @@ class CoFXGame:
 
         JsonDB().save_game_database(self.as_dict(), db_name)
         return message, self.as_dict()
+
+    def remove_temporary_tokens(self):
+        for c in self.current_player().in_play + self.opponent().in_play:
+            perm_tokens = []
+            for t in c.tokens:
+                if t.is_permanent:
+                    perm_tokens.append(t)
+            c.tokens = perm_tokens
 
     def send_start_first_turn(self, message, db_name):
         # TODO: send a new message instead of reconfiguring
@@ -452,6 +455,14 @@ class CoFXPlayer:
             target_player = self.game.players[1]
         target_player.draw(amount)
 
+    def do_take_extra_turn_effect_on_player(self, target_player_username):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+        self.game.turn += 2
+        self.game.remove_temporary_tokens()
+        self.start_turn()
+
     def do_mana_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
@@ -607,7 +618,7 @@ class CoFXPlayer:
                 if not "effect_targets" in message:
                     message["effect_targets"]  = {}
                 for e in card.effects:
-                    if card.name == "Think" or "Make" in card.name or card.name == "Forest Ritual" or card.name == "Offering to Nature":           
+                    if card.name == "Think" or "Make" in card.name or card.name == "Forest Ritual" or card.name == "Offering to Nature" or card.name == "Tame Time":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"};
                     self.do_card_effect(card, e, message["effect_targets"])
 
@@ -626,7 +637,7 @@ class CoFXPlayer:
                 for e in card.effects:
                     if not "effect_targets" in message:
                         effect_targets = {}
-                        if e.name == "draw" or e.name == "increase_max_mana" or e.name == "make" or e.name == "mana" or e.name == "summon_from_deck":           
+                        if e.name == "draw" or e.name == "increase_max_mana" or e.name == "make" or e.name == "mana" or e.name == "summon_from_deck" or e.name == "take_extra_turn":           
                             effect_targets[card.effects[0].id] = {"id": username, "target_type":"player"};
                         message["effect_targets"] = effect_targets
                     self.do_card_effect(card, e, message["effect_targets"])
@@ -651,6 +662,8 @@ class CoFXPlayer:
             self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
         elif e.name == "draw":
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+        elif e.name == "take_extra_turn":
+            self.do_take_extra_turn_effect_on_player(effect_targets[e.id]["id"])
         elif e.name == "summon_from_deck":
             self.do_summon_from_deck_effect_on_player(effect_targets[e.id]["id"])
         elif e.name == "damage":
@@ -674,6 +687,13 @@ class CoFXPlayer:
                     token, 
                     effect_targets[e.id]["id"]
                 )
+        elif e.name == "add_tokens_to_all":
+            for token in e.tokens:
+                for entity in self.in_play:
+                    self.do_add_token_effect_on_entity(
+                        token, 
+                        entity.id
+                    )
         elif e.name == "add_effects":
             if card.name == "Nature's Blessing":
                 for card in self.in_play:
@@ -854,7 +874,7 @@ class CoFXCard:
         for e in self.effects:
             if e.name == "damage" or e.name == "kill" or e.name == "unwind" or e.name == "double_power" or e.name == "add_tokens":
                 return True
-        return False # draw, make, increase_max_mana, summon_from_deck
+        return False # draw, make, increase_max_mana, summon_from_deck, take_extra_turn, add_tokens_to_all
 
     def select_and_set_targets(self, game):
         self.selected = True
