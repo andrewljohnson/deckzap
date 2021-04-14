@@ -57,6 +57,7 @@ class CoFXGame:
         card.damage = 0
         card.turn_played = -1
         card.tokens = []
+        # todo: make this generic if we add other added effects
         for e in card.effects_leave_play:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
@@ -171,11 +172,7 @@ class CoFXGame:
                     message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message, db_name)
                 elif self.current_player().controls_entity(message["card"]):
                     if self.current_player().in_play_entity_is_selected(message["card"]):                
-                        has_guard = False
-                        for c in self.opponent().in_play:
-                            if c.abilities and c.abilities[0].name == "Guard":
-                                has_guard = True
-                        if has_guard:                        
+                        if self.opponent().has_guard():                        
                             self.current_player().in_play_card(message["card"]).selected = False
                             print(f"can't attack opponent because an entity has Guard")
                         else:                 
@@ -189,11 +186,7 @@ class CoFXGame:
                     defending_card = self.opponent().in_play_card(message["card"])
                     selected_entity = self.current_player().selected_entity()
                     if selected_entity:
-                        has_guard = False
-                        for c in self.opponent().in_play:
-                            if c.abilities and c.abilities[0].name == "Guard":
-                                has_guard = True
-                        if not has_guard or (defending_card.abilities and defending_card.abilities[0].name == "Guard"):                        
+                        if not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card):                        
                             message["move_type"] = "ATTACK"
                             message["card"] = selected_entity.id
                             message["defending_card"] = defending_card.id
@@ -226,11 +219,7 @@ class CoFXGame:
                     if not casting_spell:
                         for card in self.current_player().in_play:
                             if card.selected:
-                                has_guard = False
-                                for c in self.opponent().in_play:
-                                    if c.abilities and c.abilities[0].name == "Guard":
-                                        has_guard = True
-                                if not has_guard:
+                                if not self.opponent().has_guard():
                                     message["card"] = card.id
                                     message["move_type"] = "ATTACK"
                                     self.play_move('PLAY_MOVE', message, db_name)                    
@@ -323,9 +312,9 @@ class CoFXGame:
         for card in self.current_player().hand:
             if self.current_player().mana >= card.cost:
                 card.can_cast = True
-                if card.name == "Kill" or card.name == "Unwind" or card.name == "Faerie War Chant":
+                if card.needs_entity_target():
                     card.can_cast = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
-                if card.name == "Counterspell":
+                if card.needs_card_being_cast_target():
                     card.can_cast = False
             else:
                 card.can_cast = False
@@ -432,6 +421,35 @@ class CoFXPlayer:
                 continue
             self.hand.append(self.deck.pop())
 
+    def do_card_effect(self, card, e, effect_targets):
+        if e.name == "increase_max_mana":
+            self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
+        elif e.name == "draw":
+            self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+        elif e.name == "take_extra_turn":
+            self.do_take_extra_turn_effect_on_player(effect_targets[e.id]["id"])
+        elif e.name == "summon_from_deck":
+            self.do_summon_from_deck_effect_on_player(effect_targets[e.id]["id"])
+        elif e.name == "damage":
+            if effect_targets[e.id]["target_type"] == "player":
+                self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+            else:
+                self.do_damage_effect_on_entity(card, effect_targets[e.id]["id"], e.amount)
+        elif e.name == "double_power":
+            self.do_double_power_effect_on_entity(card, effect_targets[e.id]["id"])
+        elif e.name == "kill":
+            self.do_kill_effect_on_entity(card, effect_targets[e.id]["id"])
+        elif e.name == "unwind":
+            self.do_unwind_effect_on_entity(card, effect_targets[e.id]["id"])
+        elif e.name == "make":
+            self.do_make_effect(card, effect_targets[e.id]["id"], e.make_type, e.amount)
+        elif e.name == "mana":
+            self.do_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+        elif e.name == "add_tokens":
+            self.do_add_tokens_effect(e, effect_targets)
+        elif e.name == "add_effects":
+            self.do_add_effects_effect(e, card)            
+
     def do_summon_from_deck_effect_on_player(self, target_player_username):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
@@ -515,8 +533,35 @@ class CoFXPlayer:
         target_card.added_effects[effect.effect_type].append(effect)
         target_card.added_descriptions.append([effect.description])
         if effect.activate_on_add:
+            # todo: make this generic if we add other added
             if effect.name == "increase_max_mana":
                 self.do_increase_max_mana_effect_on_player(target_player.username, effect.amount)
+
+    def do_add_tokens_effect(self, e, effect_targets):
+        print("ADD TOKENS")
+        if e.target_type == "entity":
+            for token in e.tokens:
+                self.do_add_token_effect_on_entity(
+                    token, 
+                    effect_targets[e.id]["id"]
+                )
+        else:  # e.target_type == "self_entities"
+            print("ADD TOKENS e.target_type == self_entities")
+            for token in e.tokens:
+                for entity in self.in_play:
+                    self.do_add_token_effect_on_entity(
+                        token, 
+                        entity.id
+                    )
+
+    def do_add_effects_effect(self, e, card):
+        if e.target_type == "self_entities":
+            for card in self.in_play:
+                for effect_effect in e.effects:
+                    self.do_add_effect_effect_on_entity(
+                        effect_effect, 
+                        card.id
+                    )
 
     def make(self, amount, make_type):
         '''
@@ -595,10 +640,11 @@ class CoFXPlayer:
         self.hand.remove(card)
         self.mana -= card.cost
         
+        # todo: wrap this into a counterspell method
         if card.cost >= 2:
             for o_card in self.game.opponent().hand:
                 for effect in o_card.effects:
-                    if effect.name == "counter" and self.game.opponent().mana >= o_card.cost:
+                    if effect.target_type == "card_being_cast" and self.game.opponent().mana >= o_card.cost:
                         self.game.opponent().hand.remove(o_card)
                         self.game.opponent().played_pile.append(o_card)
                         self.game.opponent().mana -= o_card.cost
@@ -618,8 +664,9 @@ class CoFXPlayer:
                 if not "effect_targets" in message:
                     message["effect_targets"]  = {}
                 for e in card.effects:
-                    if card.name == "Think" or "Make" in card.name or card.name == "Forest Ritual" or card.name == "Offering to Nature" or card.name == "Tame Time":           
+                    if e.target_type == "self":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"};
+                    print (f"do effect {e}")
                     self.do_card_effect(card, e, message["effect_targets"])
 
         return card, False
@@ -627,17 +674,17 @@ class CoFXPlayer:
     def do_entity_effects(self, card, message, username):
         if len(card.effects) > 0:
             # tell client to select targets
-            if card.name in ["Angry PantherKin"]:
+            if card.effects[0].target_type == "any":
                 self.entity_with_effect_to_target = card
                 self.game.set_targets_for_damage_effect()
-            elif card.name in ["Scary LionKin", "Training Master"]:
+            elif card.effects[0].target_type == "entity":
                 self.entity_with_effect_to_target = card
                 self.game.set_targets_for_creature_effect()
             else:
                 for e in card.effects:
                     if not "effect_targets" in message:
                         effect_targets = {}
-                        if e.name == "draw" or e.name == "increase_max_mana" or e.name == "make" or e.name == "mana" or e.name == "summon_from_deck" or e.name == "take_extra_turn":           
+                        if e.target_type == "self":           
                             effect_targets[card.effects[0].id] = {"id": username, "target_type":"player"};
                         message["effect_targets"] = effect_targets
                     self.do_card_effect(card, e, message["effect_targets"])
@@ -650,58 +697,10 @@ class CoFXPlayer:
         for e in card.effects:
             if not "effect_targets" in message:
                 effect_targets = {}
-                if card.name == "Think":           
-                        effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":"player"};
-                elif card.name == "Make Entity" or card.name == "Make Spell" or card.name == "Make Global Effect":    
-                        effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":"player"};
+                if e.target_type == "self":           
+                    effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":"player"};
                 message["effect_targets"] = effect_targets
             self.do_card_effect(card, e, message["effect_targets"])
-
-    def do_card_effect(self, card, e, effect_targets):
-        if e.name == "increase_max_mana":
-            self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
-        elif e.name == "draw":
-            self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
-        elif e.name == "take_extra_turn":
-            self.do_take_extra_turn_effect_on_player(effect_targets[e.id]["id"])
-        elif e.name == "summon_from_deck":
-            self.do_summon_from_deck_effect_on_player(effect_targets[e.id]["id"])
-        elif e.name == "damage":
-            if effect_targets[e.id]["target_type"] == "player":
-                self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
-            else:
-                self.do_damage_effect_on_entity(card, effect_targets[e.id]["id"], e.amount)
-        elif e.name == "double_power":
-            self.do_double_power_effect_on_entity(card, effect_targets[e.id]["id"])
-        elif e.name == "kill":
-            self.do_kill_effect_on_entity(card, effect_targets[e.id]["id"])
-        elif e.name == "unwind":
-            self.do_unwind_effect_on_entity(card, effect_targets[e.id]["id"])
-        elif e.name == "make":
-            self.do_make_effect(card, effect_targets[e.id]["id"], e.make_type, e.amount)
-        elif e.name == "mana":
-            self.do_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
-        elif e.name == "add_tokens":
-            for token in e.tokens:
-                self.do_add_token_effect_on_entity(
-                    token, 
-                    effect_targets[e.id]["id"]
-                )
-        elif e.name == "add_tokens_to_all":
-            for token in e.tokens:
-                for entity in self.in_play:
-                    self.do_add_token_effect_on_entity(
-                        token, 
-                        entity.id
-                    )
-        elif e.name == "add_effects":
-            if card.name == "Nature's Blessing":
-                for card in self.in_play:
-                    for effect_effect in e.effects:
-                        self.do_add_effect_effect_on_entity(
-                            effect_effect, 
-                            card.id
-                        )
 
     def add_to_deck(self, card_name, count, add_to_hand=False):
         card = None
@@ -771,14 +770,12 @@ class CoFXPlayer:
             if c.id == card_id:
                 in_play_card = c  
         in_play_card.selected = True
-        
-        has_guard = False
-        for c in self.game.opponent().in_play:
-            if c.abilities and c.abilities[0].name == "Guard":
-                c.can_be_targetted = True
-                has_guard = True
 
-        if not has_guard:
+        for c in self.game.opponent().in_play:
+            if self.entity_has_guard(c):
+                c.can_be_targetted = True
+
+        if not self.game.opponent().has_guard():
             for c in self.game.opponent().in_play:
                 c.can_be_targetted = True
             self.game.opponent().can_be_targetted = True
@@ -804,6 +801,17 @@ class CoFXPlayer:
         for card in self.hand:
             if card.selected:
                 return card
+
+    def has_guard(self):
+        for c in self.in_play:
+            if self.entity_has_guard(c):
+                return True
+        return False
+
+    def entity_has_guard(self, entity):
+        if entity.abilities and entity.abilities[0].name == "Guard":
+            return True
+        return False
 
 
 class CoFXCard:
@@ -872,22 +880,34 @@ class CoFXCard:
 
     def needs_targets(self):
         for e in self.effects:
-            if e.name == "damage" or e.name == "kill" or e.name == "unwind" or e.name == "double_power" or e.name == "add_tokens":
+            if e.target_type == "any" or e.target_type == "entity":
                 return True
-        return False # draw, make, increase_max_mana, summon_from_deck, take_extra_turn, add_tokens_to_all
+        return False 
+
+    def needs_entity_target(self):
+        for e in self.effects:
+            if e.target_type == "entity":
+                return True
+        return False
+
+    def needs_card_being_cast_target(self):
+        for e in self.effects:
+            if e.target_type == "card_being_cast":
+                return True
+        return False
 
     def select_and_set_targets(self, game):
         self.selected = True
         for e in self.effects:
-            if e.name == "damage":
+            if e.target_type == "any":
                 game.set_targets_for_damage_effect()
-            if e.name == "kill" or e.name == "unwind" or e.name == "double_power" or e.name == "add_tokens":
+            if e.target_type == "entity":
                 game.set_targets_for_creature_effect()
 
 
     def is_counter_spell(self):
         for e in self.effects:
-            if e.name == "counter":
+            if e.target_type == "card_being_cast":
                 return True
         return False  
 
@@ -913,11 +933,12 @@ class CoFXCardEffect:
         self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
         self.make_type = info["make_type"] if "make_type" in info else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
+        self.target_type = info["target_type"] if "target_type" in info else None
         self.tokens = [CoFXCardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.effects = [CoFXCardEffect(e) for e in info["effects"]] if "effects" in info else []
 
     def __repr__(self):
-        return f"{self.id} {self.name} {self.amount} {self.description} {self.make_type} {self.tokens} {self.effect_type} {self.effects} {self.activate_on_add}"
+        return f"{self.id} {self.name} {self.amount} {self.description} {self.target_type} {self.make_type} {self.tokens} {self.effect_type} {self.effects} {self.activate_on_add}"
 
     def as_dict(self):
         return {
@@ -928,6 +949,7 @@ class CoFXCardEffect:
             "activate_on_add": self.activate_on_add,
             "make_type": self.make_type,
             "effect_type": self.effect_type,
+            "target_type": self.target_type,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "effects": [e.as_dict() for e in self.effects] if self.effects else [],
         }
