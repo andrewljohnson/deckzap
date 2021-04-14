@@ -429,6 +429,23 @@ class CoFXPlayer:
                 continue
             self.hand.append(self.deck.pop())
 
+    def do_summon_from_deck_effect_on_player(self, target_player_username):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+
+        entities = []
+        for c in target_player.deck:
+            if c.card_type == "Entity":
+                entities.append(c)
+
+        if len(entities) > 0:
+            entity_to_summon = random.choice(entities)
+            target_player.deck.remove(entity_to_summon)
+            target_player.in_play.append(entity_to_summon)
+            entity_to_summon.turn_played = self.game.turn     
+            target_player.do_entity_effects(entity_to_summon, {}, target_player.username)     
+
     def do_draw_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
@@ -585,31 +602,34 @@ class CoFXPlayer:
 
         if len(card.effects) > 0:
             if card.card_type == "Entity":
-                if len(card.effects) > 0:
-                    # tell client to select targets
-                    if card.name in ["Angry PantherKin"]:
-                        self.entity_with_effect_to_target = card
-                        self.game.set_targets_for_damage_effect()
-                    elif card.name in ["Scary LionKin", "Training Master"]:
-                        self.entity_with_effect_to_target = card
-                        self.game.set_targets_for_creature_effect()
-                    else:
-                        for e in card.effects:
-                            if not "effect_targets" in message:
-                                effect_targets = {}
-                                if e.name == "draw" or e.name == "increase_max_mana" or e.name == "make" or e.name == "mana":           
-                                    effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":"player"};
-                                message["effect_targets"] = effect_targets
-                            self.do_card_effect(card, e, message["effect_targets"])
+                self.do_entity_effects(card, message, message["username"])
             else:
                 if not "effect_targets" in message:
                     message["effect_targets"]  = {}
                 for e in card.effects:
-                    if card.name == "Think" or "Make" in card.name or card.name == "Forest Ritual":           
+                    if card.name == "Think" or "Make" in card.name or card.name == "Forest Ritual" or card.name == "Offering to Nature":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"};
                     self.do_card_effect(card, e, message["effect_targets"])
 
         return card, False
+
+    def do_entity_effects(self, card, message, username):
+        if len(card.effects) > 0:
+            # tell client to select targets
+            if card.name in ["Angry PantherKin"]:
+                self.entity_with_effect_to_target = card
+                self.game.set_targets_for_damage_effect()
+            elif card.name in ["Scary LionKin", "Training Master"]:
+                self.entity_with_effect_to_target = card
+                self.game.set_targets_for_creature_effect()
+            else:
+                for e in card.effects:
+                    if not "effect_targets" in message:
+                        effect_targets = {}
+                        if e.name == "draw" or e.name == "increase_max_mana" or e.name == "make" or e.name == "mana" or e.name == "summon_from_deck":           
+                            effect_targets[card.effects[0].id] = {"id": username, "target_type":"player"};
+                        message["effect_targets"] = effect_targets
+                    self.do_card_effect(card, e, message["effect_targets"])
 
     def resolve_entity_effect(self, card_id, message):
         card = None
@@ -631,6 +651,8 @@ class CoFXPlayer:
             self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
         elif e.name == "draw":
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+        elif e.name == "summon_from_deck":
+            self.do_summon_from_deck_effect_on_player(effect_targets[e.id]["id"])
         elif e.name == "damage":
             if effect_targets[e.id]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
@@ -832,7 +854,7 @@ class CoFXCard:
         for e in self.effects:
             if e.name == "damage" or e.name == "kill" or e.name == "unwind" or e.name == "double_power" or e.name == "add_tokens":
                 return True
-        return False # draw, make, increase_max_mana
+        return False # draw, make, increase_max_mana, summon_from_deck
 
     def select_and_set_targets(self, game):
         self.selected = True

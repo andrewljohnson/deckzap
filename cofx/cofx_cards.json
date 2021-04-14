@@ -253,6 +253,16 @@
 		}]
 	},
 	{
+		"name": "Offering to Nature",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Summon a random entity from your deck.",
+		"effects": [{
+			"name": "summon_from_deck",
+			"id": 0
+		}]
+	},
+	{
 		"name": "Angry PantherKin",
 		"power": 1,
 		"toughness": 1,
