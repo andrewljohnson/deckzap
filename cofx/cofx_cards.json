@@ -553,13 +553,23 @@
 	{
 		"name": "Storm Surge",
 		"race": "elementalkin",
-		"cost": 1,
+		"cost": 6,
 		"card_type": "Spell",
 		"description": "Fill each player's board with entities.",
 		"effects": [{
 			"name": "summon_from_deck",
 			"target_type": "all_players",
 			"amount": -1
+		}]
+	},
+	{
+		"name": "Mind Manacles",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Take control of an entity.",
+		"effects": [{
+			"name": "take_control",
+			"target_type": "opponents_entity"
 		}]
 	},
 	{

@@ -325,10 +325,14 @@ class CoFXGame:
         self.opponent().can_be_targetted = True
         self.current_player().can_be_targetted = True        
 
-    def set_targets_for_creature_effect(self):
+    def set_targets_for_entity_effect(self):
         for card in self.opponent().in_play:
             card.can_be_targetted = True
         for card in self.current_player().in_play:
+            card.can_be_targetted = True
+
+    def set_targets_for_opponents_entity_effect(self):
+        for card in self.opponent().in_play:
             card.can_be_targetted = True
 
     def highlight_can_act(self):
@@ -479,7 +483,10 @@ class CoFXPlayer:
             message["log_lines"].append(f"{self.username} doubles the power of {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
         elif e.name == "kill":
             message["log_lines"].append(f"{self.username} kills {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
-            self.do_kill_effect_on_entity(card, effect_targets[e.id]["id"])
+            self.do_kill_effect_on_entity(effect_targets[e.id]["id"])
+        elif e.name == "take_control":
+            message["log_lines"].append(f"{self.username} takes control of {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
+            self.do_take_control_effect_on_entity(effect_targets[e.id]["id"])
         elif e.name == "unwind":
             if e.target_type == "all_entities":
                 message["log_lines"].append(f"{card.name} returns all entities to their owners' hands.")
@@ -614,9 +621,15 @@ class CoFXPlayer:
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_card.power *= 2
 
-    def do_kill_effect_on_entity(self, card, target_entity_id):
+    def do_kill_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         self.game.send_card_to_played_pile(target_card, target_player)
+
+    def do_take_control_effect_on_entity(self, target_entity_id):
+        print("do_take_control_effect_on_entity")
+        target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
+        target_player.in_play.remove(target_card)
+        self.game.current_player().in_play.append(target_card)
 
     def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -793,14 +806,18 @@ class CoFXPlayer:
             if card.card_type == "Entity":
                 self.do_entity_effects(card, message, message["username"])
             else:
+                print("about to do effect maybe")
+                print(message)
                 if not "effect_targets" in message:
                     message["effect_targets"]  = {}
                 for e in card.effects:
+                    print(e)
                     if e.target_type == "self":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"}
                     elif e.target_type == "all_players":           
                         message["effect_targets"][e.id] = {"target_type":"all_players"};
 
+                    print("let's do effect")
                     message = self.do_card_effect(card, e, message, message["effect_targets"])
 
         return message, card, False
@@ -813,7 +830,10 @@ class CoFXPlayer:
                 self.game.set_targets_for_damage_effect()
             elif card.effects[0].target_type == "entity":
                 self.entity_with_effect_to_target = card
-                self.game.set_targets_for_creature_effect()
+                self.game.set_targets_for_entity_effect()
+            elif card.effects[0].target_type == "opponents_entity":
+                self.entity_with_effect_to_target = card
+                self.game.set_targets_for_opponents_entity_effect()
             else:
                 for e in card.effects:
                     if not "effect_targets" in message:
@@ -1040,13 +1060,13 @@ class CoFXCard:
 
     def needs_targets(self):
         for e in self.effects:
-            if e.target_type == "any" or e.target_type == "entity":
+            if e.target_type == "any" or e.target_type == "entity" or e.target_type == "opponents_entity":
                 return True
         return False 
 
     def needs_entity_target(self):
         for e in self.effects:
-            if e.target_type == "entity":
+            if e.target_type == "entity" or e.target_type == "opponents_entity":
                 return True
         return False
 
@@ -1062,7 +1082,9 @@ class CoFXCard:
             if e.target_type == "any":
                 game.set_targets_for_damage_effect()
             if e.target_type == "entity":
-                game.set_targets_for_creature_effect()
+                game.set_targets_for_entity_effect()
+            if e.target_type == "opponents_entity":
+                game.set_targets_for_opponents_entity_effect()
 
 
     def is_counter_spell(self):
