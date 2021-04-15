@@ -343,12 +343,22 @@
 	},
 	{
 		"name": "Mass Unwind",
-		"cost": 1,
+		"cost": 5,
 		"card_type": "Spell",
 		"description": "Return all entities to their owners' hands.",
 		"effects": [{
 			"name": "unwind",
 			"target_type": "all_entities"
+		}]
+	},
+	{
+		"name": "Entwine",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Each player shuffles together hand/deck/discard and draws 3 cards.",
+		"effects": [{
+			"name": "entwine",
+			"target_type": "all_players"
 		}]
 	},
 	{

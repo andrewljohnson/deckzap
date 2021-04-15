@@ -472,6 +472,9 @@ class CoFXPlayer:
                 target_card, target_player = self.game.get_in_play_for_id(effect_targets[e.id]['id'])
                 message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {target_player.username}'s hand.")
                 self.do_unwind_effect_on_entity(effect_targets[e.id]["id"])
+        elif e.name == "entwine":
+            message["log_lines"].append(f"{self.username} plays {card.name}.")
+            self.do_entwine_effect()
         elif e.name == "make":
             message["log_lines"].append(f"{self.username} plays {card.name}.")
             self.do_make_effect(card, effect_targets[e.id]["id"], e.make_type, e.amount)
@@ -517,6 +520,24 @@ class CoFXPlayer:
         self.game.turn += 2
         self.game.remove_temporary_tokens()
         self.start_turn()
+
+    def do_entwine_effect(self):
+        for p in self.game.players:
+            all_hand_cards = []
+            for c in p.hand:
+                p.deck.append(c)
+                all_hand_cards.append(c)
+            for c in all_hand_cards:
+                p.hand.remove(c)
+
+            all_played_cards = []
+            for c in p.played_pile:
+                p.deck.append(c)
+                all_played_cards.append(c)
+            for c in all_played_cards:
+                p.played_pile.remove(c)
+            random.shuffle(p.deck)
+            p.draw(3)
 
     def do_mana_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -708,7 +729,10 @@ class CoFXPlayer:
                     message["effect_targets"]  = {}
                 for e in card.effects:
                     if e.target_type == "self":           
-                        message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"};
+                        message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"}
+                    elif e.target_type == "all_players":           
+                        message["effect_targets"][e.id] = {"target_type":"all_players"};
+
                     message = self.do_card_effect(card, e, message, message["effect_targets"])
 
         return message, card, False
