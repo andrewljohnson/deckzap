@@ -342,6 +342,16 @@
 		}]
 	},
 	{
+		"name": "Mass Unwind",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Return all entities to their owners' hands.",
+		"effects": [{
+			"name": "unwind",
+			"target_type": "all_entities"
+		}]
+	},
+	{
 		"name": "Kill",
 		"cost": 4,
 		"card_type": "Spell",
