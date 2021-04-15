@@ -92,11 +92,11 @@
     }
 
     #in_play {
-        height:130px;width:610px;background-color:#765C48;margin-top:5px;
+        height:130px;width:625px;background-color:#765C48;margin-top:5px;
     }
 
     #opponent_in_play {
-        height:130px;width:610px;background-color:#765C48;
+        height:130px;width:625px;background-color:#765C48;
     }
 
     #hand {
