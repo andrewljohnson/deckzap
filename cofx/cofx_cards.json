@@ -472,11 +472,23 @@
 	},
 	{
 		"name": "Counterspell",
-		"cost": 2,
+		"cost": 1,
 		"card_type": "Spell",
-		"description": "Counter an entity or spell that costs more than 1.",
+		"description": "Counter an entity or spell that costs 2 or more.",
 		"effects": [{
 			"name": "counter",
+			"amount": 2,
+			"target_type": "card_being_cast"
+		}]
+	},
+	{
+		"name": "Big Counterspell",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Counter an entity or spell that costs 3 or more.",
+		"effects": [{
+			"name": "counter",
+			"amount": 3,
 			"target_type": "card_being_cast"
 		}]
 	},

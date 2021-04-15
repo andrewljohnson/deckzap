@@ -683,15 +683,14 @@ class CoFXPlayer:
         self.mana -= card.cost
         
         # todo: wrap this into a counterspell method
-        if card.cost >= 2:
-            for o_card in self.game.opponent().hand:
-                for effect in o_card.effects:
-                    if effect.target_type == "card_being_cast" and self.game.opponent().mana >= o_card.cost:
-                        self.game.opponent().hand.remove(o_card)
-                        self.game.opponent().played_pile.append(o_card)
-                        self.game.opponent().mana -= o_card.cost
-                        message["log_lines"].append(f"{played_card.name} was countered by {self.opponent().username}.")
-                        return message, card, True
+        for o_card in self.game.opponent().hand:
+            for effect in o_card.effects:
+                if effect.target_type == "card_being_cast" and card.cost >= effect.amount and self.game.opponent().mana >= o_card.cost:
+                    self.game.opponent().hand.remove(o_card)
+                    self.game.opponent().played_pile.append(o_card)
+                    self.game.opponent().mana -= o_card.cost
+                    message["log_lines"].append(f"{card.name} was countered by {self.game.opponent().username}.")
+                    return message, card, True
 
         card.can_cast = False
         if card.card_type == "Entity":
