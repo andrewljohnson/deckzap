@@ -163,7 +163,10 @@ class CoFXGame:
                                 message["move_type"] = "PLAY_CARD"
                                 message, _ = self.play_move('PLAY_MOVE', message, db_name)
                                 # play card
-                            elif card.card_type == "Entity" or not card.needs_targets():
+                            elif card.card_type == "Spell" and not card.needs_targets():
+                                    message["move_type"] = "PLAY_CARD"
+                                    message, _ = self.play_move('PLAY_MOVE', message, db_name)
+                            elif card.card_type == "Entity":
                                 if self.current_player().can_summon():
                                     message["move_type"] = "PLAY_CARD"
                                     message, _ = self.play_move('PLAY_MOVE', message, db_name)
@@ -459,8 +462,11 @@ class CoFXPlayer:
             self.do_take_extra_turn_effect_on_player(effect_targets[e.id]["id"])
             message["log_lines"].append(f"{self.username} takes an extra turn.")
         elif e.name == "summon_from_deck":
-            self.do_summon_from_deck_effect_on_player(effect_targets[e.id]["id"])
-            message["log_lines"].append(f"{self.username} summons something from their deck.")
+            if e.target_type == "self":
+                message["log_lines"].append(f"{self.username} summons something from their deck.")
+            else:
+                message["log_lines"].append(f"Both players fill their boards.")
+            self.do_summon_from_deck_effect_on_player(e, effect_targets)
         elif e.name == "damage":
             if effect_targets[e.id]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
@@ -514,22 +520,38 @@ class CoFXPlayer:
             self.do_add_abilities_effect(e, card)           
         return message 
 
-    def do_summon_from_deck_effect_on_player(self, target_player_username):
-        target_player = self.game.players[0]
-        if target_player.username != target_player_username:
-            target_player = self.game.players[1]
+    def do_summon_from_deck_effect_on_player(self, e, effect_targets):
+        if e.target_type == "self" and e.amount == 1:
+            target_player = self.game.players[0]
+            if target_player.username != effect_targets[e.id]["id"]:
+                target_player = self.game.players[1]
 
-        entities = []
-        for c in target_player.deck:
-            if c.card_type == "Entity":
-                entities.append(c)
+            entities = []
+            for c in target_player.deck:
+                if c.card_type == "Entity":
+                    entities.append(c)
 
-        if len(entities) > 0:
-            entity_to_summon = random.choice(entities)
-            target_player.deck.remove(entity_to_summon)
-            target_player.in_play.append(entity_to_summon)
-            entity_to_summon.turn_played = self.game.turn     
-            target_player.do_entity_effects(entity_to_summon, {}, target_player.username)     
+            if len(entities) > 0:
+                entity_to_summon = random.choice(entities)
+                target_player.deck.remove(entity_to_summon)
+                target_player.in_play.append(entity_to_summon)
+                entity_to_summon.turn_played = self.game.turn     
+                # todo: maybe support comes into play effects
+                #target_player.do_entity_effects(entity_to_summon, {}, target_player.username)     
+        elif e.target_type == "all_players" and e.amount == -1:
+            entities = []
+            for c in self.game.all_cards:
+                if c.card_type == "Entity":
+                    entities.append(c)
+            for p in self.game.players:
+                while len(p.in_play) < 7:
+                    entity_to_summon = copy.deepcopy(random.choice(entities))
+                    entity_to_summon.id = self.game.next_card_id
+                    self.game.next_card_id += 1
+                    p.in_play.append(entity_to_summon)
+                    entity_to_summon.turn_played = self.game.turn     
+                    # todo: maybe support comes into play effects
+                    # p.do_entity_effects(entity_to_summon, {}, p.username)     
 
     def do_draw_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -942,6 +964,8 @@ class CoFXPlayer:
         for a in self.added_abilities:
             if a.descriptive_id == "Can't Summon":
                 return False
+        if len(self.in_play) == 7:
+            return False
         return True
 
 

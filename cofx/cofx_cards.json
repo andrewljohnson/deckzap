@@ -275,7 +275,8 @@
 		"description": "Summon a random entity from your deck.",
 		"effects": [{
 			"target_type": "self",
-			"name": "summon_from_deck"
+			"name": "summon_from_deck",
+			"amount": 1
 		}]
 	},
 	{
@@ -533,7 +534,7 @@
 	{
 		"name": "Quiet Nature",
 		"race": "elementalkin",
-		"cost": 1,
+		"cost": 5,
 		"card_type": "Spell",
 		"description": "Entities can't be summoned next turn.",
 		"effects": [{
@@ -547,6 +548,18 @@
 					"turns": 1
 				}
 			]				
+		}]
+	},
+	{
+		"name": "Storm Surge",
+		"race": "elementalkin",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Fill each player's board with entities.",
+		"effects": [{
+			"name": "summon_from_deck",
+			"target_type": "all_players",
+			"amount": -1
 		}]
 	},
 	{
