@@ -34,6 +34,14 @@ class GameUX {
         document.getElementById("username").innerHTML = GameUX.thisPlayer(game).username + " (me)";
     }
 
+    static updateRace(game) {
+        document.getElementById("race").innerHTML = GameUX.thisPlayer(game).race;
+    }
+
+    static updateOpponentRace(game) {
+        document.getElementById("opponent_race").innerHTML = GameUX.opponent(game).race;
+    }
+
     static updateHitPoints(game) {
         if(GameUX.thisPlayer(game).hit_points < GameUX.oldSelfHP) {
             GameUX.oldSelfHP = GameUX.thisPlayer(game).hit_points;
@@ -330,6 +338,8 @@ class GameUX {
             GameUX.updateOpponentBorder(game);
             GameUX.updateOpponentAddedAbilities(game);
             GameUX.updateOpponentStartingEffects(game);
+            GameUX.updateOpponentUsername(game);
+            GameUX.updateOpponentRace(game);
         }
         if (GameUX.thisPlayer(game)) {
             GameUX.updateMana(game);
@@ -341,14 +351,18 @@ class GameUX {
             GameUX.updatePlayerBorder(game);
             GameUX.updateStartingEffects(game);
             GameUX.updateAddedAbilities(game);
+            GameUX.updateUsername(game);
+            GameUX.updateRace(game);
         }
         if (GameUX.opponent(game) && GameUX.thisPlayer(game)) {
             if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
                 alert("GAME OVER");
             }
         }
-        if (game.decks_to_set && game.starting_effects.length != 2) {
+        if (game.decks_to_set && game.starting_effects.length < 2) {
             GameUX.showFXSelectionView(game);
+        } else if (GameUX.gameType == "choose_race" && (!game.players[0].race || !game.players[1].race)) {
+            GameUX.showChooseRace(game);
         } else if (GameUX.thisPlayer(game).make_to_resolve.length) {
             GameUX.showMakeView(game);
         } else {
@@ -356,6 +370,79 @@ class GameUX {
         }                           
     }
     
+    static showChooseRace(game) {
+        var raceSelector = document.getElementById("race_selector");
+        if (raceSelector.style.display == "block") {
+            return;
+        }
+        raceSelector.style.display = "block";
+        raceSelector.style.backgroundColor = "white";
+        document.getElementById("race_selector").innerHTML = "";
+
+        var h1 = document.createElement("h1");
+        h1.innerHTML = "Choose Race"
+        raceSelector.appendChild(h1);
+
+        var p = document.createElement("p");
+        p.innerHTML = "Your race affects what cards you have access to in the game."
+        raceSelector.appendChild(p);
+
+        var options = [
+            {"id": "elf", "label": "Elf"},
+            {"id": "genie", "label": "Genie"},
+        ];
+
+        var table = document.createElement("table");
+        table.style.width = "100%";
+        raceSelector.appendChild(table);
+        var th = document.createElement("th");
+        th.innerHTML = "Races";
+        table.appendChild(th);
+
+        var tr = document.createElement("tr");
+        table.appendChild(tr);
+        tr.appendChild(tdForTitle("Choose 1"));
+        tr.appendChild(tdForTitle("Race"));
+
+        for(var o of options) {
+            var input = document.createElement("input");
+            input.type = "radio";
+            input.id = o.id;
+            input.name = "effect";
+            input.value = o.id;
+            input.onclick = function() { 
+                GameUX.race = this.id;
+                document.getElementById("startGameButton").disabled = false;
+                document.getElementById("startGameButton").style.backgroundColor = "green";
+            };
+
+            var label = document.createElement("label"); 
+            label.for = o.id;
+            label.innerHTML = o.label;
+            var tr = document.createElement("tr");
+            table.appendChild(tr);
+            var td = tdForTitle("");
+            td.appendChild(input);
+            tr.appendChild(td);
+            var td = tdForTitle("");
+            td.appendChild(label);
+            tr.appendChild(td);
+        }  
+
+        var button = document.createElement("button");
+        button.id = "startGameButton";
+        button.innerHTML = "Start Game";
+        button.disabled = true;
+        button.classList = ["light-gray-button"];
+        button.onclick = function() {
+            this.disabled = true;
+            button.style.backgroundColor = "lightgray"
+            button.innerHTML = "Waiting for Opponent...";
+            GameUX.chooseRace(game, GameUX.race) 
+        };
+        raceSelector.appendChild(button);
+    }
+
     static showFXSelectionView(game) {
         let decks = game.decks_to_set;
         document.getElementById("fx_selector").innerHTML = "";
@@ -553,6 +640,7 @@ class GameUX {
     static showGame() {
         document.getElementById("room").style.display = "block";
         document.getElementById("fx_selector").style.display = "none";
+        document.getElementById("race_selector").style.display = "none";
         document.getElementById("make_selector").style.display = "none";
     }
 
@@ -615,6 +703,10 @@ class GameUX {
             info["card_counts"][c.name] = input.value
         }
         GameUX.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
+    }
+
+    static chooseRace(game, race) {
+        GameUX.sendPlayMoveEvent("CHOOSE_RACE", {"race": race});
     }
 
     static logMessage(log_lines) {

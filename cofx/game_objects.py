@@ -107,6 +107,25 @@ class CoFXGame:
                         p.max_mana = 0
                         p.draw(6)
                     self.send_start_first_turn(message, db_name)
+            elif move_type == 'CHOOSE_RACE':
+                message["log_lines"].append(f"{message['username']} chose {message['race']}.")
+                player = self.players[0]
+                if player.username != message["username"]:
+                    player = self.players[1]
+                player.race = message["race"]
+                if self.players[0].race and self.players[1].race:
+                    for p in self.players:
+                        if p.race == "elf":
+                            for card_name in ["Make Entity+", "Make Entity+", "Make Spell",  "Make Spell"]:
+                                p.add_to_deck(card_name, 1)
+                        else:
+                            for card_name in ["Make Entity", "Make Entity", "Make Spell+",  "Make Spell+"]:
+                                p.add_to_deck(card_name, 1)
+                        random.shuffle(p.deck)
+                        p.max_mana = 1
+                        p.draw(2)
+                    message["game"] = self.as_dict()
+                    self.send_start_first_turn(message, db_name)
             elif move_type == 'JOIN':
                 if len(self.players) >= 2:
                     print(f"an extra player tried to join players {[p.username for p in self.players]}")
@@ -122,13 +141,15 @@ class CoFXGame:
                             random.shuffle(p.deck)
                             p.max_mana = 1
                             p.draw(2)
-                    else:
+                    elif self.game_type == "pregame":
                         self.decks_to_set = {}
+                    elif self.game_type == "choose_race":
+                        pass
                 if len(self.players) == 2 and self.players[0].max_mana == 1 and self.turn == 0:
                     # configure for game start after 2 joins if not configured yet
                     if self.game_type == "ingame":
                         self.send_start_first_turn(message, db_name)
-                    elif self.game_type == "ingame":
+                    elif self.game_type == "pregame":
                         if game.starting_effects.length == 2:
                             self.send_start_first_turn(message, db_name)
                         else:
@@ -136,6 +157,10 @@ class CoFXGame:
                             for p in self.players:
                                 if "card_counts" in player_db[p.username]:
                                     self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
+                    elif self.game_type == "choose_race":
+                        if self.players[0].race and self.players[1].race:
+                            self.send_start_first_turn(message, db_name)
+                        pass
                     else:  # no other game types implemented
                         pass 
             else:
@@ -397,6 +422,7 @@ class CoFXPlayer:
 
     def __init__(self, game, info, new=False):
         self.username = info["username"]
+        self.race = info["race"] if "race" in info else None
 
         JsonDB().add_to_player_database(self.username, JsonDB().player_database())
         self.game = game
@@ -426,11 +452,12 @@ class CoFXPlayer:
             self.added_abilities = [CoFXCardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
 
     def __repr__(self):
-        return f"{self.username} - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_targetted {self.can_be_targetted}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}"
+        return f"{self.username} ({self.race}) - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_targetted {self.can_be_targetted}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}"
 
     def as_dict(self):
         return {
             "username": self.username,
+            "race": self.race,
             "hit_points": self.hit_points,
             "mana": self.mana,
             "max_mana": self.max_mana,
@@ -746,13 +773,13 @@ class CoFXPlayer:
             requiredEntityCost = math.floor(self.game.turn / 2) + 1
 
         card1 = None 
-        while not card1 or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost):
+        while not card1 or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race != card1.race):
             card1 = random.choice(self.game.all_cards)
         card2 = None
-        while not card2 or card2.card_type != make_type or card2 == card1:
+        while not card2 or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race != card2.race):
             card2 = random.choice(self.game.all_cards)
         card3 = None
-        while not card3 or card3.card_type != make_type or card3 in [card1, card2]:
+        while not card3 or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
             card3 = random.choice(self.game.all_cards)
         self.make_to_resolve = [card1, card2, card3]
 
@@ -1011,6 +1038,7 @@ class CoFXCard:
     def __init__(self, info):
         self.id = info["id"] if "id" in info else -1
         self.name = info["name"]
+        self.race = info["race"] if "race" in info else None
         self.power = info["power"] if "power" in info else None
         self.toughness = info["toughness"] if "toughness" in info else None
         self.tokens = [CoFXCardToken(t) for t in info["tokens"]] if "tokens" in info else []
@@ -1040,12 +1068,13 @@ class CoFXCard:
                 self.added_effects["effects_leave_play"].append(CoFXCardEffect(e, idx))
 
     def __repr__(self):
-        return f"{self.name} ({self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.added_descriptions}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects} can_act: {self.can_act})" 
+        return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.added_descriptions}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects} can_act: {self.can_act})" 
 
     def as_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "race": self.race,
             "power": self.power,
             "toughness": self.toughness,
             "cost": self.cost,
