@@ -470,8 +470,8 @@ class GameUX {
         tr.appendChild(tdForTitle("Name"));
         tr.appendChild(tdForTitle("Power"));
         tr.appendChild(tdForTitle("Toughness"));
+        tr.appendChild(tdForTitle("Description"));
         tr.appendChild(tdForTitle("Cost"));
-        tr.appendChild(tdForTitle("Power"));
         var td = tdForTitle("# In Deck");
         td.style.color = 'blue';
         td.style.border = "1px solid black";
@@ -619,12 +619,10 @@ class GameUX {
             tr.appendChild(tdToughness);            
         }
 
-        if (c.description) {
             var tdDescription = document.createElement("td");
             tdDescription.innerHTML = c.description;
             tdDescription.style.border = "1px solid black";
             tr.appendChild(tdDescription);                        
-        }
 
         var tdCost = document.createElement("td");
         tdCost.innerHTML = c.cost;
