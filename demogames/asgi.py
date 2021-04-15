@@ -6,14 +6,14 @@ django.setup()
 from django.core.asgi import get_asgi_application
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
-import cofx.routing
+import battle_wizard.routing
 
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            cofx.routing.websocket_urlpatterns
+            battle_wizard.routing.websocket_urlpatterns
         )
     ),
 })
