@@ -492,7 +492,7 @@
 	},
 	{
 		"name": "Counterspell",
-		"cost": 1,
+		"cost": 2,
 		"card_type": "Spell",
 		"description": "Counter an entity or spell that costs 2 or more.",
 		"effects": [{
@@ -503,13 +503,50 @@
 	},
 	{
 		"name": "Big Counterspell",
-		"cost": 1,
+		"cost": 3,
 		"card_type": "Spell",
 		"description": "Counter an entity or spell that costs 3 or more.",
 		"effects": [{
 			"name": "counter",
 			"amount": 3,
 			"target_type": "card_being_cast"
+		}]
+	},
+	{
+		"name": "Master Time",
+		"race": "elementalkin",
+		"cost": 4,
+		"card_type": "Spell",
+		"description": "All your entities can attack the turn they come into play.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"target_type": "new_self_entities",
+			"abilities": [
+				{
+					"name": "Fast",
+					"description": "Fast",
+					"descriptive_id": "Fast"
+				}
+			]				
+		}]
+	},
+	{
+		"name": "Quiet Nature",
+		"race": "elementalkin",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Entities can't be summoned next turn.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"target_type": "opponent",
+			"abilities": [
+				{
+					"name": "Can't Summon",
+					"description": "Can't Summon",
+					"descriptive_id": "Can't Summon",
+					"turns": 1
+				}
+			]				
 		}]
 	},
 	{

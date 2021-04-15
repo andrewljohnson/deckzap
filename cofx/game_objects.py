@@ -66,6 +66,7 @@ class CoFXGame:
                 player.max_mana -= e.amount
         player.mana = min(player.max_mana, player.mana)
         card.reset_added_effects()
+        card.added_abilities = []
         card.added_descriptions = []
 
     def resolve_combat(self, attacking_card, defending_card):
@@ -145,6 +146,7 @@ class CoFXGame:
                 self.current_player().start_turn()
             elif move_type == 'END_TURN':
                 self.remove_temporary_tokens()
+                self.remove_temporary_abilities()
                 self.turn += 1
                 self.current_player().start_turn()
                 message["log_lines"].append(f"{self.current_player().username}'s turn.")
@@ -162,8 +164,11 @@ class CoFXGame:
                                 message, _ = self.play_move('PLAY_MOVE', message, db_name)
                                 # play card
                             elif card.card_type == "Entity" or not card.needs_targets():
-                                message["move_type"] = "PLAY_CARD"
-                                message, _ = self.play_move('PLAY_MOVE', message, db_name)
+                                if self.current_player().can_summon():
+                                    message["move_type"] = "PLAY_CARD"
+                                    message, _ = self.play_move('PLAY_MOVE', message, db_name)
+                                else:
+                                    print(f"can't summon because of {self.current_player().added_abilities}")
                             else:
                                 selection = True
                                 card.select_and_set_targets(self)
@@ -284,6 +289,14 @@ class CoFXGame:
                     perm_tokens.append(t)
             c.tokens = perm_tokens
 
+    def remove_temporary_abilities(self):
+        perm_abilities = []
+        for a in self.current_player().added_abilities:
+            a.turns -= 1
+            if a.turns != 0:
+                perm_abilities.append(a)
+        self.current_player().added_abilities = perm_abilities
+
     def send_start_first_turn(self, message, db_name):
         new_message = copy.deepcopy(message)
         new_message["move_type"] = "START_TURN"
@@ -321,12 +334,14 @@ class CoFXGame:
                 card.can_act = True
 
     def highlight_can_cast(self):
-        for card in self.current_player().hand:
+        for card in self.current_player().hand:               
             if self.current_player().mana >= card.cost:
                 card.can_cast = True
                 if card.needs_entity_target():
                     card.can_cast = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
                 if card.needs_card_being_cast_target():
+                    card.can_cast = False
+                if card.card_type == "Entity" and not self.current_player().can_summon():
                     card.can_cast = False
             else:
                 card.can_cast = False
@@ -390,6 +405,7 @@ class CoFXPlayer:
             self.make_to_resolve = []
             self.can_be_targetted = False
             self.entity_with_effect_to_target = None
+            self.added_abilities = []
         else:
             self.hand = [CoFXCard(c_info) for c_info in info["hand"]]
             self.in_play = [CoFXCard(c_info) for c_info in info["in_play"]]
@@ -401,9 +417,10 @@ class CoFXPlayer:
             self.make_to_resolve = [CoFXCard(c_info) for c_info in info["make_to_resolve"]]
             self.can_be_targetted = info["can_be_targetted"]
             self.entity_with_effect_to_target = CoFXCard(info["entity_with_effect_to_target"]) if info["entity_with_effect_to_target"] else None
+            self.added_abilities = [CoFXCardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
 
     def __repr__(self):
-        return f"{self.username} - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_targetted {self.can_be_targetted}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}"
+        return f"{self.username} - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_targetted {self.can_be_targetted}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}"
 
     def as_dict(self):
         return {
@@ -418,6 +435,7 @@ class CoFXPlayer:
             "make_to_resolve": [c.as_dict() for c in self.make_to_resolve],
             "can_be_targetted": self.can_be_targetted,
             "entity_with_effect_to_target": self.entity_with_effect_to_target.as_dict() if self.entity_with_effect_to_target else None,
+            "added_abilities": [a.as_dict() for a in self.added_abilities]
         }
 
     def draw(self, number_of_cards):
@@ -488,6 +506,12 @@ class CoFXPlayer:
         elif e.name == "add_effects":
             message["log_lines"].append(f"{self.username} adds effects {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
             self.do_add_effects_effect(e, card)           
+        elif e.name == "add_player_abilities":
+            if e.target_type == "opponent":
+                message["log_lines"].append(f"{self.game.opponent()} gets {card.description}.")
+            else:
+                message["log_lines"].append(f"{self.username} gains {card.description}.")
+            self.do_add_abilities_effect(e, card)           
         return message 
 
     def do_summon_from_deck_effect_on_player(self, target_player_username):
@@ -517,8 +541,9 @@ class CoFXPlayer:
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
-        self.game.turn += 2
         self.game.remove_temporary_tokens()
+        self.game.remove_temporary_abilities()
+        self.game.turn += 2
         self.start_turn()
 
     def do_entwine_effect(self):
@@ -595,6 +620,9 @@ class CoFXPlayer:
             if effect.name == "increase_max_mana":
                 self.do_increase_max_mana_effect_on_player(target_player.username, effect.amount)
 
+    def do_add_abilities_effect_on_player(self, effect, player):
+        player.added_abilities.append(effect.abilities[0])
+
     def do_add_tokens_effect(self, e, effect_targets):
         if e.target_type == "entity":
             for token in e.tokens:
@@ -619,6 +647,22 @@ class CoFXPlayer:
                         effect_effect, 
                         card.id
                     )
+
+    def do_add_abilities_effect(self, e, card):
+        if e.target_type == "new_self_entities":
+            for card in self.in_play:
+                for a in e.abilities:
+                    if a.descriptive_id == "Fast":
+                        card.added_abilities.append(a) 
+            self.do_add_abilities_effect_on_player(
+                e, 
+                self
+            )
+        elif e.target_type == "opponent":
+            self.do_add_abilities_effect_on_player(
+                e, 
+                self.game.opponent()
+            )
 
     def make(self, amount, make_type):
         '''
@@ -716,6 +760,8 @@ class CoFXPlayer:
         card.can_cast = False
         if card.card_type == "Entity":
             self.in_play.append(card)
+            if len(self.added_abilities) == 1 and self.added_abilities[0].descriptive_id == "Fast":
+                card.added_abilities.append(self.added_abilities[0]) 
             card.turn_played = self.game.turn
             message["log_lines"].append(f"{self.username} plays {card.name}.")
         else:
@@ -888,7 +934,15 @@ class CoFXPlayer:
     def entity_has_fast(self, entity):
         if entity.abilities and entity.abilities[0].descriptive_id == "Fast":
             return True
+        if entity.added_abilities and entity.added_abilities[0].descriptive_id == "Fast":
+            return True
         return False
+
+    def can_summon(self):
+        for a in self.added_abilities:
+            if a.descriptive_id == "Can't Summon":
+                return False
+        return True
 
 
 class CoFXCard:
@@ -914,6 +968,7 @@ class CoFXCard:
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.effects_leave_play = [CoFXCardEffect(e, idx) for idx, e in enumerate(info["effects_leave_play"])] if "effects_leave_play" in info else []
         self.abilities = [CoFXCardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else None
+        self.added_abilities = [CoFXCardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
         self.added_effects = {"effects":[], "effects_leave_play":[]}
         self.can_act = info["can_act"] if "can_act" in info else False
 
@@ -948,6 +1003,7 @@ class CoFXCard:
             "owner_username": self.owner_username,
             "effects_leave_play": [e.as_dict() for e in self.effects_leave_play],
             "abilities": [a.as_dict() for a in self.abilities] if self.abilities else None,
+            "added_abilities": [a.as_dict() for a in self.added_abilities],
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "added_effects": {
                 "effects": [e.as_dict() for e in self.added_effects["effects"]],
@@ -1006,6 +1062,7 @@ class CoFXCard:
 
 class CoFXCardEffect:
     def __init__(self, info, effect_id):
+        print(info)
         self.id = effect_id
         self.name = info["name"]
         self.description = info["description"] if "description" in info else None
@@ -1016,9 +1073,10 @@ class CoFXCardEffect:
         self.target_type = info["target_type"] if "target_type" in info else None
         self.tokens = [CoFXCardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.effects = [CoFXCardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
+        self.abilities = [CoFXCardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
 
     def __repr__(self):
-        return f"{self.id} {self.name} {self.amount} {self.description} {self.target_type} {self.make_type} {self.tokens} {self.effect_type} {self.effects} {self.activate_on_add}"
+        return f"{self.id} {self.name} {self.amount} {self.description} {self.target_type} {self.make_type} {self.tokens} {self.abilities} {self.effect_type} {self.effects} {self.activate_on_add}"
 
     def as_dict(self):
         return {
@@ -1032,7 +1090,9 @@ class CoFXCardEffect:
             "target_type": self.target_type,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "effects": [e.as_dict() for e in self.effects] if self.effects else [],
+            "abilities": [a.as_dict() for a in self.abilities] if self.abilities else [],
         }
+
 
 class CoFXCardAbility:
     def __init__(self, info, ability_id):
@@ -1040,9 +1100,10 @@ class CoFXCardAbility:
         self.descriptive_id = info["descriptive_id"] if "descriptive_id" in info else None
         self.name = info["name"]
         self.amount = info["amount"] if "amount" in info else None
+        self.turns = info["turns"] if "turns" in info else -1
 
     def __repr__(self):
-        return f"{self.id} {self.name} {self.amount} {self.descriptive_id}"
+        return f"{self.id} {self.name} {self.amount} {self.descriptive_id} {self.turns}"
 
     def as_dict(self):
         return {
@@ -1050,7 +1111,9 @@ class CoFXCardAbility:
             "name": self.name,
             "descriptive_id": self.descriptive_id,
             "amount": self.amount,
+            "turns": self.turns,
         }
+
 
 class CoFXCardToken:
     def __init__(self, info):
