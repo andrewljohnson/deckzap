@@ -18,18 +18,6 @@
 		}]
 	},
 	{
-		"name": "Familiar",
-		"power": 1,
-		"toughness": 2,
-		"cost": 1,
-		"description": "Draw a card.",
-		"effects": [{
-			"name": "draw",
-			"target_type": "self",
-			"amount": 1
-		}]
-	},
-	{
 		"name": "PantherKin",
 		"race": "elf",
 		"power": 3,
@@ -68,6 +56,18 @@
 		}]
 	},
 	{
+		"name": "Think",
+		"race": "elf",
+		"cost": 3,
+		"card_type": "Spell",
+		"description": "Draw 3 cards.",
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 3
+		}]
+	},
+	{
 		"name": "LionKin",
 		"race": "elf",
 		"power": 4,
@@ -76,12 +76,6 @@
 		"abilities": [
 			{"name": "Guard"}
 		]
-	},
-	{
-		"name": "Common Bunger",
-		"power": 4,
-		"toughness": 5,
-		"cost": 4
 	},
 	{
 		"name": "Training Master",
@@ -160,24 +154,6 @@
 			"make_type": "Entity",
 			"amount": 1
 		}, 
-		{
-			"name": "draw",
-			"target_type": "self",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Make Spell+",
-		"race": "genie",
-		"cost": 1,
-		"card_type": "Spell",
-		"description": "Choose 1 of 3 spells to make and add to your deck. Draw a card.",
-		"effects": [{
-			"name": "make",
-			"target_type": "self",
-			"make_type": "Spell",
-			"amount": 1
-		},
 		{
 			"name": "draw",
 			"target_type": "self",
@@ -292,14 +268,14 @@
 	},
 	{
 		"name": "Stone Elemental",
-		"race": "elementalkin",
+		"race": "genie",
 		"power": 2,
 		"toughness": 2,
 		"cost": 1
 	},
 	{
 		"name": "Lightning Elemental",
-		"race": "elementalkin",
+		"race": "genie",
 		"power": 1,
 		"toughness": 1,
 		"cost": 2,
@@ -312,7 +288,7 @@
 	},
 	{
 		"name": "Air Elemental",
-		"race": "elementalkin",
+		"race": "genie",
 		"power": 1,
 		"toughness": 5,
 		"cost": 2,
@@ -322,7 +298,7 @@
 	},
 	{
 		"name": "Tame Tempest",
-		"race": "elementalkin",
+		"race": "genie",
 		"power": 2,
 		"toughness": 2,
 		"cost": 3,
@@ -334,6 +310,7 @@
 	},
 	{
 		"name": "Unwind",
+		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Return an entity to its owner's hand.",
@@ -344,6 +321,7 @@
 	},
 	{
 		"name": "Mass Unwind",
+		"race": "genie",
 		"cost": 5,
 		"card_type": "Spell",
 		"description": "Return all entities to their owners' hands.",
@@ -354,6 +332,7 @@
 	},
 	{
 		"name": "Entwine",
+		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Each player shuffles together hand/deck/discard and draws 3 cards.",
@@ -364,6 +343,7 @@
 	},
 	{
 		"name": "Kill",
+		"race": "genie",
 		"cost": 4,
 		"card_type": "Spell",
 		"description": "Kill an entity.",
@@ -374,6 +354,7 @@
 	},
 	{
 		"name": "Zap",
+		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Deal 3 damage.",
@@ -384,20 +365,8 @@
 		}]
 	},
 	{
-		"name": "Think",
-		"race": "elf",
-		"cost": 3,
-		"card_type": "Spell",
-		"description": "Draw 3 cards.",
-		"effects": [{
-			"name": "draw",
-			"target_type": "self",
-			"amount": 3
-		}]
-	},
-	{
 		"name": "Trickster",
-		"race": "elementalkin",
+		"race": "genie",
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
@@ -411,7 +380,7 @@
 	},
 	{
 		"name": "Fire Elemental",
-		"race": "elementalkin",
+		"race": "genie",
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
@@ -424,7 +393,7 @@
 	},
 	{
 		"name": "Inferno Elemental",
-		"race": "elementalkin",
+		"race": "genie",
 		"power": 5,
 		"toughness": 5,
 		"cost": 5,
@@ -437,7 +406,7 @@
 	},
 	{
 		"name": "Lord of the Storm",
-		"race": "elementalkin",
+		"race": "genie",
 		"description": "Return all entities to their owners' hands.",
 		"power": 3,
 		"toughness": 3,
@@ -454,8 +423,26 @@
 		}]	
 	},
 	{
+		"name": "Make Spell+",
+		"race": "genie",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 spells to make and add to your deck. Draw a card.",
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Spell",
+			"amount": 1
+		},
+		{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
 		"name": "Stiff Wind",
-		"race": "elementalkin",
+		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Target entity can't attack. Draw a card.",
@@ -477,6 +464,7 @@
 	},
 	{
 		"name": "Siz Pop",
+		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Deal 1 damage. Draw 1 card.",
@@ -493,6 +481,7 @@
 	},
 	{
 		"name": "Counterspell",
+		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Counter an entity or spell that costs 2 or more.",
@@ -504,6 +493,7 @@
 	},
 	{
 		"name": "Big Counterspell",
+		"race": "genie",
 		"cost": 3,
 		"card_type": "Spell",
 		"description": "Counter an entity or spell that costs 3 or more.",
@@ -515,7 +505,7 @@
 	},
 	{
 		"name": "Master Time",
-		"race": "elementalkin",
+		"race": "genie",
 		"cost": 4,
 		"card_type": "Spell",
 		"description": "All your entities can attack the turn they come into play.",
@@ -533,7 +523,7 @@
 	},
 	{
 		"name": "Quiet Nature",
-		"race": "elementalkin",
+		"race": "genie",
 		"cost": 5,
 		"card_type": "Spell",
 		"description": "Entities can't be summoned next turn.",
@@ -552,7 +542,7 @@
 	},
 	{
 		"name": "Storm Surge",
-		"race": "elementalkin",
+		"race": "genie",
 		"cost": 6,
 		"card_type": "Spell",
 		"description": "Fill each player's board with entities.",
@@ -564,6 +554,7 @@
 	},
 	{
 		"name": "Mind Manacles",
+		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Take control of an entity.",
@@ -571,6 +562,24 @@
 			"name": "take_control",
 			"target_type": "opponents_entity"
 		}]
+	},
+	{
+		"name": "Familiar",
+		"power": 1,
+		"toughness": 2,
+		"cost": 1,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Common Bunger",
+		"power": 4,
+		"toughness": 5,
+		"cost": 4
 	},
 	{
 		"name": "Make Entity",
