@@ -211,8 +211,8 @@
 		"description": "All your entities provide a mana each turn",
 		"effects": [{
 			"name": "add_effects",
+			"target_type": "self_entities",
 			"effects": [{
-				"target_type": "self_entities",
 				"name": "increase_max_mana",
 				"description": "You have an extra mana each turn.",
 				"amount": 1,
@@ -220,7 +220,6 @@
 				"effect_type": "effects"
 			},
 			{
-				"target_type": "self_entities",
 				"name": "decrease_max_mana",
 				"amount": 1,
 				"effect_type": "effects_leave_play"
