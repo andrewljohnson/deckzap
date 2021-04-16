@@ -326,6 +326,7 @@ class GameUX {
             } else {
                 GameUX.disableEndTurnButton(game);            
             }
+            GameUX.updateTurnLabel(game);
             GameUX.updateOpponentCardCount(game);
             GameUX.updateOpponentMana(game);
             GameUX.updateOpponentHitPoints(game);

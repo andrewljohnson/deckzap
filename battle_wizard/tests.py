@@ -1,5 +1,5 @@
 from django.test import TestCase
-from battle_wizard.game_objects import battle_wizardGame
+from battle_wizard.game_objects import Game
 from battle_wizard.jsonDB import JsonDB
 import os
 
@@ -9,14 +9,14 @@ class GameObjectTests(TestCase):
 
     def game_with_two_players(self):
         game_dict = JsonDB().game_database(TEST_DB_NAME)
-        game = battle_wizardGame("ingame", info=game_dict)        
+        game = Game("ingame", info=game_dict)        
         game.play_move("PLAY_MOVE", {"username": "a", "move_type": "JOIN"}, TEST_DB_NAME)
         game.play_move("PLAY_MOVE", {"username": "b", "move_type": "JOIN"}, TEST_DB_NAME)
         return game
 
     def test_new_ingame_game(self):
         game_dict = JsonDB().game_database(TEST_DB_NAME)
-        game = battle_wizardGame("ingame", info=game_dict)        
+        game = Game("ingame", info=game_dict)        
         self.assertEqual(game.turn, 0)
 
     def test_two_players_join_ingame_game(self):

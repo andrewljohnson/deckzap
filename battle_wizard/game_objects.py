@@ -6,9 +6,9 @@ import time
 from battle_wizard.jsonDB import JsonDB
 
 
-class battle_wizardGame:
+class Game:
 
-    def __init__(self, battle_wizardConsumer, db_name, game_type, info=None):
+    def __init__(self, websocket_consumer, db_name, game_type, info=None):
         self.players = []
         self.game_type = game_type
         self.turn = 0
@@ -16,15 +16,15 @@ class battle_wizardGame:
         self.starting_effects = []
         self.decks_to_set = None
         self.db_name = db_name
-        self.battle_wizardConsumer = battle_wizardConsumer
+        self.websocket_consumer = websocket_consumer
 
         self.all_cards = []
         for c_info in JsonDB().all_cards():
-            self.all_cards.append(battle_wizardCard(c_info))
+            self.all_cards.append(Card(c_info))
 
         if info:
             for u in info["players"]:
-                self.players.append(battle_wizardPlayer(self, u))
+                self.players.append(Player(self, u))
             self.turn = int(info["turn"])
             self.next_card_id = int(info["next_card_id"])
             self.starting_effects = info["starting_effects"] if "starting_effects" in info else []
@@ -231,8 +231,8 @@ class battle_wizardGame:
                 if self.game_type == "p_vs_ai" and not self.players[1].race:
                     m = random.choice(self.legal_moves(self.players[1]))
                     self.play_move(m["event"], m["message"])
-                    self.battle_wizardConsumer.send_game_message(self.as_dict(), m["event"], m["message"]["move_type"], m["message"])
-                if self.players[0].race and self.players[1].race:
+                    self.websocket_consumer.send_game_message(self.as_dict(), m["event"], m["message"]["move_type"], m["message"])
+                if self.players[0].race and self.players[1].race and message["username"] == self.players[0].username:
                     for p in self.players:
                         if p.race == "elf":
                             for card_name in ["Make Entity+", "Make Entity+", "Make Spell",  "Make Spell"]:
@@ -251,12 +251,12 @@ class battle_wizardGame:
                 elif len(self.players) == 0 and self.game_type == "p_vs_ai":                    
                     message["log_lines"].append(f"{message['username']} joined the game.")
                     message["log_lines"].append(f"random_bot joined the game.")
-                    self.players.append(battle_wizardPlayer(self, {"username":message["username"]}, new=True))
-                    self.players.append(battle_wizardPlayer(self, {"username":"random_bot"}, new=True, bot="random_bot"))
+                    self.players.append(Player(self, {"username":message["username"]}, new=True))
+                    self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
                 elif len(self.players) <= 1:
                     if len(self.players) == 0 or len(self.players) == 1 and self.players[0].username != message["username"]:
                         message["log_lines"].append(f"{message['username']} joined the game.")
-                        self.players.append(battle_wizardPlayer(self, {"username":message["username"]}, new=True))
+                        self.players.append(Player(self, {"username":message["username"]}, new=True))
                 if len(self.players) == 2 and len(self.players[0].hand) == 0:
                     if self.game_type == "ingame":
                         for p in self.players:
@@ -544,7 +544,7 @@ class battle_wizardGame:
         return self.select_player_target(username, entity_with_effect_to_target, message, "RESOLVE_ENTITY_EFFECT")
 
 
-class battle_wizardPlayer:
+class Player:
 
     def __init__(self, game, info, new=False, bot=None):
         self.username = info["username"]
@@ -566,17 +566,17 @@ class battle_wizardPlayer:
             self.entity_with_effect_to_target = None
             self.added_abilities = []
         else:
-            self.hand = [battle_wizardCard(c_info) for c_info in info["hand"]]
-            self.in_play = [battle_wizardCard(c_info) for c_info in info["in_play"]]
+            self.hand = [Card(c_info) for c_info in info["hand"]]
+            self.in_play = [Card(c_info) for c_info in info["in_play"]]
             self.hit_points = info["hit_points"]
             self.mana = info["mana"]
             self.max_mana = info["max_mana"]
-            self.deck = [battle_wizardCard(c_info) for c_info in info["deck"]]
-            self.played_pile = [battle_wizardCard(c_info) for c_info in info["played_pile"]]
-            self.make_to_resolve = [battle_wizardCard(c_info) for c_info in info["make_to_resolve"]]
+            self.deck = [Card(c_info) for c_info in info["deck"]]
+            self.played_pile = [Card(c_info) for c_info in info["played_pile"]]
+            self.make_to_resolve = [Card(c_info) for c_info in info["make_to_resolve"]]
             self.can_be_targetted = info["can_be_targetted"]
-            self.entity_with_effect_to_target = battle_wizardCard(info["entity_with_effect_to_target"]) if info["entity_with_effect_to_target"] else None
-            self.added_abilities = [battle_wizardCardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
+            self.entity_with_effect_to_target = Card(info["entity_with_effect_to_target"]) if info["entity_with_effect_to_target"] else None
+            self.added_abilities = [CardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
 
     def __repr__(self):
         return f"{self.username} ({self.race}) - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_targetted {self.can_be_targetted}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}"
@@ -875,7 +875,7 @@ class battle_wizardPlayer:
                 "description": "New spells players make cost 1 more",
                 "starting_effect": "spells_cost_more"
             }
-            effects.append(battle_wizardCard(card_info))
+            effects.append(Card(card_info))
             card_info = {
                 "name": "Expensive Entities",
                 "cost": 0,
@@ -883,7 +883,7 @@ class battle_wizardPlayer:
                 "description": "New entities players make cost 1 more",
                 "starting_effect": "entities_cost_more"
             }
-            effects.append(battle_wizardCard(card_info))
+            effects.append(Card(card_info))
             card_info = {
                 "name": "Draw More",
                 "cost": 0,
@@ -891,7 +891,7 @@ class battle_wizardPlayer:
                 "description": "Players draw an extra card on their turn.",
                 "starting_effect": "draw_extra_card"
             }
-            effects.append(battle_wizardCard(card_info))
+            effects.append(Card(card_info))
             self.make_to_resolve = effects
             return
 
@@ -1088,7 +1088,7 @@ class battle_wizardPlayer:
                 m = moves[0]
                 # print(m)
                 _, game_dict = self.game.play_move(m["event"], m["message"]) 
-                self.game.battle_wizardConsumer.send_game_message(game_dict, m["event"], m["message"]["move_type"], m["message"])
+                self.game.websocket_consumer.send_game_message(game_dict, m["event"], m["message"]["move_type"], m["message"])
                 moves = self.game.legal_moves(self.game.players[1])
                 # time.sleep(.5)
 
@@ -1173,7 +1173,7 @@ class battle_wizardPlayer:
         return True
 
 
-class battle_wizardCard:
+class Card:
 
     def __init__(self, info):
         self.id = info["id"] if "id" in info else -1
@@ -1181,31 +1181,31 @@ class battle_wizardCard:
         self.race = info["race"] if "race" in info else None
         self.power = info["power"] if "power" in info else None
         self.toughness = info["toughness"] if "toughness" in info else None
-        self.tokens = [battle_wizardCardToken(t) for t in info["tokens"]] if "tokens" in info else []
+        self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.cost = info["cost"]
         self.damage = info["damage"] if "damage" in info else 0
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
         self.card_type = info["card_type"] if "card_type" in info else "Entity"
         self.description = info["description"] if "description" in info else None
         self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
-        self.effects = [battle_wizardCardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
+        self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.starting_effect = info["starting_effect"] if "starting_effect" in info else None
         self.attacked = info["attacked"] if "attacked" in info else False
         self.selected = info["selected"] if "selected" in info else False
         self.can_cast = info["can_cast"] if "can_cast" in info else False
         self.can_be_targetted = info["can_be_targetted"] if "can_be_targetted" in info else False
         self.owner_username = info["owner_username"] if "owner_username" in info else None
-        self.effects_leave_play = [battle_wizardCardEffect(e, idx) for idx, e in enumerate(info["effects_leave_play"])] if "effects_leave_play" in info else []
-        self.abilities = [battle_wizardCardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
-        self.added_abilities = [battle_wizardCardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
+        self.effects_leave_play = [CardEffect(e, idx) for idx, e in enumerate(info["effects_leave_play"])] if "effects_leave_play" in info else []
+        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
+        self.added_abilities = [CardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
         self.added_effects = {"effects":[], "effects_leave_play":[]}
         self.can_act = info["can_act"] if "can_act" in info else False
 
         if "added_effects" in info:
             for idx, e in enumerate(info["added_effects"]["effects"]):
-                self.added_effects["effects"].append(battle_wizardCardEffect(e, idx))
+                self.added_effects["effects"].append(CardEffect(e, idx))
             for idx, e in enumerate(info["added_effects"]["effects_leave_play"]):
-                self.added_effects["effects_leave_play"].append(battle_wizardCardEffect(e, idx))
+                self.added_effects["effects_leave_play"].append(CardEffect(e, idx))
 
     def __repr__(self):
         return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.added_descriptions}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects} can_act: {self.can_act})" 
@@ -1292,7 +1292,7 @@ class battle_wizardCard:
         return toughness
 
 
-class battle_wizardCardEffect:
+class CardEffect:
     def __init__(self, info, effect_id):
         self.id = effect_id
         self.name = info["name"]
@@ -1302,9 +1302,9 @@ class battle_wizardCardEffect:
         self.make_type = info["make_type"] if "make_type" in info else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
         self.target_type = info["target_type"] if "target_type" in info else None
-        self.tokens = [battle_wizardCardToken(t) for t in info["tokens"]] if "tokens" in info else []
-        self.effects = [battle_wizardCardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
-        self.abilities = [battle_wizardCardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
+        self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
+        self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
+        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
 
     def __repr__(self):
         return f"{self.id} {self.name} {self.amount} {self.description} {self.target_type} {self.make_type} {self.tokens} {self.abilities} {self.effect_type} {self.effects} {self.activate_on_add}"
@@ -1325,7 +1325,7 @@ class battle_wizardCardEffect:
         }
 
 
-class battle_wizardCardAbility:
+class CardAbility:
     def __init__(self, info, ability_id):
         self.id = ability_id
         self.descriptive_id = info["descriptive_id"] if "descriptive_id" in info else None
@@ -1346,7 +1346,7 @@ class battle_wizardCardAbility:
         }
 
 
-class battle_wizardCardToken:
+class CardToken:
     def __init__(self, info):
         self.turns = info["turns"] if "turns" in info else -1
         self.power_modifier = info["power_modifier"] if "power_modifier" in info else 0

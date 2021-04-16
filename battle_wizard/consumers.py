@@ -2,13 +2,10 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-from battle_wizard.game_objects import battle_wizardCard
-from battle_wizard.game_objects import battle_wizardCardEffect
-from battle_wizard.game_objects import battle_wizardGame
-from battle_wizard.game_objects import battle_wizardPlayer
+from battle_wizard.game_objects import Game
 from battle_wizard.jsonDB import JsonDB
 
-class battle_wizardConsumer(WebsocketConsumer):
+class BattleWizardConsumer(WebsocketConsumer):
 
     def connect(self):
         self.game_type = self.scope['url_route']['kwargs']['game_type']
@@ -40,7 +37,7 @@ class battle_wizardConsumer(WebsocketConsumer):
             return
 
         game_dict = JsonDB().game_database(self.db_name)
-        game = battle_wizardGame(self, self.db_name, self.game_type, info=game_dict)        
+        game = Game(self, self.db_name, self.game_type, info=game_dict)        
         message, game_dict = game.play_move(event, message)    
         if game_dict:
             self.send_game_message(game_dict, event, message["move_type"], message)
@@ -74,7 +71,7 @@ class battle_wizardConsumer(WebsocketConsumer):
         }))
 
 
-class battle_wizardCustomConsumer(battle_wizardConsumer):
+class BattleWizardCustomConsumer(BattleWizardConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
