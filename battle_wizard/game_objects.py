@@ -121,13 +121,10 @@ class battle_wizardGame:
 
             self.opponent().can_be_targetted = True
             self.current_player().can_be_targetted = True        
-            pass
-            # all legal selections for the effect 
         elif player.has_selected_card():  
             pass
             # all legal selections for the card 
         elif player.make_to_resolve:
-            # todo make effects
             if player.make_to_resolve[0].card_type == "Effect":
                 moves.append({
                     "event": "PLAY_MOVE", 
@@ -142,21 +139,31 @@ class battle_wizardGame:
                 for entity in player.in_play:
                     if entity.selected:
                         moves.append({"event": "PLAY_MOVE", "message": {"card":entity.id , "move_type": "ATTACK", "username": "random_bot"}})
+                        for o_entity in player.game.opponent().in_play:
+                            moves.append({
+                                "event": "PLAY_MOVE", 
+                                "message": {
+                                    "card":entity.id, 
+                                    "defending_card":o_entity.id, 
+                                    "move_type": "ATTACK", 
+                                    "username": "random_bot"
+                                }
+                            })
                     elif player.can_select(entity.id):
                         moves.append({"event": "PLAY_MOVE", "message": {"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"}})
-                    for o_entity in player.game.opponent().in_play:
-                        moves.append({
-                            "event": "PLAY_MOVE", 
-                            "message": {
-                                "card":entity.id, 
-                                "defending_card":o_entity.id, 
-                                "move_type": "ATTACK", 
-                                "username": "random_bot"
-                            }
-                        })
             else:
-                # todo only add attacks for stuff with guard
-                pass
+                selected_entity = None
+                for entity in player.in_play:
+                    if entity.selected:
+                        selected_entity = entity
+                if selected_entity:
+                    for entity in player.game.opponent().in_play:
+                        if selected_entity and self.opponent().entity_has_guard(entity):
+                            moves.append({"event": "PLAY_MOVE", "message": {"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"}})
+                else:
+                    for entity in player.in_play:
+                        if player.can_select(entity.id):
+                            moves.append({"event": "PLAY_MOVE", "message": {"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"}})
             
             # moves per card in hand
             for card in player.hand:
@@ -189,7 +196,6 @@ class battle_wizardGame:
         return moves
 
     def play_move(self, event, message):
-        print("calling play move")
         if not "log_lines" in message:
             message["log_lines"] = []
         if event == "PLAY_MOVE":  #todo this check is not needed? this is always PLAY_MOVE?
@@ -223,7 +229,7 @@ class battle_wizardGame:
                     player = self.players[1]
                 player.race = message["race"]
                 if self.game_type == "p_vs_ai" and not self.players[1].race:
-                    m = self.legal_moves(self.players[1])[0]
+                    m = random.choice(self.legal_moves(self.players[1]))
                     self.play_move(m["event"], m["message"])
                     self.battle_wizardConsumer.send_game_message(self.as_dict(), m["event"], m["message"]["move_type"], m["message"])
                 if self.players[0].race and self.players[1].race:
@@ -323,6 +329,10 @@ class battle_wizardGame:
                 if self.current_player().entity_with_effect_to_target:
                     message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
                 elif self.current_player().has_selected_card():  
+                    # todo handle cards with multiple effects
+                    if self.current_player().selected_card().effects[0].target_type == "opponents_entity" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
+                        print(f"can't target own entity with opponents_entity effect from {self.current_player().selected_card().name}")
+                        return None, None
                     message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
                 elif self.current_player().controls_entity(message["card"]):
                     if self.current_player().in_play_entity_is_selected(message["card"]):                
@@ -381,7 +391,6 @@ class battle_wizardGame:
             elif move_type == 'ATTACK':
                 card_id = message["card"]
                 attacking_card = self.current_player().in_play_card(card_id)
-                message["card"] = attacking_card.as_dict()
                 if "defending_card" in message:
                     defending_card_id = message["defending_card"]
                     defending_card = self.opponent().in_play_card(defending_card_id)
@@ -397,8 +406,9 @@ class battle_wizardGame:
                     if attacking_card.abilities:
                         if attacking_card.abilities[0].name == "DamageDraw":
                             self.current_player().draw(attacking_card.abilities[0].amount)
-                    attacking_card.attacked = True
-                    attacking_card.selected = False
+                attacking_card.attacked = True
+                attacking_card.selected = False
+                message["card"] = attacking_card.as_dict()
             elif move_type == 'PLAY_CARD':
                 message, played_card, was_countered = self.current_player().play_card(message["card"], message)
                 if played_card:
@@ -1087,6 +1097,11 @@ class battle_wizardPlayer:
             if c.selected:
                 return True
         return False
+
+    def selected_card(self):
+        for c in self.hand:
+            if c.selected:
+                return c
 
     def controls_entity(self, card_id):
         for c in self.in_play:
