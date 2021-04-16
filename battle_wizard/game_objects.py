@@ -7,13 +7,14 @@ from battle_wizard.jsonDB import JsonDB
 
 class battle_wizardGame:
 
-    def __init__(self, game_type, info=None):
+    def __init__(self, db_name, game_type, info=None):
         self.players = []
         self.game_type = game_type
         self.turn = 0
         self.next_card_id = 0
         self.starting_effects = []
         self.decks_to_set = None
+        self.db_name = db_name
 
         self.all_cards = []
         for c_info in JsonDB().all_cards():
@@ -26,6 +27,7 @@ class battle_wizardGame:
             self.next_card_id = int(info["next_card_id"])
             self.starting_effects = info["starting_effects"] if "starting_effects" in info else []
             self.decks_to_set = info["decks_to_set"]
+            self.db_name = info["db_name"]
 
     def as_dict(self):
         return {
@@ -35,6 +37,7 @@ class battle_wizardGame:
             "starting_effects": self.starting_effects, 
             "all_cards": [c.as_dict() for c in self.all_cards], 
             "decks_to_set": self.decks_to_set, 
+            "db_name": self.db_name, 
         }
 
     def current_player(self):
@@ -79,11 +82,27 @@ class battle_wizardGame:
         if defending_card.damage >= defending_card.toughness_with_tokens():
             self.send_card_to_played_pile(defending_card,self.opponent())
 
-    def play_move(self, event, message, db_name):
+    def legal_moves(self, player):
+        if len(self.players) < 2:
+            return [{"event": "PLAY_MOVE", "message": {"move_type": "JOIN", "username": "random_bot"}}]
+        if not player.race:
+            return [
+                {"event": "PLAY_MOVE", "message": {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "elf"}},
+                {"event": "PLAY_MOVE", "message": {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "genie"}},
+            ]
+
+        moves = [
+                {"event": "PLAY_MOVE", "message": {"move_type": "END_TURN", "username": "random_bot"}},
+            ]
+        # moves per entity
+        # moves per card
+        return moves
+
+    def play_move(self, event, message):
 
         if not "log_lines" in message:
             message["log_lines"] = []
-        if event == "PLAY_MOVE":
+        if event == "PLAY_MOVE":  #todo this check is not needed? this is always PLAY_MOVE?
             move_type = message["move_type"]
             print(f"Move Type: {move_type}")
 
@@ -106,13 +125,17 @@ class battle_wizardGame:
                         random.shuffle(p.deck)
                         p.max_mana = 0
                         p.draw(6)
-                    self.send_start_first_turn(message, db_name)
+                    self.send_start_first_turn(message)
             elif move_type == 'CHOOSE_RACE':
                 message["log_lines"].append(f"{message['username']} chose {message['race']}.")
                 player = self.players[0]
+                print(f"{player.username} != {message['username']}")
                 if player.username != message["username"]:
                     player = self.players[1]
                 player.race = message["race"]
+                if self.game_type == "p_vs_ai" and not self.players[1].race:
+                    m = self.legal_moves(self.players[1])[0]
+                    self.play_move(m["event"], m["message"])
                 if self.players[0].race and self.players[1].race:
                     for p in self.players:
                         if p.race == "elf":
@@ -125,10 +148,15 @@ class battle_wizardGame:
                         p.max_mana = 1
                         p.draw(2)
                     message["game"] = self.as_dict()
-                    self.send_start_first_turn(message, db_name)
+                    self.send_start_first_turn(message)
             elif move_type == 'JOIN':
                 if len(self.players) >= 2:
                     print(f"an extra player tried to join players {[p.username for p in self.players]}")
+                elif len(self.players) == 0 and self.game_type == "p_vs_ai":                    
+                    message["log_lines"].append(f"{message['username']} joined the game.")
+                    message["log_lines"].append(f"random_bot joined the game.")
+                    self.players.append(battle_wizardPlayer(self, {"username":message["username"]}, new=True))
+                    self.players.append(battle_wizardPlayer(self, {"username":"random_bot"}, new=True, bot="random_bot"))
                 elif len(self.players) <= 1:
                     if len(self.players) == 0 or len(self.players) == 1 and self.players[0].username != message["username"]:
                         message["log_lines"].append(f"{message['username']} joined the game.")
@@ -143,23 +171,23 @@ class battle_wizardGame:
                             p.draw(2)
                     elif self.game_type == "pregame":
                         self.decks_to_set = {}
-                    elif self.game_type == "choose_race":
+                    elif self.game_type == "choose_race" or self.game_type == "p_vs_ai":
                         pass
                 if len(self.players) == 2 and self.players[0].max_mana == 1 and self.turn == 0:
                     # configure for game start after 2 joins if not configured yet
                     if self.game_type == "ingame":
-                        self.send_start_first_turn(message, db_name)
+                        self.send_start_first_turn(message)
                     elif self.game_type == "pregame":
                         if game.starting_effects.length == 2:
-                            self.send_start_first_turn(message, db_name)
+                            self.send_start_first_turn(message)
                         else:
                             player_db = JsonDB().player_database()
                             for p in self.players:
                                 if "card_counts" in player_db[p.username]:
                                     self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
-                    elif self.game_type == "choose_race":
+                    elif self.game_type == "choose_race" or self.game_type == "p_vs_ai":
                         if self.players[0].race and self.players[1].race:
-                            self.send_start_first_turn(message, db_name)
+                            self.send_start_first_turn(message)
                         pass
                     else:  # no other game types implemented
                         pass 
@@ -167,7 +195,7 @@ class battle_wizardGame:
                 if (message["username"] != self.current_player().username):
                     print(f"can't {event} {move_type} on opponent's turn")
                     return None, None
-            if move_type == 'START_TURN':
+            if move_type == 'START_FIRST_TURN':
                 self.current_player().start_turn()
             elif move_type == 'END_TURN':
                 self.remove_temporary_tokens()
@@ -186,15 +214,15 @@ class battle_wizardGame:
                                 card.selected = False
                             elif card.selected:
                                 message["move_type"] = "PLAY_CARD"
-                                message, _ = self.play_move('PLAY_MOVE', message, db_name)
+                                message, _ = self.play_move('PLAY_MOVE', message)
                                 # play card
                             elif card.card_type == "Spell" and not card.needs_targets():
                                     message["move_type"] = "PLAY_CARD"
-                                    message, _ = self.play_move('PLAY_MOVE', message, db_name)
+                                    message, _ = self.play_move('PLAY_MOVE', message)
                             elif card.card_type == "Entity":
                                 if self.current_player().can_summon():
                                     message["move_type"] = "PLAY_CARD"
-                                    message, _ = self.play_move('PLAY_MOVE', message, db_name)
+                                    message, _ = self.play_move('PLAY_MOVE', message)
                                 else:
                                     print(f"can't summon because of {self.current_player().added_abilities}")
                             else:
@@ -205,9 +233,9 @@ class battle_wizardGame:
                             return None, None
             elif move_type == 'SELECT_ENTITY':
                 if self.current_player().entity_with_effect_to_target:
-                    message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message, db_name)
+                    message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
                 elif self.current_player().has_selected_card():  
-                    message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message, db_name)
+                    message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
                 elif self.current_player().controls_entity(message["card"]):
                     if self.current_player().in_play_entity_is_selected(message["card"]):                
                         if self.opponent().has_guard():                        
@@ -215,7 +243,7 @@ class battle_wizardGame:
                             print(f"can't attack opponent because an entity has Guard")
                         else:                 
                             message["move_type"] = "ATTACK"
-                            message, _ = self.play_move('PLAY_MOVE', message, db_name)   
+                            message, _ = self.play_move('PLAY_MOVE', message)   
                     elif self.current_player().can_select(message["card"]):
                         self.current_player().select_in_play(message["card"])
                     else:
@@ -228,7 +256,7 @@ class battle_wizardGame:
                             message["move_type"] = "ATTACK"
                             message["card"] = selected_entity.id
                             message["defending_card"] = defending_card.id
-                            message, _ = self.play_move('PLAY_MOVE', message, db_name)
+                            message, _ = self.play_move('PLAY_MOVE', message)
                         else:
                             print(f"can't attack {defending_card.name} because another entity has Guard")
                             return None, None                                            
@@ -240,16 +268,16 @@ class battle_wizardGame:
             elif move_type == 'SELECT_OPPONENT' or move_type == 'SELECT_SELF':
                 if self.current_player().entity_with_effect_to_target:
                     if move_type == 'SELECT_OPPONENT':
-                        message = self.select_player_target_for_entity_effect(self.opponent().username, self.current_player().entity_with_effect_to_target, message, db_name)
+                        message = self.select_player_target_for_entity_effect(self.opponent().username, self.current_player().entity_with_effect_to_target, message)
                     else:
-                        message = self.select_player_target_for_entity_effect(self.current_player().username, self.current_player().entity_with_effect_to_target, message, db_name)
+                        message = self.select_player_target_for_entity_effect(self.current_player().username, self.current_player().entity_with_effect_to_target, message)
                 else:
                     casting_spell = False
                     for card in self.current_player().hand:
                         if card.selected:
                             target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
                             casting_spell = True
-                            message = self.select_player_target_for_spell(target_player.username, card, message, db_name)
+                            message = self.select_player_target_for_spell(target_player.username, card, message)
 
                     if not casting_spell:
                         for card in self.current_player().in_play:
@@ -257,7 +285,7 @@ class battle_wizardGame:
                                 if not self.opponent().has_guard():
                                     message["card"] = card.id
                                     message["move_type"] = "ATTACK"
-                                    message, _ = self.play_move('PLAY_MOVE', message, db_name)                    
+                                    message, _ = self.play_move('PLAY_MOVE', message)                    
                                     card.selected = False
                                 else:
                                     print(f"can't attack opponent because an entity has Guard")
@@ -305,7 +333,7 @@ class battle_wizardGame:
             self.highlight_can_act()
             self.highlight_can_cast()
 
-        JsonDB().save_game_database(self.as_dict(), db_name)
+        JsonDB().save_game_database(self.as_dict(), self.db_name)
         return message, self.as_dict()
 
     def remove_temporary_tokens(self):
@@ -325,11 +353,11 @@ class battle_wizardGame:
                 perm_abilities.append(a)
         self.current_player().added_abilities = perm_abilities
 
-    def send_start_first_turn(self, message, db_name):
+    def send_start_first_turn(self, message):
         new_message = copy.deepcopy(message)
-        new_message["move_type"] = "START_TURN"
+        new_message["move_type"] = "START_FIRST_TURN"
         new_message["username"] = self.players[0].username
-        self.play_move("PLAY_MOVE", new_message, db_name)
+        self.play_move("PLAY_MOVE", new_message)
 
     def unhighlight_everything(self):
         for card in self.opponent().in_play:
@@ -378,7 +406,7 @@ class battle_wizardGame:
             else:
                 card.can_cast = False
 
-    def select_entity_target(self, card_to_target, message, db_name, move_type):
+    def select_entity_target(self, card_to_target, message, move_type):
         new_message = copy.deepcopy(message)
         new_message["move_type"] = move_type
         selected_card = self.current_player().in_play_card(message["card"])
@@ -392,37 +420,38 @@ class battle_wizardGame:
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         card_to_target.selected = False
-        new_message, _ = self.play_move('PLAY_MOVE', new_message, db_name)       
+        new_message, _ = self.play_move('PLAY_MOVE', new_message)       
         return new_message             
 
-    def select_entity_target_for_spell(self, card_to_target, message, db_name):
-        return self.select_entity_target(card_to_target, message, db_name, "PLAY_CARD")
+    def select_entity_target_for_spell(self, card_to_target, message):
+        return self.select_entity_target(card_to_target, message, "PLAY_CARD")
 
-    def select_entity_target_for_entity_effect(self, entity_with_effect_to_target, message, db_name):
-        return self.select_entity_target(entity_with_effect_to_target, message, db_name, "RESOLVE_ENTITY_EFFECT")
+    def select_entity_target_for_entity_effect(self, entity_with_effect_to_target, message):
+        return self.select_entity_target(entity_with_effect_to_target, message, "RESOLVE_ENTITY_EFFECT")
 
-    def select_player_target(self, username, entity_with_effect_to_target, message, db_name, move_type):
+    def select_player_target(self, username, entity_with_effect_to_target, message, move_type):
         new_message = copy.deepcopy(message)
         new_message["move_type"] = move_type
         effect_targets = {}
         effect_targets[entity_with_effect_to_target.effects[0].id] = {"id": username, "target_type":"player"}            
         new_message["effect_targets"] = effect_targets
         new_message["card"] = entity_with_effect_to_target.id
-        new_message, _ = self.play_move('PLAY_MOVE', new_message, db_name)       
+        new_message, _ = self.play_move('PLAY_MOVE', new_message)       
         return new_message             
 
-    def select_player_target_for_spell(self, username, card, message, db_name):
-        return self.select_player_target(username, card, message, db_name, "PLAY_CARD")
+    def select_player_target_for_spell(self, username, card, message):
+        return self.select_player_target(username, card, message, "PLAY_CARD")
 
-    def select_player_target_for_entity_effect(self, username, entity_with_effect_to_target, message, db_name):
-        return self.select_player_target(username, entity_with_effect_to_target, message, db_name, "RESOLVE_ENTITY_EFFECT")
+    def select_player_target_for_entity_effect(self, username, entity_with_effect_to_target, message):
+        return self.select_player_target(username, entity_with_effect_to_target, message, "RESOLVE_ENTITY_EFFECT")
 
 
 class battle_wizardPlayer:
 
-    def __init__(self, game, info, new=False):
+    def __init__(self, game, info, new=False, bot=None):
         self.username = info["username"]
         self.race = info["race"] if "race" in info else None
+        self.bot = bot
 
         JsonDB().add_to_player_database(self.username, JsonDB().player_database())
         self.game = game
@@ -950,6 +979,10 @@ class battle_wizardPlayer:
         for card in self.in_play:
             card.attacked = False
             card.selected = False
+        if self.game.game_type == "p_vs_ai" and self.game.current_player() == self.game.players[1]:
+            m = self.game.legal_moves(self.game.players[1])[0]
+            print(m)
+            self.game.play_move(m["event"], m["message"])
 
     def has_selected_card(self):
         for c in self.hand:

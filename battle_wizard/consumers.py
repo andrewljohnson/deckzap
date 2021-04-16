@@ -40,8 +40,8 @@ class battle_wizardConsumer(WebsocketConsumer):
             return
 
         game_dict = JsonDB().game_database(self.db_name)
-        game = battle_wizardGame(self.game_type, info=game_dict)        
-        message, game_dict = game.play_move(event, message, self.db_name)    
+        game = battle_wizardGame(self.db_name, self.game_type, info=game_dict)        
+        message, game_dict = game.play_move(event, message)    
         if game_dict:
             self.send_game_message(game_dict, event, message["move_type"], message)
 
