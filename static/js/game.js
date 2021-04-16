@@ -195,9 +195,6 @@ class GameUX {
         setTimeout(function() {
             document.getElementById(avatar).style.backgroundColor = "#DFBF9F";
         }, 400);
-        if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
-            alert("GAME OVER");
-        }
     }
 
     static isActivePlayer(game) {

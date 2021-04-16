@@ -40,10 +40,13 @@ class battle_wizardConsumer(WebsocketConsumer):
             return
 
         game_dict = JsonDB().game_database(self.db_name)
-        game = battle_wizardGame(self.db_name, self.game_type, info=game_dict)        
+        game = battle_wizardGame(self, self.db_name, self.game_type, info=game_dict)        
         message, game_dict = game.play_move(event, message)    
         if game_dict:
             self.send_game_message(game_dict, event, message["move_type"], message)
+
+        if game.game_type == "p_vs_ai" and game.current_player() == game.players[1]:
+            game.current_player().run_ai()
 
     def send_game_message(self, game_dict, event, move_type, message):
         # send current-game-related message to players
