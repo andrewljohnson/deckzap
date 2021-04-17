@@ -715,8 +715,7 @@ class GameUX {
 
     static nextRoom() {
         GameRoom.gameSocket.send(JSON.stringify({
-            "event": "NEXT_ROOM",
-            "message": {"username":GameUX.username}
+            "message": {"move_type": "NEXT_ROOM", "username":GameUX.username}
         }));
     }
 
@@ -724,7 +723,6 @@ class GameUX {
         info["move_type"] = move_type
         info["username"] = GameUX.username
         GameRoom.gameSocket.send(JSON.stringify({
-            "event": "PLAY_MOVE", 
             "message": info
         }));                
     }
@@ -762,24 +760,22 @@ class GameRoom {
 
         GameRoom.gameSocket.onmessage = function (e) {
             let data = JSON.parse(e.data)["payload"];
-            switch (data["event"]) {
-                case "NEXT_ROOM":
-                    var usernameParameter = getSearchParameters()["username"];
-                    if (data["username"] == usernameParameter) {
-                       window.location.href = GameRoom.nextRoomUrl();
-                    } else {
-                        setTimeout(function(){
-                            window.location.href = GameRoom.nextRoomUrl();
-                        }, 100); 
-                    }
-                    break;
-                case "PLAY_MOVE":
-                    let game = data["game"];
-                    GameUX.refresh(game);
-                    GameUX.logMessage(data["log_lines"]);
-                    break;
-                default:
-                    console.log("No event")
+            if (data["move_type"] == "NEXT_ROOM") {
+                var usernameParameter = getSearchParameters()["username"];
+                if (data["username"] == usernameParameter) {
+                   window.location.href = GameRoom.nextRoomUrl();
+                } else {
+                    setTimeout(function(){
+                        window.location.href = GameRoom.nextRoomUrl();
+                    }, 100); 
+                }
+            } else {
+                let game = data["game"];
+                if (!data["game"]) {
+                    console.log(data);                    
+                }
+                GameUX.refresh(game);
+                GameUX.logMessage(data["log_lines"]);
             }
         };
     }
