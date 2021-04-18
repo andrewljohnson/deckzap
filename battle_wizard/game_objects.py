@@ -233,18 +233,10 @@ class Game:
         # moves to join/configure/start a game
         if move_type == 'JOIN':
             message = self.join(message)
-            if len(self.players) == 2 and self.turn == 0:
-                self.start_game(message, self.game_type)
         elif move_type == 'CHOOSE_STARTING_EFFECT':
             message = self.choose_starting_effect_and_deck(message)
-            if len(self.starting_effects) == 2:
-                self.start_game(message, self.game_type)
         elif move_type == 'CHOOSE_RACE':
             message = self.choose_race(message)
-            print (self.players)
-            if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
-                print ("self.start_gameself.start_gameself.start_gameself.start_gameself.start_game")
-                self.start_game(message, self.game_type)
         else:
             if (message["username"] != self.current_player().username):
                 print(f"can't {move_type} on opponent's turn")
@@ -254,183 +246,59 @@ class Game:
         if move_type == 'START_FIRST_TURN':
             self.current_player().start_turn()
         elif move_type == 'END_TURN':
-            self.remove_temporary_tokens()
-            self.remove_temporary_abilities()
-            self.turn += 1
-            message["log_lines"].append(f"{self.current_player().username}'s turn.")
-            self.current_player().start_turn()
+            message = self.end_turn(message)
         elif move_type == 'SELECT_CARD_IN_HAND':
-            for card in self.current_player().hand:
-                if card.id == message["card"]:
-                    message["card_name"] = card.name
-                    if card.is_counter_spell():
-                        print(f"can't select counterspell on own turn")
-                        return None
-                    elif card.cost <= self.current_player().mana:
-                        if card.selected and card.needs_targets():
-                            card.selected = False
-                        elif card.selected:
-                            message["move_type"] = "PLAY_CARD"
-                            message = self.play_move(message)
-                            # play card
-                        elif card.card_type == "Spell" and not card.needs_targets():
-                                message["move_type"] = "PLAY_CARD"
-                                message = self.play_move(message)
-                        elif card.card_type == "Entity":
-                            if self.current_player().can_summon():
-                                message["move_type"] = "PLAY_CARD"
-                                message = self.play_move(message)
-                            else:
-                                print(f"can't summon because of {self.current_player().added_abilities}")
-                        else:
-                            card.select_and_set_targets(self)
-                    else:
-                        print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")                        
-                        return None
-                    break
+            message = self.select_card_in_hand(message)
         elif move_type == 'SELECT_ENTITY':
-            if self.current_player().entity_with_effect_to_target:
-                message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
-            elif self.current_player().has_selected_card():  
-                # todo handle cards with multiple effects
-                if self.current_player().selected_card().effects[0].target_type == "opponents_entity" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
-                    print(f"can't target own entity with opponents_entity effect from {self.current_player().selected_card().name}")
-                    return None
-                message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
-            elif self.current_player().controls_entity(message["card"]):
-                if self.current_player().in_play_entity_is_selected(message["card"]):                
-                    if self.opponent().has_guard():                        
-                        self.current_player().in_play_card(message["card"]).selected = False
-                        print(f"can't attack opponent because an entity has Guard")
-                    else:                 
-                        message["move_type"] = "ATTACK"
-                        message["card_name"] = self.current_player().in_play_card(message["card"]).name
-                        message = self.play_move(message)   
-                elif self.current_player().can_select(message["card"]):
-                    self.current_player().select_in_play(message["card"])
-                else:
-                    print("can't select that entity")
-                    return None
-            elif not self.current_player().controls_entity(message["card"]):
-                defending_card = self.opponent().in_play_card(message["card"])
-                selected_entity = self.current_player().selected_entity()
-                if selected_entity:
-                    if not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card):                        
-                        message["move_type"] = "ATTACK"
-                        message["card"] = selected_entity.id
-                        message["card_name"] = selected_entity.name
-                        message["defending_card"] = defending_card.id
-                        message = self.play_move(message)
-                    else:
-                        print(f"can't attack {defending_card.name} because another entity has Guard")
-                        return None                                            
-                else:
-                    print(f"nothing selected to target {defending_card.name}")
-                    return None
-            else:
-                print("Should never get here")                                
+            message = self.select_entity(message)
         elif move_type == 'SELECT_OPPONENT' or move_type == 'SELECT_SELF':
-            if self.current_player().entity_with_effect_to_target:
-                if move_type == 'SELECT_OPPONENT':
-                    message = self.select_player_target_for_entity_effect(self.opponent().username, self.current_player().entity_with_effect_to_target, message)
-                else:
-                    message = self.select_player_target_for_entity_effect(self.current_player().username, self.current_player().entity_with_effect_to_target, message)
-            else:
-                casting_spell = False
-                for card in self.current_player().hand:
-                    if card.selected:
-                        target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
-                        casting_spell = True
-                        message = self.select_player_target_for_spell(target_player.username, card, message)
-
-                if not casting_spell:
-                    for card in self.current_player().in_play:
-                        if card.selected:
-                            if not self.opponent().has_guard():
-                                message["card"] = card.id
-                                message["card_name"] = card.name
-                                message["move_type"] = "ATTACK"
-                                message = self.play_move(message)                    
-                                card.selected = False
-                            else:
-                                print(f"can't attack opponent because an entity has Guard")
-                                return None
+            message = self.select_player(move_type, message)
         elif move_type == 'ATTACK':
-            card_id = message["card"]
-            attacking_card = self.current_player().in_play_card(card_id)
-            if "defending_card" in message:
-                defending_card_id = message["defending_card"]
-                defending_card = self.opponent().in_play_card(defending_card_id)
-                self.resolve_combat(
-                    attacking_card, 
-                    defending_card
-                )
-                message["defending_card"] = defending_card.as_dict()
-                message["log_lines"].append(f"{attacking_card.name} attacks {defending_card.name}")
-            else:
-                message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens()}.")
-                self.opponent().hit_points -= attacking_card.power_with_tokens()
-                if attacking_card.abilities:
-                    if attacking_card.abilities[0].name == "DamageDraw":
-                        self.current_player().draw(attacking_card.abilities[0].amount)
-            attacking_card.attacked = True
-            attacking_card.selected = False
-            # message["card"] = attacking_card.as_dict()
+            message = self.attack(message)            
         elif move_type == 'PLAY_CARD':
-            message, played_card, was_countered = self.current_player().play_card(message["card"], message)
-            if played_card:
-                played_card.can_cast = False
-                message["card_name"] = played_card.name
-                message["was_countered"] = was_countered
-                message["counter_username"] = self.opponent().username
-                # message["card"] = played_card.as_dict()
-                message["played_card"] = True
+            message = self.current_player().play_card(message["card"], message)
         elif move_type == 'RESOLVE_ENTITY_EFFECT':
             message = self.current_player().resolve_entity_effect(message["card"], message)
-            self.current_player().entity_with_effect_to_target = None
         elif move_type == 'MAKE_CARD':
-            self.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
-            self.current_player().make_to_resolve = []
+            self.make_card(message)
         elif move_type == 'MAKE_EFFECT':
-            message["log_lines"].append(f"{message['username']} chose {message['card']['starting_effect']}.")
-            self.starting_effects.append(message["card"]["starting_effect"])
-            self.current_player().make_to_resolve = []
+            message = self.make_effect(message)
 
         self.highlight_can_act()
         self.highlight_can_cast()
-        JsonDB().save_game_database(self.as_dict(), self.db_name)
+        
+        if message:
+            JsonDB().save_game_database(self.as_dict(), self.db_name)
 
         return message
 
     def join(self, message):
-        if len(self.players) >= 2:
-            print(f"an extra player tried to join players {[p.username for p in self.players]}")
-        elif len(self.players) == 0 and self.game_type == "p_vs_ai":                    
-            message["log_lines"].append(f"{message['username']} joined the game.")
-            message["log_lines"].append(f"random_bot joined the game.")
-            self.players.append(Player(self, {"username":message["username"]}, new=True))
-            self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
-        elif len(self.players) <= 1:
-            if len(self.players) == 0 or (len(self.players) == 1 and self.players[0].username != message["username"]):
-                message["log_lines"].append(f"{message['username']} joined the game.")
-                self.players.append(Player(self, {"username":message["username"]}, new=True))
-        if len(self.players) == 2 and len(self.players[0].hand) == 0:
-            if self.game_type == "ingame":
-                for p in self.players:
-                    for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
-                        p.add_to_deck(card_name, 1)
-                    random.shuffle(p.deck)
-                    p.max_mana = 1
-                    p.draw(2)
-            elif self.game_type == "pregame":
-                self.decks_to_set = {}
-
-        if len(self.players) == 2 and self.turn == 0 and self.game_type == "pregame":
-            player_db = JsonDB().player_database()
-            for p in self.players:
-                if "card_counts" in player_db[p.username]:
-                    self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
         
+        join_occured = True
+        if len(self.players) == 0:
+            self.players.append(Player(self, {"username":message["username"]}, new=True))            
+            message["log_lines"].append(f"{message['username']} created the game.")
+            if self.game_type == "p_vs_ai":
+                message["log_lines"].append(f"random_bot joined the game.")
+                self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
+        elif len(self.players) == 1:
+            message["log_lines"].append(f"{message['username']} joined the game.")
+            self.players.append(Player(self, {"username":message["username"]}, new=True))
+        elif len(self.players) >= 2:
+            print(f"an extra player tried to join players {[p.username for p in self.players]}")
+            join_occured = False
+
+        if self.game_type == "pregame":
+            if len(self.players) == 2 and self.turn == 0 and len(self.players[0].hand) == 0:
+                self.decks_to_set = {}
+                player_db = JsonDB().player_database()
+                for p in self.players:
+                    if "card_counts" in player_db[p.username]:
+                        self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
+        
+        if len(self.players) == 2 and join_occured:
+            self.start_game(message, self.game_type)
+
         return message
 
     def choose_starting_effect_and_deck(self, message):
@@ -440,6 +308,10 @@ class Game:
         if player.username != message["username"]:
             player = self.players[1]
         player_db = JsonDB().update_deck_in_player_database(player.username, message["card_counts"], JsonDB().player_database())
+
+        if len(self.starting_effects) == 2:
+            self.start_game(message, self.game_type)
+
         return message
 
     def choose_race(self, message):
@@ -448,6 +320,10 @@ class Game:
         if player.username != message["username"]:
             player = self.players[1]
         player.race = message["race"]
+
+        if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
+            self.start_game(message, self.game_type)
+
         return message
 
     def start_game(self, message, game_type):
@@ -462,6 +338,12 @@ class Game:
             print(f"unknown game type: {game_type}")
 
     def start_ingame_deckbuilder_game(self, message):
+        for p in self.players:
+            for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
+                p.add_to_deck(card_name, 1)
+            random.shuffle(p.deck)
+            p.max_mana = 1
+            p.draw(2)
         if self.players[0].max_mana == 1: 
            self.send_start_first_turn(message)
         
@@ -494,6 +376,148 @@ class Game:
             p.max_mana = 1
             p.draw(2)
         self.send_start_first_turn(message)
+
+    def end_turn(self, message):
+        self.remove_temporary_tokens()
+        self.remove_temporary_abilities()
+        self.turn += 1
+        message["log_lines"].append(f"{self.current_player().username}'s turn.")
+        self.current_player().start_turn()
+        return message
+
+    def select_card_in_hand(self, message):
+        for card in self.current_player().hand:
+            if card.id == message["card"]:
+                message["card_name"] = card.name
+                if card.is_counter_spell():
+                    print(f"can't select counterspell on own turn")
+                    return None
+                elif card.cost <= self.current_player().mana:
+                    if card.selected and card.needs_targets():
+                        card.selected = False
+                    elif card.selected:
+                        message["move_type"] = "PLAY_CARD"
+                        message = self.play_move(message)
+                        # play card
+                    elif card.card_type == "Spell" and not card.needs_targets():
+                            message["move_type"] = "PLAY_CARD"
+                            message = self.play_move(message)
+                    elif card.card_type == "Entity":
+                        if self.current_player().can_summon():
+                            message["move_type"] = "PLAY_CARD"
+                            message = self.play_move(message)
+                        else:
+                            print(f"can't summon because of {self.current_player().added_abilities}")
+                    else:
+                        card.select_and_set_targets(self)
+                else:
+                    print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")                        
+                    return None
+                break
+        return message
+
+    def select_entity(self, message):
+        if self.current_player().entity_with_effect_to_target:
+            message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
+        elif self.current_player().has_selected_card():  
+            # todo handle cards with multiple effects
+            if self.current_player().selected_card().effects[0].target_type == "opponents_entity" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
+                print(f"can't target own entity with opponents_entity effect from {self.current_player().selected_card().name}")
+                return None
+            message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
+        elif self.current_player().controls_entity(message["card"]):
+            if self.current_player().in_play_entity_is_selected(message["card"]):                
+                if self.opponent().has_guard():                        
+                    self.current_player().in_play_card(message["card"]).selected = False
+                    print(f"can't attack opponent because an entity has Guard")
+                else:                 
+                    message["move_type"] = "ATTACK"
+                    message["card_name"] = self.current_player().in_play_card(message["card"]).name
+                    message = self.play_move(message)   
+            elif self.current_player().can_select(message["card"]):
+                self.current_player().select_in_play(message["card"])
+            else:
+                print("can't select that entity")
+                return None
+        elif not self.current_player().controls_entity(message["card"]):
+            defending_card = self.opponent().in_play_card(message["card"])
+            selected_entity = self.current_player().selected_entity()
+            if selected_entity:
+                if not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card):                        
+                    message["move_type"] = "ATTACK"
+                    message["card"] = selected_entity.id
+                    message["card_name"] = selected_entity.name
+                    message["defending_card"] = defending_card.id
+                    message = self.play_move(message)
+                else:
+                    print(f"can't attack {defending_card.name} because another entity has Guard")
+                    return None                                            
+            else:
+                print(f"nothing selected to target {defending_card.name}")
+                return None
+        else:
+            print("Should never get here")                                
+        return message
+
+    def select_player(self, move_type, message):
+        if self.current_player().entity_with_effect_to_target:
+            if move_type == 'SELECT_OPPONENT':
+                message = self.select_player_target_for_entity_effect(self.opponent().username, self.current_player().entity_with_effect_to_target, message)
+            else:
+                message = self.select_player_target_for_entity_effect(self.current_player().username, self.current_player().entity_with_effect_to_target, message)
+        else:
+            casting_spell = False
+            for card in self.current_player().hand:
+                if card.selected:
+                    target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
+                    casting_spell = True
+                    message = self.select_player_target_for_spell(target_player.username, card, message)
+
+            if not casting_spell:
+                for card in self.current_player().in_play:
+                    if card.selected:
+                        if not self.opponent().has_guard():
+                            message["card"] = card.id
+                            message["card_name"] = card.name
+                            message["move_type"] = "ATTACK"
+                            message = self.play_move(message)                    
+                            card.selected = False
+                        else:
+                            print(f"can't attack opponent because an entity has Guard")
+                            return None
+        return message
+
+    def attack(self, message):
+        card_id = message["card"]
+        attacking_card = self.current_player().in_play_card(card_id)
+        if "defending_card" in message:
+            defending_card_id = message["defending_card"]
+            defending_card = self.opponent().in_play_card(defending_card_id)
+            self.resolve_combat(
+                attacking_card, 
+                defending_card
+            )
+            message["defending_card"] = defending_card.as_dict()
+            message["log_lines"].append(f"{attacking_card.name} attacks {defending_card.name}")
+        else:
+            message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens()}.")
+            self.opponent().hit_points -= attacking_card.power_with_tokens()
+            if attacking_card.abilities:
+                if attacking_card.abilities[0].name == "DamageDraw":
+                    self.current_player().draw(attacking_card.abilities[0].amount)
+        attacking_card.attacked = True
+        attacking_card.selected = False
+        return message
+
+    def make_card(self, message):
+        self.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
+        self.current_player().make_to_resolve = []
+
+    def make_effect(self, message):
+        message["log_lines"].append(f"{message['username']} chose {message['card']['starting_effect']}.")
+        self.starting_effects.append(message["card"]["starting_effect"])
+        self.current_player().make_to_resolve = []
+        return message
 
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
@@ -1012,7 +1036,7 @@ class Player:
                 card = c
         if card.cost > self.mana:
             print(f"card costs too much - costs {card.cost}, mana available {self.mana}")
-            return None, False
+            return None
 
         card.selected = False
         self.hand.remove(card)
@@ -1026,7 +1050,10 @@ class Player:
                     self.game.opponent().played_pile.append(o_card)
                     self.game.opponent().mana -= o_card.cost
                     message["log_lines"].append(f"{card.name} was countered by {self.game.opponent().username}.")
-                    return message, card, True
+                    message["was_countered"] = True
+                    message["counter_username"] = self.game.opponent().username
+                    message["card_name"] = card.name
+                    return message
 
         card.can_cast = False
         message["log_lines"].append(f"{self.username} plays {card.name}.")
@@ -1052,7 +1079,10 @@ class Player:
 
                     message = self.do_card_effect(card, e, message, message["effect_targets"])
 
-        return message, card, False
+        message["card_name"] = card.name
+        message["played_card"] = True
+        message["was_countered"] = False
+        return message
 
     def has_fast(self):
         for a in self.added_abilities:
@@ -1099,6 +1129,8 @@ class Player:
                     effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":"player"};
                 message["effect_targets"] = effect_targets
             message = self.do_card_effect(card, e, message, message["effect_targets"])
+        
+        self.current_player().entity_with_effect_to_target = None
         return message
 
     def add_to_deck(self, card_name, count, add_to_hand=False):
