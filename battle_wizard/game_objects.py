@@ -124,91 +124,101 @@ class Game:
             else:
                 moves.append({"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": "random_bot"})              
         else:
-            # attack moves
-            if not self.opponent().has_guard():
-                for entity in player.in_play:
-                    if entity.selected:
-                        moves.append({"card":entity.id , "move_type": "ATTACK", "username": "random_bot"})
-                        for o_entity in self.opponent().in_play:
-                            moves.append({
-                                    "card":entity.id, 
-                                    "defending_card":o_entity.id, 
-                                    "move_type": "ATTACK", 
-                                    "username": "random_bot"
-                                
-                            })
-                    elif player.can_select(entity.id):
-                        moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
-            else:
-                selected_entity = None
-                for entity in player.in_play:
-                    if entity.selected:
-                        selected_entity = entity
-                if selected_entity:
-                    for entity in player.game.opponent().in_play:
-                        if selected_entity and self.opponent().entity_has_guard(entity):
-                            moves.append({
-                                    "card":selected_entity.id, 
-                                    "defending_card":entity.id, 
-                                    "move_type": "ATTACK", 
-                                    "username": "random_bot"
-                            })
-                else:
-                    for entity in player.in_play:
-                        if player.can_select(entity.id):
-                            moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
             
-            # moves per card in hand
+            selected_entity = None
+            for entity in player.in_play:
+                if entity.selected:
+                    selected_entity = entity
+
+            selected_card = None
             for card in player.hand:
-                if not card.can_cast:
-                    continue
-                if card.card_type == "Entity":
-                    if player.can_summon():
-                        moves.append({
-                                "card":card.id, 
-                                "move_type": "SELECT_CARD_IN_HAND", 
-                                "username": "random_bot"
-                        })
-                elif card.card_type == "Spell":
-                    if card.selected:
-                        if card.needs_targets():
-                            e = card.effects[0]
-                            entities = copy.deepcopy(self.opponent().in_play)
-                            if e.target_type != "opponents_entity":
-                                entities += player.in_play
-                            for entity in entities:
+                if card.selected:
+                    selected_card = card
+
+
+            # attack moves
+            if not selected_card:
+                if not self.opponent().has_guard():
+                    for entity in player.in_play:
+                        if entity.selected:
+                            moves.append({"card":entity.id , "move_type": "ATTACK", "username": "random_bot"})
+                            for o_entity in self.opponent().in_play:
                                 moves.append({
                                         "card":entity.id, 
-                                        "move_type": "SELECT_ENTITY", 
+                                        "defending_card":o_entity.id, 
+                                        "move_type": "ATTACK", 
+                                        "username": "random_bot"
+                                    
+                                })
+                        elif player.can_select(entity.id):
+                            moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
+                else:
+                    if selected_entity:
+                        for entity in player.game.opponent().in_play:
+                            if selected_entity and self.opponent().entity_has_guard(entity):
+                                moves.append({
+                                        "card":selected_entity.id, 
+                                        "defending_card":entity.id, 
+                                        "move_type": "ATTACK", 
                                         "username": "random_bot"
                                 })
-                            if e.target_type == "any":                                                                    
+                    else:
+                        for entity in player.in_play:
+                            if player.can_select(entity.id):
+                                moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
+            
+            # moves per card in hand
+            if not selected_entity:
+                for card in player.hand:
+                    if not card.can_cast:
+                        continue
+                    if card.card_type == "Entity":
+                        if player.can_summon():
+                            moves.append({
+                                    "card":card.id, 
+                                    "move_type": "SELECT_CARD_IN_HAND", 
+                                    "username": "random_bot"
+                            })
+                    elif card.card_type == "Spell":
+                        if card.selected:
+                            if card.needs_targets():
+                                e = card.effects[0]
+                                entities = copy.deepcopy(self.opponent().in_play)
+                                if e.target_type != "opponents_entity":
+                                    entities += player.in_play
+                                for entity in entities:
+                                    moves.append({
+                                            "card":entity.id, 
+                                            "move_type": "SELECT_ENTITY", 
+                                            "username": "random_bot"
+                                    })
+                                if e.target_type == "any":                                                                    
+                                    moves.append({
+                                            "move_type": "SELECT_SELF", 
+                                            "username": "random_bot"
+                                        }
+                                    )
+                                    moves.append({
+                                            "move_type": "SELECT_OPPONENT", 
+                                            "username": "random_bot"
+                                        }
+                                    )
+                            else:
                                 moves.append({
-                                        "move_type": "SELECT_SELF", 
-                                        "username": "random_bot"
-                                    }
-                                )
-                                moves.append({
-                                        "move_type": "SELECT_OPPONENT", 
+                                        "card":card.id, 
+                                        "move_type": "SELECT_CARD_IN_HAND", 
                                         "username": "random_bot"
                                     }
                                 )
                         else:
-                            moves.append({
-                                    "card":card.id, 
-                                    "move_type": "SELECT_CARD_IN_HAND", 
-                                    "username": "random_bot"
-                                }
-                            )
-                    else:
-                        # todo: more general if card can be targetted
-                        if card.name != "Mind Manacles" or len(self.opponent().in_play) > 0:
-                            moves.append({
-                                    "card":card.id, 
-                                    "move_type": "SELECT_CARD_IN_HAND", 
-                                    "username": "random_bot"
-                                }
-                            )
+                            # todo: more general if card can be targetted
+                            if card.name != "Mind Manacles" or len(self.opponent().in_play) > 0:
+                                moves.append({
+                                        "card":card.id, 
+                                        "move_type": "SELECT_CARD_IN_HAND", 
+                                        "username": "random_bot"
+                                    }
+                                )
         moves.append({"move_type": "END_TURN", "username": "random_bot"})
         return moves
 
@@ -243,11 +253,9 @@ class Game:
             if player.username != message["username"]:
                 player = self.players[1]
             player.race = message["race"]
-            print(f"GET IN with {self.players}?")
             if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
-                print(f"GET IN?")
-                use_test = False
-                test = ["Lightning Elemental", "Lightning Elemental"]
+                use_test = True
+                test = ["Trickster", "Trickster", "Mind Manacles", "Mind Manacles"]
                 for p in self.players:
                     if use_test:
                         for card_name in test:
@@ -450,11 +458,7 @@ class Game:
 
         self.highlight_can_act()
         self.highlight_can_cast()
-        print(self.db_name)
         JsonDB().save_game_database(self.as_dict(), self.db_name)
-
-        if move_type == "JOIN":
-            print(f"players are {self.players}")
 
         return message
 
@@ -702,7 +706,7 @@ class Player:
             self.do_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
         elif e.name == "add_tokens":
             if e.target_type == 'self_entities':
-                message["log_lines"].append(f"{self.username} adds {e.tokens} to their own entities.")
+                message["log_lines"].append(f"{self.username} adds {e.tokens} tokens to their own entities.")
             else:
                 message["log_lines"].append(f"{self.username} adds {e.tokens} to {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
             self.do_add_tokens_effect(e, effect_targets)
@@ -868,7 +872,7 @@ class Player:
             for token in e.tokens:
                 for entity in self.in_play:
                     self.do_add_token_effect_on_entity(
-                        token, 
+                        copy.deepcopy(token), 
                         entity.id
                     )
 
@@ -1375,7 +1379,7 @@ class CardToken:
         self.set_can_act = info["set_can_act"] if "set_can_act" in info else None
 
     def __repr__(self):
-        return f"{self.turns} {self.power_modifier} {self.toughness_modifier} {self.set_can_act}"
+        return f"+{self.power_modifier}/+{self.toughness_modifier}"
 
     def as_dict(self):
         return {

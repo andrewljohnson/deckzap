@@ -1,6 +1,8 @@
 import json
 import copy 
+import random
 import time
+
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from battle_wizard.game_objects import Game
@@ -39,26 +41,22 @@ class BattleWizardConsumer(WebsocketConsumer):
             self.send_game_message(None, message)
             return
 
-        if message["move_type"] == 'CHOOSE_RACE':
-            print(f"players before CHOOSE_RACE recieve are {self.game.players}")
-
         message = self.game.play_move(message)    
         self.send_game_message(self.game.as_dict(), message)
-
-        if message["move_type"] == 'JOIN':
-            print(f"players after JOIN recieve are {self.game.players}")
 
         # run AI if it's the AI's move or if the other player just chose their race
         if self.game.game_type == "p_vs_ai" and (self.game.current_player() == self.game.players[1] or \
             (self.game.players[0].race != None and self.game.players[1].race == None)): 
             self.run_ai()
-            print("RUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AIRUN AI")
 
     def run_ai(self):
         # todo don't reference AI by index 1
         while True:
             moves = self.game.legal_moves(self.game.players[1])
-            message = self.game.play_move(moves[0])    
+            move = random.choice(moves)
+            while len(moves) > 1 and move["move_type"] == "END_TURN":
+                 move = random.choice(moves) 
+            message = self.game.play_move(move)    
             self.send_game_message(self.game.as_dict(), message)
             if message['move_type'] == "END_TURN" or message['move_type'] == "CHOOSE_RACE" or self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
                 break
