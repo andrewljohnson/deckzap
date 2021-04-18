@@ -227,90 +227,30 @@ class Game:
             message["log_lines"] = []
         move_type = message["move_type"]
         print(f"MOVE: {move_type}")
-        if len(self.players) == 2:
-            self.unhighlight_everything()
+        
+        self.unhighlight_possible_moves()
 
-        if move_type == 'CHOOSE_STARTING_EFFECT':
-            message["log_lines"].append(f"{message['username']} chose {message['id']}.")
-            self.starting_effects.append(message["id"])
-            player = self.players[0]
-            if player.username != message["username"]:
-                player = self.players[1]
-
-            player_db = JsonDB().update_deck_in_player_database(player.username, message["card_counts"], JsonDB().player_database())
-
-            if len(self.starting_effects) == 2:
-                for p in self.players:
-                    for card_name in player_db[p.username]["card_counts"].keys():
-                        p.add_to_deck(card_name, int(player_db[p.username]["card_counts"][card_name]))
-                    random.shuffle(p.deck)
-                    p.max_mana = 0
-                    p.draw(6)
-                self.send_start_first_turn(message)
-        elif move_type == 'CHOOSE_RACE':
-            message["log_lines"].append(f"{message['username']} chose {message['race']}.")
-            player = self.players[0]
-            if player.username != message["username"]:
-                player = self.players[1]
-            player.race = message["race"]
-            if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
-                use_test = False
-                test = ["Familiar", "Trickster", "Training Master", "Faerie's Blessing"]
-                for p in self.players:
-                    if use_test:
-                        for card_name in test:
-                            p.add_to_deck(card_name, 1)
-                    elif p.race == "elf":
-                        for card_name in ["Make Spell", "Make Spell", "Make Entity+",  "Make Entity+"]:
-                            p.add_to_deck(card_name, 1)
-                    else:
-                        for card_name in ["Make Spell+", "Make Spell+", "Make Entity",  "Make Entity"]:
-                            p.add_to_deck(card_name, 1)
-                    random.shuffle(p.deck)
-                    p.max_mana = 1
-                    p.draw(2)
-                self.send_start_first_turn(message)
-        elif move_type == 'JOIN':
-            if len(self.players) >= 2:
-                print(f"an extra player tried to join players {[p.username for p in self.players]}")
-            elif len(self.players) == 0 and self.game_type == "p_vs_ai":                    
-                message["log_lines"].append(f"{message['username']} joined the game.")
-                message["log_lines"].append(f"random_bot joined the game.")
-                self.players.append(Player(self, {"username":message["username"]}, new=True))
-                self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
-            elif len(self.players) <= 1:
-                if len(self.players) == 0 or (len(self.players) == 1 and self.players[0].username != message["username"]):
-                    message["log_lines"].append(f"{message['username']} joined the game.")
-                    self.players.append(Player(self, {"username":message["username"]}, new=True))
-            if len(self.players) == 2 and len(self.players[0].hand) == 0:
-                if self.game_type == "ingame":
-                    for p in self.players:
-                        for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
-                            p.add_to_deck(card_name, 1)
-                        random.shuffle(p.deck)
-                        p.max_mana = 1
-                        p.draw(2)
-                elif self.game_type == "pregame":
-                    self.decks_to_set = {}
+        # moves to join/configure/start a game
+        if move_type == 'JOIN':
+            message = self.join(message)
             if len(self.players) == 2 and self.turn == 0:
-                # configure for game start after 2 joins if not configured yet
-                if self.game_type == "ingame":
-                    if self.players[0].max_mana == 1: 
-                       self.send_start_first_turn(message)
-                elif self.game_type == "pregame":
-                    if len(self.starting_effects) == 2:
-                        self.send_start_first_turn(message)
-                    else:
-                        player_db = JsonDB().player_database()
-                        for p in self.players:
-                            if "card_counts" in player_db[p.username]:
-                                self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
-                else:  # no other game types implemented
-                    pass 
+                self.start_game(message, self.game_type)
+        elif move_type == 'CHOOSE_STARTING_EFFECT':
+            message = self.choose_starting_effect_and_deck(message)
+            if len(self.starting_effects) == 2:
+                self.start_game(message, self.game_type)
+        elif move_type == 'CHOOSE_RACE':
+            message = self.choose_race(message)
+            print (self.players)
+            if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
+                print ("self.start_gameself.start_gameself.start_gameself.start_gameself.start_game")
+                self.start_game(message, self.game_type)
         else:
             if (message["username"] != self.current_player().username):
                 print(f"can't {move_type} on opponent's turn")
                 return None
+
+        # moves in game
         if move_type == 'START_FIRST_TURN':
             self.current_player().start_turn()
         elif move_type == 'END_TURN':
@@ -462,6 +402,99 @@ class Game:
 
         return message
 
+    def join(self, message):
+        if len(self.players) >= 2:
+            print(f"an extra player tried to join players {[p.username for p in self.players]}")
+        elif len(self.players) == 0 and self.game_type == "p_vs_ai":                    
+            message["log_lines"].append(f"{message['username']} joined the game.")
+            message["log_lines"].append(f"random_bot joined the game.")
+            self.players.append(Player(self, {"username":message["username"]}, new=True))
+            self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
+        elif len(self.players) <= 1:
+            if len(self.players) == 0 or (len(self.players) == 1 and self.players[0].username != message["username"]):
+                message["log_lines"].append(f"{message['username']} joined the game.")
+                self.players.append(Player(self, {"username":message["username"]}, new=True))
+        if len(self.players) == 2 and len(self.players[0].hand) == 0:
+            if self.game_type == "ingame":
+                for p in self.players:
+                    for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
+                        p.add_to_deck(card_name, 1)
+                    random.shuffle(p.deck)
+                    p.max_mana = 1
+                    p.draw(2)
+            elif self.game_type == "pregame":
+                self.decks_to_set = {}
+
+        if len(self.players) == 2 and self.turn == 0 and self.game_type == "pregame":
+            player_db = JsonDB().player_database()
+            for p in self.players:
+                if "card_counts" in player_db[p.username]:
+                    self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
+        
+        return message
+
+    def choose_starting_effect_and_deck(self, message):
+        message["log_lines"].append(f"{message['username']} chose {message['id']}.")
+        self.starting_effects.append(message["id"])
+        player = self.players[0]
+        if player.username != message["username"]:
+            player = self.players[1]
+        player_db = JsonDB().update_deck_in_player_database(player.username, message["card_counts"], JsonDB().player_database())
+        return message
+
+    def choose_race(self, message):
+        message["log_lines"].append(f"{message['username']} chose {message['race']}.")
+        player = self.players[0]
+        if player.username != message["username"]:
+            player = self.players[1]
+        player.race = message["race"]
+        return message
+
+    def start_game(self, message, game_type):
+        print(f"START GAME FOR {game_type}")
+        if game_type == "ingame":
+            self.start_ingame_deckbuilder_game(message)
+        elif game_type == "pregame":
+            self.start_pregame_deckbuilder_game(message)
+        elif game_type == "choose_race" or game_type == "p_vs_ai":
+            self.start_choose_race_game(message)
+        else:
+            print(f"unknown game type: {game_type}")
+
+    def start_ingame_deckbuilder_game(self, message):
+        if self.players[0].max_mana == 1: 
+           self.send_start_first_turn(message)
+        
+    def start_pregame_deckbuilder_game(self, message):
+        player_db = JsonDB().player_database()
+        for p in self.players:
+            for card_name in player_db[p.username]["card_counts"].keys():
+                p.add_to_deck(card_name, int(player_db[p.username]["card_counts"][card_name]))
+            random.shuffle(p.deck)
+            p.max_mana = 0
+            p.draw(6)
+        self.send_start_first_turn(message)
+
+    def start_choose_race_game(self, message):
+        use_test = False
+        test = ["Familiar", "Trickster", "Training Master", "Faerie's Blessing"]
+        elf_deck = ["Make Spell", "Make Spell", "Make Entity+",  "Make Entity+"]
+        genie_deck = ["Make Spell+", "Make Spell+", "Make Entity",  "Make Entity"]
+        for p in self.players:
+            if use_test:
+                for card_name in test:
+                    p.add_to_deck(card_name, 1)
+            elif p.race == "elf":
+                for card_name in elf_deck:
+                    p.add_to_deck(card_name, 1)
+            else:
+                for card_name in genie_deck:
+                    p.add_to_deck(card_name, 1)
+            random.shuffle(p.deck)
+            p.max_mana = 1
+            p.draw(2)
+        self.send_start_first_turn(message)
+
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
             perm_tokens = []
@@ -480,12 +513,15 @@ class Game:
         self.current_player().added_abilities = perm_abilities
 
     def send_start_first_turn(self, message):
+        print("send_start_first_turnsend_start_first_turnsend_start_first_turnsend_start_first_turnsend_start_first_turn")
         new_message = copy.deepcopy(message)
         new_message["move_type"] = "START_FIRST_TURN"
         new_message["username"] = self.players[0].username
         self.play_move(new_message)
 
-    def unhighlight_everything(self):
+    def unhighlight_possible_moves(self):
+        if len(self.players) != 2:
+            return
         for card in self.opponent().in_play:
             card.can_be_targetted = False
         for card in self.current_player().in_play:
@@ -696,10 +732,8 @@ class Player:
                 message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {target_player.username}'s hand.")
                 self.do_unwind_effect_on_entity(effect_targets[e.id]["id"])
         elif e.name == "entwine":
-            message["log_lines"].append(f"{self.username} plays {card.name}.")
             self.do_entwine_effect()
         elif e.name == "make":
-            message["log_lines"].append(f"{self.username} plays {card.name}.")
             self.do_make_effect(card, effect_targets[e.id]["id"], e.make_type, e.amount)
         elif e.name == "mana":
             message["log_lines"].append(f"{effect_targets[e.id]['id']} gets {e.amount} mana.")
