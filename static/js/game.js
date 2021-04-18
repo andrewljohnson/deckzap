@@ -714,17 +714,17 @@ class GameUX {
     }
 
     static nextRoom() {
-        GameRoom.gameSocket.send(JSON.stringify({
-            "message": {"move_type": "NEXT_ROOM", "username":GameUX.username}
-        }));
+        GameRoom.gameSocket.send(JSON.stringify(
+            {"move_type": "NEXT_ROOM", "username":GameUX.username}
+        ));
     }
 
     static sendPlayMoveEvent(move_type, info) {
         info["move_type"] = move_type
         info["username"] = GameUX.username
-        GameRoom.gameSocket.send(JSON.stringify({
-            "message": info
-        }));                
+        GameRoom.gameSocket.send(JSON.stringify(
+            info
+        ));                
     }
 
 }

@@ -85,14 +85,16 @@ class Game:
             self.send_card_to_played_pile(defending_card,self.opponent())
 
     def legal_moves(self, player):
+        if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
+            return []
         if player.game.current_player() != player and player.race:
             return []
         if len(self.players) < 2:
-            return [{"message": {"move_type": "JOIN", "username": "random_bot"}}]
+            return [{"move_type": "JOIN", "username": "random_bot"}]
         if not player.race:
             return [
-                {"message": {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "elf"}},
-                {"message": {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "genie"}},
+                {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "elf"},
+                {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "genie"},
             ]
 
         moves = []
@@ -106,43 +108,38 @@ class Game:
                     if len(player.entity_with_effect_to_target.effects) == 2:
                         effect_targets[player.entity_with_effect_to_target.effects[1].id] = {"id": self.username, "target_type":"player"}
                     moves.append({
-                        "message": {
                             "card":player.entity_with_effect_to_target.id, 
                             "move_type": "RESOLVE_ENTITY_EFFECT", 
                             "username": "random_bot",
-                            "effect_targets": effect_targets}})
+                            "effect_targets": effect_targets})
             if self.opponent().can_be_targetted:
                 effect_targets = {}
                 effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
-                moves.append({
-                    "message": {"card":player.entity_with_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": "random_bot", "effect_targets": effect_targets}})
+                moves.append({"card":player.entity_with_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": "random_bot", "effect_targets": effect_targets})
 
             self.opponent().can_be_targetted = True
             self.current_player().can_be_targetted = True        
         elif player.make_to_resolve:
             if player.make_to_resolve[0].card_type == "Effect":
-                moves.append({
-                    "message": {"card":player.make_to_resolve[0].as_dict() , "move_type": "MAKE_EFFECT", "username": "random_bot"}})              
+                moves.append({"card":player.make_to_resolve[0].as_dict() , "move_type": "MAKE_EFFECT", "username": "random_bot"})              
             else:
-                moves.append({
-                    "message": {"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": "random_bot"}})              
+                moves.append({"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": "random_bot"})              
         else:
             # attack moves
-            if not player.game.opponent().has_guard():
+            if not self.opponent().has_guard():
                 for entity in player.in_play:
                     if entity.selected:
-                        moves.append({"message": {"card":entity.id , "move_type": "ATTACK", "username": "random_bot"}})
-                        for o_entity in player.game.opponent().in_play:
+                        moves.append({"card":entity.id , "move_type": "ATTACK", "username": "random_bot"})
+                        for o_entity in self.opponent().in_play:
                             moves.append({
-                                "message": {
                                     "card":entity.id, 
                                     "defending_card":o_entity.id, 
                                     "move_type": "ATTACK", 
                                     "username": "random_bot"
-                                }
+                                
                             })
                     elif player.can_select(entity.id):
-                        moves.append({"message": {"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"}})
+                        moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
             else:
                 selected_entity = None
                 for entity in player.in_play:
@@ -152,17 +149,15 @@ class Game:
                     for entity in player.game.opponent().in_play:
                         if selected_entity and self.opponent().entity_has_guard(entity):
                             moves.append({
-                                "message": {
                                     "card":selected_entity.id, 
                                     "defending_card":entity.id, 
                                     "move_type": "ATTACK", 
                                     "username": "random_bot"
-                                }
                             })
                 else:
                     for entity in player.in_play:
                         if player.can_select(entity.id):
-                            moves.append({"message": {"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"}})
+                            moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
             
             # moves per card in hand
             for card in player.hand:
@@ -171,67 +166,58 @@ class Game:
                 if card.card_type == "Entity":
                     if player.can_summon():
                         moves.append({
-                            "message": {
                                 "card":card.id, 
                                 "move_type": "SELECT_CARD_IN_HAND", 
                                 "username": "random_bot"
-                            }
                         })
                 elif card.card_type == "Spell":
                     if card.selected:
                         if card.needs_targets():
                             e = card.effects[0]
-                            entities = player.game.opponent().in_play
+                            entities = copy.deepcopy(self.opponent().in_play)
                             if e.target_type != "opponents_entity":
                                 entities += player.in_play
                             for entity in entities:
                                 moves.append({
-                                    "message": {
                                         "card":entity.id, 
                                         "move_type": "SELECT_ENTITY", 
                                         "username": "random_bot"
-                                    }
                                 })
                             if e.target_type == "any":                                                                    
                                 moves.append({
-                                    "message": {
                                         "move_type": "SELECT_SELF", 
                                         "username": "random_bot"
                                     }
-                                })
+                                )
                                 moves.append({
-                                    "message": {
                                         "move_type": "SELECT_OPPONENT", 
                                         "username": "random_bot"
                                     }
-                                })
+                                )
                         else:
                             moves.append({
-                                "message": {
                                     "card":card.id, 
                                     "move_type": "SELECT_CARD_IN_HAND", 
                                     "username": "random_bot"
                                 }
-                            })
+                            )
                     else:
                         # todo: more general if card can be targetted
                         if card.name != "Mind Manacles" or len(self.opponent().in_play) > 0:
                             moves.append({
-                                "message": {
                                     "card":card.id, 
                                     "move_type": "SELECT_CARD_IN_HAND", 
                                     "username": "random_bot"
                                 }
-                            })
-        moves.append({"message": {"move_type": "END_TURN", "username": "random_bot"}})
+                            )
+        moves.append({"move_type": "END_TURN", "username": "random_bot"})
         return moves
 
     def play_move(self, message):
         if not "log_lines" in message:
             message["log_lines"] = []
         move_type = message["move_type"]
-        # print(f"Move: {message['username']} {move_type} ")
-
+        print(f"MOVE: {move_type}")
         if len(self.players) == 2:
             self.unhighlight_everything()
 
@@ -260,15 +246,20 @@ class Game:
             player.race = message["race"]
             if self.game_type == "p_vs_ai" and not self.players[1].race:
                 m = random.choice(self.legal_moves(self.players[1]))
-                self.play_move(m["message"])
-                self.websocket_consumer.send_game_message(self.as_dict(), m["message"]["move_type"], m["message"])
+                self.play_move(m)
+                self.websocket_consumer.send_game_message(self.as_dict(), m)
             if self.players[0].race and self.players[1].race and message["username"] == self.players[0].username:
+                use_test = False
+                test = ["Lightning Elemental", "Lightning Elemental"]
                 for p in self.players:
-                    if p.race == "elf":
-                        for card_name in ["Make Entity+", "Make Entity+", "Make Spell",  "Make Spell"]:
+                    if use_test:
+                        for card_name in test:
+                            p.add_to_deck(card_name, 1)
+                    elif p.race == "elf":
+                        for card_name in ["Make Spell", "Make Spell", "Make Entity+",  "Make Entity+"]:
                             p.add_to_deck(card_name, 1)
                     else:
-                        for card_name in ["Make Entity", "Make Entity", "Make Spell+",  "Make Spell+"]:
+                        for card_name in ["Make Spell+", "Make Spell+", "Make Entity",  "Make Entity"]:
                             p.add_to_deck(card_name, 1)
                     random.shuffle(p.deck)
                     p.max_mana = 1
@@ -330,6 +321,7 @@ class Game:
         elif move_type == 'SELECT_CARD_IN_HAND':
             for card in self.current_player().hand:
                 if card.id == message["card"]:
+                    message["card_name"] = card.name
                     if card.is_counter_spell():
                         print(f"can't select counterspell on own turn")
                         return None
@@ -350,11 +342,11 @@ class Game:
                             else:
                                 print(f"can't summon because of {self.current_player().added_abilities}")
                         else:
-                            selection = True
                             card.select_and_set_targets(self)
                     else:
-                        print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")
+                        print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")                        
                         return None
+                    break
         elif move_type == 'SELECT_ENTITY':
             if self.current_player().entity_with_effect_to_target:
                 message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
@@ -371,6 +363,7 @@ class Game:
                         print(f"can't attack opponent because an entity has Guard")
                     else:                 
                         message["move_type"] = "ATTACK"
+                        message["card_name"] = self.current_player().in_play_card(message["card"]).name
                         message = self.play_move(message)   
                 elif self.current_player().can_select(message["card"]):
                     self.current_player().select_in_play(message["card"])
@@ -384,6 +377,7 @@ class Game:
                     if not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card):                        
                         message["move_type"] = "ATTACK"
                         message["card"] = selected_entity.id
+                        message["card_name"] = selected_entity.name
                         message["defending_card"] = defending_card.id
                         message = self.play_move(message)
                     else:
@@ -413,6 +407,7 @@ class Game:
                         if card.selected:
                             if not self.opponent().has_guard():
                                 message["card"] = card.id
+                                message["card_name"] = card.name
                                 message["move_type"] = "ATTACK"
                                 message = self.play_move(message)                    
                                 card.selected = False
@@ -444,6 +439,7 @@ class Game:
             message, played_card, was_countered = self.current_player().play_card(message["card"], message)
             if played_card:
                 played_card.can_cast = False
+                message["card_name"] = played_card.name
                 message["was_countered"] = was_countered
                 message["counter_username"] = self.opponent().username
                 # message["card"] = played_card.as_dict()
@@ -463,6 +459,7 @@ class Game:
         self.highlight_can_cast()
 
         JsonDB().save_game_database(self.as_dict(), self.db_name)
+
         return message
 
     def remove_temporary_tokens(self):
@@ -557,6 +554,7 @@ class Game:
             effect_targets[card_to_target.effects[1].id] = {"id": message["username"], "target_type":"player"}
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
+        new_message["card_name"] = card_to_target.name
         card_to_target.selected = False
         new_message = self.play_move(new_message)       
         return new_message             
@@ -574,6 +572,7 @@ class Game:
         effect_targets[entity_with_effect_to_target.effects[0].id] = {"id": username, "target_type":"player"}            
         new_message["effect_targets"] = effect_targets
         new_message["card"] = entity_with_effect_to_target.id
+        new_message["card_name"] = entity_with_effect_to_target.name
         new_message = self.play_move(new_message)       
         return new_message             
 
@@ -649,7 +648,7 @@ class Player:
             self.hand.append(self.deck.pop())
 
     def do_card_effect(self, card, e, message, effect_targets):
-        if e.name == "increase_max_mana":
+        if e.name == "do_card_effectincrease_max_mana":
             self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} increases max mana by {e.amount}.")
         elif e.name == "draw":
@@ -847,7 +846,7 @@ class Player:
         return target_player.make(1, make_type)
 
     def do_add_token_effect_on_entity(self, token, target_entity_id):
-        target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
+        target_card, _ = self.game.get_in_play_for_id(target_entity_id)
         target_card.tokens.append(token)
 
     def do_add_effect_effect_on_entity(self, effect, target_entity_id):
@@ -954,24 +953,21 @@ class Player:
         for card in self.in_play:
             if card.id == card_id:
                 return card
+        return None
 
     def can_select(self, card_id):
         for card in self.in_play:
             if card.id == card_id:
                 if card.attacked:
-                    # print("can't select entities that already attacked")
                     return False
                 if card.power_with_tokens() <= 0:
-                    # print("can't select entities with zero power")
                     return False
                 for t in card.tokens:
                     if t.set_can_act == False:
-                        # print("can't select entities that have can't act tokens")
                         return False                        
                 if card.turn_played == self.game.turn:
                     if self.entity_has_fast(card):
                         return True
-                    # print("can't select entities that were just summoned")
                     return False
         return True
 
@@ -999,12 +995,12 @@ class Player:
                     return message, card, True
 
         card.can_cast = False
+        message["log_lines"].append(f"{self.username} plays {card.name}.")
         if card.card_type == "Entity":
             self.in_play.append(card)
             if self.has_fast():
                 card.added_abilities.append(self.fast_ability())          
             card.turn_played = self.game.turn
-            message["log_lines"].append(f"{self.username} plays {card.name}.")
         else:
             self.played_pile.append(card)            
 
@@ -1120,17 +1116,6 @@ class Player:
         for card in self.in_play:
             card.attacked = False
             card.selected = False
-
-    def run_ai(self):
-        if self.game.game_type == "p_vs_ai" and self.game.current_player() == self.game.players[1]:
-            moves = self.game.legal_moves(self.game.players[1])
-            while len(moves) > 0 and self.game.players[0].hit_points > 0 and self.hit_points > 0 :
-                m = moves[0]
-                # print(m)
-                self.game.play_move(m["message"]) 
-                self.game.websocket_consumer.send_game_message(self.game.as_dict(), m["message"]["move_type"], m["message"])
-                moves = self.game.legal_moves(self.game.players[1])
-                # time.sleep(.5)
 
     def has_selected_card(self):
         for c in self.hand:
