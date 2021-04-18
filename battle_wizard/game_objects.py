@@ -254,7 +254,7 @@ class Game:
                 player = self.players[1]
             player.race = message["race"]
             if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
-                use_test = True
+                use_test = False
                 test = ["Familiar", "Trickster", "Training Master", "Faerie's Blessing"]
                 for p in self.players:
                     if use_test:
