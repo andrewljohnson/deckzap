@@ -50,53 +50,7 @@ class Game:
     def opponent(self):
         return self.players[(self.turn + 1) % 2]
 
-    def get_in_play_for_id(self, card_id):
-        """
-            Returns a tuple of the entity and controlling player for a card_id of a card that is an in_play entity
-        """
-        for p in [self.opponent(), self.current_player()]:
-            for card in p.in_play:
-                if card.id == card_id:
-                    return card, p
-
-    def send_card_to_played_pile(self, card, player):
-        """
-            Send the card to the player's played_pile and reset any temporary effects on the card
-        """
-        player.in_play.remove(card)
-        player.played_pile.append(card)  
-        card.attacked = False
-        card.selected = False
-        card.damage = 0
-        card.turn_played = -1
-        card.tokens = []
-        # todo: make this generic if we add other added effects
-        for e in card.effects_leave_play:
-            if e.name == "decrease_max_mana":
-                player.max_mana -= e.amount
-        for e in card.added_effects["effects_leave_play"]:
-            if e.name == "decrease_max_mana":
-                player.max_mana -= e.amount
-        player.mana = min(player.max_mana, player.mana)
-        card.reset_added_effects()
-        card.added_abilities = []
-        card.added_descriptions = []
-
-    def resolve_combat(self, attacking_card, defending_card):
-        attacking_card.damage += defending_card.power_with_tokens()
-        defending_card.damage += attacking_card.power_with_tokens()
-        attacking_card.attacked = True
-        attacking_card.selected = False
-        if attacking_card.damage >= attacking_card.toughness_with_tokens():
-            self.send_card_to_played_pile(attacking_card,self.current_player())
-        if defending_card.damage >= defending_card.toughness_with_tokens():
-            self.send_card_to_played_pile(defending_card,self.opponent())
-
     def legal_moves(self, player):
-        if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
-            return []
-        if player.game.current_player() != player and player.race:
-            return []
         if len(self.players) < 2:
             return [{"move_type": "JOIN", "username": "random_bot"}]
         if not player.race:
@@ -106,129 +60,139 @@ class Game:
             ]
 
         moves = []
-
         if player.entity_with_effect_to_target:
-            for card in self.opponent().in_play + self.current_player().in_play:
-                if card.can_be_targetted:
-                    effect_targets = {}
-                    effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": card.id, "target_type":"entity"}            
-                    # hack for siz pop and stiff wind
-                    if len(player.entity_with_effect_to_target.effects) == 2:
-                        effect_targets[player.entity_with_effect_to_target.effects[1].id] = {"id": self.username, "target_type":"player"}
-                    moves.append({
-                            "card":player.entity_with_effect_to_target.id, 
-                            "move_type": "RESOLVE_ENTITY_EFFECT", 
-                            "username": "random_bot",
-                            "effect_targets": effect_targets})
-            if self.opponent().can_be_targetted:
-                effect_targets = {}
-                effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
-                moves.append({"card":player.entity_with_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": "random_bot", "effect_targets": effect_targets})
-
-            self.opponent().can_be_targetted = True
-            self.current_player().can_be_targetted = True        
+            moves = self.add_resolve_entities_moves(player, moves)
         elif player.make_to_resolve:
-            if player.make_to_resolve[0].card_type == "Effect":
-                moves.append({"card":player.make_to_resolve[0].as_dict() , "move_type": "MAKE_EFFECT", "username": "random_bot"})              
-            else:
-                moves.append({"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": "random_bot"})              
+            moves = self.add_resolve_make_moves(player, moves)
         else:
-            
-            selected_entity = None
-            for entity in player.in_play:
-                if entity.selected:
-                    selected_entity = entity
+            moves = self.add_attack_and_play_card_moves(player, moves)
+        moves.append({"move_type": "END_TURN", "username": "random_bot"})
 
-            selected_card = None
-            for card in player.hand:
-                if card.selected:
-                    selected_card = card
+        return moves
 
+    def add_resolve_entities_moves(self, player, moves):
+        for card in self.opponent().in_play + self.current_player().in_play:
+            if card.can_be_targetted:
+                effect_targets = {}
+                effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": card.id, "target_type":"entity"}            
+                # hack for siz pop and stiff wind
+                if len(player.entity_with_effect_to_target.effects) == 2:
+                    effect_targets[player.entity_with_effect_to_target.effects[1].id] = {"id": self.username, "target_type":"player"}
+                moves.append({
+                        "card":player.entity_with_effect_to_target.id, 
+                        "move_type": "RESOLVE_ENTITY_EFFECT", 
+                        "username": "random_bot",
+                        "effect_targets": effect_targets})
+        if self.opponent().can_be_targetted:
+            effect_targets = {}
+            effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
+            moves.append({"card":player.entity_with_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": "random_bot", "effect_targets": effect_targets})
 
-            # attack moves
-            if not selected_card:
-                if not self.opponent().has_guard():
-                    for entity in player.in_play:
-                        if entity.selected:
-                            moves.append({"card":entity.id , "move_type": "ATTACK", "username": "random_bot"})
-                            for o_entity in self.opponent().in_play:
-                                moves.append({
-                                        "card":entity.id, 
-                                        "defending_card":o_entity.id, 
-                                        "move_type": "ATTACK", 
-                                        "username": "random_bot"
-                                    
-                                })
-                        elif player.can_select(entity.id):
-                            moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
-                else:
-                    if selected_entity:
-                        for entity in player.game.opponent().in_play:
-                            if selected_entity and self.opponent().entity_has_guard(entity):
-                                moves.append({
-                                        "card":selected_entity.id, 
-                                        "defending_card":entity.id, 
-                                        "move_type": "ATTACK", 
-                                        "username": "random_bot"
-                                })
-                    else:
-                        for entity in player.in_play:
-                            if player.can_select(entity.id):
-                                moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
-            
-            # moves per card in hand
-            if not selected_entity:
-                for card in player.hand:
-                    if not card.can_cast:
-                        continue
-                    if card.card_type == "Entity":
-                        if player.can_summon():
+        self.opponent().can_be_targetted = True
+        self.current_player().can_be_targetted = True        
+        return moves 
+
+    def add_resolve_make_moves(self, player, moves):
+        if player.make_to_resolve[0].card_type == "Effect":
+            moves.append({"card":player.make_to_resolve[0].as_dict() , "move_type": "MAKE_EFFECT", "username": "random_bot"})              
+        else:
+            moves.append({"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": "random_bot"})             
+        return moves 
+
+    def add_attack_and_play_card_moves(self, player, moves):
+        selected_entity = None
+        for entity in player.in_play:
+            if entity.selected:
+                selected_entity = entity
+
+        selected_card = None
+        for card in player.hand:
+            if card.selected:
+                selected_card = card
+
+        # attack moves
+        if not selected_card:
+            if not self.opponent().has_guard():
+                for entity in player.in_play:
+                    if entity.selected:
+                        moves.append({"card":entity.id , "move_type": "ATTACK", "username": "random_bot"})
+                        for o_entity in self.opponent().in_play:
                             moves.append({
-                                    "card":card.id, 
-                                    "move_type": "SELECT_CARD_IN_HAND", 
+                                    "card":entity.id, 
+                                    "defending_card":o_entity.id, 
+                                    "move_type": "ATTACK", 
+                                    "username": "random_bot"
+                                
+                            })
+                    elif player.can_select(entity.id):
+                        moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
+            else:
+                if selected_entity:
+                    for entity in player.game.opponent().in_play:
+                        if selected_entity and self.opponent().entity_has_guard(entity):
+                            moves.append({
+                                    "card":selected_entity.id, 
+                                    "defending_card":entity.id, 
+                                    "move_type": "ATTACK", 
                                     "username": "random_bot"
                             })
-                    elif card.card_type == "Spell":
-                        if card.selected:
-                            if card.needs_targets():
-                                e = card.effects[0]
-                                entities = copy.deepcopy(self.opponent().in_play)
-                                if e.target_type != "opponents_entity":
-                                    entities += player.in_play
-                                for entity in entities:
-                                    moves.append({
-                                            "card":entity.id, 
-                                            "move_type": "SELECT_ENTITY", 
-                                            "username": "random_bot"
-                                    })
-                                if e.target_type == "any":                                                                    
-                                    moves.append({
-                                            "move_type": "SELECT_SELF", 
-                                            "username": "random_bot"
-                                        }
-                                    )
-                                    moves.append({
-                                            "move_type": "SELECT_OPPONENT", 
-                                            "username": "random_bot"
-                                        }
-                                    )
-                            else:
+                else:
+                    for entity in player.in_play:
+                        if player.can_select(entity.id):
+                            moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
+        
+        # moves per card in hand
+        if not selected_entity:
+            for card in player.hand:
+                if not card.can_cast:
+                    continue
+                if card.card_type == "Entity":
+                    if player.can_summon():
+                        moves.append({
+                                "card":card.id, 
+                                "move_type": "SELECT_CARD_IN_HAND", 
+                                "username": "random_bot"
+                        })
+                elif card.card_type == "Spell":
+                    if card.selected:
+                        if card.needs_targets():
+                            e = card.effects[0]
+                            entities = copy.deepcopy(self.opponent().in_play)
+                            if e.target_type != "opponents_entity":
+                                entities += player.in_play
+                            for entity in entities:
                                 moves.append({
-                                        "card":card.id, 
-                                        "move_type": "SELECT_CARD_IN_HAND", 
+                                        "card":entity.id, 
+                                        "move_type": "SELECT_ENTITY", 
+                                        "username": "random_bot"
+                                })
+                            if e.target_type == "any":                                                                    
+                                moves.append({
+                                        "move_type": "SELECT_SELF", 
+                                        "username": "random_bot"
+                                    }
+                                )
+                                moves.append({
+                                        "move_type": "SELECT_OPPONENT", 
                                         "username": "random_bot"
                                     }
                                 )
                         else:
-                            # todo: more general if card can be targetted
-                            if card.name != "Mind Manacles" or len(self.opponent().in_play) > 0:
-                                moves.append({
-                                        "card":card.id, 
-                                        "move_type": "SELECT_CARD_IN_HAND", 
-                                        "username": "random_bot"
-                                    }
-                                )
-        moves.append({"move_type": "END_TURN", "username": "random_bot"})
+                            moves.append({
+                                    "card":card.id, 
+                                    "move_type": "SELECT_CARD_IN_HAND", 
+                                    "username": "random_bot"
+                                }
+                            )
+                    else:
+                        # todo: more general if card can be targetted
+                        if card.name != "Mind Manacles" or len(self.opponent().in_play) > 0:
+                            moves.append({
+                                    "card":card.id, 
+                                    "move_type": "SELECT_CARD_IN_HAND", 
+                                    "username": "random_bot"
+                                }
+                            )
         return moves
 
     def play_move(self, message):
@@ -558,6 +522,48 @@ class Game:
             else:
                 card.can_cast = False
     
+    def get_in_play_for_id(self, card_id):
+        """
+            Returns a tuple of the entity and controlling player for a card_id of a card that is an in_play entity
+        """
+        for p in [self.opponent(), self.current_player()]:
+            for card in p.in_play:
+                if card.id == card_id:
+                    return card, p
+
+    def send_card_to_played_pile(self, card, player):
+        """
+            Send the card to the player's played_pile and reset any temporary effects on the card
+        """
+        player.in_play.remove(card)
+        player.played_pile.append(card)  
+        card.attacked = False
+        card.selected = False
+        card.damage = 0
+        card.turn_played = -1
+        card.tokens = []
+        # todo: make this generic if we add other added effects
+        for e in card.effects_leave_play:
+            if e.name == "decrease_max_mana":
+                player.max_mana -= e.amount
+        for e in card.added_effects["effects_leave_play"]:
+            if e.name == "decrease_max_mana":
+                player.max_mana -= e.amount
+        player.mana = min(player.max_mana, player.mana)
+        card.reset_added_effects()
+        card.added_abilities = []
+        card.added_descriptions = []
+
+    def resolve_combat(self, attacking_card, defending_card):
+        attacking_card.damage += defending_card.power_with_tokens()
+        defending_card.damage += attacking_card.power_with_tokens()
+        attacking_card.attacked = True
+        attacking_card.selected = False
+        if attacking_card.damage >= attacking_card.toughness_with_tokens():
+            self.send_card_to_played_pile(attacking_card,self.current_player())
+        if defending_card.damage >= defending_card.toughness_with_tokens():
+            self.send_card_to_played_pile(defending_card,self.opponent())
+
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
             perm_tokens = []
