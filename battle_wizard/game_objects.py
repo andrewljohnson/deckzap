@@ -7,28 +7,25 @@ from battle_wizard.jsonDB import JsonDB
 
 
 class Game:
-
     def __init__(self, websocket_consumer, db_name, game_type, info=None):
-        self.players = []
+
+        # can be ingame, pregame, or choose_race
         self.game_type = game_type
-        self.turn = 0
-        self.next_card_id = 0
-        self.starting_effects = []
-        self.decks_to_set = None
+        # support 2 players
+        self.players = [Player(self, u) for u in info["players"]] if info else []
+        # player 0 always acts on even turns, player 1 acts on odd turns
+        self.turn = int(info["turn"]) if info else 0
+        # the next id to give a card when doing make_card effects
+        # each card gets the next unusued integer
+        self.next_card_id = int(info["next_card_id"]) if info else 0
+        # only used for game_type=pregame
+        self.starting_effects = info["starting_effects"] if info and "starting_effects" in info else []
+        self.decks_to_set = info["decks_to_set"] if info and "decks_to_set" in info else None
+
+        # the name of the json database on disk
         self.db_name = db_name
+        # the websocket consumer instance the game gets updated by
         self.websocket_consumer = websocket_consumer
-
-        self.all_cards = []
-        for c_info in JsonDB().all_cards():
-            self.all_cards.append(Card(c_info))
-
-        if info:
-            for u in info["players"]:
-                self.players.append(Player(self, u))
-            self.turn = int(info["turn"])
-            self.next_card_id = int(info["next_card_id"])
-            self.starting_effects = info["starting_effects"] if "starting_effects" in info else []
-            self.decks_to_set = info["decks_to_set"]
 
     def as_dict(self):
         return {
@@ -36,10 +33,16 @@ class Game:
             "turn": self.turn, 
             "next_card_id": self.next_card_id, 
             "starting_effects": self.starting_effects, 
-            "all_cards": [c.as_dict() for c in self.all_cards], 
             "decks_to_set": self.decks_to_set, 
             "db_name": self.db_name, 
         }
+
+    @staticmethod
+    def all_cards():
+        """
+            Returns a list of all possible cards in the game. 
+        """
+        return [Card(c_info) for c_info in JsonDB().all_cards()]
 
     def current_player(self):
         return self.players[self.turn % 2]
@@ -48,12 +51,18 @@ class Game:
         return self.players[(self.turn + 1) % 2]
 
     def get_in_play_for_id(self, card_id):
+        """
+            Returns a tuple of the entity and controlling player for a card_id of a card that is an in_play entity
+        """
         for p in [self.opponent(), self.current_player()]:
             for card in p.in_play:
                 if card.id == card_id:
                     return card, p
 
     def send_card_to_played_pile(self, card, player):
+        """
+            Send the card to the player's played_pile and reset any temporary effects on the card
+        """
         player.in_play.remove(card)
         player.played_pile.append(card)  
         card.attacked = False
@@ -223,13 +232,9 @@ class Game:
         return moves
 
     def play_move(self, message):
-        if not "log_lines" in message:
-            message["log_lines"] = []
         move_type = message["move_type"]
         print(f"MOVE: {move_type}")
         
-        self.unhighlight_possible_moves()
-
         # moves to join/configure/start a game
         if move_type == 'JOIN':
             message = self.join(message)
@@ -242,7 +247,7 @@ class Game:
                 print(f"can't {move_type} on opponent's turn")
                 return None
 
-        # moves in game
+        # moves sent by the game UX via buttons and card clicks
         if move_type == 'START_FIRST_TURN':
             self.current_player().start_turn()
         elif move_type == 'END_TURN':
@@ -253,27 +258,29 @@ class Game:
             message = self.select_entity(message)
         elif move_type == 'SELECT_OPPONENT' or move_type == 'SELECT_SELF':
             message = self.select_player(move_type, message)
+        elif move_type == 'MAKE_CARD':
+            self.make_card(message)
+        elif move_type == 'MAKE_EFFECT':
+            message = self.make_effect(message)
+        
+        # moves that get triggered indirectly from game UX actions (e.g. SELECT_ENTITY twice could be an ATTACK)
         elif move_type == 'ATTACK':
             message = self.attack(message)            
         elif move_type == 'PLAY_CARD':
             message = self.current_player().play_card(message["card"], message)
         elif move_type == 'RESOLVE_ENTITY_EFFECT':
             message = self.current_player().resolve_entity_effect(message["card"], message)
-        elif move_type == 'MAKE_CARD':
-            self.make_card(message)
-        elif move_type == 'MAKE_EFFECT':
-            message = self.make_effect(message)
-
-        self.highlight_can_act()
-        self.highlight_can_cast()
-        
+    
         if message:
+            self.set_possible_moves()
             JsonDB().save_game_database(self.as_dict(), self.db_name)
+        else:
+            # if message is None, the move was a no-op, like SELECT_CARD_IN_HAND on an uncastable card
+            pass
 
         return message
 
     def join(self, message):
-        
         join_occured = True
         if len(self.players) == 0:
             self.players.append(Player(self, {"username":message["username"]}, new=True))            
@@ -298,7 +305,6 @@ class Game:
         
         if len(self.players) == 2 and join_occured:
             self.start_game(message, self.game_type)
-
         return message
 
     def choose_starting_effect_and_deck(self, message):
@@ -311,7 +317,6 @@ class Game:
 
         if len(self.starting_effects) == 2:
             self.start_game(message, self.game_type)
-
         return message
 
     def choose_race(self, message):
@@ -323,7 +328,6 @@ class Game:
 
         if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
             self.start_game(message, self.game_type)
-
         return message
 
     def start_game(self, message, game_type):
@@ -519,6 +523,41 @@ class Game:
         self.current_player().make_to_resolve = []
         return message
 
+    def set_possible_moves(self):
+        if len(self.players) != 2:
+            return
+
+        # unhighlight everything before highlighting possible attacks/spells
+        for card in self.opponent().in_play:
+            card.can_be_targetted = False
+        for card in self.current_player().in_play:
+            card.can_be_targetted = False
+            card.can_act = False
+        for card in self.current_player().hand:
+            card.can_cast = False
+        self.opponent().can_be_targetted = False
+        self.current_player().can_be_targetted = False
+
+        # possible attacks
+        for card in self.current_player().in_play:
+            if self.current_player().can_select(card.id):
+                card.can_act = True
+
+        # possible spells
+        for card in self.current_player().hand:               
+            if self.current_player().mana >= card.cost:
+                card.can_cast = True
+                if card.is_counter_spell():
+                    card.can_cast = False
+                if card.needs_entity_target():
+                    card.can_cast = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
+                if card.needs_card_being_cast_target():
+                    card.can_cast = False
+                if card.card_type == "Entity" and not self.current_player().can_summon():
+                    card.can_cast = False
+            else:
+                card.can_cast = False
+    
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
             perm_tokens = []
@@ -543,19 +582,6 @@ class Game:
         new_message["username"] = self.players[0].username
         self.play_move(new_message)
 
-    def unhighlight_possible_moves(self):
-        if len(self.players) != 2:
-            return
-        for card in self.opponent().in_play:
-            card.can_be_targetted = False
-        for card in self.current_player().in_play:
-            card.can_be_targetted = False
-            card.can_act = False
-        for card in self.current_player().hand:
-            card.can_cast = False
-        self.opponent().can_be_targetted = False
-        self.current_player().can_be_targetted = False
-    
     def set_targets_for_damage_effect(self):
         for card in self.opponent().in_play:
             card.can_be_targetted = True
@@ -580,26 +606,6 @@ class Game:
             card.can_be_targetted = True
             set_targets = True
         return set_targets
-
-    def highlight_can_act(self):
-        for card in self.current_player().in_play:
-            if self.current_player().can_select(card.id):
-                card.can_act = True
-
-    def highlight_can_cast(self):
-        for card in self.current_player().hand:               
-            if self.current_player().mana >= card.cost:
-                card.can_cast = True
-                if card.is_counter_spell():
-                    card.can_cast = False
-                if card.needs_entity_target():
-                    card.can_cast = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
-                if card.needs_card_being_cast_target():
-                    card.can_cast = False
-                if card.card_type == "Entity" and not self.current_player().can_summon():
-                    card.can_cast = False
-            else:
-                card.can_cast = False
 
     def select_entity_target(self, card_to_target, message, move_type):
         new_message = copy.deepcopy(message)
@@ -804,7 +810,7 @@ class Player:
                 # target_player.do_entity_effects(entity_to_summon, {}, target_player.username)     
         elif e.target_type == "all_players" and e.amount == -1:
             entities = []
-            for c in self.game.all_cards:
+            for c in Game.all_cards():
                 if c.card_type == "Entity":
                     entities.append(c)
             for p in self.game.players:
@@ -996,15 +1002,16 @@ class Player:
         if self.game.turn <= 10 and make_type == "Entity":
             requiredEntityCost = math.floor(self.game.turn / 2) + 1
 
+        all_cards = Game.all_cards()
         card1 = None 
         while not card1 or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race != card1.race):
-            card1 = random.choice(self.game.all_cards)
+            card1 = random.choice(all_cards)
         card2 = None
         while not card2 or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race != card2.race):
-            card2 = random.choice(self.game.all_cards)
+            card2 = random.choice(all_cards)
         card3 = None
         while not card3 or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
-            card3 = random.choice(self.game.all_cards)
+            card3 = random.choice(all_cards)
         self.make_to_resolve = [card1, card2, card3]
 
     def in_play_card(self, card_id):
@@ -1135,7 +1142,7 @@ class Player:
 
     def add_to_deck(self, card_name, count, add_to_hand=False):
         card = None
-        for c in self.game.all_cards:
+        for c in Game.all_cards():
             if c.name == card_name:
                 card = c
         for x in range(0, count):
@@ -1299,7 +1306,18 @@ class Card:
                 self.added_effects["effects_leave_play"].append(CardEffect(e, idx))
 
     def __repr__(self):
-        return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n{self.description}\n{self.added_descriptions}\n{self.card_type}\n{self.effects}\n(damage: {self.damage}) (id: {self.id}, turn played: {self.turn_played}, attacked: {self.attacked}, selected: {self.selected}, can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}, owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}, abilities: {self.abilities}, tokens: {self.tokens} added_effects: {self.added_effects} can_act: {self.can_act})" 
+        return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n \
+                 description: {self.description}\n \
+                 added_descriptions: {self.added_descriptions}\n \
+                 card_type: {self.card_type}\n \
+                 effects: {self.effects}\n \
+                 damage: {self.damage}\n \
+                 id: {self.id}, turn played: {self.turn_played}\n \
+                 attacked: {self.attacked}, selected: {self.selected}\n \
+                 can_cast: {self.can_cast}, can_be_targetted: {self.can_be_targetted}\n \
+                 owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}\n \
+                 abilities: {self.abilities}, tokens: {self.tokens}\n \
+                 added_effects: {self.added_effects} can_act: {self.can_act})" 
 
     def as_dict(self):
         return {
@@ -1363,7 +1381,6 @@ class Card:
             if e.target_type == "opponents_entity":
                 game.set_targets_for_opponents_entity_effect()
 
-
     def is_counter_spell(self):
         for e in self.effects:
             if e.target_type == "card_being_cast":
@@ -1398,7 +1415,10 @@ class CardEffect:
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
 
     def __repr__(self):
-        return f"{self.id} {self.name} {self.amount} {self.description} {self.target_type} {self.make_type} {self.tokens} {self.abilities} {self.effect_type} {self.effects} {self.activate_on_add}"
+        return f"id: {self.id} name: {self.name} amount: {self.amount}\n \
+                 description: {self.description} target_type: {self.target_type}\n \
+                 make_type: {self.make_type} tokens: {self.tokens} abilities: {self.abilities}\n \
+                 effect_type; {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add}"
 
     def as_dict(self):
         return {

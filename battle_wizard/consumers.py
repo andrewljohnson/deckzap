@@ -41,6 +41,7 @@ class BattleWizardConsumer(WebsocketConsumer):
             self.send_game_message(None, message)
             return
 
+        message["log_lines"] = []
         message = self.game.play_move(message)    
         if message:
             self.send_game_message(self.game.as_dict(), message)
@@ -56,7 +57,8 @@ class BattleWizardConsumer(WebsocketConsumer):
             moves = self.game.legal_moves(self.game.players[1])
             move = random.choice(moves)
             while len(moves) > 1 and move["move_type"] == "END_TURN":
-                 move = random.choice(moves) 
+                move = random.choice(moves) 
+            move["log_lines"] = []
             message = self.game.play_move(move)    
             self.send_game_message(self.game.as_dict(), message)
             if message['move_type'] == "END_TURN" or message['move_type'] == "CHOOSE_RACE" or self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
