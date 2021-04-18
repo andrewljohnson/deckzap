@@ -255,7 +255,7 @@ class Game:
             player.race = message["race"]
             if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
                 use_test = True
-                test = ["Trickster", "Trickster", "Mind Manacles", "Mind Manacles"]
+                test = ["Familiar", "Trickster", "Training Master", "Faerie's Blessing"]
                 for p in self.players:
                     if use_test:
                         for card_name in test:
@@ -820,7 +820,7 @@ class Player:
 
     def do_double_power_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
-        target_card.power *= 2
+        target_card.power += target_card.power_with_tokens()
 
     def do_kill_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
