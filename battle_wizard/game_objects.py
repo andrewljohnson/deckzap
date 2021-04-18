@@ -29,7 +29,6 @@ class Game:
             self.next_card_id = int(info["next_card_id"])
             self.starting_effects = info["starting_effects"] if "starting_effects" in info else []
             self.decks_to_set = info["decks_to_set"]
-            self.db_name = info["db_name"]
 
     def as_dict(self):
         return {
@@ -244,11 +243,9 @@ class Game:
             if player.username != message["username"]:
                 player = self.players[1]
             player.race = message["race"]
-            if self.game_type == "p_vs_ai" and not self.players[1].race:
-                m = random.choice(self.legal_moves(self.players[1]))
-                self.play_move(m)
-                self.websocket_consumer.send_game_message(self.as_dict(), m)
-            if self.players[0].race and self.players[1].race and message["username"] == self.players[0].username:
+            print(f"GET IN with {self.players}?")
+            if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
+                print(f"GET IN?")
                 use_test = False
                 test = ["Lightning Elemental", "Lightning Elemental"]
                 for p in self.players:
@@ -264,7 +261,6 @@ class Game:
                     random.shuffle(p.deck)
                     p.max_mana = 1
                     p.draw(2)
-                message["game"] = self.as_dict()
                 self.send_start_first_turn(message)
         elif move_type == 'JOIN':
             if len(self.players) >= 2:
@@ -275,7 +271,7 @@ class Game:
                 self.players.append(Player(self, {"username":message["username"]}, new=True))
                 self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
             elif len(self.players) <= 1:
-                if len(self.players) == 0 or len(self.players) == 1 and self.players[0].username != message["username"]:
+                if len(self.players) == 0 or (len(self.players) == 1 and self.players[0].username != message["username"]):
                     message["log_lines"].append(f"{message['username']} joined the game.")
                     self.players.append(Player(self, {"username":message["username"]}, new=True))
             if len(self.players) == 2 and len(self.players[0].hand) == 0:
@@ -288,22 +284,19 @@ class Game:
                         p.draw(2)
                 elif self.game_type == "pregame":
                     self.decks_to_set = {}
-                elif self.game_type == "choose_race" or self.game_type == "p_vs_ai":
-                    pass
-            if len(self.players) == 2 and self.players[0].max_mana == 1 and self.turn == 0:
+            if len(self.players) == 2 and self.turn == 0:
                 # configure for game start after 2 joins if not configured yet
                 if self.game_type == "ingame":
-                    self.send_start_first_turn(message)
+                    if self.players[0].max_mana == 1: 
+                       self.send_start_first_turn(message)
                 elif self.game_type == "pregame":
-                    if game.starting_effects.length == 2:
+                    if len(self.starting_effects) == 2:
                         self.send_start_first_turn(message)
                     else:
                         player_db = JsonDB().player_database()
                         for p in self.players:
                             if "card_counts" in player_db[p.username]:
                                 self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
-                elif self.game_type == "choose_race" or self.game_type == "p_vs_ai":
-                    pass
                 else:  # no other game types implemented
                     pass 
         else:
@@ -457,8 +450,11 @@ class Game:
 
         self.highlight_can_act()
         self.highlight_can_cast()
-
+        print(self.db_name)
         JsonDB().save_game_database(self.as_dict(), self.db_name)
+
+        if move_type == "JOIN":
+            print(f"players are {self.players}")
 
         return message
 

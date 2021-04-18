@@ -554,7 +554,7 @@
 	{
 		"name": "Mind Manacles",
 		"race": "genie",
-		"cost": 1,
+		"cost": 6,
 		"card_type": "Spell",
 		"description": "Take control of an entity.",
 		"effects": [{
