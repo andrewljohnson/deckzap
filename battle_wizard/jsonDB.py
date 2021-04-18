@@ -37,7 +37,7 @@ class JsonDB:
             json_data = open("database/queue_database.json")
             queue_database = json.load(json_data) 
         except:
-            queue_database = {"ingame": {"open_games":[], "starting_id":0}, "pregame": {"open_games":[], "starting_id":0}}
+            queue_database = {"p_vs_ai": {"open_games":[], "starting_id":0}, "choose_race": {"open_games":[], "starting_id":0}, "ingame": {"open_games":[], "starting_id":0}, "pregame": {"open_games":[], "starting_id":0}}
         return queue_database
     
     def join_game_in_queue_database(self, game_type, queue_database):
@@ -74,7 +74,7 @@ class JsonDB:
             json.dump(queue_database, outfile)
 
     def all_cards(self):
-        json_data = open('cofx/cofx_cards.json')
+        json_data = open('battle_wizard/battle_wizard_cards.json')
         return json.load(json_data)  
 
     def player_database(self):

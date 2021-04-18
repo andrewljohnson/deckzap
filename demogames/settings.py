@@ -26,7 +26,7 @@ SECRET_KEY = '@03jdj6%y-88#1=4p(p7xlmerm*jv)8rt5=^t!40@-2+=o3@i2'
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ["128.199.11.126", "127.0.0.1"]
+ALLOWED_HOSTS = ["128.199.11.126", "127.0.0.1", "deckzap.com", "www.deckzap.com"]
 
 
 # Application definition
@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
-    'cofx',
+    'battle_wizard',
     'ss'
 ]
 

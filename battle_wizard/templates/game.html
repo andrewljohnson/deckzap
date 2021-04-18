@@ -16,11 +16,14 @@
             <img class=avatar_image src="{% static 'images/bear.png' %}" alt="bear" />
             <div>
                 <div id=opponent_username></div>
+                <div id=opponent_race></div>
                 <div id=opponent_hit_points></div>
                 <div id=opponent_mana></div>
                 <div id=opponent_card_count></div>
                 <div id=opponent_deck_count></div>
                 <div id=opponent_played_pile_count></div>
+                <div id=opponent_starting_effects></div>
+                <div id=opponent_added_abilities></div>
             </div>
         </div>
         <div id=middle_long_row>
@@ -32,7 +35,7 @@
                 <a id=end-turn-button onclick=GameUX.endTurn()>End Turn</a>
                 <div id=turn_label>Turn 0 (setting up)</div>
                 <div id=menu> 
-                    <div id=title>CoFX - room_{{room_code}}</div>
+                    <div id=title>Battle Wizard - Room {{room_code}}</div>
                     <a class=menu-button onclick=GameUX.viewHelp()>Help</a>
                     <a class=menu-button onclick=GameUX.nextRoom()>New Game</a>
                 </div>
@@ -42,10 +45,13 @@
             <img class=avatar_image src="{% static 'images/tiger.png' %}" alt="tiger" />
             <div>
                 <div id=username></div>
+                <div id=race></div>
                 <div id=hit_points></div>
                 <div id=mana></div>
                 <div id=deck_count></div>
                 <div id=played_pile_count></div>
+                <div id=starting_effects></div>
+                <div id=added_abilities></div>
             </div>
         </div>
     </div>
@@ -53,12 +59,14 @@
     <div id=game_log><div id=game_log_inner></div></div>
 </div>
 
+<div id=race_selector class="modal_view"></div>
+
 <div id=fx_selector class="modal_view"></div>
 
 <div id=make_selector class="modal_view"></div>
 
 <div id="data_store" game_type = {{game_type}} room_code = {{room_code}} username = {{username}} is_custom = {{is_custom}} custom_game_id = {{custom_game_id}}></div>
 
-<link rel="stylesheet" href="/static/css/base.css">
+<link rel="stylesheet" href="/static/css/game.css">
 
 {% endblock content %}

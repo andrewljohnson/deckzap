@@ -1,0 +1,619 @@
+[		
+	{
+		"name": "Mana Shrub",
+		"race": "elf",
+		"power": 0,
+		"toughness": 3,
+		"cost": 1,
+		"description": "You have an extra mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"target_type": "self",
+			"amount": 1
+		}],
+		"effects_leave_play": [{
+			"name": "decrease_max_mana",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "PantherKin",
+		"race": "elf",
+		"power": 3,
+		"toughness": 2,
+		"cost": 2
+	},
+	{
+		"name": "Thought Sprite",
+		"race": "elf",
+		"power": 2,
+		"toughness": 2,
+		"cost": 2,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Mana Tree",
+		"race": "elf",
+		"power": 0,
+		"toughness": 7,
+		"cost": 3,
+		"description": "You have an extra mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"target_type": "self",
+			"amount": 1
+		}],
+		"effects_leave_play": [{
+			"name": "decrease_max_mana",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Think",
+		"race": "elf",
+		"cost": 3,
+		"card_type": "Spell",
+		"description": "Draw 3 cards.",
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 3
+		}]
+	},
+	{
+		"name": "LionKin",
+		"race": "elf",
+		"power": 4,
+		"toughness": 4,
+		"cost": 2,
+		"abilities": [
+			{"name": "Guard"}
+		]
+	},
+	{
+		"name": "Training Master",
+		"race": "elf",
+		"power": 3,
+		"toughness": 3,
+		"cost": 4,
+		"description": "Double the power of another entity.",
+		"effects": [{
+			"name": "double_power",
+			"target_type": "entity"
+		}]	
+	},
+	{
+		"name": "Gold Dragon",
+		"race": "elf",
+		"power": 6,
+		"toughness": 6,
+		"cost": 5,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]	
+	},
+	{
+		"name": "Rainbow Dragon",
+		"race": "elf",
+		"power": 6,
+		"toughness": 6,
+		"cost": 5,
+		"description": "Make a spell.",
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Spell",
+			"amount": 1
+		}]	
+	},
+	{
+		"name": "Faerie Queen",
+		"race": "elf",
+		"power": 4,
+		"toughness": 4,
+		"cost": 6,
+		"description": "Draw 4 cards.",
+		"abilities": [
+			{"name": "Guard"}
+		],
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 4
+		}]	
+	},
+	{
+		"name": "Nature's Guardian",
+		"race": "elf",
+		"power": 8,
+		"toughness": 8,
+		"cost": 6,
+		"abilities": [
+			{"name": "Guard"}
+		]
+	},
+	{
+		"name": "Make Entity+",
+		"race": "elf",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 entities to make and add to your deck. Draw a card.",
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Entity",
+			"amount": 1
+		}, 
+		{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Forest Ritual",
+		"race": "elf",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Get 2 mana this turn",
+		"effects": [{
+			"name": "mana",
+			"target_type": "self",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Faerie War Chant",
+		"race": "elf",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Give an entity gets +3/+3 this turn.",
+		"effects": [{
+			"name": "add_tokens",
+			"target_type": "entity",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 3,
+				"toughness_modifier": 3
+			}]
+		}]
+	},
+	{
+		"name": "Faerie's Blessing",
+		"race": "elf",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Give an entity gets +2/+2 permanently.",
+		"effects": [{
+			"name": "add_tokens",
+			"target_type": "entity",
+			"tokens": [{
+				"power_modifier": 2,
+				"toughness_modifier": 2
+			}]
+		}]
+	},
+	{
+		"name": "Nature's Blessing",
+		"race": "elf",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "All your entities provide a mana each turn",
+		"effects": [{
+			"name": "add_effects",
+			"target_type": "self_entities",
+			"effects": [{
+				"name": "increase_max_mana",
+				"description": "You have an extra mana each turn.",
+				"amount": 1,
+				"activate_on_add": true,
+				"effect_type": "effects"
+			},
+			{
+				"name": "decrease_max_mana",
+				"amount": 1,
+				"effect_type": "effects_leave_play"
+			}]
+		}]
+	},
+	{
+		"name": "Nature Rises",
+		"race": "elf",
+		"cost": 6,
+		"card_type": "Spell",
+		"description": "All your entities get +4/+4 this turn.",
+		"effects": [{
+			"name": "add_tokens",
+			"target_type": "self_entities",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 4,
+				"toughness_modifier": 4}
+			]
+		}]
+	},
+	{
+		"name": "Offering to Nature",
+		"race": "elf",
+		"cost": 3,
+		"card_type": "Spell",
+		"description": "Summon a random entity from your deck.",
+		"effects": [{
+			"target_type": "self",
+			"name": "summon_from_deck",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Tame Time",
+		"race": "elf",
+		"cost": 5,
+		"card_type": "Spell",
+		"description": "Take an extra turn right away.",
+		"effects": [{
+			"target_type": "self",
+			"name": "take_extra_turn"
+		}]
+	},
+	{
+		"name": "Stone Elemental",
+		"race": "genie",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1
+	},
+	{
+		"name": "Lightning Elemental",
+		"race": "genie",
+		"power": 1,
+		"toughness": 1,
+		"cost": 2,
+		"description": "Deal 2 damage.",
+		"effects": [{
+			"name": "damage",
+			"target_type": "any",
+			"amount": 2
+		}]	
+	},
+	{
+		"name": "Air Elemental",
+		"race": "genie",
+		"power": 1,
+		"toughness": 5,
+		"cost": 2,
+		"abilities": [
+			{"name": "Guard"}
+		]
+	},
+	{
+		"name": "Tame Tempest",
+		"race": "genie",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+		"description": "Return an entity to its owner's hand.",
+		"effects": [{
+			"name": "unwind",
+			"target_type": "entity"
+		}]	
+	},
+	{
+		"name": "Unwind",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Return an entity to its owner's hand.",
+		"effects": [{
+			"name": "unwind",
+			"target_type": "entity"
+		}]
+	},
+	{
+		"name": "Mass Unwind",
+		"race": "genie",
+		"cost": 5,
+		"card_type": "Spell",
+		"description": "Return all entities to their owners' hands.",
+		"effects": [{
+			"name": "unwind",
+			"target_type": "all_entities"
+		}]
+	},
+	{
+		"name": "Entwine",
+		"race": "genie",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Each player shuffles together hand/deck/discard and draws 3 cards.",
+		"effects": [{
+			"name": "entwine",
+			"target_type": "all_players"
+		}]
+	},
+	{
+		"name": "Kill",
+		"race": "genie",
+		"cost": 4,
+		"card_type": "Spell",
+		"description": "Kill an entity.",
+		"effects": [{
+			"name": "kill",
+			"target_type": "entity"
+		}]
+	},
+	{
+		"name": "Zap",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Deal 3 damage.",
+		"effects": [{
+			"name": "damage",
+			"target_type": "any",
+			"amount": 3
+		}]
+	},
+	{
+		"name": "Trickster",
+		"race": "genie",
+		"power": 1,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Fire Elemental",
+		"race": "genie",
+		"power": 3,
+		"toughness": 3,
+		"cost": 4,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{
+		"name": "Inferno Elemental",
+		"race": "genie",
+		"power": 5,
+		"toughness": 5,
+		"cost": 5,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{
+		"name": "Lord of the Storm",
+		"race": "genie",
+		"description": "Return all entities to their owners' hands.",
+		"power": 3,
+		"toughness": 3,
+		"cost": 6,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		],
+		"effects": [{
+			"name": "unwind",
+			"target_type": "all_entities"
+		}]	
+	},
+	{
+		"name": "Make Spell+",
+		"race": "genie",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 spells to make and add to your deck. Draw a card.",
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Spell",
+			"amount": 1
+		},
+		{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Stiff Wind",
+		"race": "genie",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Target entity can't attack. Draw a card.",
+		"effects": [ 
+			{
+				"name": "add_tokens",
+				"target_type": "entity",
+				"tokens": [{
+					"turns": 2,
+					"set_can_act": false
+			},
+			{
+				"name": "draw",
+				"target_type": "self",
+				"amount": 1
+			}
+		]
+		}]
+	},
+	{
+		"name": "Siz Pop",
+		"race": "genie",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Deal 1 damage. Draw 1 card.",
+		"effects": [{
+			"name": "damage",
+			"target_type": "any",
+			"amount": 1
+		}, 
+		{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Counterspell",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Counter an entity or spell that costs 2 or more.",
+		"effects": [{
+			"name": "counter",
+			"amount": 2,
+			"target_type": "card_being_cast"
+		}]
+	},
+	{
+		"name": "Big Counterspell",
+		"race": "genie",
+		"cost": 3,
+		"card_type": "Spell",
+		"description": "Counter an entity or spell that costs 3 or more.",
+		"effects": [{
+			"name": "counter",
+			"amount": 3,
+			"target_type": "card_being_cast"
+		}]
+	},
+	{
+		"name": "Master Time",
+		"race": "genie",
+		"cost": 4,
+		"card_type": "Spell",
+		"description": "All your entities can attack the turn they come into play.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"target_type": "new_self_entities",
+			"abilities": [
+				{
+					"name": "Fast",
+					"description": "Fast",
+					"descriptive_id": "Fast"
+				}
+			]				
+		}]
+	},
+	{
+		"name": "Quiet Nature",
+		"race": "genie",
+		"cost": 5,
+		"card_type": "Spell",
+		"description": "Entities can't be summoned next turn.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"target_type": "opponent",
+			"abilities": [
+				{
+					"name": "Can't Summon",
+					"description": "Can't Summon",
+					"descriptive_id": "Can't Summon",
+					"turns": 1
+				}
+			]				
+		}]
+	},
+	{
+		"name": "Storm Surge",
+		"race": "genie",
+		"cost": 6,
+		"card_type": "Spell",
+		"description": "Fill each player's board with entities.",
+		"effects": [{
+			"name": "summon_from_deck",
+			"target_type": "all_players",
+			"amount": -1
+		}]
+	},
+	{
+		"name": "Mind Manacles",
+		"race": "genie",
+		"cost": 6,
+		"card_type": "Spell",
+		"description": "Take control of an entity.",
+		"effects": [{
+			"name": "take_control",
+			"target_type": "opponents_entity"
+		}]
+	},
+	{
+		"name": "Familiar",
+		"power": 1,
+		"toughness": 2,
+		"cost": 1,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Common Bunger",
+		"power": 4,
+		"toughness": 5,
+		"cost": 4
+	},
+	{
+		"name": "Make Entity",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 entities to make and add to your deck.",
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Entity",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Make Spell",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 spells to make and add to your deck.",
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Spell",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Make Global Effect",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 global effects to affect all players",
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Global",
+			"amount": 1
+		}]
+	}
+]

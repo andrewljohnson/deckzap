@@ -1,7 +1,7 @@
 import random
 import string
 
-from cofx.jsonDB import JsonDB
+from battle_wizard.jsonDB import JsonDB
 from django.shortcuts import render, redirect
 from django.http import Http404
 

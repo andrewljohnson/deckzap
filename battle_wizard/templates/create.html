@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="wrapper">
-  <h1>Create a New Game in the Wizard Card Game Universe</h1>
+  <h1>Create a New DeckZap Game</h1>
   <p>Choose deckbuilder type and what cards to use.</p>
   <form method="POST">
     {% csrf_token %}
@@ -15,10 +15,12 @@
     <label for="ingame">In-Game</label>
     <input type="radio" id="pregame" name="game_type" value="pregame">
     <label for="pregame">Pre-Game</label>
+    <input type="radio" id="choose_race" name="game_type" value="choose_race">
+    <label for="choose_race">Choose Race</label>
     <br /><br />
     <button class=big-green-button type="submit" value="Create Game">Create Game</button>
   </form>
   <p class=error>{{error}}</p>
 </div>
-<link rel="stylesheet" href="/static/css/base.css">
+<link rel="stylesheet" href="/static/css/nongame.css">
 {% endblock content %}
