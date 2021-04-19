@@ -7,9 +7,10 @@ from battle_wizard.jsonDB import JsonDB
 
 
 class Game:
-    def __init__(self, websocket_consumer, db_name, game_type, info=None):
+    def __init__(self, websocket_consumer, db_name, game_type, info=None, player_decks=None):
 
         # can be ingame, pregame, or choose_race
+        # there is also a test_stacked_deck variant for tests
         self.game_type = game_type
         # support 2 players
         self.players = [Player(self, u) for u in info["players"]] if info else []
@@ -26,6 +27,8 @@ class Game:
         self.db_name = db_name
         # the websocket consumer instance the game gets updated by
         self.websocket_consumer = websocket_consumer
+
+        self.player_decks = player_decks
 
     def as_dict(self):
         return {
@@ -337,6 +340,8 @@ class Game:
             self.start_pregame_deckbuilder_game(message)
         elif game_type == "choose_race" or game_type == "p_vs_ai":
             self.start_choose_race_game(message)
+        elif game_type == "test_stacked_deck":
+            self.start_test_stacked_deck_game(message)
         else:
             print(f"unknown game type: {game_type}")
 
@@ -379,6 +384,16 @@ class Game:
             p.max_mana = 1
             p.draw(2)
         self.send_start_first_turn(message)
+
+    def start_test_stacked_deck_game(self, message):
+        if self.players[0].max_mana == 0: 
+            for x in range(0, 1):
+                for card_name in self.player_decks[0]:
+                    self.players[x].add_to_deck(card_name, 1)
+                self.players[x].max_mana = 1
+                self.players[x].draw(2)
+
+            self.send_start_first_turn(message)
 
     def send_start_first_turn(self, message):
         new_message = copy.deepcopy(message)

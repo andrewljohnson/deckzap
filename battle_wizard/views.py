@@ -16,7 +16,7 @@ def index(request):
     return render(request, "index.html", {})
 
 def games(request):
-    game_types = ["ingame", "pregame"]
+    game_types = ["ingame", "pregame", "choose_race"]
     queue_database = JsonDB().queue_database()
     custom_game_database = JsonDB().custom_game_database()
     for g in custom_game_database["games"]:
