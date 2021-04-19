@@ -365,9 +365,8 @@ class Game:
         self.send_start_first_turn(message)
 
     def start_choose_race_game(self, message):
-        print("start_choose_race_game")
-        use_test = False
-        test = ["Familiar", "Trickster", "Training Master", "Faerie's Blessing"]
+        use_test = True
+        test = ["Mana Shrub", "Unwind"]
         elf_deck = ["Make Spell", "Make Entity+"]
         genie_deck = ["Make Spell+", "Make Entity"]
         for p in self.players:
@@ -389,10 +388,8 @@ class Game:
         self.send_start_first_turn(message)
 
     def start_test_stacked_deck_game(self, message):
-        print(f"start_test_stacked_deck_game")
         if self.players[0].max_mana == 0: 
             for x in range(0, 1):
-                print(f"doing player{x}")
                 for card_name in self.player_decks[0]:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].max_mana = 1
@@ -730,7 +727,7 @@ class Player:
             self.hand.append(self.deck.pop())
 
     def do_card_effect(self, card, e, message, effect_targets):
-        if e.name == "do_card_effectincrease_max_mana":
+        if e.name == "increase_max_mana":
             self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} increases max mana by {e.amount}.")
         elif e.name == "draw":
