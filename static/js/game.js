@@ -796,11 +796,12 @@ class GameRoom {
         var url = location.host + location.pathname;
         var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
         var usernameParameter = getSearchParameters()["username"];
-        var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
+        var endChunk = '/' + roomNumber + "?username=" + usernameParameter + "&new_game_from_buttom=true";
+        var nextRoomUrl = "/play/" + GameUX.gameType + endChunk;
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
         if (isCustom != "False") {
-            nextRoomUrl = "/play/custom/" + customGameId + '/' + roomNumber + "?username=" + usernameParameter;
+            nextRoomUrl = "/play/custom/" + customGameId + endChunk;
         }
         return nextRoomUrl;
     }
