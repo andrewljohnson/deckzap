@@ -54,7 +54,7 @@ class BattleWizardConsumer(WebsocketConsumer):
     def run_ai(self):
         # todo don't reference AI by index 1
         while True:
-            moves = self.game.legal_moves(self.game.players[1])
+            moves = self.game.legal_moves_for_ai(self.game.players[1])
             move = random.choice(moves)
             while len(moves) > 1 and move["move_type"] == "END_TURN":
                 move = random.choice(moves) 
@@ -67,7 +67,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
     def send_game_message(self, game_dict, message):
         # send current-game-related message to players
-        if DEBUG:
+        if DEBUG and message:
             self.print_move(message)
         message["game"] = game_dict
         async_to_sync(self.channel_layer.group_send)(

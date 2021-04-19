@@ -66,7 +66,7 @@ class GameUX {
     }
 
     static updatePlayerBorder(game) {
-        if (GameUX.thisPlayer(game).can_be_targetted && GameUX.isActivePlayer(game)) {
+        if (GameUX.thisPlayer(game).can_be_clicked && GameUX.isActivePlayer(game)) {
             document.getElementById("player1").style.border = "4px solid orange";    
         } else {            
             document.getElementById("player1").style.border = "4px solid #765C48";    
@@ -74,7 +74,7 @@ class GameUX {
     }
 
     static updateOpponentBorder(game) {
-        if (GameUX.opponent(game).can_be_targetted && GameUX.isActivePlayer(game)) {
+        if (GameUX.opponent(game).can_be_clicked && GameUX.isActivePlayer(game)) {
             document.getElementById("opponent").style.border = "4px solid orange";    
         } else {            
             document.getElementById("opponent").style.border = "4px solid #765C48";    
@@ -215,10 +215,8 @@ class GameUX {
             cardDiv.style.backgroundColor = "#DFBF9F";            
         }
         if (GameUX.isActivePlayer(game)) {
-            if (card.can_cast || card.can_act) {
+            if (card.can_be_clicked) {
                 cardDiv.style.border = "3px solid yellow";                
-            } else if (card.can_be_targetted) {
-                cardDiv.style.border = "3px solid orange";                
             } else {
                 cardDiv.style.border = "3px solid #C4A484";                            
             }
