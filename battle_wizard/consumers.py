@@ -67,7 +67,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
     def send_game_message(self, game_dict, message):
         # send current-game-related message to players
-        if DEBUG and message:
+        if DEBUG:
             self.print_move(message)
         message["game"] = game_dict
         async_to_sync(self.channel_layer.group_send)(

@@ -1,3 +1,4 @@
+import json
 import random
 import string
 
@@ -66,6 +67,7 @@ def play_game(request, room_code, game_type):
         "room_code": room_code,
         "game_type": game_type,
         "is_custom": False,
+        "all_cards": json.dumps(JsonDB().all_cards())
     }
     return render(request, "game.html", context)
 
@@ -83,5 +85,6 @@ def play_custom_game(request, game_id, room_code):
         "game_type": game_type,
         "is_custom": True,
         "custom_game_id": game_id,
+        "all_cards": json.dumps(JsonDB().all_cards())
     }
     return render(request, "game.html", context)

@@ -176,9 +176,11 @@ class Game:
         return message
 
     def unset_clickables(self):
+        """
+            unhighlight everything before highlighting possible attacks/spells
+        """
         if len(self.players) != 2:
             return
-        # unhighlight everything before highlighting possible attacks/spells
         for card in self.opponent().in_play:
             card.can_be_clicked = False
         for card in self.current_player().in_play:
@@ -253,8 +255,6 @@ class Game:
         self.opponent().can_be_clicked = True
         self.current_player().can_be_clicked = True        
 
-    def has_targets_for_entity_effect(self):
-        return len(self.opponent().in_play) > 0 or len(self.current_player().in_play) > 0
 
     def set_targets_for_entity_effect(self):
         did_target = False
@@ -266,15 +266,18 @@ class Game:
             did_target = True
         return did_target
 
-    def has_targets_for_opponents_entity_effect(self):
-        return len(self.opponent().in_play) > 0
-
     def set_targets_for_opponents_entity_effect(self):
         set_targets = False
         for card in self.opponent().in_play:
             card.can_be_clicked = True
             set_targets = True
         return set_targets
+
+    def has_targets_for_entity_effect(self):
+        return len(self.opponent().in_play) > 0 or len(self.current_player().in_play) > 0
+
+    def has_targets_for_opponents_entity_effect(self):
+        return len(self.opponent().in_play) > 0
 
     def join(self, message):
         join_occured = True

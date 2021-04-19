@@ -2,6 +2,7 @@ class GameUX {
 
     static username = document.getElementById("data_store").getAttribute("username");
     static gameType = document.getElementById("data_store").getAttribute("game_type");
+    static allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"));
     static oldOpponentHP = 30;
     static oldSelfHP = 30;
 
@@ -446,8 +447,6 @@ class GameUX {
         fxSelector.style.display = "block";
         fxSelector.style.backgroundColor = "white";
 
-        var cards = game.all_cards;
-
         h1 = document.createElement("h1");
         h1.innerHTML = "Change Your Deck"
         fxSelector.appendChild(h1);
@@ -464,9 +463,9 @@ class GameUX {
 
         var tr = document.createElement("tr");
         tr.appendChild(tdForTitle("Name"));
+        tr.appendChild(tdForTitle("Description"));
         tr.appendChild(tdForTitle("Power"));
         tr.appendChild(tdForTitle("Toughness"));
-        tr.appendChild(tdForTitle("Description"));
         tr.appendChild(tdForTitle("Cost"));
         var td = tdForTitle("# In Deck");
         td.style.color = 'blue';
@@ -474,8 +473,9 @@ class GameUX {
         tr.appendChild(td);
         table.appendChild(tr);
 
-        for(var c of cards) {
-            if (c.card_type != "Entity") {
+        console.log(GameUX.allCards)
+        for(var c of GameUX.allCards) {
+            if (c.card_type == "Spell") {
                 continue;
             }
             GameUX.addRowToTableForCard(game, c, decks, table);
@@ -500,7 +500,7 @@ class GameUX {
         tr.appendChild(td);
         table.appendChild(tr);
 
-        for(var c of cards) {
+        for(var c of GameUX.allCards) {
             if (c.card_type != "Spell") {
                 continue;
             }
@@ -603,7 +603,7 @@ class GameUX {
         tdName.style.border = "1px solid black";
         tdName.appendChild(label)
         tr.appendChild(tdName);
-        if (c.card_type == "Entity") {
+        if (c.card_type != "Spell") {
             var tdPower = document.createElement("td");
             tdPower.innerHTML = c.power;
             tdPower.style.border = "1px solid black";
@@ -615,10 +615,10 @@ class GameUX {
             tr.appendChild(tdToughness);            
         }
 
-            var tdDescription = document.createElement("td");
-            tdDescription.innerHTML = c.description;
-            tdDescription.style.border = "1px solid black";
-            tr.appendChild(tdDescription);                        
+        var tdDescription = document.createElement("td");
+        tdDescription.innerHTML = c.description;
+        tdDescription.style.border = "1px solid black";
+        tr.appendChild(tdDescription);                        
 
         var tdCost = document.createElement("td");
         tdCost.innerHTML = c.cost;
@@ -692,7 +692,7 @@ class GameUX {
 
     static chooseEffect(game, effect_id) {
         var info = {"id": effect_id, "card_counts":{}};
-        for(var c of game.all_cards) {
+        for(var c of GameUX.allCards) {
             var input = document.getElementById(c.name);
             info["card_counts"][c.name] = input.value
         }
