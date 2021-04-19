@@ -365,10 +365,10 @@ class Game:
         self.send_start_first_turn(message)
 
     def start_choose_race_game(self, message):
-        use_test = True
+        use_test = False
         test = ["Mana Shrub", "Unwind"]
-        elf_deck = ["Make Spell", "Make Entity+"]
-        genie_deck = ["Make Spell+", "Make Entity"]
+        elf_deck = ["Make Spell", "Make Entity"]
+        genie_deck = ["Make Spell", "Make Entity"]
         for p in self.players:
             if use_test:
                 for card_name in test:
@@ -1021,10 +1021,10 @@ class Player:
         while not card1 or card1.name in banned_cards or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race != card1.race):
             card1 = random.choice(all_cards)
         card2 = None
-        while not card2 or card1.name in banned_cards or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race != card2.race):
+        while not card2 or card2.name in banned_cards or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race != card2.race):
             card2 = random.choice(all_cards)
         card3 = None
-        while not card3 or card1.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
+        while not card3 or card3.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
             card3 = random.choice(all_cards)
         self.make_to_resolve = [card1, card2, card3]
 
