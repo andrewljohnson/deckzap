@@ -143,7 +143,6 @@ class Game:
             if (message["username"] != self.current_player().username):
                 print(f"can't {move_type} on opponent's turn")
                 return None
-
         # move sent after initial game config
         if move_type == 'START_FIRST_TURN':
             self.current_player().start_turn()
@@ -305,7 +304,7 @@ class Game:
                     if "card_counts" in player_db[p.username]:
                         self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
         
-        if len(self.players) == 2 and join_occured and self.game_type == "ingame":
+        if len(self.players) == 2 and join_occured and self.game_type in ["ingame", "test_stacked_deck"]:
             self.start_game(message, self.game_type)
         return message
 
@@ -390,8 +389,10 @@ class Game:
         self.send_start_first_turn(message)
 
     def start_test_stacked_deck_game(self, message):
+        print(f"start_test_stacked_deck_game")
         if self.players[0].max_mana == 0: 
             for x in range(0, 1):
+                print(f"doing player{x}")
                 for card_name in self.player_decks[0]:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].max_mana = 1
