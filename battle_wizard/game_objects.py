@@ -305,7 +305,7 @@ class Game:
                     if "card_counts" in player_db[p.username]:
                         self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
         
-        if len(self.players) == 2 and join_occured:
+        if len(self.players) == 2 and join_occured and self.game_type == "ingame":
             self.start_game(message, self.game_type)
         return message
 
@@ -347,7 +347,7 @@ class Game:
 
     def start_ingame_deckbuilder_game(self, message):
         for p in self.players:
-            for card_name in ["Make Entity", "Make Entity", "Make Spell",  "Make Spell"]:
+            for card_name in ["Make Entity", "Make Spell"]:
                 p.add_to_deck(card_name, 1)
             random.shuffle(p.deck)
             p.max_mana = 1
@@ -366,23 +366,27 @@ class Game:
         self.send_start_first_turn(message)
 
     def start_choose_race_game(self, message):
+        print("start_choose_race_game")
         use_test = False
         test = ["Familiar", "Trickster", "Training Master", "Faerie's Blessing"]
-        elf_deck = ["Make Spell", "Make Spell", "Make Entity+",  "Make Entity+"]
-        genie_deck = ["Make Spell+", "Make Spell+", "Make Entity",  "Make Entity"]
+        elf_deck = ["Make Spell", "Make Entity+"]
+        genie_deck = ["Make Spell+", "Make Entity"]
         for p in self.players:
             if use_test:
                 for card_name in test:
                     p.add_to_deck(card_name, 1)
             elif p.race == "elf":
+                print("ELF")
                 for card_name in elf_deck:
                     p.add_to_deck(card_name, 1)
             else:
+                print("GENIE")
                 for card_name in genie_deck:
                     p.add_to_deck(card_name, 1)
             random.shuffle(p.deck)
             p.max_mana = 1
             p.draw(2)
+            print(p.deck)
         self.send_start_first_turn(message)
 
     def start_test_stacked_deck_game(self, message):
@@ -1014,14 +1018,15 @@ class Player:
             requiredEntityCost = math.floor(self.game.turn / 2) + 1
 
         all_cards = Game.all_cards()
+        banned_cards = ["Make Spell", "Make Spell+", "Make Entity", "Make Entity+"]
         card1 = None 
-        while not card1 or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race != card1.race):
+        while not card1 or card1.name in banned_cards or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race != card1.race):
             card1 = random.choice(all_cards)
         card2 = None
-        while not card2 or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race != card2.race):
+        while not card2 or card1.name in banned_cards or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race != card2.race):
             card2 = random.choice(all_cards)
         card3 = None
-        while not card3 or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
+        while not card3 or card1.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
             card3 = random.choice(all_cards)
         self.make_to_resolve = [card1, card2, card3]
 
