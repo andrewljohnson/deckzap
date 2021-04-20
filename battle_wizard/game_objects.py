@@ -327,7 +327,7 @@ class Game:
             player = self.players[1]
         player.race = message["race"]
 
-        if self.players[0].race and self.players[1].race and message["username"] == self.players[1].username:
+        if self.players[0].race and len(self.players) == 2 and self.players[1].race:
             self.start_game(message, self.game_type)
         return message
 
