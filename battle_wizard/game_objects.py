@@ -339,7 +339,7 @@ class Game:
             self.start_pregame_deckbuilder_game(message)
         elif game_type == "choose_race" or game_type == "p_vs_ai":
             self.start_choose_race_game(message)
-        elif game_type == "p_vs_ai_prebuilt":
+        elif game_type == "choose_race_prebuilt" or game_type == "p_vs_ai_prebuilt":
             self.start_choose_race_prebuilt_game(message)
         elif game_type == "test_stacked_deck":
             self.start_test_stacked_deck_game(message)
