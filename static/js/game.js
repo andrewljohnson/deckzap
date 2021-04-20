@@ -2,6 +2,7 @@ class GameUX {
 
     static username = document.getElementById("data_store").getAttribute("username");
     static gameType = document.getElementById("data_store").getAttribute("game_type");
+    static aiType = document.getElementById("data_store").getAttribute("ai_type");
     static allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"));
     static oldOpponentHP = 30;
     static oldSelfHP = 30;
@@ -358,7 +359,7 @@ class GameUX {
         }
         if (game.decks_to_set && game.starting_effects.length < 2) {
             GameUX.showFXSelectionView(game);
-        } else if ((GameUX.gameType == "choose_race" || GameUX.gameType == "choose_race_prebuilt" || GameUX.gameType == "p_vs_ai" || GameUX.gameType == "p_vs_ai_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
+        } else if ((GameUX.gameType == "choose_race" || GameUX.gameType == "choose_race_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
             GameUX.showChooseRace(game);
         } else if (GameUX.thisPlayer(game).make_to_resolve.length) {
             GameUX.showMakeView(game);
@@ -786,7 +787,7 @@ class GameRoom {
         const roomCode = document.getElementById("data_store").getAttribute("room_code");
         const url = new URL(window.location.href);
         var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-        var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.gameType + '/' + roomCode + '/';
+        var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.aiType + '/' + GameUX.gameType + '/' + roomCode + '/';
 
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
@@ -801,7 +802,7 @@ class GameRoom {
         var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
         var usernameParameter = getSearchParameters()["username"];
         var endChunk = '/' + roomNumber + "?username=" + usernameParameter + "&new_game_from_button=true";
-        var nextRoomUrl = "/play/" + GameUX.gameType + endChunk;
+        var nextRoomUrl = "/play/" + GameUX.aiType + "/" + GameUX.gameType + endChunk;
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
         if (isCustom != "False") {

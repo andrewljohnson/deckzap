@@ -13,6 +13,7 @@ DEBUG = True
 class BattleWizardConsumer(WebsocketConsumer):
 
     def connect(self):
+        self.ai_type = self.scope['url_route']['kwargs']['ai_type']
         self.game_type = self.scope['url_route']['kwargs']['game_type']
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
@@ -34,7 +35,7 @@ class BattleWizardConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
-        self.game = Game(self, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name))        
+        self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name))        
         message = json.loads(text_data)
 
         if message["move_type"] == 'NEXT_ROOM':
@@ -47,7 +48,7 @@ class BattleWizardConsumer(WebsocketConsumer):
             self.send_game_message(self.game.as_dict(), message)
 
         # run AI if it's the AI's move or if the other player just chose their race
-        if self.game.game_type in ["p_vs_ai", "p_vs_ai_prebuilt"] and (self.game.current_player() == self.game.players[1] or \
+        if self.ai_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
             (self.game.players[0].race != None and self.game.players[1].race == None)): 
             self.run_ai()
 
@@ -113,6 +114,7 @@ class BattleWizardCustomConsumer(BattleWizardConsumer):
         for game in cgd["games"]:
             if game["id"] == int(self.custom_game_id):
                 self.game_type = game["game_type"]            
+                self.ai_type = game["ai_type"]   
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,

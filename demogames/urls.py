@@ -19,8 +19,8 @@ urlpatterns = [
     path('create', create),
     path('play/custom/<game_id>/<room_code>', play_custom_game),
     path('play/custom/<game_id>', find_custom_game),
-  	path('play/<game_type>/<room_code>', play_game),
-    path('play/<game_type>', find_game),
+  	path('play/<ai_type>/<game_type>/<room_code>', play_game),
+    path('play/<ai_type>/<game_type>', find_game),
     path('ss/hangman', hangman),
     path('ss/dnd', dnd),
  ]

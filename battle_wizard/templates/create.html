@@ -16,7 +16,15 @@
     <input type="radio" id="pregame" name="game_type" value="pregame">
     <label for="pregame">Pre-Game</label>
     <input type="radio" id="choose_race" name="game_type" value="choose_race">
-    <label for="choose_race">Choose Race</label>
+    <label for="choose_race">Choose Race (in-game deckbuilding)</label>
+    <input type="radio" id="choose_race_prebuilt" name="game_type" value="choose_race_prebuilt">
+    <label for="choose_race_prebuilt">Choose Race (pre-built decks)</label>
+    <br /><br />
+    <label for=ai_type>AI Type</label><br /> 
+    <input type="radio" id="pvp" name="ai_type" value="pvp" checked="checked">
+    <label for="ingame">Player vs. Player</label>
+    <input type="radio" id="pvai" name="ai_type" value="pvai">
+    <label for="pvai">Player vs. AI</label>
     <br /><br />
     <button class=big-green-button type="submit" value="Create Game">Create Game</button>
   </form>

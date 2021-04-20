@@ -7,11 +7,13 @@ from battle_wizard.jsonDB import JsonDB
 
 
 class Game:
-    def __init__(self, websocket_consumer, db_name, game_type, info=None, player_decks=None):
+    def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None):
 
         # can be ingame, pregame, or choose_race
         # there is also a test_stacked_deck variant for tests
         self.game_type = game_type
+
+        self.ai_type = ai_type
         # support 2 players
         self.players = [Player(self, u) for u in info["players"]] if info else []
         # player 0 always acts on even turns, player 1 acts on odd turns
@@ -59,7 +61,7 @@ class Game:
         """
         if len(self.players) < 2:
             return [{"move_type": "JOIN", "username": "random_bot"}]
-        if not player.race:
+        if not player.race and self.game_type in ["choose_race", "choose_race_prebuilt"]:
             return [
                 {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "elf"},
                 {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "genie"},
@@ -286,7 +288,7 @@ class Game:
         if len(self.players) == 0:
             self.players.append(Player(self, {"username":message["username"]}, new=True))            
             message["log_lines"].append(f"{message['username']} created the game.")
-            if self.game_type in ["p_vs_ai", "p_vs_ai_prebuilt"]:
+            if self.ai_type == "pvai":
                 message["log_lines"].append(f"random_bot joined the game.")
                 self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
         elif len(self.players) == 1:
@@ -337,9 +339,9 @@ class Game:
             self.start_ingame_deckbuilder_game(message)
         elif game_type == "pregame":
             self.start_pregame_deckbuilder_game(message)
-        elif game_type == "choose_race" or game_type == "p_vs_ai":
+        elif game_type == "choose_race":
             self.start_choose_race_game(message)
-        elif game_type == "choose_race_prebuilt" or game_type == "p_vs_ai_prebuilt":
+        elif game_type == "choose_race_prebuilt":
             self.start_choose_race_prebuilt_game(message)
         elif game_type == "test_stacked_deck":
             self.start_test_stacked_deck_game(message)
