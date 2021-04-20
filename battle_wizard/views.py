@@ -65,13 +65,11 @@ def find_custom_game(request, game_id):
     )
 
 def play_game(request, room_code, game_type):
-    last_room = request.GET.get("new_game_from_buttom")
+    room_code_int = int(room_code)
+    queue_database = JsonDB().queue_database()
+    last_room = request.GET.get("new_game_from_button")
     if last_room:
-        print(f"last room: {last_room}")
-        queue_database = JsonDB().queue_database()
-        queue_database[game_type]["starting_id"] = max(int(room_code) + 1, queue_database[game_type]["starting_id"])
-        with open("database/queue_database.json", 'w') as outfile:
-            json.dump(queue_database, outfile)
+        return redirect(f"/play/{game_type}")
 
     context = {
         "username": request.GET.get("username"), 

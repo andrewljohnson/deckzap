@@ -820,7 +820,7 @@ class Player:
             self.do_add_effects_effect(e, card)           
         elif e.name == "add_player_abilities":
             if e.target_type == "opponent":
-                message["log_lines"].append(f"{self.game.opponent()} gets {card.description}.")
+                message["log_lines"].append(f"{self.game.opponent().username} gets {card.description}.")
             else:
                 message["log_lines"].append(f"{self.username} gains {card.description}.")
             self.do_add_abilities_effect(e, card)           

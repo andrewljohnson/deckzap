@@ -800,7 +800,7 @@ class GameRoom {
         var url = location.host + location.pathname;
         var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
         var usernameParameter = getSearchParameters()["username"];
-        var endChunk = '/' + roomNumber + "?username=" + usernameParameter + "&new_game_from_buttom=true";
+        var endChunk = '/' + roomNumber + "?username=" + usernameParameter + "&new_game_from_button=true";
         var nextRoomUrl = "/play/" + GameUX.gameType + endChunk;
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");

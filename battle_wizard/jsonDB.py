@@ -50,12 +50,13 @@ class JsonDB:
         return self.room_code_for_type(game_type, queue_database)
 
     def room_code_for_type(self, game_type, queue_database):
-        if len(queue_database[game_type]["open_games"]) > 0:
+        if len(queue_database[game_type]["open_games"]) > 0 and game_type not in ["p_vs_ai", "p_vs_ai_prebuilt"]:
             room_code = queue_database[game_type]["open_games"].pop()
         else:
             room_code = queue_database[game_type]["starting_id"]
             queue_database[game_type]["starting_id"] += 1
-            queue_database[game_type]["open_games"].append(room_code)
+            if game_type not in ["p_vs_ai", "p_vs_ai_prebuilt"]:
+                queue_database[game_type]["open_games"].append(room_code)
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
         return room_code
