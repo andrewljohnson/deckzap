@@ -257,7 +257,7 @@
 	{
 		"name": "Tame Time",
 		"race": "elf",
-		"cost": 5,
+		"cost": 8,
 		"card_type": "Spell",
 		"description": "Take an extra turn right away.",
 		"effects": [{
