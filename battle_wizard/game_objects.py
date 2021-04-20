@@ -933,7 +933,8 @@ class Player:
         target_player.in_play.remove(target_card)
         self.game.current_player().in_play.append(target_card)
         if self.game.current_player().fast_ability():
-            entity_to_summon.added_abilities.append(target_player.fast_ability())         
+            target_card.attacked = False
+            target_card.added_abilities.append(self.game.current_player().fast_ability())         
     
     def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)

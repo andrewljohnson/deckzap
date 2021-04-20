@@ -332,7 +332,7 @@
 	{
 		"name": "Entwine",
 		"race": "genie",
-		"cost": 1,
+		"cost": 4,
 		"card_type": "Spell",
 		"description": "Each player shuffles together hand/deck/discard and draws 3 cards.",
 		"effects": [{

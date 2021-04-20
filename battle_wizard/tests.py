@@ -5,7 +5,7 @@ import os
 import time
 
 """
-    8 tested cards out of about 50:
+    10 tested cards out of about 50:
 
     Stone Elemental
     Unwind
@@ -15,6 +15,8 @@ import time
     Siz Pop
     Counterspell
     Big Counterspell 
+    Mind Manacles
+    Maste Time
 """
 
 class GameObjectTests(TestCase):
@@ -213,4 +215,51 @@ class GameObjectTests(TestCase):
         print(game.as_dict())
         self.assertEqual(len(game.current_player().played_pile), 1)
         self.assertEqual(len(game.opponent().played_pile), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_mind_manacles(self):
+        """
+            Tests Mind Manacles makes the entity switch sides.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Stone Elemental"], ["Mind Manacles"]]
+        game = Game(None, dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        for x in range(0, 4):
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 0)
+        self.assertEqual(len(game.opponent().in_play), 1)
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(len(game.opponent().in_play), 0)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_mind_manacles_gains_fast(self):
+        """
+            Tests Mind Manacles entity gains Fast if the player has it from casting Master Time
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Stone Elemental"], ["Mind Manacles", "Master Time"]]
+        game = Game(None, dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        for x in range(0, 8):
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})        
+        self.assertEqual(game.opponent().hit_points, 30)
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, 28)
         os.remove(f"database/games/{dbName}.json")
