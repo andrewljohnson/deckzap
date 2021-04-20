@@ -365,8 +365,8 @@ class Game:
         self.send_start_first_turn(message)
 
     def start_choose_race_game(self, message):
-        use_test = False
-        test = ["Mana Shrub", "Unwind"]
+        use_test = True
+        test = ["Stiff Wind", "Stiff Wind", "Stone Elemental", "Stone Elemental"]
         elf_deck = ["Make Spell", "Make Entity"]
         genie_deck = ["Make Spell", "Make Entity"]
         for p in self.players:
@@ -412,8 +412,11 @@ class Game:
         return message
 
     def select_card_in_hand(self, message):
+        print("select_card_in_hand DDDD")
         for card in self.current_player().hand:
+            print(f"looking at card DDDD {card.name}")
             if card.id == message["card"]:
+                print(f"found card DDDD {card.name}")
                 message["card_name"] = card.name
                 if card.needs_card_being_cast_target():
                     print(f"can't select counterspell on own turn")
@@ -429,6 +432,7 @@ class Game:
                             message["move_type"] = "PLAY_CARD"
                             message = self.play_move(message)
                     elif card.card_type == "Entity":
+                        print("IS ENTITYT DDDD")
                         if self.current_player().can_summon():
                             message["move_type"] = "PLAY_CARD"
                             message = self.play_move(message)
@@ -727,6 +731,7 @@ class Player:
             self.hand.append(self.deck.pop())
 
     def do_card_effect(self, card, e, message, effect_targets):
+        print(f"Do card effect: {e.name}");
         if e.name == "increase_max_mana":
             self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} increases max mana by {e.amount}.")
@@ -783,9 +788,9 @@ class Player:
             self.do_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
         elif e.name == "add_tokens":
             if e.target_type == 'self_entities':
-                message["log_lines"].append(f"{self.username} adds {e.tokens} tokens to their own entities.")
+                message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to their own entities.")
             else:
-                message["log_lines"].append(f"{self.username} adds {e.tokens} to {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
+                message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
             self.do_add_tokens_effect(e, effect_targets)
         elif e.name == "add_effects":
             if e.target_type == "self_entities":
@@ -1097,6 +1102,7 @@ class Player:
             else:
                 if not "effect_targets" in message:
                     message["effect_targets"]  = {}
+                print(f"card effects: {card.effects}")
                 for e in card.effects:
                     if e.target_type == "self":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"}
@@ -1422,6 +1428,8 @@ class CardToken:
         self.set_can_act = info["set_can_act"] if "set_can_act" in info else None
 
     def __repr__(self):
+        if self.set_can_act is not None:
+            return "Can't Attack"
         return f"+{self.power_modifier}/+{self.toughness_modifier}"
 
     def as_dict(self):

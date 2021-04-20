@@ -452,6 +452,7 @@
 				"tokens": [{
 					"turns": 2,
 					"set_can_act": false
+				}]
 			},
 			{
 				"name": "draw",
@@ -459,7 +460,6 @@
 				"amount": 1
 			}
 		]
-		}]
 	},
 	{
 		"name": "Siz Pop",
