@@ -7,6 +7,9 @@ from django.shortcuts import render, redirect
 from django.http import Http404
 
 
+def manifesto(request):
+    return render(request, "manifesto.html", {})
+
 def index(request):
     if request.method == "POST":
         if 'Play Games' == request.POST.get('menu'):

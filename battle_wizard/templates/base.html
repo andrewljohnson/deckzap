@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
-    <title>DeckZap - Player Built Card Games</title>
+    <title>DeckZap - Uncollectible Card Games</title>
 </head>
 <body>
 	{% if not "play" in request.path%}
@@ -15,10 +15,8 @@
 	{% block content %}
 	{% endblock content %}
 	<div id=footer>
-		{% if request.path != '/' %}
-			<hr style="margin-top:60px;" />
-			<div style="margin-left:5px">DeckZap - Player Built Card Games - <a href=/>Home</a></div>
-		{% endif %}
+		<hr style="margin-top:60px;" />
+		<div style="margin-left:5px">{% if request.path != '/' %}DeckZap - Uncollectible Card Games - <a href=/>Home</a> - {% endif %}<a href=/manifesto>Manifesto</a> - <a href=https://discord.gg/eMrHZCTVN9 target=_new>Discord</a></div>
 	</div>
 	{% block javascript %}
 	{% endblock javascript %}

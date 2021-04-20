@@ -5,6 +5,7 @@ from battle_wizard.views import find_custom_game
 from battle_wizard.views import find_game
 from battle_wizard.views import games
 from battle_wizard.views import index
+from battle_wizard.views import manifesto
 from battle_wizard.views import play_custom_game
 from battle_wizard.views import play_game
 from ss.views import dnd
@@ -13,6 +14,7 @@ from ss.views import hangman
 urlpatterns = [
     path('admin/', admin.site.urls),
   	path('', index),
+    path('manifesto', manifesto),
     path('games', games),
     path('create', create),
     path('play/custom/<game_id>/<room_code>', play_custom_game),
