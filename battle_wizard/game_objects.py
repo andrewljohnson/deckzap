@@ -374,11 +374,9 @@ class Game:
                 for card_name in test:
                     p.add_to_deck(card_name, 1)
             elif p.race == "elf":
-                print("ELF")
                 for card_name in elf_deck:
                     p.add_to_deck(card_name, 1)
             else:
-                print("GENIE")
                 for card_name in genie_deck:
                     p.add_to_deck(card_name, 1)
             random.shuffle(p.deck)
@@ -389,8 +387,8 @@ class Game:
 
     def start_test_stacked_deck_game(self, message):
         if self.players[0].max_mana == 0: 
-            for x in range(0, 1):
-                for card_name in self.player_decks[0]:
+            for x in range(0, 2):
+                for card_name in self.player_decks[x]:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].max_mana = 1
                 self.players[x].draw(2)
@@ -558,7 +556,8 @@ class Game:
         """
             Send the card to the player's played_pile and reset any temporary effects on the card
         """
-        player.in_play.remove(card)
+        if card in player.in_play:
+            player.in_play.remove(card)
         player.played_pile.append(card)  
         card.attacked = False
         card.selected = False
@@ -1074,6 +1073,7 @@ class Player:
         for o_card in self.game.opponent().hand:
             for effect in o_card.effects:
                 if effect.target_type == "card_being_cast" and card.cost >= effect.amount and self.game.opponent().mana >= o_card.cost:
+                    self.game.send_card_to_played_pile(card, self.game.current_player())
                     self.game.opponent().hand.remove(o_card)
                     self.game.opponent().played_pile.append(o_card)
                     self.game.opponent().mana -= o_card.cost

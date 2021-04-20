@@ -5,13 +5,16 @@ import os
 import time
 
 """
-    6 tested cards out of about 50:
+    8 tested cards out of about 50:
 
-    Stone Elemental - vanilla entity
-    Unwind and Mana Shrub - Test return an entity to owner's hand, make sure Mana Shrub's effects trigger on leaving play.
-    Training Master - Test target's power doubles and can still attack.
-    Stiff Wind - 2 Effects - Prevent attack and draw as 2nd effect.
-    Siz Pop - 2 Effects - Prevent attack and draw as 2nd effect.
+    Stone Elemental
+    Unwind
+    Mana Shrub
+    Training Master
+    Stiff Wind
+    Siz Pop
+    Counterspell
+    Big Counterspell 
 """
 
 class GameObjectTests(TestCase):
@@ -54,6 +57,9 @@ class GameObjectTests(TestCase):
         os.remove(f"database/games/{game.db_name}.json")
 
     def test_play_stone_elemental(self):
+        """
+            Vanilla entity.
+        """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
         player_decks = [["Stone Elemental"], []]
@@ -80,6 +86,9 @@ class GameObjectTests(TestCase):
         os.remove(f"database/games/{dbName}.json")
 
     def test_play_training_master_and_attack_with_buffed_target(self):
+        """
+            Test Training Master's target's power doubles and can still attack.
+        """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
         player_decks = [["Stone Elemental", "Training Master"], []]
@@ -102,6 +111,12 @@ class GameObjectTests(TestCase):
         os.remove(f"database/games/{dbName}.json")
 
     def test_unwind_mana_shrub(self):
+        """
+            Test return an entity to owner's hand with Unwind.
+
+            Make sure Mana Shrub's effects trigger on leaving play.
+        """
+
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
         player_decks = [["Mana Shrub", "Unwind"], []]
@@ -122,6 +137,8 @@ class GameObjectTests(TestCase):
     def test_play_stiff_wind(self):
         """
             Tests Stiff Wind prevents attack, and that it draws a card.
+
+            2 effects card.
         """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
@@ -144,6 +161,8 @@ class GameObjectTests(TestCase):
     def test_play_siz_pop(self):
         """
             Tests Siz Pop deals a damage and draws a card.
+
+            2 Effects card.
         """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
@@ -158,4 +177,40 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "card": 0, "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 29)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_counterspell(self):
+        """
+            Tests Counterspell sends card to opponent's played_pile and Counterspell to current_player's played_pile.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Counterspell"], ["PantherKin"]]
+        game = Game(None, dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        self.assertEqual(len(game.current_player().played_pile), 1)
+        self.assertEqual(len(game.opponent().played_pile), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_big_counterspell(self):
+        """
+            Tests Counterspell sends card to opponent's played_pile and Counterspell to current_player's played_pile.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Big Counterspell"], ["PantherKin", "Mana Tree"]]
+        game = Game(None, dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})        
+        print(game.as_dict())
+        self.assertEqual(len(game.current_player().played_pile), 1)
+        self.assertEqual(len(game.opponent().played_pile), 1)
         os.remove(f"database/games/{dbName}.json")
