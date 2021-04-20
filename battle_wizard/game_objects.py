@@ -365,7 +365,7 @@ class Game:
         self.send_start_first_turn(message)
 
     def start_choose_race_game(self, message):
-        use_test = True
+        use_test = False
         test = ["Stiff Wind", "Stiff Wind", "Stone Elemental", "Stone Elemental"]
         elf_deck = ["Make Spell", "Make Entity"]
         genie_deck = ["Make Spell", "Make Entity"]
