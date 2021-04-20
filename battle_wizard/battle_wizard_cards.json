@@ -406,7 +406,7 @@
 	{
 		"name": "Lord of the Storm",
 		"race": "genie",
-		"description": "Return all entities to their owners' hands.",
+		"description": "Return all other entities to their owners' hands.",
 		"power": 3,
 		"toughness": 3,
 		"cost": 6,
