@@ -712,6 +712,10 @@ class GameUX {
     }
 
     static nextRoom() {
+        if (GameRoom.gameSocket.readyState != WebSocket.OPEN) {
+            return window.location.href = GameRoom.nextRoomUrl();
+        }
+
         GameRoom.gameSocket.send(JSON.stringify(
             {"move_type": "NEXT_ROOM", "username":GameUX.username}
         ));
