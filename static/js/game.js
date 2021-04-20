@@ -358,7 +358,7 @@ class GameUX {
         }
         if (game.decks_to_set && game.starting_effects.length < 2) {
             GameUX.showFXSelectionView(game);
-        } else if ((GameUX.gameType == "choose_race" || GameUX.gameType == "p_vs_ai") && (!game.players[0].race || !game.players[1].race)) {
+        } else if ((GameUX.gameType == "choose_race" || GameUX.gameType == "p_vs_ai" || GameUX.gameType == "p_vs_ai_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
             GameUX.showChooseRace(game);
         } else if (GameUX.thisPlayer(game).make_to_resolve.length) {
             GameUX.showMakeView(game);

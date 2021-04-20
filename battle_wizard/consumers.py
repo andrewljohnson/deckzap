@@ -47,7 +47,7 @@ class BattleWizardConsumer(WebsocketConsumer):
             self.send_game_message(self.game.as_dict(), message)
 
         # run AI if it's the AI's move or if the other player just chose their race
-        if self.game.game_type == "p_vs_ai" and (self.game.current_player() == self.game.players[1] or \
+        if self.game.game_type in ["p_vs_ai", "p_vs_ai_prebuilt"] and (self.game.current_player() == self.game.players[1] or \
             (self.game.players[0].race != None and self.game.players[1].race == None)): 
             self.run_ai()
 

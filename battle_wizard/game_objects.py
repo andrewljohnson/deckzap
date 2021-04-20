@@ -286,7 +286,7 @@ class Game:
         if len(self.players) == 0:
             self.players.append(Player(self, {"username":message["username"]}, new=True))            
             message["log_lines"].append(f"{message['username']} created the game.")
-            if self.game_type == "p_vs_ai":
+            if self.game_type in ["p_vs_ai", "p_vs_ai_prebuilt"]:
                 message["log_lines"].append(f"random_bot joined the game.")
                 self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
         elif len(self.players) == 1:
@@ -339,6 +339,8 @@ class Game:
             self.start_pregame_deckbuilder_game(message)
         elif game_type == "choose_race" or game_type == "p_vs_ai":
             self.start_choose_race_game(message)
+        elif game_type == "p_vs_ai_prebuilt":
+            self.start_choose_race_prebuilt_game(message)
         elif game_type == "test_stacked_deck":
             self.start_test_stacked_deck_game(message)
         else:
@@ -383,6 +385,29 @@ class Game:
             p.max_mana = 1
             p.draw(2)
             print(p.deck)
+        self.send_start_first_turn(message)
+
+    def start_choose_race_prebuilt_game(self, message):
+        print("start_choose_race_prebuilt_gamestart_choose_race_prebuilt_gamestart_choose_race_prebuilt_game")
+        elf_deck = []
+        for card in Game.all_cards():
+            if card.race == "elf" or not card.race:
+                elf_deck.append(card.name)
+        genie_deck = []
+        for card in Game.all_cards():
+            if card.race == "genie" or not card.race:
+                genie_deck.append(card.name)
+
+        for p in self.players:
+            if p.race == "elf":
+                for card_name in elf_deck:
+                    p.add_to_deck(card_name, 1)
+            else:
+                for card_name in genie_deck:
+                    p.add_to_deck(card_name, 1)
+            random.shuffle(p.deck)
+            p.max_mana = 0
+            p.draw(6)
         self.send_start_first_turn(message)
 
     def start_test_stacked_deck_game(self, message):
