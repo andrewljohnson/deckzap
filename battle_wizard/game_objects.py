@@ -412,11 +412,8 @@ class Game:
         return message
 
     def select_card_in_hand(self, message):
-        print("select_card_in_hand DDDD")
         for card in self.current_player().hand:
-            print(f"looking at card DDDD {card.name}")
             if card.id == message["card"]:
-                print(f"found card DDDD {card.name}")
                 message["card_name"] = card.name
                 if card.needs_card_being_cast_target():
                     print(f"can't select counterspell on own turn")
@@ -432,7 +429,6 @@ class Game:
                             message["move_type"] = "PLAY_CARD"
                             message = self.play_move(message)
                     elif card.card_type == "Entity":
-                        print("IS ENTITYT DDDD")
                         if self.current_player().can_summon():
                             message["move_type"] = "PLAY_CARD"
                             message = self.play_move(message)
@@ -1102,7 +1098,6 @@ class Player:
             else:
                 if not "effect_targets" in message:
                     message["effect_targets"]  = {}
-                print(f"card effects: {card.effects}")
                 for e in card.effects:
                     if e.target_type == "self":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"}
