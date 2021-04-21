@@ -14,6 +14,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
     def connect(self):
         self.ai_type = self.scope['url_route']['kwargs']['ai_type']
+        self.ai_strategy = "face_bot"
         self.game_type = self.scope['url_route']['kwargs']['game_type']
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
@@ -56,11 +57,56 @@ class BattleWizardConsumer(WebsocketConsumer):
         # todo don't reference AI by index 1
         while True:
             moves = self.game.legal_moves_for_ai(self.game.players[1])
-            move = random.choice(moves)
-            while len(moves) > 1 and move["move_type"] == "END_TURN":
-                move = random.choice(moves) 
-            move["log_lines"] = []
-            message = self.game.play_move(move)    
+            if self.ai_strategy == "random":
+                chosen_move = random.choice(moves)
+                while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
+                    chosen_move = random.choice(moves) 
+            elif self.ai_strategy == "face_bot":
+                chosen_move = random.choice(moves)
+                while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
+                    chosen_move = random.choice(moves) 
+                for move in moves:
+                    if move["move_type"] == "PLAY_CARD":
+                        being_cast = self.game.get_in_play_for_id(move["card"])
+                        target = self.game.get_in_play_for_id(move["effect_targets"][0].id)
+                        if target in self.game.current_player().in_play: 
+                            if being_cast.name in ["Faerie War Chant", "Faerie's Blessing", "Kill", "Zap", "Stiff Wind", "Siz Pop"]:
+                                chosen_move = move
+                        elif target in self.game.opponent().in_play:
+                            if being_cast.name in ["Unwind"]:
+                                chosen_move = move
+                        else:
+                            print("should never happen") 
+
+                    if move["move_type"] == "PLAY_CARD":
+                        being_cast = self.game.get_in_play_for_id(move["card"])
+                        target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
+                        if target in self.game.current_player().in_play: 
+                            if being_cast.name in ["Faerie War Chant", "Faerie's Blessing", "Kill", "Zap", "Stiff Wind", "Siz Pop"] and target.name not in ["Familiar", "Thought Sprite"]:
+                                chosen_move = move
+
+                    if move["move_type"] == "RESOLVE_ENTITY_EFFECT":
+                        print(move)
+                        coming_into_play = self.game.get_in_play_for_id(move["card"])
+                        target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
+                        if target in self.game.current_player().in_play: 
+                            if coming_into_play.name in ["Training Master"]:
+                                chosen_move = move
+                        elif target in self.game.opponent().in_play:
+                            if coming_into_play.name in ["Lightning Elemental", "Tempest Elemental"]:
+                                chosen_move = move
+                        else:
+                            print("should never happen") 
+                        chosen_move = move
+                    if move["move_type"] == "SELECT_ENTITY":
+                        chosen_move = move
+                for move in moves:
+                    if move["move_type"] == "SELECT_OPPONENT":
+                        chosen_move = move
+            else:
+                print(f"Unknown AI strategy: {self.ai_strategy}")
+            chosen_move["log_lines"] = []
+            message = self.game.play_move(chosen_move)    
             self.send_game_message(self.game.as_dict(), message)
             if message['move_type'] == "END_TURN" or message['move_type'] == "CHOOSE_RACE" or self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
                 break
