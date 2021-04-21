@@ -541,6 +541,8 @@ class Game:
     def attack(self, message):
         card_id = message["card"]
         attacking_card = self.current_player().in_play_card(card_id)
+        attacking_card.attacked = True
+        attacking_card.selected = False
         if "defending_card" in message:
             defending_card_id = message["defending_card"]
             defending_card = self.opponent().in_play_card(defending_card_id)
@@ -556,8 +558,6 @@ class Game:
             if attacking_card.abilities:
                 if attacking_card.abilities[0].name == "DamageDraw":
                     self.current_player().draw(attacking_card.abilities[0].amount)
-        attacking_card.attacked = True
-        attacking_card.selected = False
         return message
 
     def make_card(self, message):
@@ -606,12 +606,10 @@ class Game:
     def resolve_combat(self, attacking_card, defending_card):
         attacking_card.damage += defending_card.power_with_tokens()
         defending_card.damage += attacking_card.power_with_tokens()
-        attacking_card.attacked = True
-        attacking_card.selected = False
         if attacking_card.damage >= attacking_card.toughness_with_tokens():
-            self.send_card_to_played_pile(attacking_card,self.current_player())
+            self.send_card_to_played_pile(attacking_card, self.current_player())
         if defending_card.damage >= defending_card.toughness_with_tokens():
-            self.send_card_to_played_pile(defending_card,self.opponent())
+            self.send_card_to_played_pile(defending_card, self.opponent())
 
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
