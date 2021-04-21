@@ -748,7 +748,7 @@ class Player:
                 for c in self.played_pile:
                     self.deck.append(c)
                 self.played_pile = [] 
-            if len(self.deck) == 0:
+            if len(self.deck) == 0 or len(self.hand) == 11:
                 continue
             self.hand.append(self.deck.pop())
 
