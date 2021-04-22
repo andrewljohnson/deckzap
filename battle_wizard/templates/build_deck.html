@@ -21,12 +21,13 @@
 
   <div id=two_columns>
   	<div id=left_column class=column>
-      <label for=username>Your Username:</label><br /> 
+      <h2>Your Username:</h2> 
       <input name=username id=username value={{username}}></input>
-  		<h2>Available Cards</h2>  		
+  		<h2>Choose Cards (max 2 each)</h2>  		
   		<div id=all_cards_container></div>
   	</div>
   	<div id=right_column class=column>
+      <h2>Cards in Deck - <span id=deck_count>0/30</span></h2>      
   		<div id=new_deck_container style="padding:50px;padding-top:200px;text-align:center;font-size:16px;color:white;font-weight:bold;height:974px">
   			Click cards on the left to add them to your deck. Decks must be 30 cards, no more than 2 of any card.
   		</div>

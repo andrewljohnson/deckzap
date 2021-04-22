@@ -119,6 +119,7 @@ class DeckBuilder {
     }
 
 	redisplayDeck() {
+		document.getElementById("deck_count").innerHTML = this.deckSize() + "/30";
 		document.getElementById("new_deck_container").style = "min-height:1224px";;
 		document.getElementById("new_deck_container").innerHTML = null;
         for (var dcName in this.deck["cards"]) {
