@@ -14,10 +14,20 @@ def manifesto(request):
     return render(request, "manifesto.html", {})
 
 def build_deck(request):
+    deck_id = request.GET.get("deck_id", None)
+    deck = {"cards": {}, "id": None}
+    if deck_id:
+        decks = JsonDB().decks_database()[request.GET.get("username")]["decks"]
+        for d in decks:
+            if d["id"] == int(deck_id):
+                deck = d
+                print(d)
     return render(request, "build_deck.html", 
         {
             "all_cards": json.dumps(JsonDB().all_cards()),
-            "username": ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) 
+            "deck_id": deck_id,
+            "deck": json.dumps(deck),
+            "username": request.GET.get("username", ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) )
         }
     )
 
@@ -29,10 +39,9 @@ def profile(request, username):
         }
     )
 
-def create_deck(request):
+def save_deck(request):
     if request.method == "POST":
         info = json.load(request)
-        print(info)
         username = info["username"]
         deck = info["deck"]
         deck_count = 0

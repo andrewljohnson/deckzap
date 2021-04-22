@@ -43,9 +43,24 @@ class JsonDB:
     def save_to_decks_database(self, username, deck, decks_database):
         if not username in decks_database:
             decks_database[username] = {"decks": [], "next_id": 0}   
-        deck["id"] = decks_database[username]["next_id"]
-        decks_database[username]["next_id"] += 1
-        decks_database[username]["decks"].append(deck)
+        if not "id" in deck or not deck["id"]:
+            deck["id"] = decks_database[username]["next_id"]
+            decks_database[username]["next_id"] += 1
+            decks_database[username]["decks"].append(deck)
+        else:
+            print(f" saving deck id {deck['id']}")
+            found_index = None
+            for d in decks_database[username]["decks"]:
+                if d["id"] == deck["id"]:
+                    found_index = decks_database[username]["decks"].index(d)
+                    print(f"FOUND index to replace {found_index}")
+            try:
+                decks_database[username]["decks"][found_index] = deck
+            except:
+                deck["id"] = decks_database[username]["next_id"]
+                decks_database[username]["next_id"] += 1
+                decks_database[username]["decks"].append(deck)
+                print("user chnaged username's during deck editing, making a deck for new user")
         with open("database/decks_database.json", 'w') as outfile:
             json.dump(decks_database, outfile)
 

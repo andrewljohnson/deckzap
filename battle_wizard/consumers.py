@@ -18,7 +18,7 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.game_type = self.scope['url_route']['kwargs']['game_type']
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
-        self.db_name = f"standard-{self.game_type}-{self.room_name}"
+        self.db_name = f"standard-{self.ai_type}-{self.game_type}-{self.room_name}"
         self.moves = []
 
         self.decks = [[], []]

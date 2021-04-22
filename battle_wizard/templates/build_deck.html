@@ -4,8 +4,9 @@
 {% block javascript %}
 <script src = "{% static 'js/deckbuilder.js' %}"></script>
 <script type="text/javascript">
-	var deckBuilder = new DeckBuilder();
+	var deckBuilder = new DeckBuilder(document.getElementById("data_store").getAttribute("deck"));
     deckBuilder.loadAllCards();
+    deckBuilder.redisplayDeck();
 </script>
 {% endblock javascript %}
 
@@ -17,17 +18,16 @@
   		<a onclick=deckBuilder.save() id=save_button>Save</a>
   	</span>
   </h1>
-  <label for=username>Your Username:</label><br /> 
-  <input name=username id=username value={% if request.GET.username %}{{request.GET.username}}{% else %}{{username}}{% endif %}></input>
 
   <div id=two_columns>
   	<div id=left_column class=column>
+      <label for=username>Your Username:</label><br /> 
+      <input name=username id=username value={{username}}></input>
   		<h2>Available Cards</h2>  		
   		<div id=all_cards_container></div>
   	</div>
   	<div id=right_column class=column>
-  		<h2 style="display:flex;justify-content: space-between;"><a onclick=deckBuilder.loadDeck()>Load Deck</a></h2>
-  		<div id=new_deck_container style="padding:50px;padding-top:200px;text-align:center;font-size:16px;color:white;font-weight:bold">
+  		<div id=new_deck_container style="padding:50px;padding-top:200px;text-align:center;font-size:16px;color:white;font-weight:bold;height:974px">
   			Click cards on the left to add them to your deck. Decks must be 30 cards, no more than 2 of any card.
   		</div>
   	</div>
@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<div id="data_store" csrf_token='{% csrf_token %}' all_cards='{{all_cards}}'></div>
+<div id="data_store" csrf_token='{% csrf_token %}' deck='{{deck}}' all_cards='{{all_cards}}'></div>
 <link rel="stylesheet" href="/static/css/nongame.css">
 
 <style>
@@ -65,9 +65,13 @@
 	#right_column {
 		margin-left:20px;
 	}
+  #all_cards_container {
+    max-height: 1094px;
+    overflow: scroll;
+  }
 	#all_cards_container, #new_deck_container {
 		background-color: blue;
-		height:100%;
+    min-height: 1000px;
 	}
 
 	#save_button {

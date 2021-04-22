@@ -13,8 +13,10 @@ class Game:
         # there is also a test_stacked_deck variant for tests
         self.game_type = game_type
 
-        self.ai_type = ai_type
+        self.ai_type = info["ai_type"] if info and "ai_type" in info else ai_type
+        print(f"ai type during Game inti is self.ai_type {self.ai_type} ai_type {ai_type}")
         self.ai = ai
+        print(f"ai during Game inti is self.ai {self.ai}")
 
         # support 2 players
         self.players = [Player(self, u) for u in info["players"]] if info else []
@@ -42,6 +44,7 @@ class Game:
             "starting_effects": self.starting_effects, 
             "decks_to_set": self.decks_to_set, 
             "db_name": self.db_name, 
+            "ai_type": self.ai_type, 
         }
 
     @staticmethod
@@ -289,14 +292,16 @@ class Game:
         join_occured = True
         if len(self.players) == 0:
             self.players.append(Player(self, {"username":message["username"]}, new=True))            
+            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
             if self.ai_type == "pvai":
                 message["log_lines"].append(f"{self.ai} joined the game.")
                 self.players.append(Player(self, {"username":self.ai}, new=True, bot=self.ai))
-            join_occured = True
+                self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
             self.players.append(Player(self, {"username":message["username"]}, new=True))
+            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
         elif len(self.players) >= 2:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
@@ -309,11 +314,6 @@ class Game:
                     if "card_counts" in player_db[p.username]:
                         self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
         
-        if self.game_type == "constructed" and join_occured:
-            print(f"self.players len is {len(self.players)} and deck_id is {message['deck_id']}")
-        if self.game_type == "constructed" and join_occured:
-            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
-
         if len(self.players) == 2 and join_occured and self.game_type in ["ingame", "test_stacked_deck", "constructed"]:
             self.start_game(message, self.game_type)
         return message
@@ -434,13 +434,13 @@ class Game:
 
     def start_constructed_game(self, message):
         print("start_constructed_game")
+        print(f"{self.players[0].username} {self.players[0].deck_id}")
+        print(f"{self.players[1].username} {self.players[1].deck_id}")
         if self.players[0].max_mana == 0: 
             for x in range(0, 2):
                 decks_db = JsonDB().decks_database()
                 decks = decks_db[self.players[x].username]["decks"] if self.players[x].username in decks_db else []
                 deck_to_use = None
-                print(self.players[0].deck_id)
-                print(self.players[1].deck_id)
                 print(decks)
                 for d in decks:
                     print(d)
