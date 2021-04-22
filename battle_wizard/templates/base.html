@@ -15,15 +15,17 @@
 	{% block content %}
 	{% endblock content %}
 	<div id=footer>
-		<div style="margin-left:5px;margin-top:60px;">
+		<div style="margin-top:60px;">
 			<ul>
-				{% if request.path != '/' or request.GET.username %}
+				{% if request.path != '/'%}
 					<li><a href=/{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Home</a></li>
-					<li><a href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Games</a></li>
+					<li><a href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a></li>
 					<li><a href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a></li>
+				{% endif %}
+				{% if request.path != '/' or request.GET.username %}
 					<li><a href=/manifesto{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Manifesto</a></li>
 					<li><a href=https://discord.gg/eMrHZCTVN9 target=_new>Discord</a></li>
-					{% if request.GET.username %}<li><a href=/u/{{request.GET.username}}?username={{request.GET.username}}>Profile</a></li>{% endif %}
+					{% if request.GET.username %}<li><b><a style="color:white;" href=/u/{{request.GET.username}}?username={{request.GET.username}}>Profile</a></b></li>{% endif %}
 				{% endif %}
 			</ul>
 		</div>
@@ -43,7 +45,7 @@
 
 		#footer li a {
 		  display: block;
-		  color: white;
+		  color: lightgray;
 		  text-align: center;
 		  padding: 16px;
 		}
