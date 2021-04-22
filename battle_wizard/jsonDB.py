@@ -32,6 +32,23 @@ class JsonDB:
         with open("database/custom_game_database.json", 'w') as outfile:
             json.dump(custom_game_database, outfile)
 
+    def decks_database(self):
+        try:
+            json_data = open("database/decks_database.json")
+            decks_database = json.load(json_data) 
+        except:
+            decks_database = {}
+        return decks_database
+
+    def save_to_decks_database(self, username, deck, decks_database):
+        if not username in decks_database:
+            decks_database[username] = {"decks": [], "next_id": 0}   
+        deck["id"] = decks_database[username]["next_id"]
+        decks_database[username]["next_id"] += 1
+        decks_database[username]["decks"].append(deck)
+        with open("database/decks_database.json", 'w') as outfile:
+            json.dump(decks_database, outfile)
+
     def queue_database(self):
         try:
             json_data = open("database/queue_database.json")
@@ -40,7 +57,7 @@ class JsonDB:
             queue_database = {"pvai": {},
                               "pvp": {}
             }
-            game_types = "choose_race_prebuilt", "choose_race", "pregame", "ingame"
+            game_types = "choose_race_prebuilt", "choose_race", "pregame", "ingame", "constructed"
             for gt in game_types:
                 queue_database["pvai"][gt] = {"starting_id":0} 
                 queue_database["pvp"][gt] = {"open_games":[], "starting_id":0}
@@ -62,19 +79,21 @@ class JsonDB:
         return self.room_code_for_type(cg["ai_type"], game_type, queue_database)
 
     def room_code_for_type(self, ai_type, game_type, queue_database):
+        is_new_room = True
         if ai_type == "pvai":
             room_code = queue_database[ai_type][game_type]["starting_id"]
             queue_database[ai_type][game_type]["starting_id"] += 1
         elif ai_type == "pvp":
             if len(queue_database[ai_type][game_type]["open_games"]) > 0:
                 room_code = queue_database[ai_type][game_type]["open_games"].pop()
+                is_new_room = False
             else:
                 room_code = queue_database[ai_type][game_type]["starting_id"]
                 queue_database[ai_type][game_type]["starting_id"] += 1
                 queue_database[ai_type][game_type]["open_games"].append(room_code)
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
-        return room_code
+        return room_code, is_new_room
 
     def remove_from_queue_database(self, game_type, room_code, queue_database):
         if room_code in queue_database["pvp"][game_type]["open_games"]:

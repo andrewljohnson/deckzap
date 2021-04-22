@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="wrapper" style="max-width:1024px">
+  <h1>{{username}}</h1>
+  {% for deck in decks %}
+	    <h3 style="margin-bottom:5px">Deck {{deck.id}}: <a href="/play/pvp/constructed?username={{username}}&deck_id={{deck.id}}">Find Match</a> - <a href>Play vs. Aggrobot</a> - <a href>Play vs. RandomBot</a> - <a href>Edit</a></h3>
+	    {% for card_name, count in deck.cards.items %}
+	     {{card_name}} {{count}} |
+	    {% endfor %}
+	    <hr>
+  {% endfor %}
+</div>
+
+<style>
+	li {
+		list-style: none;
+		list-style-image: none;
+	}
+</style>
+
+<link rel="stylesheet" href="/static/css/nongame.css">
+
+{% endblock content %}

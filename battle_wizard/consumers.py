@@ -14,12 +14,14 @@ class BattleWizardConsumer(WebsocketConsumer):
 
     def connect(self):
         self.ai_type = self.scope['url_route']['kwargs']['ai_type']
-        self.ai_strategy = "face_bot"
+        self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
         self.game_type = self.scope['url_route']['kwargs']['game_type']
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
         self.db_name = f"standard-{self.game_type}-{self.room_name}"
         self.moves = []
+
+        self.decks = [[], []]
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
@@ -36,7 +38,10 @@ class BattleWizardConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
-        self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name))        
+        if self.game_type == "constructed":
+            self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name), ai=self.ai, player_decks=self.decks)        
+        else:
+            self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name), ai=self.ai)        
         message = json.loads(text_data)
 
         if message["move_type"] == 'NEXT_ROOM':
@@ -57,11 +62,11 @@ class BattleWizardConsumer(WebsocketConsumer):
         # todo don't reference AI by index 1
         while True:
             moves = self.game.legal_moves_for_ai(self.game.players[1])
-            if self.ai_strategy == "random":
+            if self.ai == "random_bot":
                 chosen_move = random.choice(moves)
                 while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
                     chosen_move = random.choice(moves) 
-            elif self.ai_strategy == "face_bot":
+            elif self.ai == "aggro_bot":
                 chosen_move = random.choice(moves)
                 while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
                     chosen_move = random.choice(moves) 
@@ -104,7 +109,7 @@ class BattleWizardConsumer(WebsocketConsumer):
                     if move["move_type"] == "SELECT_OPPONENT":
                         chosen_move = move
             else:
-                print(f"Unknown AI strategy: {self.ai_strategy}")
+                print(f"Unknown AI bot: {self.ai}")
             chosen_move["log_lines"] = []
             message = self.game.play_move(chosen_move)    
             self.send_game_message(self.game.as_dict(), message)

@@ -4,19 +4,53 @@ import string
 
 from battle_wizard.jsonDB import JsonDB
 from django.shortcuts import render, redirect
-from django.http import Http404
+from django.http import Http404, JsonResponse
 
+
+def index(request):
+    return render(request, "index.html", {})
 
 def manifesto(request):
     return render(request, "manifesto.html", {})
 
-def index(request):
+def build_deck(request):
+    return render(request, "build_deck.html", 
+        {
+            "all_cards": json.dumps(JsonDB().all_cards()),
+            "username": ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) 
+        }
+    )
+
+def profile(request, username):
+    return render(request, "profile.html", 
+        {
+            "decks": JsonDB().decks_database()[username]["decks"] if username in JsonDB().decks_database() else [],
+            "username": username 
+        }
+    )
+
+def create_deck(request):
     if request.method == "POST":
-        if 'Play Games' == request.POST.get('menu'):
-            return redirect("/games")
-        else:
-            return redirect("/create")
-    return render(request, "index.html", {})
+        info = json.load(request)
+        print(info)
+        username = info["username"]
+        deck = info["deck"]
+        deck_count = 0
+        for key in deck["cards"]:
+            deck_count += deck["cards"][key]
+        if not username or len(username) == 0:
+            error_message = "username required"
+            return JsonResponse({"error": error_message})
+        elif deck_count < 2:
+            error_message = "can't build a deck that doesn't have 30 cards"
+            print(error_message)
+            return JsonResponse({"error": error_message})
+        else: 
+            decks_db = JsonDB().decks_database()
+            JsonDB().save_to_decks_database(username, deck, decks_db)
+            return JsonResponse({})
+    else:
+        return JsonResponse({"error": "Unsupported request type"})
 
 def games(request):
     queue_database = JsonDB().queue_database()
@@ -50,15 +84,19 @@ def create(request):
         return render(request, "create.html", context)
 
 def find_game(request, ai_type, game_type):
-    room_code = JsonDB().join_game_in_queue_database(ai_type, game_type, JsonDB().queue_database())
-    username = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) 
-    return redirect(
-            '/play/%s/%s/%s?&username=%s' 
-            %(ai_type, game_type, room_code, username)
-    )
+    room_code, is_new_room = JsonDB().join_game_in_queue_database(ai_type, game_type, JsonDB().queue_database())
+    username = request.GET.get("username", ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) )
+    url = f"/play/{ai_type}/{game_type}/{room_code}?username={username}"
+    deck_id = request.GET.get("deck_id", None)
+    ai = request.GET.get("ai")
+    if deck_id:
+        url+= f"&deck_id={deck_id}"
+    if ai:
+        url+= f"&ai={ai}"
+    return redirect(url)
 
 def find_custom_game(request, game_id):
-    room_code = JsonDB().join_custom_game_in_queue_database(game_id, JsonDB().queue_database())
+    room_code, is_new_room = JsonDB().join_custom_game_in_queue_database(game_id, JsonDB().queue_database())
     username = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) 
     return redirect(
             '/play/custom/%s/%s?&username=%s' 
@@ -69,17 +107,37 @@ def play_game(request, ai_type, game_type, room_code):
     room_code_int = int(room_code)
     queue_database = JsonDB().queue_database()
     last_room = request.GET.get("new_game_from_button")
-    if last_room:
-        return redirect(f"/play/{ai_type}/{game_type}")
+    username = request.GET.get("username", None)
+    ai = request.GET.get("ai") if request.GET.get("ai") and len(request.GET.get("ai")) else None
+    deck_id = request.GET.get("deck_id", None)
+
+    get_params = ""
+    added_one = False 
+    for param in [["username", username], ["ai", ai], ["deck_id", deck_id]]:
+        if param[1]:
+            if added_one:
+                get_params += "&"
+            else:
+                get_params += "?"
+            get_params += param[0]
+            get_params += "="
+            get_params += param[1]
+            added_one = True
+
+    if last_room and ai:
+        return redirect(f"/play/{ai_type}/{game_type}{get_params}")    
 
     context = {
         "username": request.GET.get("username"), 
+        "ai": request.GET.get("ai"), 
         "room_code": room_code,
         "ai_type": ai_type,
         "game_type": game_type,
+        "deck_id": deck_id,
         "is_custom": False,
         "all_cards": json.dumps(JsonDB().all_cards())
     }
+
     return render(request, "game.html", context)
 
 
@@ -87,13 +145,16 @@ def play_custom_game(request, game_id, room_code):
     cgd = JsonDB().custom_game_database()
     game_type = None
     ai_type = None
+    ai = None
     for game in cgd["games"]:
         if game["id"] == int(game_id):
             game_type = game["game_type"]
             ai_type = game["ai_type"]
+            ai = game["ai"]
 
     context = {
         "username": request.GET.get("username"), 
+        "ai": ai, 
         "room_code": room_code,
         "game_type": game_type,
         "ai_type": ai_type,

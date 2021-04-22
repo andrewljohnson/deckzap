@@ -7,13 +7,15 @@ from battle_wizard.jsonDB import JsonDB
 
 
 class Game:
-    def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None):
+    def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None):
 
         # can be ingame, pregame, or choose_race
         # there is also a test_stacked_deck variant for tests
         self.game_type = game_type
 
         self.ai_type = ai_type
+        self.ai = ai
+
         # support 2 players
         self.players = [Player(self, u) for u in info["players"]] if info else []
         # player 0 always acts on even turns, player 1 acts on odd turns
@@ -60,11 +62,11 @@ class Game:
             Returns a list of possible moves for an AI player.
         """
         if len(self.players) < 2:
-            return [{"move_type": "JOIN", "username": "random_bot"}]
+            return [{"move_type": "JOIN", "username": self.ai}]
         if not player.race and self.game_type in ["choose_race", "choose_race_prebuilt"]:
             return [
-                {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "elf"},
-                {"move_type": "CHOOSE_RACE", "username": "random_bot", "race": "genie"},
+                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "elf"},
+                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "genie"},
             ]
 
         moves = []
@@ -74,7 +76,7 @@ class Game:
             moves = self.add_resolve_make_moves(player, moves)
         else:
             moves = self.add_attack_and_play_card_moves(moves)
-        moves.append({"move_type": "END_TURN", "username": "random_bot"})
+        moves.append({"move_type": "END_TURN", "username": self.ai})
 
         return moves
 
@@ -89,43 +91,43 @@ class Game:
                 moves.append({
                         "card":player.entity_with_effect_to_target.id, 
                         "move_type": "RESOLVE_ENTITY_EFFECT", 
-                        "username": "random_bot",
+                        "username": self.ai,
                         "effect_targets": effect_targets})
         for p in self.players:
             if p.can_be_clicked:
                 effect_targets = {}
                 # todo don't hardcode index
                 effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
-                moves.append({"card":player.entity_with_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": "random_bot", "effect_targets": effect_targets})
+                moves.append({"card":player.entity_with_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": self.ai, "effect_targets": effect_targets})
         return moves 
 
     def add_resolve_make_moves(self, player, moves):
         if player.make_to_resolve[0].card_type == "Effect":
             # todo don't hardcode index
-            moves.append({"card":player.make_to_resolve[0].as_dict() , "move_type": "MAKE_EFFECT", "username": "random_bot"})              
-            moves.append({"card":player.make_to_resolve[1].as_dict() , "move_type": "MAKE_EFFECT", "username": "random_bot"})              
-            moves.append({"card":player.make_to_resolve[2].as_dict() , "move_type": "MAKE_EFFECT", "username": "random_bot"})              
+            moves.append({"card":player.make_to_resolve[0].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
+            moves.append({"card":player.make_to_resolve[1].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
+            moves.append({"card":player.make_to_resolve[2].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
         else:
             # todo don't hardcode index
-            moves.append({"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": "random_bot"})             
-            moves.append({"card_name":player.make_to_resolve[1].name , "move_type": "MAKE_CARD", "username": "random_bot"})             
-            moves.append({"card_name":player.make_to_resolve[2].name , "move_type": "MAKE_CARD", "username": "random_bot"})             
+            moves.append({"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": self.ai})             
+            moves.append({"card_name":player.make_to_resolve[1].name , "move_type": "MAKE_CARD", "username": self.ai})             
+            moves.append({"card_name":player.make_to_resolve[2].name , "move_type": "MAKE_CARD", "username": self.ai})             
         return moves 
 
     def add_attack_and_play_card_moves(self, moves):
         for entity in self.current_player().in_play:
             if entity.can_be_clicked:
-                moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
+                moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": self.ai})
         for entity in self.opponent().in_play:
             if entity.can_be_clicked:
-                moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": "random_bot"})
+                moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": self.ai})
         for card in self.current_player().hand:
             if card.can_be_clicked:
-                moves.append({"card":card.id , "move_type": "SELECT_CARD_IN_HAND", "username": "random_bot"})
+                moves.append({"card":card.id , "move_type": "SELECT_CARD_IN_HAND", "username": self.ai})
         if self.current_player().can_be_clicked:
-            moves.append({"move_type": "SELECT_SELF", "username": "random_bot"})
+            moves.append({"move_type": "SELECT_SELF", "username": self.ai})
         if self.opponent().can_be_clicked:
-            moves.append({"move_type": "SELECT_OPPONENT", "username": "random_bot"})
+            moves.append({"move_type": "SELECT_OPPONENT", "username": self.ai})
         return moves
 
     def play_move(self, message):
@@ -289,8 +291,9 @@ class Game:
             self.players.append(Player(self, {"username":message["username"]}, new=True))            
             message["log_lines"].append(f"{message['username']} created the game.")
             if self.ai_type == "pvai":
-                message["log_lines"].append(f"random_bot joined the game.")
-                self.players.append(Player(self, {"username":"random_bot"}, new=True, bot="random_bot"))
+                message["log_lines"].append(f"{self.ai} joined the game.")
+                self.players.append(Player(self, {"username":self.ai}, new=True, bot=self.ai))
+            join_occured = True
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
             self.players.append(Player(self, {"username":message["username"]}, new=True))
@@ -306,7 +309,12 @@ class Game:
                     if "card_counts" in player_db[p.username]:
                         self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
         
-        if len(self.players) == 2 and join_occured and self.game_type in ["ingame", "test_stacked_deck"]:
+        if self.game_type == "constructed" and join_occured:
+            print(f"self.players len is {len(self.players)} and deck_id is {message['deck_id']}")
+        if self.game_type == "constructed" and join_occured:
+            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
+
+        if len(self.players) == 2 and join_occured and self.game_type in ["ingame", "test_stacked_deck", "constructed"]:
             self.start_game(message, self.game_type)
         return message
 
@@ -345,6 +353,8 @@ class Game:
             self.start_choose_race_prebuilt_game(message)
         elif game_type == "test_stacked_deck":
             self.start_test_stacked_deck_game(message)
+        elif game_type == "constructed":
+            self.start_constructed_game(message)
         else:
             print(f"unknown game type: {game_type}")
 
@@ -416,6 +426,35 @@ class Game:
         if self.players[0].max_mana == 0: 
             for x in range(0, 2):
                 for card_name in self.player_decks[x]:
+                    self.players[x].add_to_deck(card_name, 1)
+                self.players[x].max_mana = 1
+                self.players[x].draw(2)
+
+            self.send_start_first_turn(message)
+
+    def start_constructed_game(self, message):
+        print("start_constructed_game")
+        if self.players[0].max_mana == 0: 
+            for x in range(0, 2):
+                decks_db = JsonDB().decks_database()
+                decks = decks_db[self.players[x].username]["decks"] if self.players[x].username in decks_db else []
+                deck_to_use = None
+                print(self.players[0].deck_id)
+                print(self.players[1].deck_id)
+                print(decks)
+                for d in decks:
+                    print(d)
+                    print(d["id"])
+                    if d["id"] == self.players[x].deck_id:
+                        print("FOUND IT")
+                        deck_to_use = d
+                deck_to_use = deck_to_use if deck_to_use else {"id":0, "cards": {"Make Spell":1, "Make Entity":1}}
+                card_names = []
+                print(deck_to_use)
+                for key in deck_to_use["cards"]:
+                    for _ in range(0, deck_to_use["cards"][key]):
+                        card_names.append(key)
+                for card_name in card_names:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].max_mana = 1
                 self.players[x].draw(2)
@@ -675,6 +714,7 @@ class Player:
     def __init__(self, game, info, new=False, bot=None):
         self.username = info["username"]
         self.race = info["race"] if "race" in info else None
+        self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.bot = bot
 
         JsonDB().add_to_player_database(self.username, JsonDB().player_database())
@@ -705,7 +745,7 @@ class Player:
             self.added_abilities = [CardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
 
     def __repr__(self):
-        return f"{self.username} ({self.race}) - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}"
+        return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}"
 
     def as_dict(self):
         return {
@@ -714,6 +754,7 @@ class Player:
             "hit_points": self.hit_points,
             "mana": self.mana,
             "max_mana": self.max_mana,
+            "deck_id": self.deck_id,
             "hand": [c.as_dict() for c in self.hand],
             "in_play": [c.as_dict() for c in self.in_play],
             "deck": [c.as_dict() for c in self.deck],

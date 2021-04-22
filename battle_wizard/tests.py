@@ -16,7 +16,7 @@ import time
     Counterspell
     Big Counterspell 
     Mind Manacles
-    Maste Time
+    Master Time
 """
 
 class GameObjectTests(TestCase):
@@ -29,7 +29,6 @@ class GameObjectTests(TestCase):
             os.remove(f"database/games/{self.TEST_DB_NAME()}.json")
 
     def TEST_DB_NAME(self):
-        # self.testDBName += "|"
         return self.testDBName
     
     def game_with_two_players(self):
@@ -265,6 +264,9 @@ class GameObjectTests(TestCase):
         os.remove(f"database/games/{dbName}.json")
 
     def test_removed_attacked_after_combat_death(self):
+        """
+            Tests if an entity that dies in combat gets the attacked flag reset properly.
+        """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
         player_decks = [["Stone Elemental"], ["Stone Elemental"]]

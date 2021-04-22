@@ -3,7 +3,7 @@ class GameUX {
     static username = document.getElementById("data_store").getAttribute("username");
     static gameType = document.getElementById("data_store").getAttribute("game_type");
     static aiType = document.getElementById("data_store").getAttribute("ai_type");
-    static allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"));
+    static allCards = JSON.parse(document.getElementById("card_store").getAttribute("all_cards"));
     static oldOpponentHP = 30;
     static oldSelfHP = 30;
 
@@ -714,7 +714,7 @@ class GameUX {
 
     static nextRoom() {
         if (GameRoom.gameSocket.readyState != WebSocket.OPEN) {
-            return window.location.href = GameRoom.nextRoomUrl();
+            window.location.href = GameRoom.nextRoomUrl();
         }
 
         GameRoom.gameSocket.send(JSON.stringify(
@@ -742,7 +742,10 @@ class GameRoom {
             GameRoom.setupSocket();
         }
         if (GameRoom.gameSocket.readyState == WebSocket.OPEN) {
-            GameUX.sendPlayMoveEvent("JOIN", {});
+            const deck_id = document.getElementById("card_store").getAttribute("deck_id");
+            if (deck_id) {
+                GameUX.sendPlayMoveEvent("JOIN", { deck_id });                
+            }
             console.log('WebSockets connection created.');
         } else {
             setTimeout(function () {
@@ -788,7 +791,10 @@ class GameRoom {
         const url = new URL(window.location.href);
         var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
         var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.aiType + '/' + GameUX.gameType + '/' + roomCode + '/';
-
+        const ai = document.getElementById("data_store").getAttribute("ai");
+        if (ai && ai != "None") {
+            connectionString += ai + '/';
+        }
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
         if (isCustom != "False") {
@@ -801,16 +807,24 @@ class GameRoom {
         var url = location.host + location.pathname;
         var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
         var usernameParameter = getSearchParameters()["username"];
-        var endChunk = '/' + roomNumber + "?username=" + usernameParameter + "&new_game_from_button=true";
-        var nextRoomUrl = "/play/" + GameUX.aiType + "/" + GameUX.gameType + endChunk;
+        var nextRoomUrl = "/play/" + GameUX.aiType + "/" + GameUX.gameType + '/' + roomNumber;
+        var getParams =  "?username=" + usernameParameter + "&new_game_from_button=true";
+        const ai = document.getElementById("data_store").getAttribute("ai");
+        if (ai && ai != "None") {
+            getParams += '&ai=' + ai;
+        }
+        const deck_id = document.getElementById("card_store").getAttribute("deck_id");
+        if (deck_id && deck_id != "None") {
+            getParams += '&deck_id=' + deck_id;
+        }
+        nextRoomUrl +=  getParams;
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
         if (isCustom != "False") {
-            nextRoomUrl = "/play/custom/" + customGameId + endChunk;
+            nextRoomUrl = "/play/custom/" + roomNumber+ '/'  + customGameId + getParams;
         }
         return nextRoomUrl;
     }
-
 }
 
 function tdForTitle(title) {

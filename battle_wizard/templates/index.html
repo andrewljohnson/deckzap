@@ -2,27 +2,28 @@
 
 {% block content %}
 <div class="wrapper">
-  <h1>The Uncollectible Card Game Community</h1>
+  <h1>Nothing to Collect, Play Today</h1>
   <p>Wizard battle card games.</p>
   <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
   <p>Free to play, non-collectible.</p>
-  <form method="POST">
-    {% csrf_token %}
-    <input type="submit" class="button" value="Play Games" name="menu" />
-    <input type="submit" class="button" value="Create Game" name="menu"/>
-	</form>
+  <a href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a>
 </div>
 
 <style>
-	input {
+	.wrapper a {
 		background-color: blue;
 		color:white;
 		width:150px;
-		height:60px;
+		height:40px;
 		border: none;
 		border-radius: 4px;
 		font-weight:bold;
 		font-size:18px;
+		text-decoration: none;
+		margin-top: 20px;
+		display: block;
+		text-align: center;
+		padding-top:15px;
 	}
 </style>
 
