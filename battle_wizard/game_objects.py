@@ -437,7 +437,9 @@ class Game:
                 for d in decks:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
-                deck_to_use = deck_to_use if deck_to_use else {"id":0, "cards": {"Make Spell":1, "Make Entity":1}}
+
+                default_deck = {"cards": {"Mana Shrub": 2, "Thought Sprite": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 2, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Fire Elemental": 2, "Siz Pop": 2, "Counterspell": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
+                deck_to_use = deck_to_use if deck_to_use else default_deck
                 card_names = []
                 for key in deck_to_use["cards"]:
                     for _ in range(0, deck_to_use["cards"][key]):
@@ -446,7 +448,7 @@ class Game:
                     self.players[x].add_to_deck(card_name, 1)
                 random.shuffle(self.players[x].deck)
                 self.players[x].max_mana = 1
-                self.players[x].draw(2)
+                self.players[x].draw(5)
 
             self.send_start_first_turn(message)
 
