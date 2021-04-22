@@ -48,19 +48,16 @@ class JsonDB:
             decks_database[username]["next_id"] += 1
             decks_database[username]["decks"].append(deck)
         else:
-            print(f" saving deck id {deck['id']}")
             found_index = None
             for d in decks_database[username]["decks"]:
                 if d["id"] == deck["id"]:
                     found_index = decks_database[username]["decks"].index(d)
-                    print(f"FOUND index to replace {found_index}")
             try:
                 decks_database[username]["decks"][found_index] = deck
             except:
                 deck["id"] = decks_database[username]["next_id"]
                 decks_database[username]["next_id"] += 1
                 decks_database[username]["decks"].append(deck)
-                print("user chnaged username's during deck editing, making a deck for new user")
         with open("database/decks_database.json", 'w') as outfile:
             json.dump(decks_database, outfile)
 

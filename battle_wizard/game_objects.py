@@ -14,9 +14,7 @@ class Game:
         self.game_type = game_type
 
         self.ai_type = info["ai_type"] if info and "ai_type" in info else ai_type
-        print(f"ai type during Game inti is self.ai_type {self.ai_type} ai_type {ai_type}")
         self.ai = ai
-        print(f"ai during Game inti is self.ai {self.ai}")
 
         # support 2 players
         self.players = [Player(self, u) for u in info["players"]] if info else []
@@ -396,11 +394,9 @@ class Game:
             random.shuffle(p.deck)
             p.max_mana = 1
             p.draw(2)
-            print(p.deck)
         self.send_start_first_turn(message)
 
     def start_choose_race_prebuilt_game(self, message):
-        print("start_choose_race_prebuilt_gamestart_choose_race_prebuilt_gamestart_choose_race_prebuilt_game")
         elf_deck = []
         for card in Game.all_cards():
             if card.race == "elf" or not card.race:
@@ -433,29 +429,22 @@ class Game:
             self.send_start_first_turn(message)
 
     def start_constructed_game(self, message):
-        print("start_constructed_game")
-        print(f"{self.players[0].username} {self.players[0].deck_id}")
-        print(f"{self.players[1].username} {self.players[1].deck_id}")
         if self.players[0].max_mana == 0: 
             for x in range(0, 2):
                 decks_db = JsonDB().decks_database()
                 decks = decks_db[self.players[x].username]["decks"] if self.players[x].username in decks_db else []
                 deck_to_use = None
-                print(decks)
                 for d in decks:
-                    print(d)
-                    print(d["id"])
                     if d["id"] == self.players[x].deck_id:
-                        print("FOUND IT")
                         deck_to_use = d
                 deck_to_use = deck_to_use if deck_to_use else {"id":0, "cards": {"Make Spell":1, "Make Entity":1}}
                 card_names = []
-                print(deck_to_use)
                 for key in deck_to_use["cards"]:
                     for _ in range(0, deck_to_use["cards"][key]):
                         card_names.append(key)
                 for card_name in card_names:
                     self.players[x].add_to_deck(card_name, 1)
+                random.shuffle(self.players[x].deck)
                 self.players[x].max_mana = 1
                 self.players[x].draw(2)
 

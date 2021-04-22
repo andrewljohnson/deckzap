@@ -474,7 +474,6 @@ class GameUX {
         tr.appendChild(td);
         table.appendChild(tr);
 
-        console.log(GameUX.allCards)
         for(var c of GameUX.allCards) {
             if (c.card_type == "Spell") {
                 continue;

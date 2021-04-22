@@ -21,7 +21,6 @@ def build_deck(request):
         for d in decks:
             if d["id"] == int(deck_id):
                 deck = d
-                print(d)
     return render(request, "build_deck.html", 
         {
             "all_cards": json.dumps(JsonDB().all_cards()),
