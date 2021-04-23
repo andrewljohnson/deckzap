@@ -706,7 +706,7 @@ class GameUX {
 
     nextRoom() {
         if (this.gameRoom.gameSocket.readyState != WebSocket.OPEN) {
-            window.location.href = this.nextRoomUrl();
+            window.location.href = this.gameRoom.nextRoomUrl();
         }
 
         this.gameRoom.gameSocket.send(JSON.stringify(
