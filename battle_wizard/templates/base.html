@@ -25,7 +25,7 @@
 				{% if request.path != '/' or request.GET.username %}
 					<li><a href=/manifesto{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Manifesto</a></li>
 					<li><a href=https://discord.gg/eMrHZCTVN9 target=_new>Discord</a></li>
-					{% if request.GET.username %}<li><b><a style="color:white;" href=/u/{{request.GET.username}}?username={{request.GET.username}}>Profile</a></b></li>{% endif %}
+					{% if request.GET.username %}<li><b><a style="color:white;" href=/u/{{request.GET.username}}?username={{request.GET.username}}>My Decks</a></b></li>{% endif %}
 				{% endif %}
 			</ul>
 		</div>

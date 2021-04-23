@@ -6,28 +6,9 @@
   <p>Wizard battle card games.</p>
   <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
   <p>Free to play, non-collectible.</p>
-  <a href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a>
-  <a href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a>
+  <a class=button href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a>
+  <a class=button href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a>
 </div>
-
-<style>
-	.wrapper a {
-		background-color: blue;
-		color:white;
-		width:150px;
-		height:40px;
-		border: none;
-		border-radius: 4px;
-		font-weight:bold;
-		font-size:18px;
-		text-decoration: none;
-		margin-top: 20px;
-		margin-right: 20px;
-		display: inline-block;
-		text-align: center;
-		padding-top:15px;
-	}
-</style>
 
 <link rel="stylesheet" href="/static/css/nongame.css">
 
