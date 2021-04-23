@@ -11,8 +11,11 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 * Make a DB in postgres. Update settings.ini to match whatever values you use for DB name, user, and password
 
 `pip intall -r requirements.txt`
+
 `python manage.py makemigrations`
+
 `python manage.py migrate`
+
 `python manage.py runserver`
 
 # Set up on Digital Ocean
