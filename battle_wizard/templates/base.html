@@ -28,6 +28,8 @@
 					{% if request.path != '/' or user.is_authenticated %}
 						<li><a href=/manifesto>Manifesto</a></li>
 						<li><a href=https://discord.gg/eMrHZCTVN9 target=_new>Discord</a></li>					
+						<li><a href=https://deckzap.substack.com/ target=_new>Substack</a></li>					
+
 					{% endif %}
 					{% if user.is_authenticated %}
 						<li><a style="color: #696969" href=/logout>Logout</a></li>
