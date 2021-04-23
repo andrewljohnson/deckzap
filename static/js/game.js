@@ -473,7 +473,7 @@ class GameUX {
         tr.appendChild(tdForTitle("Toughness"));
         tr.appendChild(tdForTitle("Cost"));
         var td = tdForTitle("# In Deck");
-        td.style.color = 'blue';
+        td.style.color = '000080';
         td.style.border = "1px solid black";
         tr.appendChild(td);
         table.appendChild(tr);
@@ -499,7 +499,7 @@ class GameUX {
         tr.appendChild(tdForTitle("Description"));
         tr.appendChild(tdForTitle("Cost"));
         var td = tdForTitle("# In Deck");
-        td.style.color = 'blue';
+        td.style.color = '000080';
         td.style.border = "1px solid black";
         tr.appendChild(td);
         table.appendChild(tr);
@@ -590,7 +590,7 @@ class GameUX {
         var input = document.createElement("input");
         input.id = c.name;
         input.name = "card";
-        input.style.color = 'blue';
+        input.style.color = '000080';
         input.value = 1;
         if (this.usernameOrP1(game) in decks) {
             if (c.name in decks[this.usernameOrP1(game)]) {
@@ -706,7 +706,7 @@ class GameUX {
 
     nextRoom() {
         if (this.gameRoom.gameSocket.readyState != WebSocket.OPEN) {
-            window.location.href = this.nextRoomUrl();
+            window.location.href = this.gameRoom.nextRoomUrl();
         }
 
         this.gameRoom.gameSocket.send(JSON.stringify(

@@ -7,11 +7,8 @@
 {% block content %}
 <div class="wrapper">
   <h1>Nothing to Collect, Play Today</h1>
-  <p>Wizard battle card games.</p>
-  <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
-  <p>Free to play, non-collectible.</p>
-  <a class=button href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a>
-  <a class=button href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a>
+  <p>Wizard battle card games. Free to play, non-collectible. Play versus bots or humans.</p>
+  <a class=button href=/signup>Play Online</a>
 </div>
 
 {% endblock content %}

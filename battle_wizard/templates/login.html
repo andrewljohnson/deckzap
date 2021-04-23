@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="/static/css/nongame.css">
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+<h2>Log In</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Log In</button>
+  </form>
+  <BR />Don't have an account? <a href=/signup>Sign up here</a>.
+</div>
+
+{% endblock content %}
