@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 from decouple import config
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
@@ -21,8 +22,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '@03jdj6%y-88#1=4p(p7xlmerm*jv)8rt5=^t!40@-2+=o3@i2'
+SECRET_KEY = f'{config("SECRET_KEY")}'
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
@@ -73,26 +73,13 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'deckzap.wsgi.application'
-# Channels
-# ASGI_APPLICATION = "deckzap.asgi.application"
 WSGI_APPLICATION = f'{config("PROJECT_NAME")}.wsgi.application'
 ASGI_APPLICATION = f'{config("PROJECT_NAME")}.asgi.application'
-
-
 
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -103,7 +90,6 @@ DATABASES = {
         'PORT': '',
     }
 }
-'''
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

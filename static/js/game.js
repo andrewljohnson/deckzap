@@ -604,36 +604,23 @@ class GameUX {
         label.innerHTML = c.name;
 
         var tr = document.createElement("tr");
+        table.appendChild(tr);
+
         var tdName = document.createElement("td");
         tdName.style.border = "1px solid black";
         tdName.appendChild(label)
         tr.appendChild(tdName);
         if (c.card_type != "Spell") {
-            var tdPower = document.createElement("td");
-            tdPower.innerHTML = c.power;
-            tdPower.style.border = "1px solid black";
-            tr.appendChild(tdPower);            
-
-            var tdToughness = document.createElement("td");
-            tdToughness.innerHTML = c.toughness;
-            tdToughness.style.border = "1px solid black";
-            tr.appendChild(tdToughness);            
+            tr.appendChild(tdForTitle(c.power));            
+            tr.appendChild(tdForTitle(c.toughness));            
         }
 
-        var tdDescription = document.createElement("td");
-        tdDescription.innerHTML = c.description;
-        tdDescription.style.border = "1px solid black";
-        tr.appendChild(tdDescription);                        
-
-        var tdCost = document.createElement("td");
-        tdCost.innerHTML = c.cost;
-        tdCost.style.border = "1px solid black";
-        tr.appendChild(tdCost);            
-
+        tr.appendChild(tdForTitle(c.description));            
+        tr.appendChild(tdForTitle(c.cost));            
         var tdAmount = document.createElement("td");
         tdAmount.appendChild(input)
         tr.appendChild(tdAmount);
-        table.appendChild(tr);
+
     }
 
     showGame() {
