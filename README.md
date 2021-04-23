@@ -10,28 +10,41 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 ## Running locally
 
 * Install Python3, Postgres, and virtualenv.
-* Make a postgres database. Update settings.ini
-* `pip intall -r requirements.txt`
-* `python manage.py runserver`
+* Make a DB in postgres. Update settings.ini to match whatever values you use for DB name, user, and password
+
+`pip intall -r requirements.txt`
+`python manage.py makemigrations`
+`python manage.py migrate`
+`python manage.py runserver`
 
 # Set up on Digital Ocean
 
 The deckzap.com setup is based on: https://github.com/mitchtabian/HOWTO-django-channels-daphne/blob/master/README.md
 
- * had to tweak the nginx config provided to get it to work
+I had to tweak the nginx config recommended to get it to work for me:
 
-## Create Digital Ocean Droplet with SSH login
+    upstream channels-backend {
+        server 0.0.0.0:8001;
+    }
 
-You need a Digital Ocean account:
+    server {
+        server_name 128.199.11.126 deckzap.com www.deckzap.com;
 
-* create a new droplet
- * Ubuntu 20.04
- * SF Region
- * use SSH keys for auth
- * enable backups
+        location = /favicon.ico { access_log off; log_not_found off; }
+        location /static/ {
+            root /home/django/deckzap/src/deckzap/;
+        }
 
-Write down your server ip somewhere. You'll need this for logging into your server.
+         location / {
+            include proxy_params;
+            proxy_pass http://unix:/run/gunicorn.sock;
+        }
 
-## SSH to the Server
-
-`ssh -i PATH_TO_KEY root@IP_YOU_COPIED_EARLIER`
+         location /ws {
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_redirect off;
+            proxy_pass http://channels-backend;
+        }
+    }
