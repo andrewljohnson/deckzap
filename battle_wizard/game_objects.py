@@ -461,6 +461,7 @@ class Game:
     def end_turn(self, message):
         self.remove_temporary_tokens()
         self.remove_temporary_abilities()
+        self.clear_damage_this_turn()
         self.turn += 1
         message["log_lines"].append(f"{self.current_player().username}'s turn.")
         self.current_player().start_turn()
@@ -619,6 +620,7 @@ class Game:
         card.attacked = False
         card.selected = False
         card.damage = 0
+        card.damage_this_turn = 0
         card.turn_played = -1
         card.tokens = []
         # todo: make this generic if we add other added effects
@@ -635,7 +637,9 @@ class Game:
 
     def resolve_combat(self, attacking_card, defending_card):
         attacking_card.damage += defending_card.power_with_tokens()
+        attacking_card.damage_this_turn += defending_card.power_with_tokens()
         defending_card.damage += attacking_card.power_with_tokens()
+        defending_card.damage_this_turn += attacking_card.power_with_tokens()
         if attacking_card.damage >= attacking_card.toughness_with_tokens():
             self.send_card_to_played_pile(attacking_card, self.current_player())
         if defending_card.damage >= defending_card.toughness_with_tokens():
@@ -644,11 +648,16 @@ class Game:
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
             perm_tokens = []
+            oldToughness = c.toughness_with_tokens()
             for t in c.tokens:
                 t.turns -= 1
                 if t.turns != 0:
                     perm_tokens.append(t)
             c.tokens = perm_tokens
+            newToughness = c.toughness_with_tokens()
+            toughness_change_from_tokens = oldToughness - newToughness
+            if toughness_change_from_tokens > 0:
+                c.damage -= min(toughness_change_from_tokens, damage_this_turn)  
 
     def remove_temporary_abilities(self):
         perm_abilities = []
@@ -657,6 +666,10 @@ class Game:
             if a.turns != 0:
                 perm_abilities.append(a)
         self.current_player().added_abilities = perm_abilities
+
+    def clear_damage_this_turn(self):
+        for c in self.current_player().in_play + self.opponent().in_play:
+            c.damage_this_turn = 0
 
     def select_entity_target(self, card_to_target, message, move_type):
         new_message = copy.deepcopy(message)
@@ -907,6 +920,7 @@ class Player:
             target_player = self.game.players[1]
         self.game.remove_temporary_tokens()
         self.game.remove_temporary_abilities()
+        self.game.clear_damage_this_turn()
         self.game.turn += 2
         self.start_turn()
 
@@ -1316,6 +1330,7 @@ class Card:
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.cost = info["cost"]
         self.damage = info["damage"] if "damage" in info else 0
+        self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
         self.card_type = info["card_type"] if "card_type" in info else "Entity"
         self.description = info["description"] if "description" in info else None
@@ -1345,6 +1360,7 @@ class Card:
                  card_type: {self.card_type}\n \
                  effects: {self.effects}\n \
                  damage: {self.damage}\n \
+                 damage_this_turn: {self.damage_this_turn}\n \
                  can_be_clicked: {self.can_be_clicked}\n \
                  id: {self.id}, turn played: {self.turn_played}\n \
                  attacked: {self.attacked}, selected: {self.selected}\n \
@@ -1360,6 +1376,7 @@ class Card:
             "power": self.power,
             "toughness": self.toughness,
             "cost": self.cost,
+            "damage_this_turn": self.damage_this_turn,
             "damage": self.damage,
             "turn_played": self.turn_played,
             "card_type": self.card_type,
