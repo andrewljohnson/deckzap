@@ -7,16 +7,16 @@
   <h2>Mainstream</h2>
   <h3>Player vs. AI</h3>
   <ul>
-    <li>Choose Race, Pre-Built Decks <a href=/play/pvai/choose_race_prebuilt?ai=aggro_bot>Aggro Bot</a> | <a href=/play/pvai/choose_race_prebuilt?ai=random_bot>Random Bot</a></li>
-    <li>Choose Race, In-game Deckbuilder <a href=/play/pvai/choose_race?ai=aggro_bot>Aggro Bot</a> | <a href=/play/pvai/choose_race?ai=random_bot>Random Bot</a></li>
-    <li>In-game Deckbuilder <a href=/play/pvai/ingame?ai=aggro_bot>Aggro Bot</a> | <a href=/play/pvai/ingame?ai=random_bot>Random Bot</a></li>
+    <li>Choose Race, Pre-Built Decks <a href=/play/pvai/choose_race_prebuilt?ai=aggro_bot{% if request.GET.username %}&username={{request.GET.username}}{% endif %}>Aggro Bot</a> | <a href=/play/pvai/choose_race_prebuilt?ai=random_bot{% if request.GET.username %}&username={{request.GET.username}}{% endif %}>Random Bot</a></li>
+    <li>Choose Race, In-game Deckbuilder <a href=/play/pvai/choose_race?ai=aggro_bot{% if request.GET.username %}&username={{request.GET.username}}{% endif %}>Aggro Bot</a> | <a href=/play/pvai/choose_race?ai=random_bot{% if request.GET.username %}&username={{request.GET.username}}{% endif %}>Random Bot</a></li>
+    <li>In-game Deckbuilder <a href=/play/pvai/ingame?ai=aggro_bot{% if request.GET.username %}&username={{request.GET.username}}{% endif %}>Aggro Bot</a> | <a href=/play/pvai/ingame?ai=random_bot{% if request.GET.username %}&username={{request.GET.username}}{% endif %}>Random Bot</a></li>
   </ul>
   <h3>Player vs. Player</h3>
   <ul>
-    <li><a href=/play/pvp/choose_race_prebuilt>Choose Race, Pre-Built Decks (In Queue: {{queue_database.pvp.choose_race_prebuilt.open_games|length}})</a></li>
-    <li><a href=/play/pvp/choose_race>Choose Race, In-game Deckbuilder (In Queue: {{queue_database.pvp.choose_race.open_games|length}})</a></li>
-    <li><a href=/play/pvp/ingame>In-game Deckbuilder (In Queue: {{queue_database.pvp.ingame.open_games|length}})</a></li>
-    <li><a href=/play/pvp/pregame>Pre-game Deckbuilder (In Queue: {{queue_database.pvp.pregame.open_games|length}})</a></li>
+    <li><a href=/play/pvp/choose_race_prebuilt{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Choose Race, Pre-Built Decks (In Queue: {{queue_database.pvp.choose_race_prebuilt.open_games|length}})</a></li>
+    <li><a href=/play/pvp/choose_race{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Choose Race, In-game Deckbuilder (In Queue: {{queue_database.pvp.choose_race.open_games|length}})</a></li>
+    <li><a href=/play/pvp/ingame{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>In-game Deckbuilder (In Queue: {{queue_database.pvp.ingame.open_games|length}})</a></li>
+    <li><a href=/play/pvp/pregame{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Pre-game Deckbuilder with FX Choice (In Queue: {{queue_database.pvp.pregame.open_games|length}})</a></li>
   </ul>
   <!-- h2>Player Built</h2>
   <ul>
