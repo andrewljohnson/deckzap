@@ -1,6 +1,7 @@
 class DeckBuilder {
 
 	constructor(deck) {
+		this.username = document.getElementById("data_store").getAttribute("username");
     	this.deck = JSON.parse(deck);
     	this.allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"));
   	}
@@ -151,18 +152,13 @@ class DeckBuilder {
 	}
 
 	saveDeck() {
-		var usernameDiv = document.getElementById("username");
-		if(!usernameDiv.value.length) {
-			alert("username required");
-			return;
-		}
-		this.postData('/build_deck/save', { username: usernameDiv.value, deck: this.deck })
+		this.postData('/build_deck/save', { username: this.username, deck: this.deck })
 	  	.then(data => {
 	  		if("error" in data) {
 		    	console.log(data); // JSON data parsed by `data.json()` call
 		    	alert("error saving deck");
 	  		} else {
-	  			window.location.href = `/u/${usernameDiv.value}?username=${usernameDiv.value}`
+	  			window.location.href = `/u/${this.username}`
 	  		}
 	  	});
 	}

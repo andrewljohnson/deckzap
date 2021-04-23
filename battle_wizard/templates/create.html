@@ -10,9 +10,6 @@
   <p>Choose deckbuilder type and what cards to use.</p>
   <form method="POST">
     {% csrf_token %}
-    <label for=username>Your Username:</label><br /> 
-    <input name=username id=username></input>
-    <br /><br />
 
     <label for=game_type>Game Deckbuilder Type</label><br /> 
     <input type="radio" id="ingame" name="game_type" value="ingame" checked="checked">

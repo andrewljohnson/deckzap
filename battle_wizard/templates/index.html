@@ -10,8 +10,11 @@
   <p>Wizard battle card games.</p>
   <p>Play the mainstream, or create your own versions of cards and rules for custom games.</p>
   <p>Free to play, non-collectible.</p>
-  <a class=button href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a>
-  <a class=button href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a>
+  
+  <a class=button href=/signup>Play Online</a>
+
+  <!--a class=button href=/games>Play Games</a>
+  <a class=button href=/build_deck>Build Deck</a-->
 </div>
 
 {% endblock content %}

@@ -25,8 +25,6 @@
 
   <div id=two_columns>
   	<div id=left_column class=column>
-      <h2>Your Username:</h2> 
-      <input name=username id=username value={{username}}></input>
   		<h2>Choose Cards (max 2 each)</h2>  		
   		<div id=all_cards_container></div>
   	</div>
@@ -42,7 +40,7 @@
   </div>
 </div>
 
-<div id="data_store" csrf_token='{% csrf_token %}' deck='{{deck}}' all_cards='{{all_cards}}'></div>
+<div id="data_store" csrf_token='{% csrf_token %}' username = {{request.user.username}} deck='{{deck}}' all_cards='{{all_cards}}'></div>
 
 <style>
 	#two_columns {
