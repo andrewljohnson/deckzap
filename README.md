@@ -1,7 +1,5 @@
-# deckzap
-Demo games for a board and card game platform.
-
-http://deckzap.com
+# DeckZap
+This is the code for game engine and website for DeckZap, a pre-alpha uncollectible card game platform: http://deckzap.com
 
 # Run the app locally for development
 
