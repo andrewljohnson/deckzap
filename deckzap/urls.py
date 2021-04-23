@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.views import LoginView
 from django.urls import path
 from battle_wizard.views import build_deck
 from battle_wizard.views import create
@@ -23,6 +24,12 @@ urlpatterns = [
     path('games', games),
     path('create', create),
     path('signup', signup),
+     path('login', 
+        LoginView.as_view(
+            template_name='login.html'
+        ), 
+        name="login"
+    ),
     path('logout', logout),
     path('build_deck', build_deck),
     path('build_deck/save', save_deck),

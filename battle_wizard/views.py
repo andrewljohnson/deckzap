@@ -4,7 +4,7 @@ import string
 
 from battle_wizard.jsonDB import JsonDB
 from battle_wizard.forms import SignUpForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate 
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout as logout_django
@@ -27,7 +27,7 @@ def signup(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
-            return redirect('/games')
+            return redirect(f'/u/{user.username}')
     else:
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})

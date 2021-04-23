@@ -19,7 +19,10 @@
 	<div id=footer>
 		<div style="margin-top:60px;">
 			<ul>
-				{% if request.path != '/signup' %}
+				{% if request.path != '/signup' and request.path != '/login' %}
+					{% if not user.is_authenticated %}
+						<li><a href=/login>Log In</a></li>
+					{% endif %}
 					{% if request.path != '/'%}
 						<li>{% if user.is_authenticated %}<li><b><a style="color:white;" href=/u/{{user.username}}>My Decks</a></b></li>{% else %}<a href=/>Home</a>{% endif %}</li>
 						<li><a href=/games>Play Games</a></li>
@@ -32,7 +35,7 @@
 
 					{% endif %}
 					{% if user.is_authenticated %}
-						<li><a style="color: #696969" href=/logout>Logout</a></li>
+						<li><a style="color: #A9A9A9" href=/logout>Logout</a></li>
 					{% endif %}
 				{% endif %}
 			</ul>
@@ -44,7 +47,7 @@
 		  margin: 0;
 		  padding: 0;
 		  overflow: hidden;
-		  background-color: blue;
+		  background-color: #1167b1;
 		}
 
 		#footer li {
