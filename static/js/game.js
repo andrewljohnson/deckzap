@@ -722,7 +722,7 @@ class GameUX {
             window.location.href = this.nextRoomUrl();
         }
 
-        this.gameSocket.send(JSON.stringify(
+        this.gameRoom.gameSocket.send(JSON.stringify(
             {"move_type": "NEXT_ROOM", "username":this.username}
         ));
     }
@@ -819,7 +819,7 @@ class GameRoom {
         var url = location.host + location.pathname;
         var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
         var usernameParameter = getSearchParameters()["username"];
-        var nextRoomUrl = "/play/" + this.aiType + "/" + this.gameType + '/' + roomNumber;
+        var nextRoomUrl = "/play/" + this.gameUX.aiType + "/" + this.gameUX.gameType + '/' + roomNumber;
         var getParams =  "?username=" + usernameParameter + "&new_game_from_button=true";
         const ai = document.getElementById("data_store").getAttribute("ai");
         if (ai && ai != "None") {

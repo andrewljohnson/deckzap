@@ -4,7 +4,7 @@
 {% block javascript %}
 <script src = "{% static 'js/game.js' %}"></script>
 <script type="text/javascript">
-    var gameRoom = new GameRoom(new GameUX);
+    var gameRoom = new GameRoom(new GameUX());
     gameRoom.connect();
 </script>
 {% endblock javascript %}
