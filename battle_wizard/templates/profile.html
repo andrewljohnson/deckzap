@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block css %}
+<link rel="stylesheet" href="/static/css/nongame.css">
+{% endblock %}
+
 {% block content %}
 <div class="wrapper" style="max-width:1024px">
   <h1>{{username}}</h1>
@@ -23,7 +27,5 @@
 		list-style-image: none;
 	}
 </style>
-
-<link rel="stylesheet" href="/static/css/nongame.css">
 
 {% endblock content %}

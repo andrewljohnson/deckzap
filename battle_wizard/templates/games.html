@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block css %}
+<link rel="stylesheet" href="/static/css/nongame.css">
+{% endblock %}
+
 {% block content %}
 <div class="wrapper">
   <h1>Play a Game</h1>
@@ -50,7 +54,7 @@
     {% endfor %}
   </ul-->
 </div>
-<link rel="stylesheet" href="/static/css/nongame.css">
+
 <style type="text/css">
   td {
     padding-right:10px;

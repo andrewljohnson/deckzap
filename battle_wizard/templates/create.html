@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block css %}
+<link rel="stylesheet" href="/static/css/nongame.css">
+{% endblock %}
+
 {% block content %}
 <div class="wrapper">
   <h1>Create a New DeckZap Game</h1>
@@ -30,5 +34,4 @@
   </form>
   <p class=error>{{error}}</p>
 </div>
-<link rel="stylesheet" href="/static/css/nongame.css">
 {% endblock content %}

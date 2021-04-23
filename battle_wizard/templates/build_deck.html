@@ -10,6 +10,10 @@
 </script>
 {% endblock javascript %}
 
+{% block css %}
+<link rel="stylesheet" href="/static/css/nongame.css">
+{% endblock %}
+
 {% block content %}
 <div class="wrapper" style="max-width:1024px">
     <h1 style="display:flex;justify-content: space-between;">
@@ -39,7 +43,6 @@
 </div>
 
 <div id="data_store" csrf_token='{% csrf_token %}' deck='{{deck}}' all_cards='{{all_cards}}'></div>
-<link rel="stylesheet" href="/static/css/nongame.css">
 
 <style>
 	#two_columns {

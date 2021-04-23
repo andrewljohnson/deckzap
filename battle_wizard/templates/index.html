@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block css %}
+<link rel="stylesheet" href="/static/css/nongame.css">
+{% endblock %}
+
 {% block content %}
 <div class="wrapper">
   <h1>Nothing to Collect, Play Today</h1>
@@ -9,7 +13,5 @@
   <a class=button href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a>
   <a class=button href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a>
 </div>
-
-<link rel="stylesheet" href="/static/css/nongame.css">
 
 {% endblock content %}

@@ -9,6 +9,10 @@
 </script>
 {% endblock javascript %}
 
+{% block css %}
+<link rel="stylesheet" href="/static/css/game.css">
+{% endblock %}
+
 {% block content %}
 
 <div id=room>
@@ -71,6 +75,5 @@
 <div id="card_store" deck_id = {{deck_id}} all_cards = '{{all_cards}}' ></div>
 
 
-<link rel="stylesheet" href="/static/css/game.css">
 
 {% endblock content %}
