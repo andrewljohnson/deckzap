@@ -10,7 +10,7 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 * Install Python3, Postgres, and virtualenv.
 * Make a DB in postgres. Update settings.ini to match whatever values you use for DB name, user, and password
 
-`pip intall -r requirements.txt`
+`pip install -r requirements.txt`
 
 `python manage.py makemigrations`
 
