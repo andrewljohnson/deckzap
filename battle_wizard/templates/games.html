@@ -3,19 +3,8 @@
 {% block content %}
 <div class="wrapper">
   <h1>Play a Game</h1>
-  <p>Choose one of the games to play.</p>
-  <h2>Mainstream</h2>
-  <h3>Deckbuilder</h3>
-  <table>
-    <tr>
-      <td class=title_cell>Build a 30-card deck</td>
-      <td>
-        {% if request.GET.username %}<a class=button href=/u/{{request.GET.username}}?username={{request.GET.username}}>My Decks</a>{% else %}<a class=button href=/build_deck>Build Deck</a>{% endif %}
-      </td>
-      <td></td>
-    </tr>
-  </table> 
-  <h3>Non-Deckbuilding</h3>
+  <p>Play a game vs. a bot, or invite a friend to join the queue with you.</p>
+  <h2>Non-Deckbuilding</h2>
   <table>
     <tr>
       <td class=title_cell>Choose Race, Pre-Built Decks</td>
@@ -36,6 +25,16 @@
       <td><a class="button twoline" href=/play/pvp/ingame{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Human <br/>(In Queue: {{queue_database.pvp.ingame.open_games|length}})</a></td>
     </tr>
   </table>
+  <h2>Deckbuilder</h2>
+  <table>
+    <tr>
+      <td class=title_cell>Build a 30-card deck</td>
+      <td>
+        {% if request.GET.username %}<a class=button href=/u/{{request.GET.username}}?username={{request.GET.username}}>My Decks</a>{% else %}<a class=button href=/build_deck>Build Deck</a>{% endif %}
+      </td>
+      <td></td>
+    </tr>
+  </table> 
 
     <!-- tr>
       <td>Pre-game Deckbuilder with FX Choice</td>

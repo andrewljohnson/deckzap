@@ -198,6 +198,9 @@ class Game:
         self.current_player().can_be_clicked = False
 
     def set_clickables(self):
+        """
+            highlight selectable cards for possible attacks/spells
+        """
         if len(self.players) != 2:
             return
 
@@ -261,7 +264,6 @@ class Game:
             card.can_be_clicked = True
         self.opponent().can_be_clicked = True
         self.current_player().can_be_clicked = True        
-
 
     def set_targets_for_entity_effect(self):
         did_target = False
