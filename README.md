@@ -1,7 +1,7 @@
-# demogames
+# deckzap
 Demo games for a board and card game platform.
 
-http://128.199.11.126:8000/
+http://deckzap.com
 
 # Set up on Digital Ocean
 

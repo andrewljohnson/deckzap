@@ -1,59 +1,63 @@
 class GameUX {
 
-    static username = document.getElementById("data_store").getAttribute("username");
-    static gameType = document.getElementById("data_store").getAttribute("game_type");
-    static oldOpponentHP = 30;
-    static oldSelfHP = 30;
+    constructor() {
+        this.username = document.getElementById("data_store").getAttribute("username");
+        this.gameType = document.getElementById("data_store").getAttribute("game_type");
+        this.aiType = document.getElementById("data_store").getAttribute("ai_type");
+        this.allCards = JSON.parse(document.getElementById("card_store").getAttribute("all_cards"));
+        this.oldOpponentHP = 30;
+        this.oldSelfHP = 30;        
+    }
 
-    static usernameOrP1(game) {
-        if (GameUX.username == game.players[0].username || GameUX.username == game.players[1].username) {
-            return GameUX.username;
+    usernameOrP1(game) {
+        if (this.username == game.players[0].username || this.username == game.players[1].username) {
+            return this.username;
         }
         return game.players[0].username;
     }
 
 
-    static thisPlayer(game) {
+    thisPlayer(game) {
         for(let player of game.players) {
-            if (player.username == GameUX.username) {
+            if (player.username == this.username) {
                 return player
             }
         }
         return game.players[0];
     }
 
-    static opponent(game) {
-        let thisPlayer = GameUX.thisPlayer(game);
+    opponent(game) {
+        let thisPlayer = this.thisPlayer(game);
         if (thisPlayer == game.players[1]) {
             return game.players[0];
         }
         return game.players[1];
     }
 
-    static updateUsername(game) {
-        document.getElementById("username").innerHTML = GameUX.thisPlayer(game).username + " (me)";
+    updateUsername(game) {
+        document.getElementById("username").innerHTML = this.thisPlayer(game).username + " (me)";
     }
 
-    static updateRace(game) {
-        document.getElementById("race").innerHTML = GameUX.thisPlayer(game).race;
+    updateRace(game) {
+        document.getElementById("race").innerHTML = this.thisPlayer(game).race;
     }
 
-    static updateOpponentRace(game) {
-        document.getElementById("opponent_race").innerHTML = GameUX.opponent(game).race;
+    updateOpponentRace(game) {
+        document.getElementById("opponent_race").innerHTML = this.opponent(game).race;
     }
 
-    static updateHitPoints(game) {
-        if(GameUX.thisPlayer(game).hit_points < GameUX.oldSelfHP) {
-            GameUX.oldSelfHP = GameUX.thisPlayer(game).hit_points;
-            GameUX.showDamage(game, GameUX.opponent(game));            
+    updateHitPoints(game) {
+        if(this.thisPlayer(game).hit_points < this.oldSelfHP) {
+            this.oldSelfHP = this.thisPlayer(game).hit_points;
+            this.showDamage(game, this.opponent(game));            
         }
-        document.getElementById("hit_points").innerHTML = GameUX.thisPlayer(game).hit_points + " hp";
+        document.getElementById("hit_points").innerHTML = this.thisPlayer(game).hit_points + " hp";
     }
 
-    static updateMana(game) {
-        document.getElementById("mana").innerHTML = "Mana: " + GameUX.manaString(GameUX.thisPlayer(game).max_mana, GameUX.thisPlayer(game).mana);
+    updateMana(game) {
+        document.getElementById("mana").innerHTML = "Mana: " + this.manaString(this.thisPlayer(game).max_mana, this.thisPlayer(game).mana);
     }
-    static manaString(maxMana, currentMana) {
+    manaString(maxMana, currentMana) {
         var manaString = "";
 
         for (var i=0;i<currentMana;i++) {
@@ -65,36 +69,36 @@ class GameUX {
         return manaString
     }
 
-    static updatePlayerBorder(game) {
-        if (GameUX.thisPlayer(game).can_be_targetted && GameUX.isActivePlayer(game)) {
+    updatePlayerBorder(game) {
+        if (this.thisPlayer(game).can_be_clicked && this.isActivePlayer(game)) {
             document.getElementById("player1").style.border = "4px solid orange";    
         } else {            
             document.getElementById("player1").style.border = "4px solid #765C48";    
         }
     }
 
-    static updateOpponentBorder(game) {
-        if (GameUX.opponent(game).can_be_targetted && GameUX.isActivePlayer(game)) {
+    updateOpponentBorder(game) {
+        if (this.opponent(game).can_be_clicked && this.isActivePlayer(game)) {
             document.getElementById("opponent").style.border = "4px solid orange";    
         } else {            
             document.getElementById("opponent").style.border = "4px solid #765C48";    
         }
     }
 
-    static updateOpponentUsername(game) {
-        GameUX.opponentUsername = GameUX.opponent(game).username;
-        document.getElementById("opponent_username").innerHTML = GameUX.opponent(game).username + " (opponent)";
+    updateOpponentUsername(game) {
+        this.opponentUsername = this.opponent(game).username;
+        document.getElementById("opponent_username").innerHTML = this.opponent(game).username + " (opponent)";
     }
 
-    static updateOpponentHitPoints(game) {
-        if(GameUX.opponent(game).hit_points < GameUX.oldOpponentHP) {
-            GameUX.oldOpponentHP = GameUX.opponent(game).hit_points;
-            GameUX.showDamage(game, GameUX.thisPlayer(game));            
+    updateOpponentHitPoints(game) {
+        if(this.opponent(game).hit_points < this.oldOpponentHP) {
+            this.oldOpponentHP = this.opponent(game).hit_points;
+            this.showDamage(game, this.thisPlayer(game));            
         }
-        document.getElementById("opponent_hit_points").innerHTML = GameUX.opponent(game).hit_points + " hp";
+        document.getElementById("opponent_hit_points").innerHTML = this.opponent(game).hit_points + " hp";
     }
 
-    static updateStartingEffectsForPlayer(player, divId) {
+    updateStartingEffectsForPlayer(player, divId) {
         let div = document.getElementById(divId);
         if (player.starting_effects && player.starting_effects.length > 0) {
             div.innerHTML = "Starting Effects: ";
@@ -106,15 +110,15 @@ class GameUX {
         }
     }
 
-    static updateStartingEffects(game) {
-        GameUX.updateStartingEffectsForPlayer(GameUX.thisPlayer(game), "starting_effects");
+    updateStartingEffects(game) {
+        this.updateStartingEffectsForPlayer(this.thisPlayer(game), "starting_effects");
     }
 
-    static updateOpponentStartingEffects(game) {
-        GameUX.updateStartingEffectsForPlayer(GameUX.opponent(game), "opponent_starting_effects");
+    updateOpponentStartingEffects(game) {
+        this.updateStartingEffectsForPlayer(this.opponent(game), "opponent_starting_effects");
     }
 
-    static updateAddedAbilitiesForPlayer(player, divId) {
+    updateAddedAbilitiesForPlayer(player, divId) {
         let div = document.getElementById(divId);
         if (player.added_abilities.length > 0) {
             div.innerHTML = "Added Abilities: ";
@@ -126,69 +130,69 @@ class GameUX {
         }
     }
 
-    static updateAddedAbilities(game) {
-        GameUX.updateAddedAbilitiesForPlayer(GameUX.thisPlayer(game), "added_abilities");
+    updateAddedAbilities(game) {
+        this.updateAddedAbilitiesForPlayer(this.thisPlayer(game), "added_abilities");
     }
 
-    static updateOpponentAddedAbilities(game) {
-        GameUX.updateAddedAbilitiesForPlayer(GameUX.opponent(game), "opponent_added_abilities");
+    updateOpponentAddedAbilities(game) {
+        this.updateAddedAbilitiesForPlayer(this.opponent(game), "opponent_added_abilities");
     }
 
-    static updateOpponentMana(game) {
-        document.getElementById("opponent_mana").innerHTML = "Mana: " + GameUX.manaString(GameUX.opponent(game).max_mana, GameUX.opponent(game).mana);
+    updateOpponentMana(game) {
+        document.getElementById("opponent_mana").innerHTML = "Mana: " + this.manaString(this.opponent(game).max_mana, this.opponent(game).mana);
     }
 
-    static updateOpponentCardCount(game) {
-        document.getElementById("opponent_card_count").innerHTML = "Hand: " + GameUX.opponent(game).hand.length + " cards";                    
+    updateOpponentCardCount(game) {
+        document.getElementById("opponent_card_count").innerHTML = "Hand: " + this.opponent(game).hand.length + " cards";                    
     }
 
-    static updateDeckCount(game) {
-        document.getElementById("deck_count").innerHTML = "Deck: " + GameUX.thisPlayer(game).deck.length + " cards";                    
+    updateDeckCount(game) {
+        document.getElementById("deck_count").innerHTML = "Deck: " + this.thisPlayer(game).deck.length + " cards";                    
     }
 
-    static updateOpponentDeckCount(game) {
-        document.getElementById("opponent_deck_count").innerHTML = "Deck: " + GameUX.opponent(game).deck.length + " cards";                    
+    updateOpponentDeckCount(game) {
+        document.getElementById("opponent_deck_count").innerHTML = "Deck: " + this.opponent(game).deck.length + " cards";                    
     }
 
-    static updatePlayedPileCount(game) {
-        document.getElementById("played_pile_count").innerHTML = "Played: " + GameUX.thisPlayer(game).played_pile.length + " cards";                    
+    updatePlayedPileCount(game) {
+        document.getElementById("played_pile_count").innerHTML = "Played: " + this.thisPlayer(game).played_pile.length + " cards";                    
     }
 
-    static updateOpponentPlayedPileCount(game) {
-        document.getElementById("opponent_played_pile_count").innerHTML = "Played: " + GameUX.opponent(game).played_pile.length + " cards";                    
+    updateOpponentPlayedPileCount(game) {
+        document.getElementById("opponent_played_pile_count").innerHTML = "Played: " + this.opponent(game).played_pile.length + " cards";                    
     }
 
-    static updateTurnLabel(game) {
+    updateTurnLabel(game) {
         document.getElementById("turn_label").innerHTML = "Turn " + game.turn;                                
     }
 
-    static updateHand(game) {
+    updateHand(game) {
         let handDiv = document.getElementById("hand");
         handDiv.innerHTML = '';
-        for (let card of GameUX.thisPlayer(game).hand) {
-            handDiv.appendChild(GameUX.cardSprite(game, card, GameUX.usernameOrP1(game)));
+        for (let card of this.thisPlayer(game).hand) {
+            handDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
         }
     }
 
-    static updateInPlay(game) {
+    updateInPlay(game) {
         var inPlayDiv = document.getElementById("in_play");
         inPlayDiv.innerHTML = '';
-        for (let card of GameUX.thisPlayer(game).in_play) {
-            inPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.usernameOrP1(game)));
+        for (let card of this.thisPlayer(game).in_play) {
+            inPlayDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
         }        
     }
 
-    static updateOpponentInPlay(game) {
+    updateOpponentInPlay(game) {
         let opponentInPlayDiv = document.getElementById("opponent_in_play");
         opponentInPlayDiv.innerHTML = '';
-        for (let card of GameUX.opponent(game).in_play) {
-            opponentInPlayDiv.appendChild(GameUX.cardSprite(game, card, GameUX.usernameOrP1(game)));
+        for (let card of this.opponent(game).in_play) {
+            opponentInPlayDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
         }
     }
 
-    static showDamage(game, target) {
+    showDamage(game, target) {
         var avatar = "opponent";
-        if (target == GameUX.opponent(game)) {
+        if (target == this.opponent(game)) {
             avatar = "player1";
         }
         document.getElementById(avatar).style.backgroundColor = "red";
@@ -197,12 +201,12 @@ class GameUX {
         }, 400);
     }
 
-    static isActivePlayer(game) {
-        return (game.turn % 2 == 0 && GameUX.usernameOrP1(game) == game.players[0].username
-                || game.turn % 2 == 1 && GameUX.usernameOrP1(game) == game.players[1].username)
+    isActivePlayer(game) {
+        return (game.turn % 2 == 0 && this.usernameOrP1(game) == game.players[0].username
+                || game.turn % 2 == 1 && this.usernameOrP1(game) == game.players[1].username)
     }
 
-    static cardSprite(game, card, username) {
+    cardSprite(game, card, username) {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
@@ -214,11 +218,9 @@ class GameUX {
         } else {
             cardDiv.style.backgroundColor = "#DFBF9F";            
         }
-        if (GameUX.isActivePlayer(game)) {
-            if (card.can_cast || card.can_act) {
+        if (this.isActivePlayer(game)) {
+            if (card.can_be_clicked) {
                 cardDiv.style.border = "3px solid yellow";                
-            } else if (card.can_be_targetted) {
-                cardDiv.style.border = "3px solid orange";                
             } else {
                 cardDiv.style.border = "3px solid #C4A484";                            
             }
@@ -232,7 +234,7 @@ class GameUX {
 
         if (card.card_type != "Effect") {
             let costDiv = document.createElement("div");
-            costDiv.innerHTML = GameUX.manaString(card.cost, card.cost);
+            costDiv.innerHTML = this.manaString(card.cost, card.cost);
             cardDiv.appendChild(costDiv)
         }
 
@@ -278,32 +280,32 @@ class GameUX {
 
 
         }
-
+        var self = this;
         cardDiv.onclick = function() { 
             if (cardDiv.parentElement == document.getElementById("hand")) {  
-                GameUX.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+                self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
             } else { 
-                GameUX.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+                self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
             }
         }
         return cardDiv;
     }
 
-    static selfClick () {
-        GameUX.sendPlayMoveEvent("SELECT_SELF", {});
+    selfClick () {
+        this.sendPlayMoveEvent("SELECT_SELF", {});
     }
 
-    static opponentClick () {
-        GameUX.sendPlayMoveEvent("SELECT_OPPONENT", {});
+    opponentClick () {
+        this.sendPlayMoveEvent("SELECT_OPPONENT", {});
     }
 
-    static viewHelp() {
+    viewHelp() {
         alert("1. Click cards in hand to play them.\n2. To attack, click your entity, then your opponent's.\n3. To attack your opponent's face, double click an entity or click your entity then the opponent.\n4. To cast a spell at your opponent's entity, click your spell, then your opponent's entity.\n5. To cast a spell at your opponent's face, click a spell or click a spell then the opponent.\n6. Entities can't attack the turn they come into play.");
     }
    
-    static enableEndTurnButton(game) {
+    enableEndTurnButton(game) {
         document.getElementById("end-turn-button").style.backgroundColor = "red";
-        if (GameUX.thisPlayer(game).mana == 0) {
+        if (this.thisPlayer(game).mana == 0) {
             document.getElementById("end-turn-button").style.border = "4px black solid";
         } else {            
             document.getElementById("end-turn-button").style.border = "4px red solid";
@@ -312,63 +314,63 @@ class GameUX {
         document.getElementById("end-turn-button").innerHTML = "End Turn";
     }
 
-    static disableEndTurnButton(game) {
+    disableEndTurnButton(game) {
         document.getElementById("end-turn-button").style.border = "4px lightgray solid";
         document.getElementById("end-turn-button").style.backgroundColor = "lightgray";
         document.getElementById("end-turn-button").style.pointerEvents = "none";
         document.getElementById("end-turn-button").innerHTML = "Opponent's Turn";
     }
    
-    static refresh(game) {
-        if (GameUX.opponent(game)) {
-            if (GameUX.isActivePlayer(game)) {
-                GameUX.enableEndTurnButton(game);
+    refresh(game) {
+        if (this.opponent(game)) {
+            if (this.isActivePlayer(game)) {
+                this.enableEndTurnButton(game);
             } else {
-                GameUX.disableEndTurnButton(game);            
+                this.disableEndTurnButton(game);            
             }
-            GameUX.updateTurnLabel(game);
-            GameUX.updateOpponentCardCount(game);
-            GameUX.updateOpponentMana(game);
-            GameUX.updateOpponentHitPoints(game);
-            GameUX.updateOpponentInPlay(game);
-            GameUX.updateOpponentDeckCount(game);
-            GameUX.updateOpponentPlayedPileCount(game);
-            GameUX.updateOpponentBorder(game);
-            GameUX.updateOpponentAddedAbilities(game);
-            GameUX.updateOpponentStartingEffects(game);
-            GameUX.updateOpponentUsername(game);
-            GameUX.updateOpponentRace(game);
+            this.updateTurnLabel(game);
+            this.updateOpponentCardCount(game);
+            this.updateOpponentMana(game);
+            this.updateOpponentHitPoints(game);
+            this.updateOpponentInPlay(game);
+            this.updateOpponentDeckCount(game);
+            this.updateOpponentPlayedPileCount(game);
+            this.updateOpponentBorder(game);
+            this.updateOpponentAddedAbilities(game);
+            this.updateOpponentStartingEffects(game);
+            this.updateOpponentUsername(game);
+            this.updateOpponentRace(game);
         }
-        if (GameUX.thisPlayer(game)) {
-            GameUX.updateMana(game);
-            GameUX.updateHitPoints(game);
-            GameUX.updateInPlay(game);
-            GameUX.updateHand(game);
-            GameUX.updateDeckCount(game);
-            GameUX.updatePlayedPileCount(game);
-            GameUX.updatePlayerBorder(game);
-            GameUX.updateStartingEffects(game);
-            GameUX.updateAddedAbilities(game);
-            GameUX.updateUsername(game);
-            GameUX.updateRace(game);
+        if (this.thisPlayer(game)) {
+            this.updateMana(game);
+            this.updateHitPoints(game);
+            this.updateInPlay(game);
+            this.updateHand(game);
+            this.updateDeckCount(game);
+            this.updatePlayedPileCount(game);
+            this.updatePlayerBorder(game);
+            this.updateStartingEffects(game);
+            this.updateAddedAbilities(game);
+            this.updateUsername(game);
+            this.updateRace(game);
         }
-        if (GameUX.opponent(game) && GameUX.thisPlayer(game)) {
-            if (GameUX.opponent(game).hit_points <= 0 || GameUX.thisPlayer(game).hit_points <= 0) {
+        if (this.opponent(game) && this.thisPlayer(game)) {
+            if (this.opponent(game).hit_points <= 0 || this.thisPlayer(game).hit_points <= 0) {
                 alert("GAME OVER");
             }
         }
         if (game.decks_to_set && game.starting_effects.length < 2) {
-            GameUX.showFXSelectionView(game);
-        } else if ((GameUX.gameType == "choose_race" || GameUX.gameType == "p_vs_ai") && (!game.players[0].race || !game.players[1].race)) {
-            GameUX.showChooseRace(game);
-        } else if (GameUX.thisPlayer(game).make_to_resolve.length) {
-            GameUX.showMakeView(game);
+            this.showFXSelectionView(game);
+        } else if ((this.gameType == "choose_race" || this.gameType == "choose_race_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
+            this.showChooseRace(game);
+        } else if (this.thisPlayer(game).make_to_resolve.length) {
+            this.showMakeView(game);
         } else {
-            GameUX.showGame();
+            this.showGame();
         }                           
     }
     
-    static showChooseRace(game) {
+    showChooseRace(game) {
         var raceSelector = document.getElementById("race_selector");
         if (raceSelector.style.display == "block") {
             return;
@@ -402,6 +404,7 @@ class GameUX {
         tr.appendChild(tdForTitle("Choose 1"));
         tr.appendChild(tdForTitle("Race"));
 
+        var self = this
         for(var o of options) {
             var input = document.createElement("input");
             input.type = "radio";
@@ -409,7 +412,7 @@ class GameUX {
             input.name = "effect";
             input.value = o.id;
             input.onclick = function() { 
-                GameUX.race = this.id;
+                self.race = this.id;
                 document.getElementById("startGameButton").disabled = false;
                 document.getElementById("startGameButton").style.backgroundColor = "green";
             };
@@ -432,23 +435,22 @@ class GameUX {
         button.innerHTML = "Start Game";
         button.disabled = true;
         button.classList = ["light-gray-button"];
+        var self = this;
         button.onclick = function() {
             this.disabled = true;
             button.style.backgroundColor = "lightgray"
             button.innerHTML = "Waiting for Opponent...";
-            GameUX.chooseRace(game, GameUX.race) 
+            self.chooseRace(game, self.race) 
         };
         raceSelector.appendChild(button);
     }
 
-    static showFXSelectionView(game) {
+    showFXSelectionView(game) {
         let decks = game.decks_to_set;
         document.getElementById("fx_selector").innerHTML = "";
         var fxSelector = document.getElementById("fx_selector");
         fxSelector.style.display = "block";
         fxSelector.style.backgroundColor = "white";
-
-        var cards = game.all_cards;
 
         h1 = document.createElement("h1");
         h1.innerHTML = "Change Your Deck"
@@ -466,9 +468,9 @@ class GameUX {
 
         var tr = document.createElement("tr");
         tr.appendChild(tdForTitle("Name"));
+        tr.appendChild(tdForTitle("Description"));
         tr.appendChild(tdForTitle("Power"));
         tr.appendChild(tdForTitle("Toughness"));
-        tr.appendChild(tdForTitle("Description"));
         tr.appendChild(tdForTitle("Cost"));
         var td = tdForTitle("# In Deck");
         td.style.color = 'blue';
@@ -476,11 +478,11 @@ class GameUX {
         tr.appendChild(td);
         table.appendChild(tr);
 
-        for(var c of cards) {
-            if (c.card_type != "Entity") {
+        for(var c of this.allCards) {
+            if (c.card_type == "Spell") {
                 continue;
             }
-            GameUX.addRowToTableForCard(game, c, decks, table);
+            this.addRowToTableForCard(game, c, decks, table);
         }   
 
         table = document.createElement("table");
@@ -502,11 +504,11 @@ class GameUX {
         tr.appendChild(td);
         table.appendChild(tr);
 
-        for(var c of cards) {
+        for(var c of this.allCards) {
             if (c.card_type != "Spell") {
                 continue;
             }
-            GameUX.addRowToTableForCard(game, c, decks, table);
+            this.addRowToTableForCard(game, c, decks, table);
         }   
 
         fxSelector.appendChild(document.createElement("br"));
@@ -544,6 +546,7 @@ class GameUX {
         tr.appendChild(tdForTitle("Choose 1"));
         tr.appendChild(tdForTitle("Effect"));
 
+        var self = this;
         for(var o of options) {
             var input = document.createElement("input");
             input.type = "radio";
@@ -551,7 +554,7 @@ class GameUX {
             input.name = "effect";
             input.value = o.id;
             input.onclick = function() { 
-                GameUX.startingEffectId = this.id;
+                self.startingEffectId = this.id;
                 document.getElementById("startGameButton").disabled = false;
                 document.getElementById("startGameButton").style.backgroundColor = "green";
             };
@@ -578,20 +581,20 @@ class GameUX {
             this.disabled = true;
             button.style.backgroundColor = "lightgray"
             button.innerHTML = "Waiting for Opponent...";
-            GameUX.chooseEffect(game, GameUX.startingEffectId) 
+            self.chooseEffect(game, self.startingEffectId) 
         };
         fxSelector.appendChild(button);
     }
 
-    static addRowToTableForCard(game, c, decks, table) {
+    addRowToTableForCard(game, c, decks, table) {
         var input = document.createElement("input");
         input.id = c.name;
         input.name = "card";
         input.style.color = 'blue';
         input.value = 1;
-        if (GameUX.usernameOrP1(game) in decks) {
-            if (c.name in decks[GameUX.usernameOrP1(game)]) {
-               input.value = decks[GameUX.usernameOrP1(game)][c.name];
+        if (this.usernameOrP1(game) in decks) {
+            if (c.name in decks[this.usernameOrP1(game)]) {
+               input.value = decks[this.usernameOrP1(game)][c.name];
             }
         }
         input.style.width = "50px";
@@ -601,46 +604,33 @@ class GameUX {
         label.innerHTML = c.name;
 
         var tr = document.createElement("tr");
+        table.appendChild(tr);
+
         var tdName = document.createElement("td");
         tdName.style.border = "1px solid black";
         tdName.appendChild(label)
         tr.appendChild(tdName);
-        if (c.card_type == "Entity") {
-            var tdPower = document.createElement("td");
-            tdPower.innerHTML = c.power;
-            tdPower.style.border = "1px solid black";
-            tr.appendChild(tdPower);            
-
-            var tdToughness = document.createElement("td");
-            tdToughness.innerHTML = c.toughness;
-            tdToughness.style.border = "1px solid black";
-            tr.appendChild(tdToughness);            
+        if (c.card_type != "Spell") {
+            tr.appendChild(tdForTitle(c.power));            
+            tr.appendChild(tdForTitle(c.toughness));            
         }
 
-            var tdDescription = document.createElement("td");
-            tdDescription.innerHTML = c.description;
-            tdDescription.style.border = "1px solid black";
-            tr.appendChild(tdDescription);                        
-
-        var tdCost = document.createElement("td");
-        tdCost.innerHTML = c.cost;
-        tdCost.style.border = "1px solid black";
-        tr.appendChild(tdCost);            
-
+        tr.appendChild(tdForTitle(c.description));            
+        tr.appendChild(tdForTitle(c.cost));            
         var tdAmount = document.createElement("td");
         tdAmount.appendChild(input)
         tr.appendChild(tdAmount);
-        table.appendChild(tr);
+
     }
 
-    static showGame() {
+    showGame() {
         document.getElementById("room").style.display = "block";
         document.getElementById("fx_selector").style.display = "none";
         document.getElementById("race_selector").style.display = "none";
         document.getElementById("make_selector").style.display = "none";
     }
 
-    static showMakeView(game) {
+    showMakeView(game) {
         document.getElementById("make_selector").innerHTML = "";
         var makeSelector = document.getElementById("make_selector");
         makeSelector.style.display = "flex";
@@ -653,7 +643,7 @@ class GameUX {
         container.style.backgroundColor = "white";
         makeSelector.appendChild(container);
 
-        var cards = GameUX.thisPlayer(game).make_to_resolve;
+        var cards = this.thisPlayer(game).make_to_resolve;
 
         var h1 = document.createElement("h1");
         h1.innerHTML = "Make a Card"
@@ -665,64 +655,69 @@ class GameUX {
         cardContainerDiv.classList.add("card_container");
         container.appendChild(cardContainerDiv);
 
+        var self = this;
         for (let card of cards) {
-            let cardDiv = GameUX.cardSprite(game, card, GameUX.usernameOrP1(game));
+            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
             cardContainerDiv.appendChild(cardDiv);
             cardDiv.onclick = function() {
                 if (card.starting_effect) {
-                    GameUX.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
+                    self.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
                 } else {
-                    GameUX.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
+                    self.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
                 }
             };
         }
     }
 
-    static addLogLine() {
+    addLogLine() {
         var line = document.createElement('div');
         document.getElementById("game_log_inner").appendChild(line);
         return line;
     }
 
-    static scrollLogToEnd() {
+    scrollLogToEnd() {
         document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
     }
 
-    static endTurn() {
-        GameUX.sendPlayMoveEvent("END_TURN", {});
+    endTurn() {
+        this.sendPlayMoveEvent("END_TURN", {});
     }
 
-    static chooseEffect(game, effect_id) {
+    chooseEffect(game, effect_id) {
         var info = {"id": effect_id, "card_counts":{}};
-        for(var c of game.all_cards) {
+        for(var c of this.allCards) {
             var input = document.getElementById(c.name);
             info["card_counts"][c.name] = input.value
         }
-        GameUX.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
+        this.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
     }
 
-    static chooseRace(game, race) {
-        GameUX.sendPlayMoveEvent("CHOOSE_RACE", {"race": race});
+    chooseRace(game, race) {
+        this.sendPlayMoveEvent("CHOOSE_RACE", {"race": race});
     }
 
-    static logMessage(log_lines) {
+    logMessage(log_lines) {
         for (let text of log_lines) {
-            var line = GameUX.addLogLine();
+            var line = this.addLogLine();
             line.innerHTML = text
         }
-        GameUX.scrollLogToEnd()
+        this.scrollLogToEnd()
     }
 
-    static nextRoom() {
-        GameRoom.gameSocket.send(JSON.stringify(
-            {"move_type": "NEXT_ROOM", "username":GameUX.username}
+    nextRoom() {
+        if (this.gameRoom.gameSocket.readyState != WebSocket.OPEN) {
+            window.location.href = this.nextRoomUrl();
+        }
+
+        this.gameRoom.gameSocket.send(JSON.stringify(
+            {"move_type": "NEXT_ROOM", "username":this.username}
         ));
     }
 
-    static sendPlayMoveEvent(move_type, info) {
+    sendPlayMoveEvent(move_type, info) {
         info["move_type"] = move_type
-        info["username"] = GameUX.username
-        GameRoom.gameSocket.send(JSON.stringify(
+        info["username"] = this.username
+        this.gameRoom.gameSocket.send(JSON.stringify(
             info
         ));                
     }
@@ -732,41 +727,51 @@ class GameUX {
 
 class GameRoom {
 
-    static gameSocket = null;
+    gameSocket = null;
 
-    static connect() {
-        if (GameRoom.gameSocket == null) {
-            GameRoom.setupSocket();
+    constructor(gameUX) {
+        this.gameUX = gameUX;
+        gameUX.gameRoom = this;
+    }
+
+    connect() {
+        if (this.gameSocket == null) {
+            this.setupSocket();
         }
-        if (GameRoom.gameSocket.readyState == WebSocket.OPEN) {
-            GameUX.sendPlayMoveEvent("JOIN", {});
+        if (this.gameSocket.readyState == WebSocket.OPEN) {
+            const deck_id = document.getElementById("card_store").getAttribute("deck_id");
+            if (deck_id) {
+                this.gameUX.sendPlayMoveEvent("JOIN", { deck_id });                
+            }
             console.log('WebSockets connection created.');
         } else {
+            var self = this;
             setTimeout(function () {
-                GameRoom.connect();
+                self.connect();
             }, 100);
         }
     }
 
-    static setupSocket() {
-        GameRoom.gameSocket = new WebSocket(GameRoom.roomSocketUrl());
+    setupSocket() {
+        this.gameSocket = new WebSocket(this.roomSocketUrl());
 
-        GameRoom.gameSocket.onclose = function (e) {
+        var self = this;
+        this.gameSocket.onclose = function (e) {
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
             setTimeout(function () {
-                GameRoom.connect();
+                self.connect();
             }, 1000);
         };
 
-        GameRoom.gameSocket.onmessage = function (e) {
+        this.gameSocket.onmessage = function (e) {
             let data = JSON.parse(e.data)["payload"];
             if (data["move_type"] == "NEXT_ROOM") {
                 var usernameParameter = getSearchParameters()["username"];
                 if (data["username"] == usernameParameter) {
-                   window.location.href = GameRoom.nextRoomUrl();
+                   window.location.href = self.nextRoomUrl();
                 } else {
                     setTimeout(function(){
-                        window.location.href = GameRoom.nextRoomUrl();
+                        window.location.href = self.nextRoomUrl();
                     }, 100); 
                 }
             } else {
@@ -774,18 +779,21 @@ class GameRoom {
                 if (!data["game"]) {
                     console.log(data);                    
                 }
-                GameUX.refresh(game);
-                GameUX.logMessage(data["log_lines"]);
+                self.gameUX.refresh(game);
+                self.gameUX.logMessage(data["log_lines"]);
             }
         };
     }
 
-    static roomSocketUrl() {
+    roomSocketUrl() {
         const roomCode = document.getElementById("data_store").getAttribute("room_code");
         const url = new URL(window.location.href);
         var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-        var connectionString = protocol + window.location.host + '/ws/play/' + GameUX.gameType + '/' + roomCode + '/';
-
+        var connectionString = protocol + window.location.host + '/ws/play/' + this.gameUX.aiType + '/' + this.gameUX.gameType + '/' + roomCode + '/';
+        const ai = document.getElementById("data_store").getAttribute("ai");
+        if (ai && ai != "None") {
+            connectionString += ai + '/';
+        }
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
         if (isCustom != "False") {
@@ -794,19 +802,28 @@ class GameRoom {
         return connectionString;
     }
 
-    static nextRoomUrl() {
+    nextRoomUrl() {
         var url = location.host + location.pathname;
         var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
         var usernameParameter = getSearchParameters()["username"];
-        var nextRoomUrl = "/play/" + GameUX.gameType + '/' + roomNumber + "?username=" + usernameParameter;
+        var nextRoomUrl = "/play/" + this.gameUX.aiType + "/" + this.gameUX.gameType + '/' + roomNumber;
+        var getParams =  "?username=" + usernameParameter + "&new_game_from_button=true";
+        const ai = document.getElementById("data_store").getAttribute("ai");
+        if (ai && ai != "None") {
+            getParams += '&ai=' + ai;
+        }
+        const deck_id = document.getElementById("card_store").getAttribute("deck_id");
+        if (deck_id && deck_id != "None") {
+            getParams += '&deck_id=' + deck_id;
+        }
+        nextRoomUrl +=  getParams;
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
         const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
         if (isCustom != "False") {
-            nextRoomUrl = "/play/custom/" + customGameId + '/' + roomNumber + "?username=" + usernameParameter;
+            nextRoomUrl = "/play/custom/" + roomNumber+ '/'  + customGameId + getParams;
         }
         return nextRoomUrl;
     }
-
 }
 
 function tdForTitle(title) {

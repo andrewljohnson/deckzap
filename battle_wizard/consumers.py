@@ -13,11 +13,15 @@ DEBUG = True
 class BattleWizardConsumer(WebsocketConsumer):
 
     def connect(self):
+        self.ai_type = self.scope['url_route']['kwargs']['ai_type']
+        self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
         self.game_type = self.scope['url_route']['kwargs']['game_type']
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
-        self.db_name = f"standard-{self.game_type}-{self.room_name}"
+        self.db_name = f"standard-{self.ai_type}-{self.game_type}-{self.room_name}"
         self.moves = []
+
+        self.decks = [[], []]
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
@@ -34,7 +38,10 @@ class BattleWizardConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
-        self.game = Game(self, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name))        
+        if self.game_type == "constructed":
+            self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name), ai=self.ai, player_decks=self.decks)        
+        else:
+            self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name), ai=self.ai)        
         message = json.loads(text_data)
 
         if message["move_type"] == 'NEXT_ROOM':
@@ -47,19 +54,64 @@ class BattleWizardConsumer(WebsocketConsumer):
             self.send_game_message(self.game.as_dict(), message)
 
         # run AI if it's the AI's move or if the other player just chose their race
-        if self.game.game_type == "p_vs_ai" and (self.game.current_player() == self.game.players[1] or \
+        if self.ai_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
             (self.game.players[0].race != None and self.game.players[1].race == None)): 
             self.run_ai()
 
     def run_ai(self):
         # todo don't reference AI by index 1
         while True:
-            moves = self.game.legal_moves(self.game.players[1])
-            move = random.choice(moves)
-            while len(moves) > 1 and move["move_type"] == "END_TURN":
-                move = random.choice(moves) 
-            move["log_lines"] = []
-            message = self.game.play_move(move)    
+            moves = self.game.legal_moves_for_ai(self.game.players[1])
+            if self.ai == "random_bot":
+                chosen_move = random.choice(moves)
+                while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
+                    chosen_move = random.choice(moves) 
+            elif self.ai == "aggro_bot":
+                chosen_move = random.choice(moves)
+                while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
+                    chosen_move = random.choice(moves) 
+                for move in moves:
+                    if move["move_type"] == "PLAY_CARD":
+                        being_cast = self.game.get_in_play_for_id(move["card"])
+                        target = self.game.get_in_play_for_id(move["effect_targets"][0].id)
+                        if target in self.game.current_player().in_play: 
+                            if being_cast.name in ["Faerie War Chant", "Faerie's Blessing", "Kill", "Zap", "Stiff Wind", "Siz Pop"]:
+                                chosen_move = move
+                        elif target in self.game.opponent().in_play:
+                            if being_cast.name in ["Unwind"]:
+                                chosen_move = move
+                        else:
+                            print("should never happen") 
+
+                    if move["move_type"] == "PLAY_CARD":
+                        being_cast = self.game.get_in_play_for_id(move["card"])
+                        target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
+                        if target in self.game.current_player().in_play: 
+                            if being_cast.name in ["Faerie War Chant", "Faerie's Blessing", "Kill", "Zap", "Stiff Wind", "Siz Pop"] and target.name not in ["Familiar", "Thought Sprite"]:
+                                chosen_move = move
+
+                    if move["move_type"] == "RESOLVE_ENTITY_EFFECT":
+                        print(move)
+                        coming_into_play = self.game.get_in_play_for_id(move["card"])
+                        target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
+                        if target in self.game.current_player().in_play: 
+                            if coming_into_play.name in ["Training Master"]:
+                                chosen_move = move
+                        elif target in self.game.opponent().in_play:
+                            if coming_into_play.name in ["Lightning Elemental", "Tempest Elemental"]:
+                                chosen_move = move
+                        else:
+                            print("should never happen") 
+                        chosen_move = move
+                    if move["move_type"] == "SELECT_ENTITY":
+                        chosen_move = move
+                for move in moves:
+                    if move["move_type"] == "SELECT_OPPONENT":
+                        chosen_move = move
+            else:
+                print(f"Unknown AI bot: {self.ai}")
+            chosen_move["log_lines"] = []
+            message = self.game.play_move(chosen_move)    
             self.send_game_message(self.game.as_dict(), message)
             if message['move_type'] == "END_TURN" or message['move_type'] == "CHOOSE_RACE" or self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
                 break
@@ -113,6 +165,7 @@ class BattleWizardCustomConsumer(BattleWizardConsumer):
         for game in cgd["games"]:
             if game["id"] == int(self.custom_game_id):
                 self.game_type = game["game_type"]            
+                self.ai_type = game["ai_type"]   
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,

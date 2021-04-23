@@ -257,7 +257,7 @@
 	{
 		"name": "Tame Time",
 		"race": "elf",
-		"cost": 5,
+		"cost": 8,
 		"card_type": "Spell",
 		"description": "Take an extra turn right away.",
 		"effects": [{
@@ -332,7 +332,7 @@
 	{
 		"name": "Entwine",
 		"race": "genie",
-		"cost": 1,
+		"cost": 4,
 		"card_type": "Spell",
 		"description": "Each player shuffles together hand/deck/discard and draws 3 cards.",
 		"effects": [{
@@ -406,7 +406,7 @@
 	{
 		"name": "Lord of the Storm",
 		"race": "genie",
-		"description": "Return all entities to their owners' hands.",
+		"description": "Return all other entities to their owners' hands.",
 		"power": 3,
 		"toughness": 3,
 		"cost": 6,
@@ -452,6 +452,7 @@
 				"tokens": [{
 					"turns": 2,
 					"set_can_act": false
+				}]
 			},
 			{
 				"name": "draw",
@@ -459,7 +460,6 @@
 				"amount": 1
 			}
 		]
-		}]
 	},
 	{
 		"name": "Siz Pop",

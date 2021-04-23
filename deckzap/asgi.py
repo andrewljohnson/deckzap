@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'demogames.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deckzap.settings')
 django.setup()
 from django.core.asgi import get_asgi_application
 from channels.auth import AuthMiddlewareStack
