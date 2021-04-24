@@ -226,7 +226,7 @@ class Game:
             if card.effects[0].target_type == "any":
                 self.set_targets_for_damage_effect()
             elif card.effects[0].target_type == "entity":
-                self.set_targets_for_entity_effect()
+                self.set_targets_for_entity_effect(card.effects[0].target_restrictions)
             elif card.effects[0].target_type == "relic":
                 self.set_targets_for_relic_effect()
             elif card.effects[0].target_type == "opponents_entity":
@@ -261,7 +261,7 @@ class Game:
                     if e.target_type == "any":
                         self.set_targets_for_damage_effect()
                     if e.target_type == "entity":
-                        self.set_targets_for_entity_effect()
+                        self.set_targets_for_entity_effect(e.target_restrictions)
                     if e.target_type == "relic":
                         self.set_targets_for_relic_effect()
                     if e.target_type == "opponents_entity":
@@ -274,7 +274,7 @@ class Game:
                     if e.target_type == "any":
                         self.set_targets_for_damage_effect()
                     if e.target_type == "entity":
-                        self.set_targets_for_entity_effect()
+                        self.set_targets_for_entity_effect(e.target_restrictions)
                     if e.target_type == "relic":
                         self.set_targets_for_relic_effect()
                     if e.target_type == "opponents_entity":
@@ -312,7 +312,19 @@ class Game:
         self.opponent().can_be_clicked = True
         self.current_player().can_be_clicked = True        
 
-    def set_targets_for_entity_effect(self):
+    def set_targets_for_entity_effect(self, target_restrictions):
+        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
+            did_target = False
+            for card in self.opponent().in_play:
+                if card.power >= list(target_restrictions[0].values())[0]:
+                    card.can_be_clicked = True
+                    did_target = True
+            for card in self.current_player().in_play:
+                if card.power >= list(target_restrictions[0].values())[0]:
+                    card.can_be_clicked = True
+                    did_target = True
+            return did_target
+
         did_target = False
         for card in self.opponent().in_play:
             card.can_be_clicked = True
@@ -333,7 +345,7 @@ class Game:
         return did_target
 
     def set_targets_for_opponents_entity_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
+        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "needs_guard":
             set_targets = False
             for e in self.opponent().in_play:
                 if self.opponent().entity_has_guard(e):

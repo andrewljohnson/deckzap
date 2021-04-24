@@ -167,7 +167,7 @@
 		}]
 	},
 	{
-		"name": "Slayer Elf",
+		"name": "Sniper Elf",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 4,
@@ -177,7 +177,21 @@
 		"effects": [{
 			"name": "kill",
 			"target_type": "opponents_entity",
-			"target_restrictions": ["needs_guard"]
+			"target_restrictions": [{"needs_guard": null}]
+		}]
+	},
+	{
+		"name": "Dragonslayer Elf",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 4,
+		"toughness": 2,
+		"cost": 3,
+		"description": "Destroy an entity power 6 or greater.",
+		"effects": [{
+			"name": "kill",
+			"target_type": "entity",
+			"target_restrictions": [{"power": 6}]
 		}]
 	},
 	{
