@@ -3,6 +3,7 @@
 		"name": "Crystal Spyglass",
 		"race": "elf",
 		"card_type": "Relic",
+		"description": "0: View Opponent's hand once on your turn.",
 		"cost": 1,
 		"activated_effects": [{
 			"name": "view_hand",
@@ -10,14 +11,27 @@
 		}]
 	},
 	{
+		"name": "Fountain of Youth",
+		"race": "elf",
+		"card_type": "Relic",
+		"description": "Gain 1 life per card in hand at beginning of your turn, to a maximum of 30 total life.",
+		"cost": 1,
+		"triggered_effects": [{
+			"name": "gain_hp_for_hand",
+			"target_type": "self",
+			"trigger": "start_turn"
+		}]
+	},
+	{
 		"name": "Book of Knowledge",
 		"race": "genie",
 		"card_type": "Relic",
-		"cost": 0,
+		"cost": 3,
+		"description": "✦: Draw a card once on your turn.",
 		"activated_effects": [{
 			"name": "draw",
 			"target_type": "self",
-			"cost": 3,
+			"cost": 1,
 			"amount": 1
 		}]
 	},

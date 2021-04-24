@@ -232,7 +232,7 @@ class GameUX {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
-        cardDiv.style = 'margin-right:2px;cursor: pointer;height:114px;width:71px;border-radius:4px;padding:5px;font-size:12px';
+        cardDiv.style = 'position:relative;margin-right:2px;cursor: pointer;height:114px;width:81px;border-radius:4px;padding:5px;font-size:12px';
         if (card.attacked) {
             cardDiv.style.backgroundColor = "#C4A484";                
         } else if (card.selected) {
@@ -250,21 +250,28 @@ class GameUX {
             cardDiv.style.border = "3px solid #C4A484";                            
         }
 
-        let nameDiv = document.createElement("b");
-        nameDiv.innerHTML = card.name;
-        cardDiv.appendChild(nameDiv)
-
         if (card.card_type != "Effect") {
-            let costDiv = document.createElement("div");
-            costDiv.innerHTML = this.manaString(card.cost, card.cost);
+            let costDiv = document.createElement("b");
+            costDiv.innerHTML = card.cost;
+            costDiv.style.position = 'absolute';
+            costDiv.style.top = '5px';
+            costDiv.style.right = '5px';
             cardDiv.appendChild(costDiv)
         }
+
+        let nameDiv = document.createElement("b");
+        nameDiv.style.display = 'inline-block';
+        nameDiv.style.height = '30px';
+        nameDiv.style.width = '61px';
+        nameDiv.innerHTML = card.name;
+        cardDiv.appendChild(nameDiv)
 
         if (card.description) {
             let descriptionDiv = document.createElement("div");
             descriptionDiv.innerHTML = card.description;
             cardDiv.appendChild(descriptionDiv);
         }
+
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
                 let descriptionDiv = document.createElement("div");
@@ -282,27 +289,33 @@ class GameUX {
         for (let a of card.added_abilities) {
             let abilitiesDiv = document.createElement("div");
             abilitiesDiv.innerHTML = card.added_abilities[0].name;
-            cardDiv.appendChild(abilitiesDiv);
-            
+            cardDiv.appendChild(abilitiesDiv);            
         }
 
         if (card.card_type == "Entity") {
             let cardPower = card.power;
             let cardToughness = card.toughness - card.damage;
-           if (card.tokens) {
-            for (let c of card.tokens) {
-                cardPower += c.power_modifier;
+            if (card.tokens) {
+                for (let c of card.tokens) {
+                    cardPower += c.power_modifier;
+                }
+                for (let c of card.tokens) {
+                    cardToughness += c.toughness_modifier;
+                }
             }
-            for (let c of card.tokens) {
-                cardToughness += c.toughness_modifier;
-            }
-           }
-            let powerToughnessDiv = document.createElement("div");
+            let powerToughnessDiv = document.createElement("em");
             powerToughnessDiv.innerHTML = cardPower + "/" + cardToughness;
+            powerToughnessDiv.style.position = "absolute";
+            powerToughnessDiv.style.bottom = "0px";
             cardDiv.appendChild(powerToughnessDiv);
-
-
+        } else {
+            let typeDiv = document.createElement("em");
+            typeDiv.innerHTML = card.card_type;
+            typeDiv.style.position = "absolute";
+            typeDiv.style.bottom = "0px";
+            cardDiv.appendChild(typeDiv);           
         }
+
         var self = this;
         cardDiv.onclick = function() { 
             if (cardDiv.parentElement == document.getElementById("hand")) {  

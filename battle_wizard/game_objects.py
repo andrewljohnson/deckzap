@@ -1453,8 +1453,12 @@ class Player:
         for card in self.in_play:
             card.attacked = False
             card.selected = False
-        for card in self.relics:
-            card.can_activate_relic = True
+        for r in self.relics:
+            r.can_activate_relic = True
+            for effect in r.triggered_effects:
+                if effect.name == "gain_hp_for_hand":
+                    self.hit_points += len(self.hand)
+                    self.hit_points = min(30, self.hit_points)
 
     def selected_card(self):
         for c in self.hand:
@@ -1555,6 +1559,7 @@ class Card:
         self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
         self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.activated_effects = [CardEffect(e, idx) for idx, e in enumerate(info["activated_effects"])] if "activated_effects" in info else []
+        self.triggered_effects = [CardEffect(e, idx) for idx, e in enumerate(info["triggered_effects"])] if "triggered_effects" in info else []
         self.starting_effect = info["starting_effect"] if "starting_effect" in info else None
         self.attacked = info["attacked"] if "attacked" in info else False
         self.selected = info["selected"] if "selected" in info else False
@@ -1579,6 +1584,7 @@ class Card:
                  card_type: {self.card_type}\n \
                  effects: {self.effects}\n \
                  activated_effects: {self.activated_effects}\n \
+                 triggered_effects: {self.triggered_effects}\n \
                  damage: {self.damage}\n \
                  damage_this_turn: {self.damage_this_turn}\n \
                  can_be_clicked: {self.can_be_clicked}\n \
@@ -1604,6 +1610,7 @@ class Card:
             "added_descriptions": self.added_descriptions,
             "effects": [e.as_dict() for e in self.effects],
             "activated_effects": [e.as_dict() for e in self.activated_effects],
+            "triggered_effects": [e.as_dict() for e in self.triggered_effects],
             "starting_effect": self.starting_effect,
             "attacked": self.attacked,
             "selected": self.selected,
