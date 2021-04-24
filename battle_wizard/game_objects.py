@@ -159,7 +159,7 @@ class Game:
                 return None
         # move sent after initial game config
         if move_type == 'START_FIRST_TURN':
-            self.current_player().start_turn()
+            message = self.current_player().start_turn(message)
         # moves sent by the game UX via buttons and card clicks
         elif move_type == 'END_TURN':
             message = self.end_turn(message)
@@ -230,7 +230,7 @@ class Game:
             elif card.effects[0].target_type == "relic":
                 self.set_targets_for_relic_effect()
             elif card.effects[0].target_type == "opponents_entity":
-                self.set_targets_for_opponents_entity_effect()
+                self.set_targets_for_opponents_entity_effect(card.effects[0].target_restrictions)
             return
 
         selected_entity = None
@@ -265,7 +265,7 @@ class Game:
                     if e.target_type == "relic":
                         self.set_targets_for_relic_effect()
                     if e.target_type == "opponents_entity":
-                        self.set_targets_for_opponents_entity_effect()
+                        self.set_targets_for_opponents_entity_effect(e.target_restrictions)
         elif selected_relic:
             if not selected_relic.needs_activated_effect_targets():
                 selected_relic.can_be_clicked = True 
@@ -278,7 +278,7 @@ class Game:
                     if e.target_type == "relic":
                         self.set_targets_for_relic_effect()
                     if e.target_type == "opponents_entity":
-                        self.set_targets_for_opponents_entity_effect()
+                        self.set_targets_for_opponents_entity_effect(e.target_restrictions)
         elif not selected_card and not selected_entity and not selected_relic:
             for card in self.current_player().relics:
                 if card.can_activate_relic:
@@ -297,7 +297,7 @@ class Game:
                     card.can_be_clicked = True
                     if card.needs_card_being_cast_target():
                         card.can_be_clicked = False
-                    if card.needs_entity_target():
+                    if card.card_type == "Spell" and card.needs_entity_target():
                         card.can_be_clicked = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
                     if card.card_type == "Entity" and not self.current_player().can_summon():
                         card.can_be_clicked = False
@@ -332,7 +332,15 @@ class Game:
             did_target = True
         return did_target
 
-    def set_targets_for_opponents_entity_effect(self):
+    def set_targets_for_opponents_entity_effect(self, target_restrictions):
+        if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
+            set_targets = False
+            for e in self.opponent().in_play:
+                if self.opponent().entity_has_guard(e):
+                    set_targets = True
+                    e.can_be_clicked = True
+            return set_targets
+
         set_targets = False
         for card in self.opponent().in_play:
             card.can_be_clicked = True
@@ -342,7 +350,13 @@ class Game:
     def has_targets_for_entity_effect(self):
         return len(self.opponent().in_play) > 0 or len(self.current_player().in_play) > 0
 
-    def has_targets_for_opponents_entity_effect(self):
+    def has_targets_for_opponents_entity_effect(self, target_restrictions):
+        print(f"DOING has_targets_for_opponents_entity_effect {target_restrictions}")
+        if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
+            for e in self.opponent().in_play:
+                if self.opponent().entity_has_guard(e):
+                    return True
+            return False
         return len(self.opponent().in_play) > 0
 
     def hide_revealed_cards(self, message):
@@ -527,7 +541,7 @@ class Game:
         self.clear_damage_this_turn()
         self.turn += 1
         message["log_lines"].append(f"{self.current_player().username}'s turn.")
-        self.current_player().start_turn()
+        message = self.current_player().start_turn(message)
         return message
 
     def select_card_in_hand(self, message):
@@ -713,16 +727,16 @@ class Game:
         relic.selected = False
         if "defending_card" in message:
             defending_card, _  = self.get_in_play_for_id(message["defending_card"])
-            message["log_lines"].append(f"{relic.name} relics {defending_card.name}")
+            message["log_lines"].append(f"{self.current_player().username} uses {relic.name} on {defending_card.name}")
             effect_targets = {}
             e = relic.activated_effects[0]
             effect_targets[e.id] = {"id": defending_card.id, "target_type":e.target_type};
             message = self.current_player().do_card_effect(relic, e, message, effect_targets)
         else:
             if relic.activated_effects[0].target_type == "self":
-                message["log_lines"].append(f"{relic.name} relics {self.current_player().username}.")
+                message["log_lines"].append(f"{self.current_player().username} uses {relic.name}")
             elif relic.activated_effects[0].target_type == "opponent":
-                message["log_lines"].append(f"{relic.name} relics {self.opponent().username}.")
+                message["log_lines"].append(f"{self.current_player().username} uses {relic.name} on {self.opponent().username}.")
             effect_targets = {}
             message["effect_targets"] = effect_targets
             e = relic.activated_effects[0]
@@ -1006,8 +1020,8 @@ class Player:
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
         elif e.name == "take_extra_turn":
-            self.do_take_extra_turn_effect_on_player(effect_targets[e.id]["id"])
             message["log_lines"].append(f"{self.username} takes an extra turn.")
+            message = self.do_take_extra_turn_effect_on_player(effect_targets[e.id]["id"], message)
         elif e.name == "summon_from_deck":
             if e.target_type == "self":
                 message["log_lines"].append(f"{self.username} summons something from their deck.")
@@ -1123,7 +1137,7 @@ class Player:
             target_player = self.game.players[1]
         target_player.draw(amount)
 
-    def do_take_extra_turn_effect_on_player(self, target_player_username):
+    def do_take_extra_turn_effect_on_player(self, target_player_username, message):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
@@ -1131,7 +1145,8 @@ class Player:
         self.game.remove_temporary_abilities()
         self.game.clear_damage_this_turn()
         self.game.turn += 2
-        self.start_turn()
+        message = self.start_turn(message)
+        return message
 
     def do_entwine_effect(self):
         for p in self.game.players:
@@ -1453,7 +1468,7 @@ class Player:
                 if self.game.has_targets_for_entity_effect():
                     self.entity_with_effect_to_target = card
             elif card.effects[0].target_type == "opponents_entity":
-                if self.game.has_targets_for_opponents_entity_effect():
+                if self.game.has_targets_for_opponents_entity_effect(card.effects[0].target_restrictions):
                     self.entity_with_effect_to_target = card
             else:
                 for e in card.effects:
@@ -1505,7 +1520,7 @@ class Player:
                 card.power = max(0, card.power)
         return card
 
-    def start_turn(self):
+    def start_turn(self, message):
         if self.game.turn != 0:
             self.draw(1 + self.game.starting_effects.count("draw_extra_card"))
         self.max_mana += 1
@@ -1517,10 +1532,17 @@ class Player:
             r.can_activate_relic = True
             for effect in r.triggered_effects:
                 if effect.name == "gain_hp_for_hand":
-                    self.hit_points += len(self.hand)
-                    self.hit_points = min(30, self.hit_points)
+                    gained = 0
+                    to_apply = len(self.hand)
+                    while self.hit_points < 30 and to_apply > 0:
+                        self.hit_points += 1
+                        to_apply -= 1
+                        gained += 1  
+                    message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
                 elif effect.name == "lose_hp_for_hand":
                     self.game.opponent().hit_points -= len(self.game.opponent().hand)
+                    message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
+        return message
 
     def selected_card(self):
         for c in self.hand:
@@ -1763,9 +1785,10 @@ class CardEffect:
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
+        self.target_restrictions = info["target_restrictions"] if "target_restrictions" in info else []
 
     def __repr__(self):
-        return f"id: {self.id} name: {self.name} power: {self.power} trigger: {self.trigger} toughness: {self.toughness} amount: {self.amount} cost: {self.cost}\n \
+        return f"id: {self.id} name: {self.name} power: {self.power} target_restrictions: {self.target_restrictions} trigger: {self.trigger} toughness: {self.toughness} amount: {self.amount} cost: {self.cost}\n \
                  description: {self.description} target_type: {self.target_type} name: {self.card_name} \n \
                  make_type: {self.make_type} tokens: {self.tokens} abilities: {self.abilities}\n \
                  effect_type; {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add}"
@@ -1778,6 +1801,7 @@ class CardEffect:
             "power": self.power,
             "toughness": self.toughness,
             "trigger": self.trigger,
+            "target_restrictions": self.target_restrictions,
             "amount": self.amount,
             "cost": self.cost,
             "description": self.description,

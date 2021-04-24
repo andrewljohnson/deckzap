@@ -167,6 +167,20 @@
 		}]
 	},
 	{
+		"name": "Slayer Elf",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 4,
+		"toughness": 5,
+		"cost": 6,
+		"description": "Destroy an enemy entity with Guard.",
+		"effects": [{
+			"name": "kill",
+			"target_type": "opponents_entity",
+			"target_restrictions": ["needs_guard"]
+		}]
+	},
+	{
 		"name": "Mana Tree",
 		"race": "elf",
 		"card_type": "Entity",
