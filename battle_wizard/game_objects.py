@@ -569,6 +569,7 @@ class Game:
 
     def select_entity(self, message):
         if self.current_player().entity_with_effect_to_target:
+            message["defending_card"] = message["card"]
             message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
         elif self.current_player().selected_card():  
             # todo handle cards with multiple effects
@@ -766,6 +767,10 @@ class Game:
         for e in card.effects_leave_play:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
+            if e.name == "damage" and e.target_type == "opponent":
+                player.game.opponent().hit_points -= e.amount
+            if e.name == "damage" and e.target_type == "self":
+                player.hit_points -= e.amount
         for e in card.added_effects["effects_leave_play"]:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
@@ -996,6 +1001,8 @@ class Player:
             else:
                 message["log_lines"].append(f"Both players fill their boards.")
             self.do_summon_from_deck_effect_on_player(e, effect_targets)
+        elif e.name == "discard_random":
+                self.do_discard_random_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
         elif e.name == "damage":
             if effect_targets[e.id]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
@@ -1151,6 +1158,15 @@ class Player:
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
         target_player.hit_points -= amount
+
+    def do_discard_random_effect_on_player(self, card, target_player_username, amount):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+        while amount > 0 and len(target_player.hand) > 0:
+            amount -= 1
+            card = random.choice(target_player.hand)
+            target_player.hand.remove(card)
 
     def do_damage_effect_on_entity(self, card, target_entity_id, amount):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -1389,7 +1405,6 @@ class Player:
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"}
                     elif e.target_type == "all_players":           
                         message["effect_targets"][e.id] = {"target_type":"all_players"};
-
                     message = self.do_card_effect(card, e, message, message["effect_targets"])
 
         message["card_name"] = card.name

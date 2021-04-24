@@ -106,6 +106,19 @@
 		}]
 	},
 	{
+		"name": "Porcupine",
+		"race": "elf",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Your opponent takes 2 damage when this leaves play.",
+		"effects_leave_play": [{
+			"name": "damage",
+			"target_type": "opponent",
+			"amount": 2
+		}]
+	},
+	{
 		"name": "PantherKin",
 		"race": "elf",
 		"power": 3,
@@ -156,10 +169,77 @@
 		}]
 	},
 	{
+		"name": "Unstable Tempest",
+		"race": "genie",
+		"power": 3,
+		"description": "Take 2 damage.",
+		"toughness": 2,
+		"cost": 1,
+		"effects": [{
+			"name": "damage",
+			"target_type": "self",
+			"amount": 3
+		}]
+	},
+	{
+		"name": "Energizer",
+		"race": "genie",
+		"power": 1,
+		"description": "Give an entity gets +2/+0 this turn.",
+		"toughness": 1,
+		"cost": 1,
+		"effects": [{
+			"name": "add_tokens",
+			"target_type": "entity",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 2,
+				"toughness_modifier": 0
+			}]
+		}]
+	},
+	{
+		"name": "Elven Vanguard",
+		"race": "elf",
+		"power": 3,
+		"description": "Give an entity gets +1/+1 this turn.",
+		"toughness": 2,
+		"cost": 2,
+		"effects": [{
+			"name": "add_tokens",
+			"target_type": "entity",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 1,
+				"toughness_modifier": 1
+			}]
+		}]
+	},
+	{
+		"name": "Mist Elemental",
+		"race": "genie",
+		"power": 1,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{"name": "Guard"}
+		]
+	},
+	{
+		"name": "Centaur",
+		"race": "elf",
+		"power": 3,
+		"toughness": 5,
+		"cost": 4,
+		"abilities": [
+			{"name": "Guard"}
+		]
+	},
+	{
 		"name": "LionKin",
 		"race": "elf",
-		"power": 4,
-		"toughness": 4,
+		"power": 3,
+		"toughness": 3,
 		"cost": 2,
 		"abilities": [
 			{"name": "Guard"}
@@ -251,7 +331,7 @@
 	{
 		"name": "Forest Ritual",
 		"race": "elf",
-		"cost": 1,
+		"cost": 0,
 		"card_type": "Spell",
 		"description": "Get 2 mana this turn",
 		"effects": [{
@@ -449,6 +529,23 @@
 			"name": "damage",
 			"target_type": "any",
 			"amount": 3
+		}]
+	},
+	{
+		"name": "Inner Fire",
+		"race": "genie",
+		"cost": 0,
+		"card_type": "Spell",
+		"description": "Deal 4 damage. Discard a card at random",
+		"effects": [{
+			"name": "damage",
+			"target_type": "any",
+			"amount": 4
+		},
+		{
+			"name": "discard_random",
+			"target_type": "self",
+			"amount": 1
 		}]
 	},
 	{

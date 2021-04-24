@@ -73,19 +73,22 @@ class DeckBuilder {
 			descriptionDiv.innerHTML = card.description;
 			cardRow.appendChild(descriptionDiv);
 		}
-		if (card.card_type != "Spell") {
+		if (card.card_type != "Spell" && card.card_type != "Relic" ) {
 			if(card.abilities) {
 				for (let a of card.abilities) {
 					let abilitiesDiv = document.createElement("div");
 					abilitiesDiv.innerHTML = card.abilities[0].name;
 					cardRow.appendChild(abilitiesDiv);
-
 				}				
 			}
 			let powerToughnessDiv = document.createElement("div");
 			powerToughnessDiv.innerHTML = card.power + "/" + card.toughness;
 			cardRow.appendChild(powerToughnessDiv);
-
+		} else {
+			let typeDiv = document.createElement("div");
+			typeDiv.innerHTML = card.card_type;
+			cardRow.appendChild(typeDiv);
+			
 		}
 
 		 if (this.deck["cards"][card.name] == 2 && containerId == "new_deck_container") {
