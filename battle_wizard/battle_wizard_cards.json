@@ -1,5 +1,11 @@
 [		
 	{
+		"name": "Test Relic",
+		"race": "elf",
+		"card_type": "Relic",
+		"cost": 0
+	},
+	{
 		"name": "Mana Shrub",
 		"race": "elf",
 		"power": 0,

@@ -174,6 +174,28 @@ class GameUX {
         }
     }
 
+    updateRelics(game) {
+        var relicsDiv = document.getElementById("relics");
+        if (this.thisPlayer(game).relics.length == 0 &&
+            relicsDiv.innerHTML.startsWith("Play")) {
+            relicsDiv.style.color = "white";
+            return;
+        }
+        relicsDiv.style.color = "black";
+        relicsDiv.innerHTML = '';
+        for (let card of this.thisPlayer(game).relics) {
+            relicsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+        }        
+    }
+
+    updateOpponentRelics(game) {
+        var relicsDiv = document.getElementById("opponent_relics");
+        relicsDiv.innerHTML = '';
+        for (let card of this.opponent(game).relics) {
+            relicsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+        }        
+    }
+
     updateInPlay(game) {
         var inPlayDiv = document.getElementById("in_play");
         inPlayDiv.innerHTML = '';
@@ -251,19 +273,20 @@ class GameUX {
             }
         }
 
-        if (card.card_type == "Entity") {
-            for (let a of card.abilities) {
-                let abilitiesDiv = document.createElement("div");
-                abilitiesDiv.innerHTML = card.abilities[0].name;
-                cardDiv.appendChild(abilitiesDiv);
+        for (let a of card.abilities) {
+            let abilitiesDiv = document.createElement("div");
+            abilitiesDiv.innerHTML = card.abilities[0].name;
+            cardDiv.appendChild(abilitiesDiv);
 
-            }
-            for (let a of card.added_abilities) {
-                let abilitiesDiv = document.createElement("div");
-                abilitiesDiv.innerHTML = card.added_abilities[0].name;
-                cardDiv.appendChild(abilitiesDiv);
-                
-            }
+        }
+        for (let a of card.added_abilities) {
+            let abilitiesDiv = document.createElement("div");
+            abilitiesDiv.innerHTML = card.added_abilities[0].name;
+            cardDiv.appendChild(abilitiesDiv);
+            
+        }
+
+        if (card.card_type == "Entity") {
             let cardPower = card.power;
             let cardToughness = card.toughness - card.damage;
            if (card.tokens) {
@@ -333,6 +356,7 @@ class GameUX {
             this.updateOpponentMana(game);
             this.updateOpponentHitPoints(game);
             this.updateOpponentInPlay(game);
+            this.updateOpponentRelics(game);
             this.updateOpponentDeckCount(game);
             this.updateOpponentPlayedPileCount(game);
             this.updateOpponentBorder(game);
@@ -345,6 +369,7 @@ class GameUX {
             this.updateMana(game);
             this.updateHitPoints(game);
             this.updateInPlay(game);
+            this.updateRelics(game);
             this.updateHand(game);
             this.updateDeckCount(game);
             this.updatePlayedPileCount(game);
