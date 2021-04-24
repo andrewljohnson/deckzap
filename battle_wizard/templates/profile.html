@@ -7,6 +7,7 @@
 {% block content %}
 <div class="wrapper" style="max-width:1024px">
   <h1>{{username}}</h1>
+  <p>{{username}} was the #{{account_number}} signup on deckzap.com.</p>
   {% if decks|length == 0 %} 
     <p>You don't have any decks yet. Build a deck or play a game without deckbuilding.</p>
     <a class=button href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a>
