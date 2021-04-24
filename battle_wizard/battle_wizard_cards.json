@@ -23,6 +23,18 @@
 		}]
 	},
 	{
+		"name": "Voodo Doll",
+		"race": "genie",
+		"card_type": "Relic",
+		"description": "Opponent loses 1 life per card in hand at beginning of your turn.",
+		"cost": 3,
+		"triggered_effects": [{
+			"name": "lose_hp_for_hand",
+			"target_type": "opponent",
+			"trigger": "start_turn"
+		}]
+	},
+	{
 		"name": "Book of Knowledge",
 		"race": "genie",
 		"card_type": "Relic",

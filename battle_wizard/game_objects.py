@@ -1459,6 +1459,8 @@ class Player:
                 if effect.name == "gain_hp_for_hand":
                     self.hit_points += len(self.hand)
                     self.hit_points = min(30, self.hit_points)
+                elif effect.name == "lose_hp_for_hand":
+                    self.game.opponent().hit_points -= len(self.game.opponent().hand)
 
     def selected_card(self):
         for c in self.hand:
