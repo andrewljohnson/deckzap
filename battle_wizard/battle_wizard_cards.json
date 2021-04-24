@@ -113,7 +113,7 @@
 		"power": 3,
 		"toughness": 2,
 		"cost": 2,
-		"description": "Whenever you play an entity, deal a damage to a random enemy minion.",
+		"description": "Whenever you play an entity, deal a damage to a random enemy entity.",
 		"triggered_effects": [{
 			"name": "damage",
 			"target_type": "opponents_entity_random",
