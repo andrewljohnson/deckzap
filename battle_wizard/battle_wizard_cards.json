@@ -107,6 +107,22 @@
 		}]
 	},
 	{
+		"name": "Spouty Gas Ball",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 2,
+		"cost": 2,
+		"description": "Whenever you play an entity, deal a damage to a random enemy minion.",
+		"triggered_effects": [{
+			"name": "damage",
+			"target_type": "opponents_entity_random",
+			"amount": 1,
+			"trigger": "play_friendly_entity",
+			"toughness": 1
+		}]
+	},
+	{
 		"name": "Pine Treant",
 		"race": "elf",
 		"card_type": "Entity",

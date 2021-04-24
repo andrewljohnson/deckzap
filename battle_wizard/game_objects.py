@@ -1397,10 +1397,23 @@ class Player:
 
         message["log_lines"].append(f"{self.username} plays {card.name}.")
         if card.card_type == "Entity":
+            for c in self.in_play:
+                if len(c.triggered_effects) > 0:
+                    if c.triggered_effects[0].trigger == "play_friendly_entity":
+                        if c.triggered_effects[0].name == "damage" and c.triggered_effects[0].target_type == "opponents_entity_random":
+                            if len(self.game.opponent().in_play) > 0:
+                                entity = random.choice(self.game.opponent().in_play)
+                                entity.damage += c.triggered_effects[0].amount
+                                message["log_lines"].append(f"{c.name} deal {c.triggered_effects[0].amount} damage to {entity.name}.")
+                                entity.damage_this_turn += c.triggered_effects[0].amount
+                                if entity.damage >= entity.toughness_with_tokens():
+                                    self.game.send_card_to_played_pile(entity, self.game.opponent())
+
             self.in_play.append(card)
             if self.fast_ability():
                 card.added_abilities.append(self.fast_ability())          
             card.turn_played = self.game.turn
+
         elif card.card_type == "Relic":
             self.relics.append(card)
             card.turn_played = self.game.turn
@@ -1739,6 +1752,7 @@ class CardEffect:
         self.card_name = info["card_name"] if "card_name" in info else None
         self.power = info["power"] if "power" in info else None
         self.toughness = info["toughness"] if "toughness" in info else None
+        self.trigger = info["trigger"] if "trigger" in info else None
         self.description = info["description"] if "description" in info else None
         self.amount = info["amount"] if "amount" in info else None
         self.cost = info["cost"] if "cost" in info else 0
@@ -1751,7 +1765,7 @@ class CardEffect:
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
 
     def __repr__(self):
-        return f"id: {self.id} name: {self.name} power: {self.power} toughness: {self.toughness} amount: {self.amount} cost: {self.cost}\n \
+        return f"id: {self.id} name: {self.name} power: {self.power} trigger: {self.trigger} toughness: {self.toughness} amount: {self.amount} cost: {self.cost}\n \
                  description: {self.description} target_type: {self.target_type} name: {self.card_name} \n \
                  make_type: {self.make_type} tokens: {self.tokens} abilities: {self.abilities}\n \
                  effect_type; {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add}"
@@ -1763,6 +1777,7 @@ class CardEffect:
             "card_name": self.card_name,
             "power": self.power,
             "toughness": self.toughness,
+            "trigger": self.trigger,
             "amount": self.amount,
             "cost": self.cost,
             "description": self.description,
