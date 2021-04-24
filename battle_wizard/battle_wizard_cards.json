@@ -287,6 +287,32 @@
 		]
 	},
 	{
+		"name": "Riftwalker Djinn",
+		"race": "genie",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 2,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			},
+			{
+				"name": "Ambush",
+				"descriptive_id": "Ambush"
+			},
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			},
+			{
+				"name": "Shield",
+				"descriptive_id": "Shield"
+			}
+		]
+	},
+	{
 		"name": "Centaur",
 		"race": "elf",
 		"card_type": "Entity",

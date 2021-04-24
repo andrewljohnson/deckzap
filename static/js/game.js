@@ -250,6 +250,19 @@ class GameUX {
             cardDiv.style.border = "3px solid #C4A484";                            
         }
 
+        if (card.shielded) {
+            var div = document.createElement("div");
+            div.style.backgroundColor = 'white';
+            div.style.opacity = ".5";
+            div.style.height = "100%";
+            div.style.width = "100%";
+            div.style.position = "absolute";
+            div.style.top = 0;
+            div.style.left = 0;
+            div.style.pointerEvents = "none";
+            cardDiv.appendChild(div)
+        }
+
         if (card.card_type != "Effect") {
             let costDiv = document.createElement("b");
             costDiv.innerHTML = card.cost;
@@ -280,15 +293,18 @@ class GameUX {
             }
         }
 
+        let abilitiesDiv = document.createElement("div");
         for (let a of card.abilities) {
-            let abilitiesDiv = document.createElement("div");
-            abilitiesDiv.innerHTML = card.abilities[0].name;
-            cardDiv.appendChild(abilitiesDiv);
-
+            abilitiesDiv.innerHTML += a.name;
+            if (a != card.abilities[card.abilities.length-1]) {                
+                abilitiesDiv.innerHTML += ", ";
+            }
         }
+        cardDiv.appendChild(abilitiesDiv);
+
         for (let a of card.added_abilities) {
             let abilitiesDiv = document.createElement("div");
-            abilitiesDiv.innerHTML = card.added_abilities[0].name;
+            abilitiesDiv.innerHTML = a.name;
             cardDiv.appendChild(abilitiesDiv);            
         }
 

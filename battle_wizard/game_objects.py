@@ -247,7 +247,12 @@ class Game:
                 selected_relic = card
 
         if selected_entity:
-            if not self.opponent().has_guard():
+            only_has_ambush_attack = False
+            if not self.current_player().entity_has_fast(selected_entity):
+                if self.current_player().entity_has_ambush(selected_entity):
+                    if selected_entity.turn_played == self.turn:
+                        only_has_ambush_attack = True
+            if not self.opponent().has_guard() and not only_has_ambush_attack:
                 selected_entity.can_be_clicked = True
                 self.opponent().can_be_clicked = True
             for card in self.opponent().in_play:
@@ -699,12 +704,20 @@ class Game:
             if not casting_spell:
                 for card in self.current_player().in_play:
                     if card.selected:
-                        if not self.opponent().has_guard():
+                        only_has_ambush_attack = False
+                        if not self.current_player().entity_has_fast(card):
+                            if self.current_player().entity_has_ambush(card):
+                                if card.turn_played == self.turn:
+                                    only_has_ambush_attack = True
+                        if not self.opponent().has_guard() and not only_has_ambush_attack:
                             message["card"] = card.id
                             message["card_name"] = card.name
                             message["move_type"] = "ATTACK"
                             message = self.play_move(message)                    
                             card.selected = False
+                        elif only_has_ambush_attack:
+                            print(f"can't attack opponent because the entity only has ambush")
+                            return None
                         else:
                             print(f"can't attack opponent because an entity has Guard")
                             return None
@@ -727,9 +740,12 @@ class Game:
         else:
             message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens()}.")
             self.opponent().hit_points -= attacking_card.power_with_tokens()
-            if attacking_card.abilities:
-                if attacking_card.abilities[0].name == "DamageDraw":
-                    self.current_player().draw(attacking_card.abilities[0].amount)
+            if self.current_player().entity_has_damage_draw(attacking_card):
+                # todo find the actual ability in the list, it might not be zero later
+                self.current_player().draw(attacking_card.abilities[0].amount)
+            if self.current_player().entity_has_syphon(attacking_card):
+                self.current_player().hit_points += attacking_card.power_with_tokens()
+                self.current_player().hit_points = min(30, self.current_player().hit_points)
         return message
 
     def activate_relic(self, message):
@@ -788,6 +804,7 @@ class Game:
         card.can_activate_relic = True
         card.damage = 0
         card.damage_this_turn = 0
+        card.shielded = False
         card.turn_played = -1
         card.tokens = []
         print(card.effects_leave_play)
@@ -819,14 +836,20 @@ class Game:
         card.added_descriptions = []
 
     def resolve_combat(self, attacking_card, defending_card):
-        attacking_card.damage += defending_card.power_with_tokens()
-        attacking_card.damage_this_turn += defending_card.power_with_tokens()
-        defending_card.damage += attacking_card.power_with_tokens()
-        defending_card.damage_this_turn += attacking_card.power_with_tokens()
-        if attacking_card.damage >= attacking_card.toughness_with_tokens():
-            self.send_card_to_played_pile(attacking_card, self.current_player())
-        if defending_card.damage >= defending_card.toughness_with_tokens():
-            self.send_card_to_played_pile(defending_card, self.opponent())
+        if attacking_card.shielded:
+            attacking_card.shielded = False
+        else:
+            attacking_card.damage += defending_card.power_with_tokens()
+            attacking_card.damage_this_turn += defending_card.power_with_tokens()
+            if attacking_card.damage >= attacking_card.toughness_with_tokens():
+                self.send_card_to_played_pile(attacking_card, self.current_player())
+        if defending_card.shielded:
+            defending_card.shielded = False
+        else:
+            defending_card.damage += attacking_card.power_with_tokens()
+            defending_card.damage_this_turn += attacking_card.power_with_tokens()
+            if defending_card.damage >= defending_card.toughness_with_tokens():
+                self.send_card_to_played_pile(defending_card, self.opponent())
 
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
@@ -1210,9 +1233,12 @@ class Player:
 
     def do_damage_effect_on_entity(self, card, target_entity_id, amount):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
-        target_card.damage += amount
-        if target_card.damage >= target_card.toughness:
-            self.game.send_card_to_played_pile(target_card, target_player)
+        if target_card.shielded:
+            target_card.shielded = False
+        else:
+            target_card.damage += amount
+            if target_card.damage >= target_card.toughness:
+                self.game.send_card_to_played_pile(target_card, target_player)
 
     def do_double_power_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -1392,6 +1418,9 @@ class Player:
                 if card.turn_played == self.game.turn:
                     if self.entity_has_fast(card):
                         return True
+                    print(f"ambush is {self.entity_has_ambush(card)}")
+                    if self.entity_has_ambush(card) and len(self.game.opponent().in_play) > 0:
+                        return True
                     return False
         return True
 
@@ -1430,11 +1459,14 @@ class Player:
                         if c.triggered_effects[0].name == "damage" and c.triggered_effects[0].target_type == "opponents_entity_random":
                             if len(self.game.opponent().in_play) > 0:
                                 entity = random.choice(self.game.opponent().in_play)
-                                entity.damage += c.triggered_effects[0].amount
+                                if entity.shielded:
+                                    entity.shielded = False
+                                else:
+                                    entity.damage += c.triggered_effects[0].amount
+                                    entity.damage_this_turn += c.triggered_effects[0].amount
+                                    if entity.damage >= entity.toughness_with_tokens():
+                                        self.game.send_card_to_played_pile(entity, self.game.opponent())
                                 message["log_lines"].append(f"{c.name} deal {c.triggered_effects[0].amount} damage to {entity.name}.")
-                                entity.damage_this_turn += c.triggered_effects[0].amount
-                                if entity.damage >= entity.toughness_with_tokens():
-                                    self.game.send_card_to_played_pile(entity, self.game.opponent())
 
             self.in_play.append(card)
             if self.fast_ability():
@@ -1446,6 +1478,9 @@ class Player:
             card.turn_played = self.game.turn
         else:
             self.played_pile.append(card)            
+
+        if card.card_type == "Entity" and self.entity_has_shield(card):
+            card.shielded = True
 
         if len(card.effects) > 0:
             if card.card_type == "Entity":
@@ -1607,20 +1642,30 @@ class Player:
         return False
 
     def entity_has_guard(self, entity):
-        if entity.abilities and entity.abilities[0].name == "Guard":
-            return True
-        return False
+        return self.entity_has_ability(entity, "Guard")
 
     def entity_has_damage_draw(self, entity):
-        if entity.abilities and entity.abilities[0].name == "DamageDraw":
-            return True
-        return False
+        return self.entity_has_ability(entity, "DamageDraw")
 
     def entity_has_fast(self, entity):
-        if entity.abilities and entity.abilities[0].descriptive_id == "Fast":
-            return True
-        if entity.added_abilities and entity.added_abilities[0].descriptive_id == "Fast":
-            return True
+        return self.entity_has_ability(entity, "Fast")
+
+    def entity_has_ambush(self, entity):
+        return self.entity_has_ability(entity, "Ambush")
+
+    def entity_has_syphon(self, entity):
+        return self.entity_has_ability(entity, "Syphon")
+
+    def entity_has_shield(self, entity):
+        return self.entity_has_ability(entity, "Shield")
+
+    def entity_has_ability(self, entity, ability_name):
+        for a in entity.abilities:
+            if a.descriptive_id == ability_name:
+                return True
+        for a in entity.added_abilities:
+            if a.descriptive_id == ability_name:
+                return True
         return False
 
     def can_summon(self):
@@ -1666,7 +1711,8 @@ class Card:
         self.added_effects = {"effects":[], "effects_leave_play":[]}
         self.can_activate_relic = info["can_activate_relic"] if "can_activate_relic" in info else True
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
-        self.is_token = info["is_token"] if "is_token" in info else None
+        self.is_token = info["is_token"] if "is_token" in info else False
+        self.shielded = info["shielded"] if "shielded" in info else False
 
         if "added_effects" in info:
             for idx, e in enumerate(info["added_effects"]["effects"]):
@@ -1690,7 +1736,7 @@ class Card:
                  owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}\n \
                  abilities: {self.abilities}, tokens: {self.tokens}\n \
                  added_effects: {self.added_effects} can_activate_relic: {self.can_activate_relic})\n \
-                 is_token: {self.is_token}"
+                 is_token: {self.is_token} shielded: {self.shielded}"
  
 
     def as_dict(self):
@@ -1717,6 +1763,7 @@ class Card:
             "can_activate_relic": self.can_activate_relic,
             "owner_username": self.owner_username,
             "is_token": self.is_token,
+            "shielded": self.shielded,
             "effects_leave_play": [e.as_dict() for e in self.effects_leave_play],
             "abilities": [a.as_dict() for a in self.abilities],
             "added_abilities": [a.as_dict() for a in self.added_abilities],
