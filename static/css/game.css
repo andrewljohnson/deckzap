@@ -92,12 +92,14 @@
     }
 
     #in_play {
-        height:130px;width:625px;background-color:#765C48;margin-top:5px;
+        height:130px;width:695px;background-color:#765C48;margin-top:5px;
     }
 
     #opponent_in_play {
-        height:130px;width:625px;background-color:#765C48;
+        height:130px;width:695px;background-color:#765C48;
     }
+
+    
 
     #hand {
         height:130px;width:100%;background-color:#765C48;    
@@ -152,4 +154,19 @@
 
     html {
         max-width:1024px;
+    }
+
+    .player_row {
+        margin: 0 auto;
+        align-items: center;        
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    #relics {
+        height:130px;width:300px;background-color:#765C48;margin-left:10px;
+    }
+
+    #opponent_relics {
+        height:130px;width:300px;background-color:#765C48;margin-left:10px;
     }

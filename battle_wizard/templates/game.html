@@ -17,19 +17,22 @@
 
 <div id=room>
     <div id=all_but_player_hand> 
-        <div class=avatar id=opponent onclick=gameRoom.gameUX.opponentClick()>
-            <img class=avatar_image src="{% static 'images/bear.png' %}" alt="bear" />
-            <div>
-                <div id=opponent_username></div>
-                <div id=opponent_race></div>
-                <div id=opponent_hit_points></div>
-                <div id=opponent_mana></div>
-                <div id=opponent_card_count></div>
-                <div id=opponent_deck_count></div>
-                <div id=opponent_played_pile_count></div>
-                <div id=opponent_starting_effects></div>
-                <div id=opponent_added_abilities></div>
+        <div class=player_row>
+            <div class=avatar id=opponent onclick=gameRoom.gameUX.opponentClick()>
+                <img class=avatar_image src="{% static 'images/bear.png' %}" alt="bear" />
+                <div>
+                    <div id=opponent_username></div>
+                    <div id=opponent_race></div>
+                    <div id=opponent_hit_points></div>
+                    <div id=opponent_mana></div>
+                    <div id=opponent_card_count></div>
+                    <div id=opponent_deck_count></div>
+                    <div id=opponent_played_pile_count></div>
+                    <div id=opponent_starting_effects></div>
+                    <div id=opponent_added_abilities></div>
+                </div>
             </div>
+            <div class=card_container id=opponent_relics></div>
         </div>
         <div id=middle_long_row>
             <div>
@@ -46,18 +49,22 @@
                 </div>
             </div>
         </div>
-        <div class=avatar id=player1 onclick=gameRoom.gameUX.selfClick()>
-            <img class=avatar_image src="{% static 'images/tiger.png' %}" alt="tiger" />
-            <div>
-                <div id=username></div>
-                <div id=race></div>
-                <div id=hit_points></div>
-                <div id=mana></div>
-                <div id=deck_count></div>
-                <div id=played_pile_count></div>
-                <div id=starting_effects></div>
-                <div id=added_abilities></div>
+        <div class=player_row>
+            <div class=avatar id=player1 onclick=gameRoom.gameUX.selfClick()>
+                <img class=avatar_image src="{% static 'images/tiger.png' %}" alt="tiger" />
+                <div>
+                    <div id=username></div>
+                    <div id=race></div>
+                    <div id=hit_points></div>
+                    <div id=mana></div>
+                    <div id=deck_count></div>
+                    <div id=played_pile_count></div>
+                    <div id=starting_effects></div>
+                    <div id=added_abilities></div>
+                    <BR />
+                </div>
             </div>
+            <div class=card_container id=relics style="color:white"></div>
         </div>
     </div>
     <div class=card_container id=hand></div>

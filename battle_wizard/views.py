@@ -49,9 +49,11 @@ def build_deck(request):
         for d in decks:
             if d["id"] == int(deck_id):
                 deck = d
+    all_cards = JsonDB().all_cards()
+    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type']))
     return render(request, "build_deck.html", 
         {
-            "all_cards": json.dumps(JsonDB().all_cards()),
+            "all_cards": json.dumps(all_cards),
             "deck_id": deck_id,
             "deck": json.dumps(deck),
         }

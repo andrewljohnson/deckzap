@@ -174,6 +174,28 @@ class GameUX {
         }
     }
 
+    updateRelics(game) {
+        var relicsDiv = document.getElementById("relics");
+        if (this.thisPlayer(game).relics.length == 0 &&
+            relicsDiv.innerHTML.startsWith("Play")) {
+            relicsDiv.style.color = "white";
+            return;
+        }
+        relicsDiv.style.color = "black";
+        relicsDiv.innerHTML = '';
+        for (let card of this.thisPlayer(game).relics) {
+            relicsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+        }        
+    }
+
+    updateOpponentRelics(game) {
+        var relicsDiv = document.getElementById("opponent_relics");
+        relicsDiv.innerHTML = '';
+        for (let card of this.opponent(game).relics) {
+            relicsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+        }        
+    }
+
     updateInPlay(game) {
         var inPlayDiv = document.getElementById("in_play");
         inPlayDiv.innerHTML = '';
@@ -210,7 +232,7 @@ class GameUX {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
-        cardDiv.style = 'margin-right:2px;cursor: pointer;height:114px;width:71px;border-radius:4px;padding:5px;font-size:12px';
+        cardDiv.style = 'position:relative;margin-right:2px;cursor: pointer;height:114px;width:81px;border-radius:4px;padding:5px;font-size:12px';
         if (card.attacked) {
             cardDiv.style.backgroundColor = "#C4A484";                
         } else if (card.selected) {
@@ -228,21 +250,41 @@ class GameUX {
             cardDiv.style.border = "3px solid #C4A484";                            
         }
 
-        let nameDiv = document.createElement("b");
-        nameDiv.innerHTML = card.name;
-        cardDiv.appendChild(nameDiv)
+        if (card.shielded) {
+            var div = document.createElement("div");
+            div.style.backgroundColor = 'white';
+            div.style.opacity = ".5";
+            div.style.height = "100%";
+            div.style.width = "100%";
+            div.style.position = "absolute";
+            div.style.top = 0;
+            div.style.left = 0;
+            div.style.pointerEvents = "none";
+            cardDiv.appendChild(div)
+        }
 
         if (card.card_type != "Effect") {
-            let costDiv = document.createElement("div");
-            costDiv.innerHTML = this.manaString(card.cost, card.cost);
+            let costDiv = document.createElement("b");
+            costDiv.innerHTML = card.cost;
+            costDiv.style.position = 'absolute';
+            costDiv.style.top = '5px';
+            costDiv.style.right = '5px';
             cardDiv.appendChild(costDiv)
         }
+
+        let nameDiv = document.createElement("b");
+        nameDiv.style.display = 'inline-block';
+        nameDiv.style.height = '30px';
+        nameDiv.style.width = '61px';
+        nameDiv.innerHTML = card.name;
+        cardDiv.appendChild(nameDiv)
 
         if (card.description) {
             let descriptionDiv = document.createElement("div");
             descriptionDiv.innerHTML = card.description;
             cardDiv.appendChild(descriptionDiv);
         }
+
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
                 let descriptionDiv = document.createElement("div");
@@ -251,41 +293,53 @@ class GameUX {
             }
         }
 
-        if (card.card_type == "Entity") {
-            for (let a of card.abilities) {
-                let abilitiesDiv = document.createElement("div");
-                abilitiesDiv.innerHTML = card.abilities[0].name;
-                cardDiv.appendChild(abilitiesDiv);
+        let abilitiesDiv = document.createElement("div");
+        for (let a of card.abilities) {
+            abilitiesDiv.innerHTML += a.name;
+            if (a != card.abilities[card.abilities.length-1]) {                
+                abilitiesDiv.innerHTML += ", ";
+            }
+        }
+        cardDiv.appendChild(abilitiesDiv);
 
-            }
-            for (let a of card.added_abilities) {
-                let abilitiesDiv = document.createElement("div");
-                abilitiesDiv.innerHTML = card.added_abilities[0].name;
-                cardDiv.appendChild(abilitiesDiv);
-                
-            }
+        for (let a of card.added_abilities) {
+            let abilitiesDiv = document.createElement("div");
+            abilitiesDiv.innerHTML = a.name;
+            cardDiv.appendChild(abilitiesDiv);            
+        }
+
+        if (card.card_type == "Entity") {
             let cardPower = card.power;
             let cardToughness = card.toughness - card.damage;
-           if (card.tokens) {
-            for (let c of card.tokens) {
-                cardPower += c.power_modifier;
+            if (card.tokens) {
+                for (let c of card.tokens) {
+                    cardPower += c.power_modifier;
+                }
+                for (let c of card.tokens) {
+                    cardToughness += c.toughness_modifier;
+                }
             }
-            for (let c of card.tokens) {
-                cardToughness += c.toughness_modifier;
-            }
-           }
-            let powerToughnessDiv = document.createElement("div");
+            let powerToughnessDiv = document.createElement("em");
             powerToughnessDiv.innerHTML = cardPower + "/" + cardToughness;
+            powerToughnessDiv.style.position = "absolute";
+            powerToughnessDiv.style.bottom = "0px";
             cardDiv.appendChild(powerToughnessDiv);
-
-
+        } else {
+            let typeDiv = document.createElement("em");
+            typeDiv.innerHTML = card.card_type;
+            typeDiv.style.position = "absolute";
+            typeDiv.style.bottom = "0px";
+            cardDiv.appendChild(typeDiv);           
         }
+
         var self = this;
         cardDiv.onclick = function() { 
             if (cardDiv.parentElement == document.getElementById("hand")) {  
                 self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-            } else { 
+            } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
                 self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+            } else { 
+                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
             }
         }
         return cardDiv;
@@ -333,6 +387,7 @@ class GameUX {
             this.updateOpponentMana(game);
             this.updateOpponentHitPoints(game);
             this.updateOpponentInPlay(game);
+            this.updateOpponentRelics(game);
             this.updateOpponentDeckCount(game);
             this.updateOpponentPlayedPileCount(game);
             this.updateOpponentBorder(game);
@@ -345,6 +400,7 @@ class GameUX {
             this.updateMana(game);
             this.updateHitPoints(game);
             this.updateInPlay(game);
+            this.updateRelics(game);
             this.updateHand(game);
             this.updateDeckCount(game);
             this.updatePlayedPileCount(game);
@@ -365,6 +421,8 @@ class GameUX {
             this.showChooseRace(game);
         } else if (this.thisPlayer(game).make_to_resolve.length) {
             this.showMakeView(game);
+        } else if (this.thisPlayer(game).cards_to_reveal.length) {
+            this.showRevealView(game);
         } else {
             this.showGame();
         }                           
@@ -666,6 +724,45 @@ class GameUX {
                     self.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
                 }
             };
+        }
+    }
+
+    showRevealView(game) {
+        document.getElementById("make_selector").innerHTML = "";
+        var makeSelector = document.getElementById("make_selector");
+        makeSelector.style.display = "flex";
+        makeSelector.style.background = "rgba(0, 0, 0, .7)";
+
+        var container = document.createElement("div");
+        container.style.width = 90+ 80*10 + "px";
+        container.style.height = 130+50+100 + "px";
+        container.style.margin = "auto";
+        container.style.backgroundColor = "white";
+        makeSelector.appendChild(container);
+
+
+        var h1 = document.createElement("h1");
+        h1.innerHTML = "Opponent's Hand"
+        container.appendChild(h1);
+        container.appendChild(document.createElement('br'));
+        container.appendChild(document.createElement('br'));
+
+        var cardContainerDiv = document.createElement('div');
+        cardContainerDiv.classList.add("card_container");
+        container.appendChild(cardContainerDiv);
+
+        var self = this;
+        container.onclick = function() {
+            self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+            self.showGame();
+        }
+
+        var cards = this.thisPlayer(game).cards_to_reveal;
+        for (let card of cards) {
+            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
+            cardDiv.style.pointerEvents = "none";
+            delete cardDiv.onclick;
+            cardContainerDiv.appendChild(cardDiv);
         }
     }
 
