@@ -233,6 +233,11 @@ class Game:
                 self.set_targets_for_opponents_entity_effect(card.effects[0].target_restrictions)
             return
 
+        if len(self.current_player().entities_to_select_from) > 0:
+            for e in self.current_player().entities_to_select_from:
+                e.can_be_clicked = True
+            return
+
         selected_entity = None
         for entity in self.current_player().in_play:
             if entity.selected:
@@ -602,6 +607,17 @@ class Game:
         if self.current_player().entity_with_effect_to_target:
             message["defending_card"] = message["card"]
             message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
+        elif len(self.current_player().entities_to_select_from) > 0:
+             selected_card = self.current_player().in_play_card(message["card"])
+             chose_card = False
+             if selected_card:
+                for c in self.current_player().entities_to_select_from:
+                    if c.id == selected_card.id:
+                        selected_card.attacked = False
+                        self.current_player().entities_to_select_from = []
+                        chose_card = True
+             if not chose_card:
+                print("can't select that entity to un-attack for ice prison")
         elif self.current_player().selected_card():  
             # todo handle cards with multiple effects
             if self.current_player().selected_card().effects[0].target_type == "opponents_entity" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
@@ -863,7 +879,7 @@ class Game:
             newToughness = c.toughness_with_tokens()
             toughness_change_from_tokens = oldToughness - newToughness
             if toughness_change_from_tokens > 0:
-                c.damage -= min(toughness_change_from_tokens, damage_this_turn)  
+                c.damage -= min(toughness_change_from_tokens, c.damage_this_turn)  
 
     def remove_temporary_abilities(self):
         perm_abilities = []
@@ -952,6 +968,12 @@ class Game:
     def select_player_target_for_relic_effect(self, username, relic_with_effect_to_target, message):
         return self.select_player_target(username, relic_with_effect_to_target, message, "RESOLVE_ENTITY_EFFECT")
 
+    def is_under_ice_prison(self):
+        for c in self.current_player().relics + self.opponent().relics:
+            if len(c.triggered_effects) > 0 and c.triggered_effects[0].name ==  "stop_entity_renew":
+                return True
+        return False
+
 class Player:
 
     def __init__(self, game, info, new=False, bot=None):
@@ -973,6 +995,7 @@ class Player:
             self.played_pile = []
             self.make_to_resolve = []
             self.cards_to_reveal = []
+            self.entities_to_select_from = []
             self.can_be_clicked = False
             self.entity_with_effect_to_target = None
             self.added_abilities = []
@@ -987,12 +1010,13 @@ class Player:
             self.played_pile = [Card(c_info) for c_info in info["played_pile"]]
             self.make_to_resolve = [Card(c_info) for c_info in info["make_to_resolve"]]
             self.cards_to_reveal = [Card(c_info) for c_info in info["cards_to_reveal"]]
+            self.entities_to_select_from = [Card(c_info) for c_info in info["entities_to_select_from"]]
             self.can_be_clicked = info["can_be_clicked"]
             self.entity_with_effect_to_target = Card(info["entity_with_effect_to_target"]) if info["entity_with_effect_to_target"] else None
             self.added_abilities = [CardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
 
     def __repr__(self):
-        return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}, self.relics {self.relics}, self.cards_to_reveal {self.cards_to_reveal}"
+        return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}, self.relics {self.relics}, self.cards_to_reveal {self.cards_to_reveal} self.entities_to_select_from {self.entities_to_select_from}"
 
     def as_dict(self):
         return {
@@ -1006,6 +1030,7 @@ class Player:
             "in_play": [c.as_dict() for c in self.in_play],
             "relics": [c.as_dict() for c in self.relics],
             "cards_to_reveal": [c.as_dict() for c in self.cards_to_reveal],
+            "entities_to_select_from": [c.as_dict() for c in self.entities_to_select_from],
             "deck": [c.as_dict() for c in self.deck],
             "played_pile": [c.as_dict() for c in self.played_pile],
             "make_to_resolve": [c.as_dict() for c in self.make_to_resolve],
@@ -1573,7 +1598,8 @@ class Player:
         self.max_mana += 1
         self.mana = self.max_mana
         for card in self.in_play:
-            card.attacked = False
+            if not self.game.is_under_ice_prison():
+                card.attacked = False
             card.selected = False
         for r in self.relics:
             r.can_activate_relic = True
@@ -1589,6 +1615,11 @@ class Player:
                 elif effect.name == "lose_hp_for_hand":
                     self.game.opponent().hit_points -= len(self.game.opponent().hand)
                     message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
+
+        if self.game.is_under_ice_prison():
+            for e in self.in_play:
+                if e.attacked:
+                    self.entities_to_select_from.append(e)
         return message
 
     def selected_card(self):

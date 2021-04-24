@@ -23,7 +23,7 @@
 		}]
 	},
 	{
-		"name": "Voodo Doll",
+		"name": "Voodoo Doll",
 		"race": "genie",
 		"card_type": "Relic",
 		"description": "Opponent loses 1 life per card in hand at beginning of your turn.",
@@ -44,6 +44,18 @@
 			"name": "reduce_cost",
 			"target_type": "Spell",
 			"trigger": "draw"
+		}]
+	},
+	{
+		"name": "Ice Prison",
+		"race": "genie",
+		"card_type": "Relic",
+		"description": "Each player may only untap one entity that attacked last turn.",
+		"cost": 5,
+		"triggered_effects": [{
+			"name": "stop_entity_renew",
+			"target_type": "players",
+			"trigger": "start_turn"
 		}]
 	},
 	{
