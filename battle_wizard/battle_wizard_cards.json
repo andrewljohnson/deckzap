@@ -35,6 +35,30 @@
 		}]
 	},
 	{
+		"name": "Leyline Amulet",
+		"race": "elf",
+		"card_type": "Relic",
+		"description": "Whenever you draw a spell, reduce it's cost by 1.",
+		"cost": 3,
+		"triggered_effects": [{
+			"name": "reduce_cost",
+			"target_type": "Spell",
+			"trigger": "draw"
+		}]
+	},
+	{
+		"name": "Leyline Portal",
+		"race": "genie",
+		"card_type": "Relic",
+		"description": "Whenever you draw an entity, reduce it's cost by 1.",
+		"cost": 2,
+		"triggered_effects": [{
+			"name": "reduce_cost",
+			"target_type": "Entity",
+			"trigger": "draw"
+		}]
+	},
+	{
 		"name": "Book of Knowledge",
 		"race": "genie",
 		"card_type": "Relic",

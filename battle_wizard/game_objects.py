@@ -958,7 +958,13 @@ class Player:
                 self.played_pile = [] 
             if len(self.deck) == 0 or len(self.hand) == 11:
                 continue
-            self.hand.append(self.deck.pop())
+            card = self.deck.pop()
+            self.hand.append(card)
+            for r in self.relics:
+                for effect in r.triggered_effects:
+                    if effect.name == "reduce_cost" and card.card_type == effect.target_type:
+                        card.cost -= 1
+                        card.cost = max(0, card.cost)
 
     def do_card_effect(self, card, e, message, effect_targets):
         print(f"Do card effect: {e.name}");
