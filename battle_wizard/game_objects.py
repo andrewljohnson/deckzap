@@ -281,11 +281,11 @@ class Game:
                         self.set_targets_for_opponents_entity_effect()
         elif not selected_card and not selected_entity and not selected_relic:
             for card in self.current_player().relics:
-                if self.current_player().can_activate_relic(card.id):
+                if card.can_activate_relic:
                     card.can_be_clicked = True                
                 if card.needs_entity_target_for_activated_effect():
                     card.can_be_clicked = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
-                if len(card.activated_effects) == 0:
+                if len(card.activated_effects) == 0 or card.activated_effects[0].cost > self.current_player().mana:
                     card.can_be_clicked = False
             for card in self.current_player().in_play:
                 if self.current_player().can_select_for_attack(card.id):
@@ -619,14 +619,14 @@ class Game:
             message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
         elif self.current_player().controls_relic(message["card"]):            
             relic = self.current_player().relic_in_play(message["card"])
-            if relic.can_activate_relic:
+            if relic.can_activate_relic and relic.activated_effects[0].cost <= self.current_player().mana:
                 if not relic.needs_target_for_activated_effect():
                         message["move_type"] = "ACTIVATE_RELIC"
                         message = self.play_move(message)
                 elif relic.needs_entity_target_for_activated_effect() and (len(self.current_player().in_play) > 0 or len(self.opponent().in_play) > 0):
                     self.current_player().select_relic(message["card"])
                 else:
-                    card.selected = True
+                    relic.selected = True
             else:
                 print(f"can't activate relic")
                 return None
@@ -710,11 +710,12 @@ class Game:
                 message["log_lines"].append(f"{relic.name} relics {self.current_player().username}.")
             elif relic.activated_effects[0].target_type == "opponent":
                 message["log_lines"].append(f"{relic.name} relics {self.opponent().username}.")
-                # if not "effect_targets" in message:
-                #     effect_targets = {}
-                # effect_targets[card.effects[0].id] = {"id": message["username"], "target_type":e.target_type};
-                # message["effect_targets"] = effect_targets
-                message = self.current_player().do_card_effect(relic, relic.activated_effects[0], message, None)
+                message["effect_targets"] = effect_targets
+            if not "effect_targets" in message:
+                effect_targets = {}
+            e = relic.activated_effects[0]
+            effect_targets[e.id] = {"id": message["username"], "target_type":e.target_type};
+            message = self.current_player().do_card_effect(relic, relic.activated_effects[0], message, effect_targets)
         return message
 
     def make_card(self, message):
@@ -933,6 +934,7 @@ class Player:
         }
 
     def add_to_deck(self, card_name, count, add_to_hand=False):
+        print(card_name)
         card = None
         for c in Game.all_cards():
             if c.name == card_name:
@@ -1034,6 +1036,9 @@ class Player:
             else:
                 message["log_lines"].append(f"{self.username} gains {card.description}.")
             self.do_add_abilities_effect(e, card)           
+
+        self.mana -= e.cost
+        
         return message 
 
     def do_summon_from_deck_effect_on_player(self, e, effect_targets):
@@ -1644,7 +1649,7 @@ class Card:
 
     def needs_target_for_activated_effect(self):
         for e in self.activated_effects:
-            if e.target_type != "self" or e.target_type == "opponent":
+            if e.target_type == "self" or e.target_type == "opponent":
                 return False
         return True
 
@@ -1673,6 +1678,7 @@ class CardEffect:
         self.name = info["name"]
         self.description = info["description"] if "description" in info else None
         self.amount = info["amount"] if "amount" in info else None
+        self.cost = info["cost"] if "cost" in info else 0
         self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
         self.make_type = info["make_type"] if "make_type" in info else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
@@ -1682,7 +1688,7 @@ class CardEffect:
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
 
     def __repr__(self):
-        return f"id: {self.id} name: {self.name} amount: {self.amount}\n \
+        return f"id: {self.id} name: {self.name} amount: {self.amount} cost: {self.cost}\n \
                  description: {self.description} target_type: {self.target_type}\n \
                  make_type: {self.make_type} tokens: {self.tokens} abilities: {self.abilities}\n \
                  effect_type; {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add}"
@@ -1692,6 +1698,7 @@ class CardEffect:
             "id": self.id,
             "name": self.name,
             "amount": self.amount,
+            "cost": self.cost,
             "description": self.description,
             "activate_on_add": self.activate_on_add,
             "make_type": self.make_type,

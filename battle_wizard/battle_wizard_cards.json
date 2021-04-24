@@ -1,12 +1,24 @@
 [		
 	{
-		"name": "Spyglass",
+		"name": "Crystal Spyglass",
 		"race": "elf",
 		"card_type": "Relic",
-		"cost": 0,
+		"cost": 1,
 		"activated_effects": [{
 			"name": "view_hand",
 			"target_type": "opponent"
+		}]
+	},
+	{
+		"name": "Book of Knowledge",
+		"race": "genie",
+		"card_type": "Relic",
+		"cost": 0,
+		"activated_effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"cost": 3,
+			"amount": 1
 		}]
 	},
 	{
