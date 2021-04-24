@@ -1,9 +1,13 @@
 [		
 	{
-		"name": "Test Relic",
+		"name": "Spyglass",
 		"race": "elf",
 		"card_type": "Relic",
-		"cost": 0
+		"cost": 0,
+		"activated_effects": [{
+			"name": "view_hand",
+			"target_type": "opponent"
+		}]
 	},
 	{
 		"name": "Mana Shrub",

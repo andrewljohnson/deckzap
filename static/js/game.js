@@ -307,8 +307,10 @@ class GameUX {
         cardDiv.onclick = function() { 
             if (cardDiv.parentElement == document.getElementById("hand")) {  
                 self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-            } else { 
+            } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
                 self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+            } else { 
+                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
             }
         }
         return cardDiv;
@@ -390,6 +392,9 @@ class GameUX {
             this.showChooseRace(game);
         } else if (this.thisPlayer(game).make_to_resolve.length) {
             this.showMakeView(game);
+        } else if (this.thisPlayer(game).cards_to_reveal.length) {
+            console.log(this.thisPlayer(game).cards_to_reveal);
+            this.showRevealView(game);
         } else {
             this.showGame();
         }                           
@@ -691,6 +696,45 @@ class GameUX {
                     self.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
                 }
             };
+        }
+    }
+
+    showRevealView(game) {
+        document.getElementById("make_selector").innerHTML = "";
+        var makeSelector = document.getElementById("make_selector");
+        makeSelector.style.display = "flex";
+        makeSelector.style.background = "rgba(0, 0, 0, .7)";
+
+        var container = document.createElement("div");
+        container.style.width = 90+ 80*10 + "px";
+        container.style.height = 130+50+100 + "px";
+        container.style.margin = "auto";
+        container.style.backgroundColor = "white";
+        makeSelector.appendChild(container);
+
+
+        var h1 = document.createElement("h1");
+        h1.innerHTML = "Opponent's Hand"
+        container.appendChild(h1);
+        container.appendChild(document.createElement('br'));
+        container.appendChild(document.createElement('br'));
+
+        var cardContainerDiv = document.createElement('div');
+        cardContainerDiv.classList.add("card_container");
+        container.appendChild(cardContainerDiv);
+
+        var self = this;
+        container.onclick = function() {
+            self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+            self.showGame();
+        }
+
+        var cards = this.thisPlayer(game).cards_to_reveal;
+        for (let card of cards) {
+            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
+            cardDiv.style.pointerEvents = "none";
+            delete cardDiv.onclick;
+            cardContainerDiv.appendChild(cardDiv);
         }
     }
 
