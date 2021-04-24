@@ -75,7 +75,7 @@
 		"name": "Scepter of Manipulation",
 		"race": "genie",
 		"card_type": "Relic",
-		"cost": 1,
+		"cost": 4,
 		"description": "✦: Prevent an entity from attacking, once on your turn.",
 		"activated_effects": [{
 				"name": "add_tokens",
@@ -90,6 +90,7 @@
 	{
 		"name": "Mana Shrub",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 0,
 		"toughness": 3,
 		"cost": 1,
@@ -108,6 +109,7 @@
 	{
 		"name": "Porcupine",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
@@ -119,15 +121,9 @@
 		}]
 	},
 	{
-		"name": "PantherKin",
-		"race": "elf",
-		"power": 3,
-		"toughness": 2,
-		"cost": 2
-	},
-	{
 		"name": "Thought Sprite",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 2,
 		"toughness": 2,
 		"cost": 2,
@@ -141,6 +137,7 @@
 	{
 		"name": "Mana Tree",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 0,
 		"toughness": 7,
 		"cost": 3,
@@ -171,6 +168,7 @@
 	{
 		"name": "Unstable Tempest",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 3,
 		"description": "Take 2 damage.",
 		"toughness": 2,
@@ -184,6 +182,7 @@
 	{
 		"name": "Energizer",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 1,
 		"description": "Give an entity gets +2/+0 this turn.",
 		"toughness": 1,
@@ -201,6 +200,7 @@
 	{
 		"name": "Elven Vanguard",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 3,
 		"description": "Give an entity gets +1/+1 this turn.",
 		"toughness": 2,
@@ -218,6 +218,7 @@
 	{
 		"name": "Mist Elemental",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
@@ -228,6 +229,7 @@
 	{
 		"name": "Centaur",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 3,
 		"toughness": 5,
 		"cost": 4,
@@ -238,6 +240,7 @@
 	{
 		"name": "LionKin",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 3,
 		"toughness": 3,
 		"cost": 2,
@@ -248,6 +251,7 @@
 	{
 		"name": "Training Master",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
@@ -260,6 +264,7 @@
 	{
 		"name": "Gold Dragon",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 6,
 		"toughness": 6,
 		"cost": 5,
@@ -273,6 +278,7 @@
 	{
 		"name": "Rainbow Dragon",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 6,
 		"toughness": 6,
 		"cost": 5,
@@ -287,6 +293,7 @@
 	{
 		"name": "Faerie Queen",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 4,
 		"toughness": 4,
 		"cost": 6,
@@ -303,6 +310,7 @@
 	{
 		"name": "Nature's Guardian",
 		"race": "elf",
+		"card_type": "Entity",
 		"power": 8,
 		"toughness": 8,
 		"cost": 6,
@@ -436,6 +444,7 @@
 	{
 		"name": "Stone Elemental",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 2,
 		"toughness": 2,
 		"cost": 1
@@ -443,6 +452,7 @@
 	{
 		"name": "Lightning Elemental",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 1,
 		"toughness": 1,
 		"cost": 2,
@@ -456,6 +466,7 @@
 	{
 		"name": "Air Elemental",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 1,
 		"toughness": 5,
 		"cost": 2,
@@ -466,6 +477,7 @@
 	{
 		"name": "Tame Tempest",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 2,
 		"toughness": 2,
 		"cost": 3,
@@ -551,6 +563,7 @@
 	{
 		"name": "Trickster",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
@@ -565,6 +578,7 @@
 	{
 		"name": "Fire Elemental",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
@@ -578,6 +592,7 @@
 	{
 		"name": "Inferno Elemental",
 		"race": "genie",
+		"card_type": "Entity",
 		"power": 5,
 		"toughness": 5,
 		"cost": 5,
@@ -591,6 +606,7 @@
 	{
 		"name": "Lord of the Storm",
 		"race": "genie",
+		"card_type": "Entity",
 		"description": "Return all other entities to their owners' hands.",
 		"power": 3,
 		"toughness": 3,
@@ -749,6 +765,7 @@
 	},
 	{
 		"name": "Familiar",
+		"card_type": "Entity",
 		"power": 1,
 		"toughness": 2,
 		"cost": 1,
@@ -761,6 +778,7 @@
 	},
 	{
 		"name": "Common Bunger",
+		"card_type": "Entity",
 		"power": 4,
 		"toughness": 5,
 		"cost": 4

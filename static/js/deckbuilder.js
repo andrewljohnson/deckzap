@@ -64,9 +64,12 @@ class DeckBuilder {
 		nameBold.innerHTML = card.name;
 		cardRow.appendChild(nameBold);
 
-		let costDiv = document.createElement("div");
-		costDiv.innerHTML = this.manaString(card.cost, card.cost);
-		cardRow.appendChild(costDiv)
+		let costDiv = document.createElement("b");
+	    costDiv.innerHTML = card.cost;
+	    costDiv.style.position = 'absolute';
+	    costDiv.style.top = '5px';
+	    costDiv.style.right = '5px';
+	    cardRow.appendChild(costDiv)
 
 		if (card.description) {
 			let descriptionDiv = document.createElement("div");
@@ -83,10 +86,14 @@ class DeckBuilder {
 			}
 			let powerToughnessDiv = document.createElement("div");
 			powerToughnessDiv.innerHTML = card.power + "/" + card.toughness;
+            powerToughnessDiv.style.position = "absolute";
+            powerToughnessDiv.style.bottom = "0px";
 			cardRow.appendChild(powerToughnessDiv);
 		} else {
 			let typeDiv = document.createElement("div");
 			typeDiv.innerHTML = card.card_type;
+            typeDiv.style.position = "absolute";
+            typeDiv.style.bottom = "0px";
 			cardRow.appendChild(typeDiv);
 			
 		}
