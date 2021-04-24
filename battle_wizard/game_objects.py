@@ -673,7 +673,7 @@ class Game:
             if self.current_player().selected_card().effects[0].target_type == "opponents_relic" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().relics:
                 print(f"can't target own relic with opponents_relic effect from {self.current_player().selected_card().name}")
                 return None
-            message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
+            message = self.select_relic_target_for_spell(self.current_player().selected_spell(), message)
         elif self.current_player().controls_relic(message["card"]):            
             relic = self.current_player().relic_in_play(message["card"])
             if relic.can_activate_relic and relic.activated_effects[0].cost <= self.current_player().mana:
@@ -803,7 +803,7 @@ class Game:
             Returns a tuple of the entity and controlling player for a card_id of a card that is an in_play entity
         """
         for p in [self.opponent(), self.current_player()]:
-            for card in p.in_play:
+            for card in p.in_play + p.relics:
                 if card.id == card_id:
                     return card, p
 
@@ -811,6 +811,8 @@ class Game:
         """
             Send the card to the player's played_pile and reset any temporary effects on the card
         """
+        if card in player.relics:
+            player.relics.remove(card)
         if card in player.in_play:
             player.in_play.remove(card)
         if not card.is_token:
@@ -1816,7 +1818,7 @@ class Card:
 
     def needs_targets(self):
         for e in self.effects:
-            if e.target_type == "any" or e.target_type == "entity" or e.target_type == "opponents_entity":
+            if e.target_type == "any" or e.target_type == "entity" or e.target_type == "opponents_entity" or e.target_type == "relic":
                 return True
         return False 
 

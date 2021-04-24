@@ -630,6 +630,17 @@
 		}]
 	},
 	{
+		"name": "Kill Relic",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Kill a relic.",
+		"effects": [{
+			"name": "kill",
+			"target_type": "relic"
+		}]
+	},
+	{
 		"name": "Zap",
 		"race": "genie",
 		"cost": 2,
