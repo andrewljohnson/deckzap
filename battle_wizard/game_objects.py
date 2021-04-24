@@ -755,7 +755,8 @@ class Game:
         """
         if card in player.in_play:
             player.in_play.remove(card)
-        player.played_pile.append(card)  
+        if not card.is_token:
+            player.played_pile.append(card)  
         card.attacked = False
         card.selected = False
         card.can_activate_relic = True
@@ -763,7 +764,7 @@ class Game:
         card.damage_this_turn = 0
         card.turn_played = -1
         card.tokens = []
-        # todo: make this generic if we add other added effects
+        print(card.effects_leave_play)
         for e in card.effects_leave_play:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
@@ -771,6 +772,18 @@ class Game:
                 player.game.opponent().hit_points -= e.amount
             if e.name == "damage" and e.target_type == "self":
                 player.hit_points -= e.amount
+            if e.name == "make_token":
+                print("MAKE TOKEN")
+                token_card = {
+                    "id": self.next_card_id,
+                    "power": e.power,
+                    "toughness": e.toughness,
+                    "name": e.card_name,
+                    "turn_played": self.turn,
+                    "is_token": True
+                }
+                player.in_play.append(Card(token_card))
+                self.next_card_id += 1
         for e in card.added_effects["effects_leave_play"]:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
@@ -1586,7 +1599,7 @@ class Card:
         self.power = info["power"] if "power" in info else None
         self.toughness = info["toughness"] if "toughness" in info else None
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
-        self.cost = info["cost"]
+        self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
         self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
@@ -1606,6 +1619,7 @@ class Card:
         self.added_effects = {"effects":[], "effects_leave_play":[]}
         self.can_activate_relic = info["can_activate_relic"] if "can_activate_relic" in info else True
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
+        self.is_token = info["is_token"] if "is_token" in info else None
 
         if "added_effects" in info:
             for idx, e in enumerate(info["added_effects"]["effects"]):
@@ -1628,7 +1642,9 @@ class Card:
                  attacked: {self.attacked}, selected: {self.selected}\n \
                  owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}\n \
                  abilities: {self.abilities}, tokens: {self.tokens}\n \
-                 added_effects: {self.added_effects} can_activate_relic: {self.can_activate_relic})" 
+                 added_effects: {self.added_effects} can_activate_relic: {self.can_activate_relic})\n \
+                 is_token: {self.is_token}"
+ 
 
     def as_dict(self):
         return {
@@ -1653,6 +1669,7 @@ class Card:
             "can_be_clicked": self.can_be_clicked,
             "can_activate_relic": self.can_activate_relic,
             "owner_username": self.owner_username,
+            "is_token": self.is_token,
             "effects_leave_play": [e.as_dict() for e in self.effects_leave_play],
             "abilities": [a.as_dict() for a in self.abilities],
             "added_abilities": [a.as_dict() for a in self.added_abilities],
@@ -1719,6 +1736,9 @@ class CardEffect:
     def __init__(self, info, effect_id):
         self.id = effect_id
         self.name = info["name"]
+        self.card_name = info["card_name"] if "card_name" in info else None
+        self.power = info["power"] if "power" in info else None
+        self.toughness = info["toughness"] if "toughness" in info else None
         self.description = info["description"] if "description" in info else None
         self.amount = info["amount"] if "amount" in info else None
         self.cost = info["cost"] if "cost" in info else 0
@@ -1731,8 +1751,8 @@ class CardEffect:
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
 
     def __repr__(self):
-        return f"id: {self.id} name: {self.name} amount: {self.amount} cost: {self.cost}\n \
-                 description: {self.description} target_type: {self.target_type}\n \
+        return f"id: {self.id} name: {self.name} power: {self.power} toughness: {self.toughness} amount: {self.amount} cost: {self.cost}\n \
+                 description: {self.description} target_type: {self.target_type} name: {self.card_name} \n \
                  make_type: {self.make_type} tokens: {self.tokens} abilities: {self.abilities}\n \
                  effect_type; {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add}"
 
@@ -1740,6 +1760,9 @@ class CardEffect:
         return {
             "id": self.id,
             "name": self.name,
+            "card_name": self.card_name,
+            "power": self.power,
+            "toughness": self.toughness,
             "amount": self.amount,
             "cost": self.cost,
             "description": self.description,
