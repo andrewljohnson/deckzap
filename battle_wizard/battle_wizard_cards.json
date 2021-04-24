@@ -72,6 +72,22 @@
 		}]
 	},
 	{
+		"name": "Scepter of Manipulation",
+		"race": "genie",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦: Prevent an entity from attacking, once on your turn.",
+		"activated_effects": [{
+				"name": "add_tokens",
+				"target_type": "entity",
+				"cost": 1,
+				"tokens": [{
+					"turns": 2,
+					"set_can_act": false
+				}]
+		}]
+	},
+	{
 		"name": "Mana Shrub",
 		"race": "elf",
 		"power": 0,

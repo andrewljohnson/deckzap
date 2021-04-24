@@ -406,7 +406,6 @@ class GameUX {
         } else if (this.thisPlayer(game).make_to_resolve.length) {
             this.showMakeView(game);
         } else if (this.thisPlayer(game).cards_to_reveal.length) {
-            console.log(this.thisPlayer(game).cards_to_reveal);
             this.showRevealView(game);
         } else {
             this.showGame();
