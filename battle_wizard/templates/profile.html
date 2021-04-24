@@ -11,9 +11,11 @@
     <p>You don't have any decks yet. Build a deck or play a game without deckbuilding.</p>
     <a class=button href=/build_deck{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Build Deck</a>
     <a class=button href=/games{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Play Games</a>
+  {% else %}
+  		<h2>Decks</h2>
   {% endif %}
   {% for deck in decks %}
-	    <h3 style="margin-bottom:5px">Deck {{deck.id}}: <a href="/play/pvp/constructed?username={{username}}&deck_id={{deck.id}}">Find Match</a> - <a href="/play/pvai/constructed?username={{username}}&deck_id={{deck.id}}&ai=aggro_bot">Play vs. Aggrobot</a> - <a href="/play/pvai/constructed?username={{username}}&deck_id={{deck.id}}&ai=random_bot">Play vs. RandomBot</a> - <a href="/build_deck?username={{username}}&deck_id={{deck.id}}">Edit</a></h3>
+	    <h3 style="margin-bottom:5px">{% firstof deck.name deck.id 'My Deck' %}: <a href="/play/pvp/constructed?username={{username}}&deck_id={{deck.id}}">Find Match</a> - <a href="/play/pvai/constructed?username={{username}}&deck_id={{deck.id}}&ai=aggro_bot">Play vs. Aggrobot</a> - <a href="/play/pvai/constructed?username={{username}}&deck_id={{deck.id}}&ai=random_bot">Play vs. RandomBot</a> (<a href="/build_deck?username={{username}}&deck_id={{deck.id}}">Edit</a>)</h3>
 	    {% for card_name, count in deck.cards.items %}
 	     {{card_name}} {{count}} |
 	    {% endfor %}

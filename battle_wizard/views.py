@@ -55,7 +55,8 @@ def build_deck(request):
         {
             "all_cards": json.dumps(all_cards),
             "deck_id": deck_id,
-            "deck": json.dumps(deck),
+            "json_deck": json.dumps(deck),
+            "deck": deck,
         }
     )
 
