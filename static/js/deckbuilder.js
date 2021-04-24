@@ -78,11 +78,14 @@ class DeckBuilder {
 		}
 		if (card.card_type != "Spell" && card.card_type != "Relic" ) {
 			if(card.abilities) {
-				for (let a of card.abilities) {
-					let abilitiesDiv = document.createElement("div");
-					abilitiesDiv.innerHTML = card.abilities[0].name;
-					cardRow.appendChild(abilitiesDiv);
-				}				
+		        let abilitiesDiv = document.createElement("div");
+		        for (let a of card.abilities) {
+		            abilitiesDiv.innerHTML += a.name;
+		            if (a != card.abilities[card.abilities.length-1]) {                
+		                abilitiesDiv.innerHTML += ", ";
+		            }
+		        }
+        		cardRow.appendChild(abilitiesDiv);
 			}
 			let powerToughnessDiv = document.createElement("div");
 			powerToughnessDiv.innerHTML = card.power + "/" + card.toughness;
