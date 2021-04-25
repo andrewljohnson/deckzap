@@ -293,7 +293,7 @@
 		"card_type": "Entity",
 		"power": 1,
 		"toughness": 3,
-		"cost": 3,
+		"cost": 1,
 		"abilities": [
 			{"name": "Guard"}
 		]
@@ -926,6 +926,67 @@
 			"target_type": "self",
 			"make_type": "Global",
 			"amount": 1
+		}]
+	},
+	{
+		"name": "The Biggest One",
+		"card_type": "Entity",
+		"power": 15,
+		"toughness": 15,
+		"cost": 10
+	},
+	{
+		"name": "Dagger",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "0: Attack an enemy for 1 damage.",
+		"abilities": [
+			{
+				"name": "Starts in Play",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"activated_effects": [{
+				"name": "attack",
+				"target_type": "any_enemy",
+				"cost": 0,
+				"power": 1
+		}]
+	},
+	{
+		"name": "Bow",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "0: Deal 2 damage to your opponent.",
+		"abilities": [
+			{
+				"name": "Starts in Play",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"activated_effects": [{
+				"name": "damage",
+				"target_type": "opponent",
+				"cost": 0,
+				"amount": 2
+		}]
+	},
+	{
+		"name": "Wand",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Deal 1 damage to anything.",
+		"abilities": [
+			{
+				"name": "Starts in Play",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"activated_effects": [{
+				"name": "damage",
+				"target_type": "opponent",
+				"cost": 0,
+				"amount": 2
 		}]
 	}
 ]
