@@ -170,3 +170,20 @@
     #opponent_relics {
         height:130px;width:300px;background-color:#765C48;margin-left:10px;
     }
+
+    .button {
+        background-color: blue;
+        color:white;
+        width:150px;
+        height:40px;
+        border: none;
+        border-radius: 4px;
+        font-weight:bold;
+        font-size:18px;
+        text-decoration: none;
+        margin-top: 20px;
+        margin-right: 20px;
+        display: inline-block;
+        text-align: center;
+        padding-top:15px;
+    }

@@ -434,6 +434,8 @@ class GameUX {
             return;
         }
         raceSelector.style.display = "block";
+        raceSelector.style.maxWidth = "1024px";
+        raceSelector.style.padding = "10px";
         raceSelector.style.backgroundColor = "white";
         document.getElementById("race_selector").innerHTML = "";
 
@@ -442,7 +444,7 @@ class GameUX {
         raceSelector.appendChild(h1);
 
         var p = document.createElement("p");
-        p.innerHTML = "Your race affects what cards you have access to in the game."
+        p.innerHTML = "Your race affects what cards you have access to in the game. Choose 1:"
         raceSelector.appendChild(p);
 
         var options = [
@@ -450,57 +452,26 @@ class GameUX {
             {"id": "genie", "label": "Genie"},
         ];
 
-        var table = document.createElement("table");
-        table.style.width = "100%";
-        raceSelector.appendChild(table);
-        var th = document.createElement("th");
-        th.innerHTML = "Races";
-        table.appendChild(th);
-
-        var tr = document.createElement("tr");
-        table.appendChild(tr);
-        tr.appendChild(tdForTitle("Choose 1"));
-        tr.appendChild(tdForTitle("Race"));
+        var div = document.createElement("div");
+        div.style.width = "100%";
+        raceSelector.appendChild(div);
 
         var self = this
         for(var o of options) {
-            var input = document.createElement("input");
-            input.type = "radio";
+            var input = document.createElement("div");
             input.id = o.id;
-            input.name = "effect";
-            input.value = o.id;
+            input.className = "button"
+            input.innerHTML = o.label;
+            input.style.marginRight = "20px";
             input.onclick = function() { 
                 self.race = this.id;
-                document.getElementById("startGameButton").disabled = false;
-                document.getElementById("startGameButton").style.backgroundColor = "green";
+                this.onclick = null;
+                self.innerHTML = "Waiting for Opponent...";
+                self.chooseRace(game, self.race) 
             };
-
-            var label = document.createElement("label"); 
-            label.for = o.id;
-            label.innerHTML = o.label;
-            var tr = document.createElement("tr");
-            table.appendChild(tr);
-            var td = tdForTitle("");
-            td.appendChild(input);
-            tr.appendChild(td);
-            var td = tdForTitle("");
-            td.appendChild(label);
-            tr.appendChild(td);
+            div.appendChild(input);
         }  
 
-        var button = document.createElement("button");
-        button.id = "startGameButton";
-        button.innerHTML = "Start Game";
-        button.disabled = true;
-        button.classList = ["light-gray-button"];
-        var self = this;
-        button.onclick = function() {
-            this.disabled = true;
-            button.style.backgroundColor = "lightgray"
-            button.innerHTML = "Waiting for Opponent...";
-            self.chooseRace(game, self.race) 
-        };
-        raceSelector.appendChild(button);
     }
 
     showFXSelectionView(game) {
