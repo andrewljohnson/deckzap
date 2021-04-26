@@ -1578,6 +1578,8 @@ class Player:
 
     def do_make_token_effect(self, e):
         for x in range(0, e.amount):
+            if len(self.in_play) == 7:
+                return
             token_card = {
                 "id": self.game.next_card_id,
                 "power": e.power,

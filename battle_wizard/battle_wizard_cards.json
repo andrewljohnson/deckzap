@@ -1184,5 +1184,21 @@
 				"cost": 0,
 				"sacrifice_on_activate": true
 		}]
+	},
+	{
+		"name": "Feral Shroom Dance",
+		"race": "elf",
+		"card_type": "Spell",
+		"cost": 1,
+		"description": "Fll your board with 1/1 mushrooms.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Mushroom",
+			"target_type": "self",
+			"power": 1,
+			"toughness": 1,
+			"amount": 7,
+			"cost": 7
+		}]
 	}
 ]
