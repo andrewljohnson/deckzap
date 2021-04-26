@@ -359,6 +359,7 @@ class GameUX {
             cardDiv.appendChild(powerChargesDiv);                       
         }
 
+        // todo: don't hardcode for Infernus
         if (card.activated_effects.length > 0 && card.activated_effects[0].target_type == "this" && card.activated_effects[0].target_type == "this" && card.turn_played > -1) {
             var input = document.createElement("div");
             input.className = "button"

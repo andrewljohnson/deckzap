@@ -129,6 +129,11 @@ class Game:
         for entity in self.current_player().in_play:
             if entity.can_be_clicked:
                 moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": self.ai})
+            # todo: don't hardcode for Infernus
+            if len(entity.activated_effects) > 0 and \
+                entity.activated_effects[0].target_type == "this" and \
+                entity.activated_effects[0].cost <= self.current_player().mana:
+                moves.append({"card":entity.id, "move_type": "ACTIVATE_ENTITY", "username": self.ai})
         for entity in self.opponent().in_play:
             if entity.can_be_clicked:
                 moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": self.ai})
