@@ -275,7 +275,7 @@ class GameUX {
             cardDiv.appendChild(div)
         }
 
-        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled) {
+        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
             var div = document.createElement("div");
             div.style.backgroundColor = 'black';
             div.style.opacity = ".6";
@@ -307,7 +307,7 @@ class GameUX {
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
-            if (card.activated_effects.length == 0 || card.turn_played == -1) {
+            if (card.activated_effects.length == 0 || card.activated_effects[0].target_type != "this" || card.turn_played == -1) {
                 let descriptionDiv = document.createElement("div");
                 descriptionDiv.innerHTML = card.description;
                 cardDiv.appendChild(descriptionDiv);

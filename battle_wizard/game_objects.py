@@ -89,7 +89,6 @@ class Game:
             moves = self.add_attack_and_play_card_moves(moves)
             moves.append({"move_type": "END_TURN", "username": self.ai})
 
-        print(moves)
         return moves
 
     def add_resolve_entities_moves(self, player, moves):
@@ -203,7 +202,7 @@ class Game:
             found_relic = None
             
             for c in self.current_player().deck:
-                if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in play":
+                if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
                     found_relic = c
                     break
             if found_relic:
@@ -306,7 +305,6 @@ class Game:
             elif card.activated_effects[0].target_type == "any":
                 self.set_targets_for_damage_effect()
             elif card.activated_effects[0].target_type == "entity":
-                print("set_targets_for_entity_effect")
                 self.set_targets_for_entity_effect(card.activated_effects[0].target_restrictions)
             elif card.activated_effects[0].target_type == "relic":
                 self.set_targets_for_relic_effect()
@@ -397,6 +395,8 @@ class Game:
                     card.can_be_clicked = True
                     if card.needs_card_being_cast_target():
                         card.can_be_clicked = False
+                    if card.card_type == "Relic":
+                        card.can_be_clicked = len(self.current_player().relics) != 3
                     if card.card_type == "Spell" and card.needs_entity_target():
                         card.can_be_clicked = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
                     if card.card_type == "Spell" and card.needs_relic_target():
@@ -746,7 +746,6 @@ class Game:
                 print(f"can't target entity with Lurker")
                 return None                
             message["defending_card"] = message["card"]
-            print("RETURNING")
             message = self.select_entity_target_for_entity_activated_effect(self.current_player().entity_with_activated_effect_to_target, message)
         elif len(self.current_player().entities_to_select_from) > 0:
              selected_card = self.current_player().in_play_card(message["card"])
@@ -783,6 +782,16 @@ class Game:
                     message["move_type"] = "ATTACK"
                     message["card_name"] = self.current_player().in_play_card(message["card"]).name
                     message = self.play_move(message)   
+            elif self.current_player().selected_relic():
+                defending_card, defending_player = self.get_in_play_for_id(message["card"])
+                if defending_player.entity_has_lurker(defending_card):
+                    print(f"can't target entity with Lurker")
+                    return None                
+                message["move_type"] = "ACTIVATE_RELIC"
+                message["card"] = self.current_player().selected_relic().id
+                message["card_name"] = self.current_player().relic_in_play(message["card"]).name
+                message["defending_card"] = defending_card.id
+                message = self.play_move(message)            
             elif self.current_player().can_select_for_attack(message["card"]):
                 self.current_player().select_in_play(message["card"])
             else:
@@ -885,7 +894,6 @@ class Game:
                     if card.selected:
                         target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
                         using_relic = True
-                        print(f"selecting target_player {target_player}")
                         message = self.select_player_target_for_relic_effect(target_player.username, card, message)
 
             if not casting_spell and not using_relic:
@@ -956,6 +964,8 @@ class Game:
             e = relic.enabled_activated_effects()[0]
             if e.target_type == "self":
                 message = self.current_player().do_card_effect(relic, e, message, [{"id": message["username"], "target_type": "player"}])
+            elif e.target_type == "opponent":
+                message = self.current_player().do_card_effect(relic, e, message, [{"id": self.opponent().username, "target_type": "player"}])
             # todo unhardcode for other fetch types if we can fetch more than Relics
             elif e.target_type == "Relic":
                 message = self.current_player().do_card_effect(relic, e, message, [{"id": message["username"], "target_type": e.target_type}])
@@ -1161,7 +1171,6 @@ class Game:
         return self.select_entity_target(relic_with_effect_to_target, message, "ACTIVATE_ENTITY", activated_effect=True)
 
     def select_player_target(self, username, entity_with_effect_to_target, message, move_type):
-        print(f"select_player_target {username}")
         new_message = copy.deepcopy(message)
         new_message["move_type"] = move_type
         effect_targets = {}
@@ -1172,7 +1181,6 @@ class Game:
         new_message["effect_targets"] = effect_targets
         new_message["card"] = entity_with_effect_to_target.id
         new_message["card_name"] = entity_with_effect_to_target.name
-        print(f"about to play move for message {new_message}")
         new_message = self.play_move(new_message)       
         return new_message             
 
@@ -1328,7 +1336,6 @@ class Player:
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
         elif e.name == "make_token":
-            print(effect_targets)
             if e.target_type == "self":
                 self.do_make_token_effect(e)
                 message["log_lines"].append(f"{card.name} makes {e.amount} tokens.")
@@ -1639,7 +1646,7 @@ class Player:
                 target_player = self.game.players[1]
             return target_player.display_deck_relics()
         else:
-            print("can;t fetch unsupported type")
+            print("can't fetch unsupported type")
             return None
 
     def do_add_token_effect_on_entity(self, token, target_entity_id):
@@ -1816,7 +1823,6 @@ class Player:
                 if card.turn_played == self.game.turn:
                     if self.entity_has_fast(card):
                         return True
-                    print(f"ambush is {self.entity_has_ambush(card)}")
                     if self.entity_has_ambush(card) and len(self.game.opponent().in_play) > 0:
                         return True
                     return False

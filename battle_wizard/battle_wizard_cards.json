@@ -173,7 +173,7 @@
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 5,
-		"cost": 1,
+		"cost": 5,
 		"description": "Get a 1/2 dryad token with Guard when this dies.",
 		"abilities": [
 				{"name": "Guard", "descriptive_id": "Guard"}
@@ -1109,7 +1109,7 @@
 		"name": "Bow",
 		"card_type": "Relic",
 		"cost": 1,
-		"description": "0: Deal 2 damage to your opponent.",
+		"description": "✦✦: Deal 2 damage to your opponent.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -1119,7 +1119,7 @@
 		"activated_effects": [{
 				"name": "damage",
 				"target_type": "opponent",
-				"cost": 0,
+				"cost": 2,
 				"amount": 2
 		}]
 	},
@@ -1136,9 +1136,9 @@
 		],
 		"activated_effects": [{
 				"name": "damage",
-				"target_type": "opponent",
-				"cost": 0,
-				"amount": 2
+				"target_type": "any",
+				"cost": 2,
+				"amount": 1
 		}]
 	},
 	{
@@ -1212,8 +1212,8 @@
 		"name": "Feral Shroom Dance",
 		"race": "elf",
 		"card_type": "Spell",
-		"cost": 1,
-		"description": "Fll your board with 1/1 mushrooms.",
+		"cost": 7,
+		"description": "Fill your board with 1/1 mushrooms.",
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Mushroom",
