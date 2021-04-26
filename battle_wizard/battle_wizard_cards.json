@@ -939,7 +939,7 @@
 		"name": "Dagger",
 		"card_type": "Relic",
 		"cost": 1,
-		"description": "Make this a 1 power weapon with 2 charges.",
+		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
 		"abilities": [
 			{
 				"name": "Starts in Play",
@@ -1012,6 +1012,43 @@
 				"target_type": "any",
 				"cost": 2,
 				"amount": 2
+		}]
+	},
+	{
+		"name": "Shield",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Gain 2 armor.",
+		"abilities": [
+			{
+				"name": "Starts in Play",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"activated_effects": [{
+				"name": "gain_armor",
+				"target_type": "self",
+				"cost": 2,
+				"amount": 2
+		}]
+	},
+	{
+		"name": "Abyssal Crystal",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: draw a card and lose 2 life.",
+		"abilities": [
+			{
+				"name": "Starts in Play",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"activated_effects": [{
+				"name": "draw",
+				"target_type": "self",
+				"cost": 2,
+				"cost_hp": 2,
+				"amount": 1
 		}]
 	}
 ]

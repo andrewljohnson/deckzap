@@ -20,6 +20,14 @@ class DeckBuilder {
 		return count;
 	}
 
+	cardFCorName(cardName) {
+		for (var c of this.allCards) {
+			if (c.name == cardName) {
+				return c;
+			}
+		}
+	}
+
 	addCardToContainer(card, containerId) {
 		var cardRow = document.createElement("div");
 		cardRow.id = card.name;
@@ -42,6 +50,9 @@ class DeckBuilder {
 				}
 				if (!(card.name in self.deck["cards"])) {
 					self.deck["cards"][card.name] = 1
+				} else if (self.deck["cards"][card.name] == 1 && card.card_type == "Relic") {
+					console.log("can't add more than 1 relic")
+					return;
 				} else if (self.deck["cards"][card.name] == 1) {
 					self.deck["cards"][card.name] = 2				
 				} else {

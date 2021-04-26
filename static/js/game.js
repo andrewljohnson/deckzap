@@ -331,6 +331,14 @@ class GameUX {
             typeDiv.style.bottom = "0px";
             cardDiv.appendChild(typeDiv);           
         }
+        if (card.added_effects.activated_effects.length > 0 && card.added_effects.activated_effects[0].name == "attack") {
+            let powerChargesDiv = document.createElement("em");
+            powerChargesDiv.innerHTML = card.added_effects.activated_effects[0].power + "/" + card.added_effects.activated_effects[0].counters;
+            powerChargesDiv.style.position = "absolute";
+            powerChargesDiv.style.bottom = "0px";
+            powerChargesDiv.style.right = "0px";
+            cardDiv.appendChild(powerChargesDiv);                       
+        }
 
         var self = this;
         cardDiv.onclick = function() { 
