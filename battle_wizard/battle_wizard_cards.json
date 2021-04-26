@@ -125,6 +125,9 @@
 			"target_type": "self",
 			"amount": 1
 		}],
+		"abilities": [
+			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
+		],
 		"effects_leave_play": [{
 			"name": "decrease_max_mana",
 			"target_type": "self",
@@ -493,7 +496,7 @@
 		"toughness": 2,
 		"cost": 3,
 		"abilities": [
-			{"name": "Lurker", "descriptive_id": "Lurker"}
+			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
 		],
 		"activated_effects": [{
 				"name": "unwind",
@@ -1011,6 +1014,9 @@
 		"toughness": 2,
 		"cost": 1,
 		"description": "Draw a card.",
+		"abilities": [
+			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
+		],
 		"effects": [{
 			"name": "draw",
 			"target_type": "self",

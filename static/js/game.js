@@ -275,6 +275,19 @@ class GameUX {
             cardDiv.appendChild(div)
         }
 
+        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled) {
+            var div = document.createElement("div");
+            div.style.backgroundColor = 'black';
+            div.style.opacity = ".6";
+            div.style.height = "100%";
+            div.style.width = "100%";
+            div.style.position = "absolute";
+            div.style.top = 0;
+            div.style.left = 0;
+            div.style.pointerEvents = "none";
+            cardDiv.appendChild(div)
+        }
+
         if (card.card_type != "Effect") {
             let costDiv = document.createElement("b");
             costDiv.innerHTML = card.cost;
