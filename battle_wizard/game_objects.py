@@ -38,6 +38,7 @@ class Game:
         # the websocket consumer instance the game gets updated by
         self.websocket_consumer = websocket_consumer
 
+        # use for test_stacked_deck game_type (for unit testing)
         self.player_decks = player_decks
 
     def as_dict(self):
@@ -77,10 +78,8 @@ class Game:
             ]
 
         moves = []
-        if player.entity_with_effect_to_target:
-            moves = self.add_resolve_entities_moves(player, moves)
-        elif player.entity_with_activated_effect_to_target:
-            moves = self.add_resolve_entity_activated_effect_moves(player, moves)
+        if player.card_info_to_resolve["effect_type"] in ["entity_activated", "entity_comes_into_play"]:
+            moves = self.add_resolve_entity_effects_moves(player, moves)
         elif player.make_to_resolve:
             moves = self.add_resolve_make_moves(player, moves)
         elif player.fetch_relic_to_resolve:
@@ -91,37 +90,19 @@ class Game:
 
         return moves
 
-    def add_resolve_entities_moves(self, player, moves):
-        for card in self.opponent().in_play + self.current_player().in_play:
-            if card.can_be_clicked:
-                effect_targets = {} 
-                effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": card.id, "target_type":"entity"}            
-                # hack for siz pop and stiff wind
-                if len(player.entity_with_effect_to_target.effects) == 2:
-                    effect_targets[player.entity_with_effect_to_target.effects[1].id] = {"id": self.username, "target_type":"player"}
-                moves.append({
-                        "card":player.entity_with_effect_to_target.id, 
-                        "move_type": "RESOLVE_ENTITY_EFFECT", 
-                        "username": self.ai,
-                        "effect_targets": effect_targets})
-        for p in self.players:
-            if p.can_be_clicked:
-                effect_targets = {}
-                # todo don't hardcode index
-                effect_targets[player.entity_with_effect_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
-                moves.append({"card":player.entity_with_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": self.ai, "effect_targets": effect_targets})
-        return moves 
 
-    def add_resolve_entity_activated_effect_moves(self, player, moves):
+    def add_resolve_entity_effects_moves(self, player, moves):
+        entity_to_target = self.current_player().selected_entity()
         for card in self.opponent().in_play + self.current_player().in_play:
             if card.can_be_clicked:
-                effect_targets = {} 
-                effect_targets[player.entity_with_activated_effect_to_target.activated_effects[0].id] = {"id": card.id, "target_type":"entity"}            
-                # hack for siz pop and stiff wind
-                if len(player.entity_with_activated_effect_to_target.effects) == 2:
-                    effect_targets[player.entity_with_activated_effect_to_target.activated_effects[1].id] = {"id": self.username, "target_type":"player"}
+                effect_targets = {}
+                # todo handle cards with more than one effect that gets triggered at the same time
+                if self.current_player().card_info_to_resolve["effect_type"] == "entity_comes_into_play": 
+                    effect_targets[entity_to_target.effects[0].id] = {"id": card.id, "target_type":"entity"}           
+                elif self.current_player().card_info_to_resolve["effect_type"] == "entity_activated": 
+                    effect_targets[entity_to_target.activated_effects[0].id] = {"id": card.id, "target_type":"entity"}           
                 moves.append({
-                        "card":player.entity_with_activated_effect_to_target.id, 
+                        "card":entity_to_target.id, 
                         "move_type": "RESOLVE_ENTITY_EFFECT", 
                         "username": self.ai,
                         "effect_targets": effect_targets})
@@ -129,8 +110,11 @@ class Game:
             if p.can_be_clicked:
                 effect_targets = {}
                 # todo don't hardcode index
-                effect_targets[player.entity_with_activated_effect_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
-                moves.append({"card":player.entity_with_activated_effect_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": self.ai, "effect_targets": effect_targets})
+                if self.current_player().card_info_to_resolve["effect_type"] == "entity_comes_into_play": 
+                    effect_targets[entity_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
+                elif self.current_player().card_info_to_resolve["effect_type"] == "entity_activated": 
+                    effect_targets[entity_to_target.activated_effects[0].id] = {"id": card.id, "target_type":"entity"}            
+                moves.append({"card":entity_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": self.ai, "effect_targets": effect_targets})
         return moves 
 
     def add_resolve_make_moves(self, player, moves):
@@ -277,6 +261,7 @@ class Game:
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
 
+
     def set_clickables(self):
         """
             highlight selectable cards for possible attacks/spells
@@ -284,94 +269,78 @@ class Game:
         if len(self.players) != 2:
             return
 
-        card = self.current_player().entity_with_effect_to_target
-        target_type = None
-        target_restrictions = None
-        if card:
-            target_type = card.effects[0].target_type
-            target_restrictions = card.effects[0].target_restrictions
-        else:
-            card = self.current_player().entity_with_activated_effect_to_target
-            if card:
-                target_type = card.activated_effects[0].target_type
-                target_restrictions = card.activated_effects[0].target_restrictions
-        if card:
-            self.set_targets_for_target_type(target_type, target_restrictions)
-            return
-
-        if len(self.current_player().entities_to_select_from) > 0:
-            for e in self.current_player().entities_to_select_from:
-                e.can_be_clicked = True
-            return
-
-        selected_entity = None
-        for entity in self.current_player().in_play:
-            if entity.selected:
-                selected_entity = entity
-        selected_card = None
-        for card in self.current_player().hand:
-            if card.selected:
-                selected_card = card
-        selected_relic = None
-        for card in self.current_player().relics:
-            if card.selected:
-                selected_relic = card
-
-        if selected_entity:
-            only_has_ambush_attack = False
-            if not self.current_player().entity_has_fast(selected_entity):
-                if self.current_player().entity_has_ambush(selected_entity):
-                    if selected_entity.turn_played == self.turn:
-                        only_has_ambush_attack = True
-            if (self.current_player().entity_has_evade_guard(selected_entity) or not self.opponent().has_guard()) and not only_has_ambush_attack:
-                selected_entity.can_be_clicked = True
-                self.opponent().can_be_clicked = True
-            for card in self.opponent().in_play:
-                if self.opponent().entity_has_guard(card) or not self.opponent().has_guard() or self.current_player().entity_has_evade_guard(selected_entity):
-                    if not self.opponent().entity_has_lurker(card):
-                        card.can_be_clicked = True
-        elif selected_card:
-            if not selected_card.needs_targets():
-                selected_card.can_be_clicked = True 
-            else:           
-                for e in selected_card.effects:
-                    if self.current_player().mana >= e.cost:
-                        self.set_targets_for_target_type(e.target_type, e.target_restrictions)
-        elif selected_relic:
+        cp = self.current_player()
+        opp = self.opponent()
+        if cp.selected_entity() and cp.card_info_to_resolve["effect_type"] != "entity_at_ready":
+            cp.set_targets_for_selected_entity()
+        elif cp.selected_relic():
+            selected_relic = cp.selected_relic()
             if not selected_relic.needs_activated_effect_targets():
                 selected_relic.can_be_clicked = True 
             else:           
                 for e in selected_relic.enabled_activated_effects():
-                    if self.current_player().mana >= e.cost:
+                    if cp.mana >= e.cost:
                         self.set_targets_for_target_type(e.target_type, e.target_restrictions)
-        elif not selected_card and not selected_entity and not selected_relic:
-            for card in self.current_player().relics:
-                if card.can_activate_abilities:
-                    card.can_be_clicked = True                
-                if card.needs_entity_target_for_activated_effect():
-                    card.can_be_clicked = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
-                if len(card.enabled_activated_effects()) == 0 or card.enabled_activated_effects()[0].cost > self.current_player().mana:
+        elif cp.selected_spell():
+            selected_spell = cp.selected_spell()
+            if not selected_spell.needs_targets():
+                selected_spell.can_be_clicked = True 
+            else:           
+                for e in selected_spell.effects:
+                    if cp.mana >= e.cost:
+                        self.set_targets_for_target_type(e.target_type, e.target_restrictions)
+                        # todo handle mutliple effects if we add cards like that
+                        # without this break, this code breaks on Siz Pop
+                        break
+        elif cp.card_info_to_resolve["effect_type"] in ["entity_at_ready"]:
+            selected_entity = cp.selected_entity()
+            only_has_ambush_attack = False
+            if not cp.entity_has_fast(selected_entity):
+                if cp.entity_has_ambush(selected_entity):
+                    if selected_entity.turn_played == self.turn:
+                        only_has_ambush_attack = True
+            if (cp.entity_has_evade_guard(selected_entity) or not opp.has_guard()) and not only_has_ambush_attack:
+                selected_entity.can_be_clicked = True
+                opp.can_be_clicked = True
+            for card in opp.in_play:
+                if opp.entity_has_guard(card) or not opp.has_guard() or cp.entity_has_evade_guard(selected_entity):
+                    if not opp.entity_has_lurker(card):
+                        card.can_be_clicked = True
+        if cp.card_info_to_resolve["effect_type"]:
+            return
+
+        if len(cp.entities_to_select_from) > 0:
+            for e in cp.entities_to_select_from:
+                e.can_be_clicked = True
+            return
+
+        for card in cp.relics:
+            if card.can_activate_abilities:
+                card.can_be_clicked = True                
+            if card.needs_entity_target_for_activated_effect():
+                card.can_be_clicked = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
+            if len(card.enabled_activated_effects()) == 0 or card.enabled_activated_effects()[0].cost > cp.mana:
+                card.can_be_clicked = False
+            if not card.can_activate_abilities:
+                card.can_be_clicked = False                
+        for card in cp.in_play:
+            if cp.can_select_for_attack(card.id):
+                card.can_be_clicked = True
+        for card in cp.hand:               
+            if cp.mana >= card.cost:
+                card.can_be_clicked = True
+                if card.needs_card_being_cast_target():
                     card.can_be_clicked = False
-                if not card.can_activate_abilities:
-                    card.can_be_clicked = False                
-            for card in self.current_player().in_play:
-                if self.current_player().can_select_for_attack(card.id):
-                    card.can_be_clicked = True
-            for card in self.current_player().hand:               
-                if self.current_player().mana >= card.cost:
-                    card.can_be_clicked = True
-                    if card.needs_card_being_cast_target():
-                        card.can_be_clicked = False
-                    if card.card_type == "Relic":
-                        card.can_be_clicked = len(self.current_player().relics) != 3
-                    if card.card_type == "Spell" and card.needs_entity_target():
-                        card.can_be_clicked = False if len(self.current_player().in_play) == 0 and len(self.opponent().in_play) == 0 else True
-                    if card.card_type == "Spell" and card.needs_relic_target():
-                        card.can_be_clicked = False if len(self.current_player().relics) == 0 and len(self.opponent().relics) == 0 else True
-                    if card.card_type == "Entity" and not self.current_player().can_summon():
-                        card.can_be_clicked = False
-                    if card.name == "Mind Manacles" and len(self.opponent().in_play) == 0:
-                        card.can_be_clicked = False
+                if card.card_type == "Relic":
+                    card.can_be_clicked = len(cp.relics) != 3
+                if card.card_type == "Spell" and card.needs_entity_target():
+                    card.can_be_clicked = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
+                if card.card_type == "Spell" and card.needs_relic_target():
+                    card.can_be_clicked = False if len(cp.relics) == 0 and len(opp.relics) == 0 else True
+                if card.card_type == "Entity" and not cp.can_summon():
+                    card.can_be_clicked = False
+                if card.name == "Mind Manacles" and len(opp.in_play) == 0:
+                    card.can_be_clicked = False
 
     def set_targets_for_target_type(self, target_type, target_restrictions):
         if target_type == "any_player":
@@ -459,14 +428,17 @@ class Game:
                 set_targets = True
         return set_targets
 
-    def has_targets_for_entity_effect(self):
-        for e in self.opponent().in_play:
-            if not self.opponent().entity_has_lurker(e):
-                return True
+    def has_targets_for_entity_effect(self, target_restrictions):
+        has_friendly_target = False
+        if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
+            for e in self.current_player().in_play:
+                if self.current_player().entity_has_guard(e):
+                    if not self.current_player().entity_has_lurker(e):
+                        return True
         for e in self.current_player().in_play:
             if not self.current_player().entity_has_lurker(e):
                 return True
-        return False
+        return self.has_targets_for_opponents_entity_effect(target_restrictions)
 
     def has_targets_for_opponents_entity_effect(self, target_restrictions):
         if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
@@ -659,10 +631,9 @@ class Game:
     def end_turn(self, message):
         if len(self.current_player().make_to_resolve) > 0 or \
             len(self.current_player().fetch_relic_to_resolve) > 0 \
-            or self.current_player().entity_with_effect_to_target \
-            or self.current_player().entity_with_activated_effect_to_target \
+            or self.current_player().card_info_to_resolve["card_id"] \
             or self.current_player().entities_to_select_from:
-            print("can't end turn when there is an effect left to resolve")
+            print(f"can't end turn when there is an effect left to resolve {self.current_player().card_info_to_resolve['effect_type']}")
             return message
         self.remove_temporary_tokens()
         self.remove_temporary_abilities()
@@ -673,6 +644,7 @@ class Game:
         return message
 
     def select_card_in_hand(self, message):
+        # todo: what happens if you select a card then another card?
         for card in self.current_player().hand:
             if card.id == message["card"]:
                 message["card_name"] = card.name
@@ -683,9 +655,9 @@ class Game:
                     print(f"can't select relic targetting spell with no relics in play")
                     return None
                 elif card.cost <= self.current_player().mana:
-                    if card.selected and card.needs_targets():
-                        card.selected = False
-                    elif card.selected:
+                    if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets():
+                        self.current_player().reset_card_info_to_resolve()
+                    elif self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id:
                         message["move_type"] = "PLAY_CARD"
                         message = self.play_move(message)
                         # play card
@@ -705,92 +677,84 @@ class Game:
                         else:
                             print(f"can't play relic")
                     else:
-                        card.selected = True
+                        self.current_player().card_info_to_resolve["card_id"] = card.id
+                        self.current_player().card_info_to_resolve["effect_type"] = "spell_cast"
+
                 else:
                     print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")                        
                     return None
                 break
         return message
 
-
     def select_entity(self, message):
-        if self.current_player().entity_with_effect_to_target:
+        cp = self.current_player()
+        if cp.card_info_to_resolve["effect_type"] in ["entity_comes_into_play", "entity_activated"]:
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
             if defending_player.entity_has_lurker(defending_card):
                 print(f"can't target entity with Lurker")
                 return None                
             message["defending_card"] = message["card"]
-            message = self.select_entity_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
-        elif self.current_player().entity_with_activated_effect_to_target:
+            card = cp.selected_entity()
+            if cp.card_info_to_resolve["effect_type"] == "entity_comes_into_play":
+                message = self.select_entity_target_for_entity_effect(card, message)
+            elif cp.card_info_to_resolve["effect_type"] == "entity_activated": 
+                message = self.select_entity_target_for_entity_activated_effect(card, message)
+        elif cp.card_info_to_resolve["effect_type"] == "spell_cast":
+            selected_card = cp.selected_spell()
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
-            if defending_player.entity_has_lurker(defending_card):
-                print(f"can't target entity with Lurker")
-                return None                
-            message["defending_card"] = message["card"]
-            message = self.select_entity_target_for_entity_activated_effect(self.current_player().entity_with_activated_effect_to_target, message)
-        elif len(self.current_player().entities_to_select_from) > 0:
-             selected_card = self.current_player().in_play_card(message["card"])
-             chose_card = False
-             if selected_card:
-                for c in self.current_player().entities_to_select_from:
-                    if c.id == selected_card.id:
-                        selected_card.attacked = False
-                        self.current_player().entities_to_select_from = []
-                        chose_card = True
-             if not chose_card:
-                print("can't select that entity to un-attack for ice prison")
-        elif self.current_player().selected_card():  
-            defending_card, defending_player = self.get_in_play_for_id(message["card"])
-            if not self.current_player().selected_card().can_target_entities():
-                print(f"can't target entity with {self.current_player().selected_card().name}")
+            if not selected_card.can_target_entities():
+                print(f"can't target entity with {selected_card.name}")
                 return None                                
             if defending_player.entity_has_lurker(defending_card):
                 print(f"can't target entity with Lurker")
                 return None                
-
             # todo handle cards with multiple effects
-            if self.current_player().selected_card().effects[0].target_type == "opponents_entity" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
-                print(f"can't target own entity with opponents_entity effect from {self.current_player().selected_card().name}")
+            if cp.selected_spell().effects[0].target_type == "opponents_entity" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
+                print(f"can't target own entity with opponents_entity effect from {cp.selected_spell().name}")
                 return None
             message["defending_card"] = message["card"]
-            message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
-        elif self.current_player().controls_entity(message["card"]):
+            message = self.select_entity_target_for_spell(cp.selected_spell(), message)
+        elif len(cp.entities_to_select_from) > 0:
+             selected_card = cp.in_play_card(message["card"])
+             chose_card = False
+             if selected_card:
+                for c in cp.entities_to_select_from:
+                    if c.id == selected_card.id:
+                        selected_card.attacked = False
+                        cp.entities_to_select_from = []
+                        chose_card = True
+             if not chose_card:
+                print("can't select that entity to un-attack for ice prison")
+        elif cp.controls_entity(message["card"]):
             card, _ = self.get_in_play_for_id(message["card"])
-            if card.selected:                
+            if card == cp.selected_entity():                
                 only_has_ambush_attack = False
-                if not self.current_player().entity_has_fast(card):
-                    if self.current_player().entity_has_ambush(card):
+                if not cp.entity_has_fast(card):
+                    if cp.entity_has_ambush(card):
                         if card.turn_played == self.turn:
                             only_has_ambush_attack = True
                 if only_has_ambush_attack:
                     print(f"can't attack opponent because an entity only has Ambush")
-                elif self.opponent().has_guard() and not self.current_player().entity_has_evade_guard(self.current_player().in_play_card(message["card"])):                        
-                    self.current_player().in_play_card(message["card"]).selected = False
+                elif self.opponent().has_guard() and not cp.entity_has_evade_guard(cp.in_play_card(message["card"])):                        
+                    self.current_player().reset_card_info_to_resolve()
                     print(f"can't attack opponent because an entity has Guard")
                 else:                 
                     message["move_type"] = "ATTACK"
-                    message["card_name"] = self.current_player().in_play_card(message["card"]).name
+                    message["card_name"] = cp.in_play_card(message["card"]).name
                     message = self.play_move(message)   
-            elif self.current_player().selected_relic():
+            elif cp.selected_relic():
                 defending_card, defending_player = self.get_in_play_for_id(message["card"])
-                if defending_player.entity_has_lurker(defending_card):
-                    print(f"can't target entity with Lurker")
-                    return None                
-                message["move_type"] = "ACTIVATE_RELIC"
-                message["card"] = self.current_player().selected_relic().id
-                message["card_name"] = self.current_player().relic_in_play(message["card"]).name
-                message["defending_card"] = defending_card.id
-                message = self.play_move(message)            
-            elif self.current_player().can_select_for_attack(message["card"]):
-                self.current_player().select_in_play(message["card"])
+                return self.activate_relic_on_entity(message, defending_card, defending_player)
+            elif cp.can_select_for_attack(message["card"]):
+                cp.select_in_play(message["card"])
             else:
                 print("can't select that entity")
                 return None
-        elif not self.current_player().controls_entity(message["card"]):
+        elif not cp.controls_entity(message["card"]):
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
-            selected_entity = self.current_player().selected_entity()
+            selected_entity = cp.selected_entity()
             if selected_entity:
-                if not defending_player.entity_has_lurker(defending_card) and (not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card) or self.current_player().entity_has_evade_guard(selected_entity)):                        
+                if not defending_player.entity_has_lurker(defending_card) and (not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card) or cp.entity_has_evade_guard(selected_entity)):                        
                     message["move_type"] = "ATTACK"
                     message["card"] = selected_entity.id
                     message["card_name"] = selected_entity.name
@@ -802,15 +766,8 @@ class Game:
                     else:
                         print(f"can't attack {defending_card.name} because another entity has Guard")
                     return None                                            
-            elif self.current_player().selected_relic():
-                if defending_player.entity_has_lurker(defending_card):
-                    print(f"can't target entity with Lurker")
-                    return None                
-                message["move_type"] = "ACTIVATE_RELIC"
-                message["card"] = self.current_player().selected_relic().id
-                message["card_name"] = self.current_player().relic_in_play(message["card"]).name
-                message["defending_card"] = defending_card.id
-                message = self.play_move(message)            
+            elif cp.selected_relic():
+                return self.activate_relic_on_entity(message, defending_card, defending_player)
             else:
                 print(f"nothing selected to target {defending_card.name}")
                 return None
@@ -818,15 +775,27 @@ class Game:
             print("Should never get here")                                
         return message
 
+    def activate_relic_on_entity(self, message, defending_card, defending_player):
+        if defending_player.entity_has_lurker(defending_card):
+            print(f"can't target entity with Lurker")
+            return None                
+        message["move_type"] = "ACTIVATE_RELIC"
+        message["card"] = self.current_player().selected_relic().id
+        message["card_name"] = self.current_player().selected_relic().name
+        message["defending_card"] = defending_card.id
+        message = self.play_move(message)      
+        return message      
+
     def select_relic(self, message):
-        if self.current_player().entity_with_effect_to_target:
-            message = self.select_relic_target_for_entity_effect(self.current_player().entity_with_effect_to_target, message)
-        elif self.current_player().entity_with_activated_effect_to_target:
-            message = self.select_relic_target_for_relic_effect(self.current_player().entity_with_activated_effect_to_target, message)
-        elif self.current_player().selected_card():  
+        cp = self.current_player()
+        if cp.card_info_to_resolve["effect_type"] in ["entity_comes_into_play"]:
+            message = self.select_relic_target_for_entity_effect(cp.selected_entity(), message)
+        elif cp.card_info_to_resolve["effect_type"] in ["entity_activated"]:
+            message = self.select_relic_target_for_relic_effect(cp.selected_entity(), message)
+        elif self.current_player().selected_spell():  
             # todo handle cards with multiple effects
-            if self.current_player().selected_card().effects[0].target_type == "opponents_relic" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().relics:
-                print(f"can't target own relic with opponents_relic effect from {self.current_player().selected_card().name}")
+            if self.current_player().selected_spell().effects[0].target_type == "opponents_relic" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().relics:
+                print(f"can't target own relic with opponents_relic effect from {self.current_player().selected_spell().name}")
                 return None
             message = self.select_relic_target_for_spell(self.current_player().selected_spell(), message)
         elif self.current_player().controls_relic(message["card"]):            
@@ -837,8 +806,10 @@ class Game:
                         message = self.play_move(message)
                 elif relic.needs_entity_target_for_activated_effect() and (len(self.current_player().in_play) > 0 or len(self.opponent().in_play) > 0):
                     self.current_player().select_relic(message["card"])
+                elif not relic.needs_entity_target_for_activated_effect(): # player targets
+                    self.current_player().select_relic(message["card"])
                 else:
-                    relic.selected = True
+                    self.current_player().reset_card_info_to_resolve()
             else:
                 print(f"can't activate relic")
                 return None
@@ -859,59 +830,46 @@ class Game:
         return message
 
     def select_player(self, move_type, message):
-        if self.current_player().entity_with_effect_to_target:
+        if self.current_player().selected_entity() and self.current_player().card_info_to_resolve["effect_type"] in ["entity_activated", "entity_comes_into_play"]:
             if move_type == 'SELECT_OPPONENT':
-                message = self.select_player_target_for_entity_effect(self.opponent().username, self.current_player().entity_with_effect_to_target, message)
+                message = self.select_player_target_for_entity_effect(self.opponent().username, self.current_player().selected_entity(), message)
             else:
-                message = self.select_player_target_for_entity_effect(self.current_player().username, self.current_player().entity_with_effect_to_target, message)
-        elif self.current_player().entity_with_activated_effect_to_target:
-            if move_type == 'SELECT_OPPONENT':
-                message = self.select_player_target_for_relic_effect(self.opponent().username, self.current_player().entity_with_activated_effect_to_target, message)
-            else:
-                message = self.select_player_target_for_relic_effect(self.current_player().username, self.current_player().entity_with_activated_effect_to_target, message)
+                message = self.select_player_target_for_entity_effect(self.current_player().username, self.current_player().selected_entity(), message)
+        elif self.current_player().selected_spell():
+            target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
+            casting_spell = True
+            message = self.select_player_target_for_spell(target_player.username, self.current_player().selected_spell(), message)
+        elif self.current_player().selected_relic():
+            target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
+            using_relic = True
+            message = self.select_player_target_for_relic_effect(target_player.username, self.current_player().selected_relic(), message)
         else:
-            casting_spell = False
-            for card in self.current_player().hand:
-                if card.selected:
-                    target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
-                    casting_spell = True
-                    message = self.select_player_target_for_spell(target_player.username, card, message)
-
-            using_relic = False
-            if not casting_spell:
-                for card in self.current_player().relics:
-                    if card.selected:
-                        target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
-                        using_relic = True
-                        message = self.select_player_target_for_relic_effect(target_player.username, card, message)
-
-            if not casting_spell and not using_relic:
-                for card in self.current_player().in_play:
-                    if card.selected:
-                        only_has_ambush_attack = False
-                        if not self.current_player().entity_has_fast(card):
-                            if self.current_player().entity_has_ambush(card):
-                                if card.turn_played == self.turn:
-                                    only_has_ambush_attack = True
-                        if (self.current_player().entity_has_evade_guard(card) or not self.opponent().has_guard()) and not only_has_ambush_attack:
-                            message["card"] = card.id
-                            message["card_name"] = card.name
-                            message["move_type"] = "ATTACK"
-                            message = self.play_move(message)                    
-                            card.selected = False
-                        elif only_has_ambush_attack:
-                            print(f"can't attack opponent because the entity only has ambush")
-                            return None
-                        else:
-                            print(f"can't attack opponent because an entity has Guard")
-                            return None
+            if self.current_player().selected_entity():
+                card = self.current_player().selected_entity()
+                only_has_ambush_attack = False
+                if not self.current_player().entity_has_fast(card):
+                    if self.current_player().entity_has_ambush(card):
+                        if card.turn_played == self.turn:
+                            only_has_ambush_attack = True
+                if (self.current_player().entity_has_evade_guard(card) or not self.opponent().has_guard()) and not only_has_ambush_attack:
+                    message["card"] = card.id
+                    message["card_name"] = card.name
+                    message["move_type"] = "ATTACK"
+                    message = self.play_move(message)                    
+                    self.current_player().reset_card_info_to_resolve()
+                elif only_has_ambush_attack:
+                    print(f"can't attack opponent because the entity only has ambush")
+                    return None
+                else:
+                    print(f"can't attack opponent because an entity has Guard")
+                    return None
         return message
 
     def attack(self, message):
         card_id = message["card"]
         attacking_card = self.current_player().in_play_card(card_id)
         attacking_card.attacked = True
-        attacking_card.selected = False
+        self.current_player().reset_card_info_to_resolve()
         if self.current_player().entity_has_lurker(attacking_card):
             for a in attacking_card.abilities:
                 if a.descriptive_id == "Lurker":
@@ -941,7 +899,7 @@ class Game:
         card_id = message["card"]
         relic = self.current_player().relic_in_play(card_id)
         relic.can_activate_abilities = False
-        relic.selected = False
+        self.current_player().reset_card_info_to_resolve()
         if "defending_card" in message:
             defending_card, _  = self.get_in_play_for_id(message["defending_card"])
             message["log_lines"].append(f"{self.current_player().username} uses {relic.name} on {defending_card.name}")
@@ -949,6 +907,7 @@ class Game:
             e = relic.enabled_activated_effects()[0]
             effect_targets[e.id] = {"id": defending_card.id, "target_type":e.target_type};
             message = self.current_player().do_card_effect(relic, e, message, effect_targets)
+            self.current_player().reset_card_info_to_resolve()
         else:
             e = relic.enabled_activated_effects()[0]
             if e.target_type == "self":
@@ -966,6 +925,7 @@ class Game:
                 message["effect_targets"] = {}
                 message["effect_targets"][e.id] = {"id": target_player.username, "target_type": "player"};
                 message = self.current_player().do_card_effect(relic, e, message, message["effect_targets"])
+                self.current_player().reset_card_info_to_resolve()
 
         if relic.enabled_activated_effects()[0].sacrifice_on_activate:
             self.send_card_to_played_pile(relic, self.current_player())
@@ -988,7 +948,7 @@ class Game:
         elif e.name == "unwind":
             if "defending_card" in message:
                 message = self.current_player().do_card_effect(entity, e, message, message["effect_targets"])
-                self.current_player().entity_with_activated_effect_to_target = None
+                self.current_player().reset_card_info_to_resolve()
                 entity.can_activate_abilities = False
             else:
                 message["log_lines"].append(f"{self.current_player().username} activates {entity.name}.")
@@ -1001,11 +961,10 @@ class Game:
         self.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
         self.current_player().make_to_resolve = []
 
-    def make_card(self, message):
-        self.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
-        self.current_player().make_to_resolve = []
-
     def fetch_card(self, message, card_type):
+        """
+            Fetch the selected card from current_player's deck and put it in play
+        """
         card = None
         for c in self.current_player().deck:
             if c.id == message['card']:
@@ -1047,17 +1006,25 @@ class Game:
         for e in card.added_effects["effects_leave_play"]:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
-        player.mana = min(player.max_mana, player.mana)
+            player.mana = min(player.max_mana, player.mana)
+
+        if card.id == player.card_info_to_resolve["card_id"]:
+            player.reset_card_info_to_resolve()
 
         if not card.is_token:
-            new_card = None
-            for c in Game.all_cards():
-                if c.name == card.name:
-                    new_card = copy.deepcopy(c)
-            new_card.id = card.id
-            new_card.owner_username = player.username
-            player.played_pile.append(card)  
-            new_card = player.modify_new_card(self, new_card)
+            new_card = self.factory_reset_card(card, player)
+            player.played_pile.append(new_card)  
+
+    def factory_reset_card(self, card, player):
+        new_card = None
+        for c in Game.all_cards():
+            if c.name == card.name:
+                new_card = copy.deepcopy(c)
+        new_card.id = card.id
+        new_card.owner_username = player.username
+        new_card = player.modify_new_card(self, new_card)
+        return new_card
+
 
     def resolve_combat(self, attacking_card, defending_card):
         if attacking_card.shielded:
@@ -1113,7 +1080,8 @@ class Game:
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name
-        card_to_target.selected = False
+
+        self.reset_card_info_to_resolve()
         new_message = self.play_move(new_message)       
         return new_message             
 
@@ -1143,7 +1111,7 @@ class Game:
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name
-        card_to_target.selected = False
+        self.current_player().reset_card_info_to_resolve()
         new_message = self.play_move(new_message)       
         return new_message             
 
@@ -1213,9 +1181,9 @@ class Player:
             self.fetch_relic_to_resolve = []
             self.entities_to_select_from = []
             self.can_be_clicked = False
-            self.entity_with_effect_to_target = None
-            self.entity_with_activated_effect_to_target = None
             self.added_abilities = []
+            self.reset_card_info_to_resolve()
+
         else:
             self.hand = [Card(c_info) for c_info in info["hand"]]
             self.in_play = [Card(c_info) for c_info in info["in_play"]]
@@ -1231,17 +1199,16 @@ class Player:
             self.cards_to_reveal = [Card(c_info) for c_info in info["cards_to_reveal"]]
             self.entities_to_select_from = [Card(c_info) for c_info in info["entities_to_select_from"]]
             self.can_be_clicked = info["can_be_clicked"]
-            self.entity_with_effect_to_target = Card(info["entity_with_effect_to_target"]) if info["entity_with_effect_to_target"] else None
-            self.entity_with_activated_effect_to_target = Card(info["entity_with_activated_effect_to_target"]) if info["entity_with_activated_effect_to_target"] else None
             self.added_abilities = [CardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
+            self.card_info_to_resolve = info["card_info_to_resolve"]
 
     def __repr__(self):
         return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - \
-                {self.hit_points} hp - {self.armor} armor, {self.mana} mana, \
+                {self.hit_points} hp - {self.armor} armor, {self.mana} mana, self.card_info_to_resolve {self.card_info_to_resolve} \
                 {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
                 {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
                 {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, \
-                self.entity_with_activated_effect_to_target {self.entity_with_activated_effect_to_target}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities \
+                self.added_abilities \
                 {self.added_abilities}, self.relics {self.relics}, len(self.cards_to_reveal) {len(self.cards_to_reveal)} \
                 self.entities_to_select_from {self.entities_to_select_from}, {len(self.fetch_relic_to_resolve)} in fetch_relic_to_resolve,"
 
@@ -1254,6 +1221,7 @@ class Player:
             "mana": self.mana,
             "max_mana": self.max_mana,
             "deck_id": self.deck_id,
+            "card_info_to_resolve": self.card_info_to_resolve,
             "hand": [c.as_dict() for c in self.hand],
             "in_play": [c.as_dict() for c in self.in_play],
             "relics": [c.as_dict() for c in self.relics],
@@ -1264,8 +1232,6 @@ class Player:
             "make_to_resolve": [c.as_dict() for c in self.make_to_resolve],
             "fetch_relic_to_resolve": [c.as_dict() for c in self.fetch_relic_to_resolve],
             "can_be_clicked": self.can_be_clicked,
-            "entity_with_effect_to_target": self.entity_with_effect_to_target.as_dict() if self.entity_with_effect_to_target else None,
-            "entity_with_activated_effect_to_target": self.entity_with_activated_effect_to_target.as_dict() if self.entity_with_activated_effect_to_target else None,
             "added_abilities": [a.as_dict() for a in self.added_abilities]
         }
 
@@ -1517,19 +1483,13 @@ class Player:
 
     def do_entwine_effect(self):
         for p in self.game.players:
-            all_hand_cards = []
-            for c in p.hand:
-                p.deck.append(c)
-                all_hand_cards.append(c)
-            for c in all_hand_cards:
-                p.hand.remove(c)
-
-            all_played_cards = []
-            for c in p.played_pile:
-                p.deck.append(c)
-                all_played_cards.append(c)
-            for c in all_played_cards:
-                p.played_pile.remove(c)
+            for pile in [self.hand, self.played_pile]:
+                pile_cards = []
+                for c in pile:
+                    p.deck.append(c)
+                    pile_cards.append(c)
+                for c in pile_cards:
+                    pile.remove(c)
             random.shuffle(p.deck)
             p.draw(3)
 
@@ -1538,7 +1498,6 @@ class Player:
         card.activated_effects[0].enabled = False
         card.description = card.activated_effects[0].description
         card.can_activate_abilities = True
-        #todo - make dagger go back to needing activation after 2 uses, display counters
 
     def do_view_hand_effect(self):
         self.cards_to_reveal = copy.deepcopy(self.game.opponent().hand)
@@ -1618,10 +1577,9 @@ class Player:
     
     def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
-        self.game.send_card_to_played_pile(target_card, target_player)
-        target_player.hand.append(target_card)  
-        target_player.played_pile.remove(target_card)
-    
+        new_card = self.game.factory_reset_card(target_card, target_player)
+        target_player.hand.append(new_card)  
+
     def do_make_effect(self, card, target_player_username, make_type, amount):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
@@ -1720,7 +1678,7 @@ class Player:
                 "name": "Expensive Spells",
                 "cost": 0,
                 "card_type": "Effect",
-                "description": "New spells players make cost 1 more",
+                "description": "Spells cost 1 more",
                 "starting_effect": "spells_cost_more"
             }
             effects.append(Card(card_info))
@@ -1728,7 +1686,7 @@ class Player:
                 "name": "Expensive Entities",
                 "cost": 0,
                 "card_type": "Effect",
-                "description": "New entities players make cost 1 more",
+                "description": "Entities cost 1 more",
                 "starting_effect": "entities_cost_more"
             }
             effects.append(Card(card_info))
@@ -1738,6 +1696,22 @@ class Player:
                 "card_type": "Effect",
                 "description": "Players draw an extra card on their turn.",
                 "starting_effect": "draw_extra_card"
+            }
+            effects.append(Card(card_info))
+            card_info = {
+                "name": "Cheap Spells",
+                "cost": 0,
+                "card_type": "Effect",
+                "description": "Spells cost 1 less",
+                "starting_effect": "spells_cost_less"
+            }
+            effects.append(Card(card_info))
+            card_info = {
+                "name": "Cheap Entities",
+                "cost": 0,
+                "card_type": "Effect",
+                "description": "Entities cost 1 less",
+                "starting_effect": "entities_cost_less"
             }
             effects.append(Card(card_info))
             self.make_to_resolve = effects
@@ -1774,12 +1748,6 @@ class Player:
                 return card
         return None
 
-    def relic_is_selected(self, card_id):
-        for c in self.relics:
-            if c.id == card_id and c.selected:
-                return True
-        return False
-
     def can_activate_relic(self, card_id):
         for card in self.relics:
             if card.id == card_id:
@@ -1793,9 +1761,15 @@ class Player:
                 return card
         return None
 
+    def in_hand_card(self, card_id):
+        for card in self.hand:
+            if card.id == card_id:
+                return card
+        return None
+
     def in_play_entity_is_selected(self, card_id):
         for c in self.in_play:
-            if c.id == card_id and c.selected:
+            if c.id == card_id and c.id == self.card_info_to_resolve["card_id"]:
                 return True
         return False
 
@@ -1826,7 +1800,7 @@ class Player:
             print(f"card costs too much - costs {card.cost}, mana available {self.mana}")
             return None
 
-        card.selected = False
+        self.reset_card_info_to_resolve()
         self.hand.remove(card)
         self.mana -= card.cost
         
@@ -1907,22 +1881,18 @@ class Player:
         if len(effects) > 0:
             # tell client to select targets
             if effects[0].target_type == "any":
+                self.card_info_to_resolve["card_id"] = card.id
                 if is_activated_effect:
-                    self.entity_with_activated_effect_to_target = card
+                    self.card_info_to_resolve["effect_type"] = "entity_activated"
                 else:
-                    self.entity_with_effect_to_target = card
-            elif effects[0].target_type == "entity":
-                if self.game.has_targets_for_entity_effect():
+                    self.card_info_to_resolve["effect_type"] = "entity_comes_into_play"
+            elif effects[0].target_type in ["entity", "opponents_entity"]:
+                if self.game.has_targets_for_entity_effect(effects[0].target_restrictions):
+                    self.card_info_to_resolve["card_id"] = card.id
                     if is_activated_effect:
-                        self.entity_with_activated_effect_to_target = card
+                        self.card_info_to_resolve["effect_type"] = "entity_activated"
                     else:
-                        self.entity_with_effect_to_target = card
-            elif effects[0].target_type == "opponents_entity":
-                if self.game.has_targets_for_opponents_entity_effect(effects[0].target_restrictions):
-                    if is_activated_effect:
-                        self.entity_with_activated_effect_to_target = card
-                    else:
-                        self.entity_with_effect_to_target = card
+                        self.card_info_to_resolve["effect_type"] = "entity_comes_into_play"
             else:
                 for e in effects:
                     if not "effect_targets" in message:
@@ -1946,7 +1916,7 @@ class Player:
                 message["effect_targets"] = effect_targets
             message = self.do_card_effect(card, e, message, message["effect_targets"])
         
-        self.entity_with_effect_to_target = None
+        self.reset_card_info_to_resolve()
         return message
 
     def modify_new_card(self, game, card):
@@ -1979,10 +1949,14 @@ class Player:
             self.draw(1 + self.game.starting_effects.count("draw_extra_card"))
         self.max_mana += 1
         self.mana = self.max_mana
+
+        if self.card_info_to_resolve["card_id"]:
+            print(f"self.card_info_to_resolve shouldn't have stuff start turn {self.card_info_to_resolve}")
+            self.reset_card_info_to_resolve()
+
         for card in self.in_play:
             if not self.game.is_under_ice_prison():
                 card.attacked = False
-            card.selected = False
             card.can_activate_abilities = True
         for r in self.relics:
             r.can_activate_abilities = True
@@ -2005,27 +1979,11 @@ class Player:
                     self.entities_to_select_from.append(e)
         return message
 
-    def selected_card(self):
-        for c in self.hand:
-            if c.selected:
-                return c
-
     def controls_relic(self, card_id):
         for c in self.relics:
             if c.id == card_id:
                 return True
         return False
-
-    def select_relic(self, card_id):
-        for c in self.relics:
-            c.selected = False
-            if c.id == card_id:
-                c.selected = True
-
-    def selected_relic(self):
-        for relic in self.relics:
-            if relic.selected:
-                return relic
 
     def controls_entity(self, card_id):
         for c in self.in_play:
@@ -2033,21 +1991,32 @@ class Player:
                 return True
         return False
 
-    def select_in_play(self, card_id):
-        for c in self.in_play:
-            c.selected = False
+    def select_relic(self, card_id):
+        for c in self.relics:
             if c.id == card_id:
-                c.selected = True
+                self.card_info_to_resolve["card_id"] = c.id
+                self.card_info_to_resolve["effect_type"] = "relic_activated"
+
+    def selected_relic(self):
+        for relic in self.relics:
+            if relic.id == self.card_info_to_resolve["card_id"]:
+                return relic
 
     def selected_entity(self):
         for entity in self.in_play:
-            if entity.selected:
+            if entity.id == self.card_info_to_resolve["card_id"]:
                 return entity
 
     def selected_spell(self):
         for card in self.hand:
-            if card.selected:
+            if card.id == self.card_info_to_resolve["card_id"]:
                 return card
+
+    def select_in_play(self, card_id):
+        for c in self.in_play:
+            if c.id == card_id:
+                self.card_info_to_resolve["card_id"] = c.id
+                self.card_info_to_resolve["effect_type"] = "entity_at_ready"
 
     def has_guard(self):
         for c in self.in_play:
@@ -2107,6 +2076,22 @@ class Player:
             return False
         return True
 
+    def set_targets_for_selected_entity(self):
+        # todo relics?
+        target_type = None
+        target_restrictions = None
+        card = self.selected_entity()
+        if self.card_info_to_resolve["effect_type"] == "entity_comes_into_play":
+                target_type = card.effects[0].target_type
+                target_restrictions = card.effects[0].target_restrictions
+        elif self.card_info_to_resolve["effect_type"] == "entity_activated":
+            target_type = card.activated_effects[0].target_type
+            target_restrictions = card.activated_effects[0].target_restrictions
+        self.game.set_targets_for_target_type(target_type, target_restrictions)
+
+    def reset_card_info_to_resolve(self):
+        self.card_info_to_resolve = {"card_id": None, "effect_type": None}
+
 
 class Card:
 
@@ -2129,7 +2114,6 @@ class Card:
         self.triggered_effects = [CardEffect(e, idx) for idx, e in enumerate(info["triggered_effects"])] if "triggered_effects" in info else []
         self.starting_effect = info["starting_effect"] if "starting_effect" in info else None
         self.attacked = info["attacked"] if "attacked" in info else False
-        self.selected = info["selected"] if "selected" in info else False
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.effects_leave_play = [CardEffect(e, idx) for idx, e in enumerate(info["effects_leave_play"])] if "effects_leave_play" in info else []
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
@@ -2160,7 +2144,7 @@ class Card:
                  damage_this_turn: {self.damage_this_turn}\n \
                  can_be_clicked: {self.can_be_clicked}\n \
                  id: {self.id}, turn played: {self.turn_played}\n \
-                 attacked: {self.attacked}, selected: {self.selected}\n \
+                 attacked: {self.attacked}\n \
                  owner_username: {self.owner_username}, effects_leave_play: {self.effects_leave_play}\n \
                  abilities: {self.abilities}, tokens: {self.tokens}\n \
                  added_effects: {self.added_effects} can_activate_abilities: {self.can_activate_abilities})\n \
@@ -2186,7 +2170,6 @@ class Card:
             "triggered_effects": [e.as_dict() for e in self.triggered_effects],
             "starting_effect": self.starting_effect,
             "attacked": self.attacked,
-            "selected": self.selected,
             "can_be_clicked": self.can_be_clicked,
             "can_activate_abilities": self.can_activate_abilities,
             "owner_username": self.owner_username,
@@ -2319,7 +2302,7 @@ class CardEffect:
             target_type: {self.target_type} name: {self.card_name} \n \
             make_type: {self.make_type} tokens: {self.tokens} \
             sacrifice_on_activate: {self.sacrifice_on_activate} abilities: {self.abilities}\n \
-            effect_type; {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} \
+            effect_type: {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} \
             effect_to_activate: {self.effect_to_activate} enabled: {self.enabled} counters: {self.counters}"
 
     def as_dict(self):
