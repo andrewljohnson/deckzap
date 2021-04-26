@@ -163,7 +163,7 @@ class Game:
             found_relic = None
             
             for c in self.current_player().deck:
-                if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
+                if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in play":
                     found_relic = c
                     break
             if found_relic:
@@ -802,10 +802,11 @@ class Game:
             message["log_lines"].append(f"{attacking_card.name} attacks {defending_card.name}")
         else:
             message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens()}.")
-            self.opponent().hit_points -= attacking_card.power_with_tokens()
+            self.opponent().damage(attacking_card.power_with_tokens())
             if self.current_player().entity_has_damage_draw(attacking_card):
                 # todo find the actual ability in the list, it might not be zero later
                 self.current_player().draw(attacking_card.abilities[0].amount)
+            #todo syphon ignores Shield and Armor
             if self.current_player().entity_has_syphon(attacking_card):
                 self.current_player().hit_points += attacking_card.power_with_tokens()
                 self.current_player().hit_points = min(30, self.current_player().hit_points)
@@ -826,7 +827,7 @@ class Game:
         else:
             e = relic.enabled_activated_effects()[0]
             if e.target_type == "self":
-                message = self.current_player().do_card_effect(relic, e, message, {"id": message["username"], "target_type": "player"})
+                message = self.current_player().do_card_effect(relic, e, message, [{"id": message["username"], "target_type": "player"}])
             else:
                 target_player = self.players[0]
                 if target_player.username != message["effect_targets"][e.id]["id"]:
@@ -860,6 +861,7 @@ class Game:
         """
             Send the card to the player's played_pile and reset any temporary effects on the card
         """
+        # todo get rid of some LOC by using all_cards to wipe the card
         if card in player.relics:
             player.relics.remove(card)
         if card in player.in_play:
@@ -878,11 +880,10 @@ class Game:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
             if e.name == "damage" and e.target_type == "opponent":
-                player.game.opponent().hit_points -= e.amount
+                player.game.opponent().damage(e.amount)                                
             if e.name == "damage" and e.target_type == "self":
-                player.hit_points -= e.amount
+                player.damage(e.amount)                
             if e.name == "make_token":
-                print("MAKE TOKEN")
                 token_card = {
                     "id": self.next_card_id,
                     "power": e.power,
@@ -1041,6 +1042,7 @@ class Player:
         self.game = game
         if new:
             self.hit_points = 30
+            self.armor = 0
             self.mana = 0
             self.max_mana = 0
             self.hand = []
@@ -1059,6 +1061,7 @@ class Player:
             self.in_play = [Card(c_info) for c_info in info["in_play"]]
             self.relics = [Card(c_info) for c_info in info["relics"]]
             self.hit_points = info["hit_points"]
+            self.armor = info["armor"]
             self.mana = info["mana"]
             self.max_mana = info["max_mana"]
             self.deck = [Card(c_info) for c_info in info["deck"]]
@@ -1071,13 +1074,14 @@ class Player:
             self.added_abilities = [CardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
 
     def __repr__(self):
-        return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - {self.hit_points} hp, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}, self.relics {self.relics}, self.cards_to_reveal {self.cards_to_reveal} self.entities_to_select_from {self.entities_to_select_from}"
+        return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - {self.hit_points} hp - {self.armor} armor, {self.mana} mana, {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, self.entity_with_effect_to_target {self.entity_with_effect_to_target}, self.added_abilities {self.added_abilities}, self.relics {self.relics}, self.cards_to_reveal {self.cards_to_reveal} self.entities_to_select_from {self.entities_to_select_from}"
 
     def as_dict(self):
         return {
             "username": self.username,
             "race": self.race,
             "hit_points": self.hit_points,
+            "armor": self.armor,
             "mana": self.mana,
             "max_mana": self.max_mana,
             "deck_id": self.deck_id,
@@ -1110,6 +1114,15 @@ class Player:
             else:
                 self.deck.append(new_card)
 
+    def damage(self, amount):
+        while amount > 0 and self.armor > 0:
+            amount -= 1
+            self.armor -= 1
+
+        while amount > 0 and self.hit_points > 0:
+            amount -= 1
+            self.hit_points -= 1
+
     def draw(self, number_of_cards):
         for i in range(0,number_of_cards):
             if len(self.deck) == 0:
@@ -1134,6 +1147,9 @@ class Player:
         elif e.name == "draw":
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
+        elif e.name == "gain_armor":
+            self.do_gain_armor_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+            message["log_lines"].append(f"{self.username} gains {e.amount} armor from {card.name}.")
         elif e.name == "take_extra_turn":
             message["log_lines"].append(f"{self.username} takes an extra turn.")
             message = self.do_take_extra_turn_effect_on_player(effect_targets[e.id]["id"], message)
@@ -1225,6 +1241,7 @@ class Player:
             self.do_add_abilities_effect(e, card)           
 
         self.mana -= e.cost
+        self.hit_points -= e.cost_hp
         
         return message 
 
@@ -1270,6 +1287,12 @@ class Player:
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
         target_player.draw(amount)
+
+    def do_gain_armor_effect_on_player(self, card, target_player_username, amount):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+        target_player.armor += amount
 
     def do_take_extra_turn_effect_on_player(self, target_player_username, message):
         target_player = self.game.players[0]
@@ -1326,7 +1349,7 @@ class Player:
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
-        target_player.hit_points -= amount
+        target_player.damage(amount)
 
     def do_heal_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -1360,7 +1383,7 @@ class Player:
 
     def do_attack_effect_on_entity(self, card, target_entity_id, amount):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
-        self.hit_points -= target_card.power_with_tokens()
+        self.damage(target_card.power_with_tokens())
         self.do_damage_effect_on_entity(card, target_entity_id, amount)
 
     def do_double_power_effect_on_entity(self, card, target_entity_id):
@@ -1711,7 +1734,7 @@ class Player:
                         gained += 1  
                     message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
                 elif effect.name == "lose_hp_for_hand":
-                    self.game.opponent().hit_points -= len(self.game.opponent().hand)
+                    self.game.opponent().damage(len(self.game.opponent().hand))
                     message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
 
         if self.game.is_under_ice_prison():
@@ -1986,6 +2009,7 @@ class CardEffect:
         self.description = info["description"] if "description" in info else None
         self.amount = info["amount"] if "amount" in info else None
         self.cost = info["cost"] if "cost" in info else 0
+        self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
         self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
         self.counters = info["counters"] if "counters" in info else 0
         self.make_type = info["make_type"] if "make_type" in info else None
@@ -2000,7 +2024,7 @@ class CardEffect:
 
     def __repr__(self):
         return f"id: {self.id} name: {self.name} power: {self.power} target_restrictions: {self.target_restrictions} trigger: {self.trigger} toughness: {self.toughness} amount: {self.amount} cost: {self.cost}\n \
-                 description: {self.description} target_type: {self.target_type} name: {self.card_name} \n \
+                 description: {self.description} cost_hp: {self.cost_hp} target_type: {self.target_type} name: {self.card_name} \n \
                  make_type: {self.make_type} tokens: {self.tokens} abilities: {self.abilities}\n \
                  effect_type; {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} effect_to_activate: {self.effect_to_activate} enabled: {self.enabled} counters: {self.counters}"
 
@@ -2015,6 +2039,7 @@ class CardEffect:
             "target_restrictions": self.target_restrictions,
             "amount": self.amount,
             "cost": self.cost,
+            "cost_hp": self.cost_hp,
             "description": self.description,
             "activate_on_add": self.activate_on_add,
             "enabled": self.enabled,

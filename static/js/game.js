@@ -7,6 +7,8 @@ class GameUX {
         this.allCards = JSON.parse(document.getElementById("card_store").getAttribute("all_cards"));
         this.oldOpponentHP = 30;
         this.oldSelfHP = 30;        
+        this.oldOpponentArmor = 30;
+        this.oldSelfArmor = 30;        
     }
 
     usernameOrP1(game) {
@@ -49,9 +51,14 @@ class GameUX {
     updateHitPoints(game) {
         if(this.thisPlayer(game).hit_points < this.oldSelfHP) {
             this.oldSelfHP = this.thisPlayer(game).hit_points;
-            this.showDamage(game, this.opponent(game));            
+            this.showDamage(game, this.thisPlayer(game));            
+        }
+        if(this.thisPlayer(game).armor < this.oldSelfArmor) {
+            this.oldSelfArmor = this.thisPlayer(game).armor;
+            this.showDamage(game, this.thisPlayer(game));            
         }
         document.getElementById("hit_points").innerHTML = this.thisPlayer(game).hit_points + " hp";
+        document.getElementById("armor").innerHTML = this.thisPlayer(game).armor + " armor";
     }
 
     updateMana(game) {
@@ -93,9 +100,14 @@ class GameUX {
     updateOpponentHitPoints(game) {
         if(this.opponent(game).hit_points < this.oldOpponentHP) {
             this.oldOpponentHP = this.opponent(game).hit_points;
-            this.showDamage(game, this.thisPlayer(game));            
+            this.showDamage(game, this.opponent(game));            
+        }
+        if(this.opponent(game).armor < this.oldOpponentArmor) {
+            this.oldOpponentArmor = this.opponent(game).armor;
+            this.showDamage(game, this.opponent(game));            
         }
         document.getElementById("opponent_hit_points").innerHTML = this.opponent(game).hit_points + " hp";
+        document.getElementById("opponent_armor").innerHTML = this.opponent(game).armor + " armor";
     }
 
     updateStartingEffectsForPlayer(player, divId) {
@@ -293,20 +305,23 @@ class GameUX {
             }
         }
 
-        let abilitiesDiv = document.createElement("div");
-        for (let a of card.abilities) {
-            abilitiesDiv.innerHTML += a.name;
-            if (a != card.abilities[card.abilities.length-1]) {                
-                abilitiesDiv.innerHTML += ", ";
-            }
-        }
-        cardDiv.appendChild(abilitiesDiv);
-
         for (let a of card.added_abilities) {
             let abilitiesDiv = document.createElement("div");
             abilitiesDiv.innerHTML = a.name;
             cardDiv.appendChild(abilitiesDiv);            
         }
+
+        let abilitiesDiv = document.createElement("div");
+        abilitiesDiv.style.color = "gray"
+        for (let a of card.abilities) {
+            if (a.descriptive_id != "Starts in Play") {
+                abilitiesDiv.innerHTML += a.name;
+                if (a != card.abilities[card.abilities.length-1]) {                
+                    abilitiesDiv.innerHTML += ", ";
+                }                
+            }
+        }
+        cardDiv.appendChild(abilitiesDiv);
 
         if (card.card_type == "Entity") {
             let cardPower = card.power;
@@ -329,6 +344,7 @@ class GameUX {
             typeDiv.innerHTML = card.card_type;
             typeDiv.style.position = "absolute";
             typeDiv.style.bottom = "0px";
+            typeDiv.style.right = "0px";
             cardDiv.appendChild(typeDiv);           
         }
         if (card.added_effects.activated_effects.length > 0 && card.added_effects.activated_effects[0].name == "attack") {

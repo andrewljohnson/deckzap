@@ -942,7 +942,7 @@
 		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
 		"abilities": [
 			{
-				"name": "Starts in Play",
+				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
 			}
 		],
@@ -967,7 +967,7 @@
 		"description": "0: Deal 2 damage to your opponent.",
 		"abilities": [
 			{
-				"name": "Starts in Play",
+				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
 			}
 		],
@@ -985,7 +985,7 @@
 		"description": "✦✦: Deal 1 damage to anything.",
 		"abilities": [
 			{
-				"name": "Starts in Play",
+				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
 			}
 		],
@@ -1003,7 +1003,7 @@
 		"description": "✦✦: Heal 2 hit points",
 		"abilities": [
 			{
-				"name": "Starts in Play",
+				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
 			}
 		],
@@ -1021,7 +1021,7 @@
 		"description": "✦✦: Gain 2 armor.",
 		"abilities": [
 			{
-				"name": "Starts in Play",
+				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
 			}
 		],
@@ -1039,7 +1039,7 @@
 		"description": "✦✦: draw a card and lose 2 life.",
 		"abilities": [
 			{
-				"name": "Starts in Play",
+				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
 			}
 		],
