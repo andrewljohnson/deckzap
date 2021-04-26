@@ -160,7 +160,8 @@
 			"card_name": "Pine Dryad",
 			"target_type": "self",
 			"power": 2,
-			"toughness": 1
+			"toughness": 1,
+			"amount": 1
 		}]
 	},
 	{
@@ -182,7 +183,32 @@
 			"toughness": 1,
 			"abilities": [
 				{"name": "Guard", "descriptive_id": "Guard"}
-			]
+			],
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Summon-Happy Genie",
+		"race": "genie",
+		"card_type": "Entity",
+		"power": 6,
+		"toughness": 2,
+		"cost": 1,
+		"description": "Your opponent gets two 1/1 elemental tokens.",
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Elemental",
+			"target_type": "opponent",
+			"power": 1,
+			"toughness": 1,
+			"amount": 2,
+			"cost": 1
 		}]
 	},
 	{

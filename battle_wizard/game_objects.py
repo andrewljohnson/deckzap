@@ -935,17 +935,7 @@ class Game:
             if e.name == "damage" and e.target_type == "self":
                 player.damage(e.amount)                
             if e.name == "make_token":
-                token_card = {
-                    "id": self.next_card_id,
-                    "power": e.power,
-                    "toughness": e.toughness,
-                    "name": e.card_name,
-                    "abilities": [a.as_dict() for a in e.abilities],
-                    "turn_played": self.turn,
-                    "is_token": True
-                }
-                player.in_play.append(Card(token_card))
-                self.next_card_id += 1
+                player.do_make_token_effect(e)
         for e in card.added_effects["effects_leave_play"]:
             if e.name == "decrease_max_mana":
                 player.max_mana -= e.amount
@@ -1215,6 +1205,14 @@ class Player:
         elif e.name == "draw":
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
+        elif e.name == "make_token":
+            print(effect_targets)
+            if e.target_type == "self":
+                self.do_make_token_effect(e)
+                message["log_lines"].append(f"{card.name} makes {e.amount} tokens.")
+            else:
+                self.game.opponent().do_make_token_effect(e)
+                message["log_lines"].append(f"{card.name} makes {e.amount} tokens for {self.game.opponent().username}.")
         elif e.name == "fetch_card":
             self.do_fetch_card_effect_on_player(card, effect_targets[e.id]["id"], e.target_type)
             message["log_lines"].append(f"{self.username} cracks {card.name} to fetch a relic.")
@@ -1577,6 +1575,20 @@ class Player:
                 e, 
                 self.game.opponent()
             )
+
+    def do_make_token_effect(self, e):
+        for x in range(0, e.amount):
+            token_card = {
+                "id": self.game.next_card_id,
+                "power": e.power,
+                "toughness": e.toughness,
+                "name": e.card_name,
+                "abilities": [a.as_dict() for a in e.abilities],
+                "turn_played": self.game.turn,
+                "is_token": True
+            }
+            self.in_play.append(Card(token_card))
+            self.game.next_card_id += 1
 
     def make(self, amount, make_type):
         '''
