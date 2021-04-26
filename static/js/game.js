@@ -356,16 +356,44 @@ class GameUX {
             cardDiv.appendChild(powerChargesDiv);                       
         }
 
-        var self = this;
-        cardDiv.onclick = function() { 
-            if (cardDiv.parentElement == document.getElementById("hand")) {  
-                self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-            } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
-                self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
-            } else { 
-                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
-            }
+        if (card.activated_effects.length > 0 && card.activated_effects[0].target_type == "this" && card.selected) {
+            var menuDiv = document.createElement("div");
+            menuDiv.style.height = "200px";
+            menuDiv.style.width = "100px";
+            menuDiv.style.position = "absolute";
+            menuDiv.style.right = "-100px";
+            menuDiv.style.backgroundColor = "white";
+            cardDiv.appendChild(menuDiv);  
+            
+            var input = document.createElement("div");
+            input.className = "button"
+            input.innerHTML = "Attack";
+            input.onclick = function() { 
+                alert("attack");
+            };
+            menuDiv.appendChild(input);
+
+            input = document.createElement("div");
+            input.className = "button"
+            input.innerHTML = "+1/+0";
+            input.onclick = function() { 
+                alert("pump");
+            };
+            menuDiv.appendChild(input);
+
+        } else {
+            var self = this;
+            cardDiv.onclick = function() { 
+                if (cardDiv.parentElement == document.getElementById("hand")) {  
+                    self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+                } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
+                    self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+                } else { 
+                    self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
+                }
+            }            
         }
+
         return cardDiv;
     }
 
