@@ -293,7 +293,8 @@ class GameUX {
 
         if (card.description) {
             // todo don't hardcode hide description for Infernus
-            if (card.activated_effects.length == 0 || card.activated_effects[0].target_type != "this" || card.turn_played == -1) {
+            // todo don't hardcode hide description for Winding One
+            if (card.activated_effects.length == 0 || card.turn_played == -1) {
                 let descriptionDiv = document.createElement("div");
                 descriptionDiv.innerHTML = card.description;
                 cardDiv.appendChild(descriptionDiv);
@@ -370,6 +371,34 @@ class GameUX {
             input.style.marginTop = "10px";
             input.innerHTML = "✦: +1/+0";
             if (card.activated_effects[0].cost <= this.thisPlayer(game).mana) {
+                input.disabled = false;                
+                input.style.backgroundColor = "blue"
+            } else {
+                input.disabled = true;
+                input.style.backgroundColor = "lightgray"
+            }
+            var self = this;
+            input.onclick = function(event) { 
+                if (card.activated_effects[0].cost <= self.thisPlayer(game).mana) {
+                    self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id});
+                }
+                event.stopPropagation()
+            };
+            cardDiv.appendChild(input);
+        }
+
+        // todo: don't hardcode for Winding One
+        if (card.activated_effects.length > 0 && card.activated_effects[0].target_type == "entity" && card.turn_played > -1) {
+            var input = document.createElement("div");
+            input.className = "button"
+            input.style.width = "70px";
+            input.style.height = "25px";
+            input.style.fontSize = "10px";
+            input.style.padding = "5px";
+            input.style.marginTop = "10px";
+            input.style.textAlign = "left";
+            input.innerHTML = "✦✦✦: unwind an entity";
+            if (card.activated_effects[0].cost <= this.thisPlayer(game).mana && card.can_activate_abilities) {
                 input.disabled = false;                
                 input.style.backgroundColor = "blue"
             } else {
