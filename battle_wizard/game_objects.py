@@ -299,6 +299,8 @@ class Game:
             else:           
                 for e in selected_card.effects:
                     if self.current_player().mana >= e.cost:
+                        if e.target_type == "any_player":
+                            self.set_targets_for_player_effect()
                         if e.target_type == "any_enemy":
                             self.set_targets_for_enemy_damage_effect()
                         if e.target_type == "any":
@@ -362,6 +364,10 @@ class Game:
         for card in self.opponent().in_play:
             card.can_be_clicked = True
         self.opponent().can_be_clicked = True
+
+    def set_targets_for_player_effect(self):
+        self.opponent().can_be_clicked = True
+        self.current_player().can_be_clicked = True
 
     def set_targets_for_entity_effect(self, target_restrictions):
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
@@ -1165,6 +1171,12 @@ class Player:
         if e.name == "increase_max_mana":
             self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} increases max mana by {e.amount}.")
+        elif e.name == "set_max_mana":
+            self.do_set_max_mana_effect(e.amount)
+            message["log_lines"].append(f"{self.username} resets everyone's max mana to {e.amount} with {card.name}.")
+        elif e.name == "reduce_mana":
+            self.do_reduce_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+            message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
         elif e.name == "draw":
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
@@ -1311,6 +1323,18 @@ class Player:
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
         target_player.draw(amount)
+
+    def do_reduce_mana_effect_on_player(self, card, target_player_username, amount):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+        target_player.max_mana -= max(amount, 0)
+        target_player.mana = min(target_player.mana, target_player.max_mana)
+
+    def do_set_max_mana_effect(self, amount):
+        for p in self.game.players:
+            p.max_mana = amount
+            p.mana = min(p.mana, p.max_mana)
 
     def do_gain_armor_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -1988,7 +2012,7 @@ class Card:
 
     def needs_targets(self):
         for e in self.effects:
-            if e.target_type == "any" or e.target_type == "any_enemy" or e.target_type == "entity" or e.target_type == "opponents_entity" or e.target_type == "relic":
+            if e.target_type == "any" or e.target_type == "any_enemy" or e.target_type == "entity" or e.target_type == "opponents_entity" or e.target_type == "relic" or e.target_type == "any_player":
                 return True
         return False 
 

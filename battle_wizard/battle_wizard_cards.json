@@ -54,7 +54,7 @@
 		"cost": 5,
 		"triggered_effects": [{
 			"name": "stop_entity_renew",
-			"target_type": "players",
+			"target_type": "all_players",
 			"trigger": "start_turn"
 		}]
 	},
@@ -577,6 +577,30 @@
 		"effects": [{
 			"target_type": "self",
 			"name": "take_extra_turn"
+		}]
+	},
+	{
+		"name": "Mana Storm",
+		"race": "genie",
+		"cost": 5,
+		"card_type": "Spell",
+		"description": "All players lose all mana.",
+		"effects": [{
+			"target_type": "all_players",
+			"name": "set_max_mana",
+			"amount": 0
+		}]
+	},
+	{
+		"name": "Mana Shatter",
+		"race": "genie",
+		"cost": 3,
+		"card_type": "Spell",
+		"description": "Target player loses a mana.",
+		"effects": [{
+			"target_type": "any_player",
+			"name": "reduce_mana",
+			"amount": 1
 		}]
 	},
 	{
