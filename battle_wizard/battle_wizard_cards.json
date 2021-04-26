@@ -125,9 +125,6 @@
 			"target_type": "self",
 			"amount": 1
 		}],
-		"abilities": [
-			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
-		],
 		"effects_leave_play": [{
 			"name": "decrease_max_mana",
 			"target_type": "self",
@@ -476,7 +473,7 @@
 		"description": "✦: +1/+0",
 		"power": 5,
 		"toughness": 5,
-		"cost": 1,
+		"cost": 5,
 		"abilities": [
 			{"name": "Evade Guard", "descriptive_id": "Evade Guard"}
 		],
@@ -1014,9 +1011,6 @@
 		"toughness": 2,
 		"cost": 1,
 		"description": "Draw a card.",
-		"abilities": [
-			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
-		],
 		"effects": [{
 			"name": "draw",
 			"target_type": "self",

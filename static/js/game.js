@@ -307,7 +307,7 @@ class GameUX {
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
-            if (card.activated_effects.length == 0 || card.activated_effects[0].target_type != "this" || card.turn_played == -1) {
+            if (card.activated_effects.length == 0 || (card.activated_effects[0].target_type != "this" && card.card_type != "Entity") || card.turn_played == -1) {
                 let descriptionDiv = document.createElement("div");
                 descriptionDiv.innerHTML = card.description;
                 cardDiv.appendChild(descriptionDiv);
