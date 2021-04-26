@@ -1178,6 +1178,23 @@
 		}]
 	},
 	{
+		"name": "Shield Up",
+		"race": "genie",
+		"card_type": "Spell",
+		"cost": 3,
+		"description": "Gain 7 armor. Draw a card.",
+		"effects": [{
+				"name": "gain_armor",
+				"target_type": "self",
+				"amount": 7
+		},
+		{
+				"name": "draw",
+				"target_type": "self",
+				"amount": 1
+		}]
+	},
+	{
 		"name": "Abyssal Crystal",
 		"card_type": "Relic",
 		"cost": 1,
