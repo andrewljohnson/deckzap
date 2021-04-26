@@ -51,11 +51,11 @@ class GameUX {
     updateHitPoints(game) {
         if(this.thisPlayer(game).hit_points < this.oldSelfHP) {
             this.oldSelfHP = this.thisPlayer(game).hit_points;
-            this.showDamage(game, this.thisPlayer(game));            
+            this.showDamage(game, this.opponent(game));            
         }
         if(this.thisPlayer(game).armor < this.oldSelfArmor) {
             this.oldSelfArmor = this.thisPlayer(game).armor;
-            this.showDamage(game, this.thisPlayer(game));            
+            this.showDamage(game, this.opponent(game));            
         }
         document.getElementById("hit_points").innerHTML = this.thisPlayer(game).hit_points + " hp";
         document.getElementById("armor").innerHTML = this.thisPlayer(game).armor + " armor";
@@ -100,11 +100,11 @@ class GameUX {
     updateOpponentHitPoints(game) {
         if(this.opponent(game).hit_points < this.oldOpponentHP) {
             this.oldOpponentHP = this.opponent(game).hit_points;
-            this.showDamage(game, this.opponent(game));            
+            this.showDamage(game, this.thisPlayer(game));            
         }
         if(this.opponent(game).armor < this.oldOpponentArmor) {
             this.oldOpponentArmor = this.opponent(game).armor;
-            this.showDamage(game, this.opponent(game));            
+            this.showDamage(game, this.thisPlayer(game));            
         }
         document.getElementById("opponent_hit_points").innerHTML = this.opponent(game).hit_points + " hp";
         document.getElementById("opponent_armor").innerHTML = this.opponent(game).armor + " armor";

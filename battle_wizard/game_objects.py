@@ -280,11 +280,11 @@ class Game:
                 if self.current_player().entity_has_ambush(selected_entity):
                     if selected_entity.turn_played == self.turn:
                         only_has_ambush_attack = True
-            if not self.opponent().has_guard() and not only_has_ambush_attack:
+            if (self.current_player().entity_has_evade_guard(selected_entity) or not self.opponent().has_guard()) and not only_has_ambush_attack:
                 selected_entity.can_be_clicked = True
                 self.opponent().can_be_clicked = True
             for card in self.opponent().in_play:
-                if self.opponent().entity_has_guard(card) or not self.opponent().has_guard():
+                if self.opponent().entity_has_guard(card) or not self.opponent().has_guard() or self.current_player().entity_has_evade_guard(selected_entity):
                     card.can_be_clicked = True
         elif selected_card:
             if not selected_card.needs_targets():
@@ -666,7 +666,7 @@ class Game:
             message = self.select_entity_target_for_spell(self.current_player().selected_spell(), message)
         elif self.current_player().controls_entity(message["card"]):
             if self.current_player().in_play_entity_is_selected(message["card"]):                
-                if self.opponent().has_guard():                        
+                if self.opponent().has_guard() and not self.current_player().entity_has_evade_guard(self.current_player().in_play_card(message["card"])):                        
                     self.current_player().in_play_card(message["card"]).selected = False
                     print(f"can't attack opponent because an entity has Guard")
                 else:                 
@@ -682,7 +682,7 @@ class Game:
             defending_card = self.opponent().in_play_card(message["card"])
             selected_entity = self.current_player().selected_entity()
             if selected_entity:
-                if not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card):                        
+                if not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card) or self.current_player().entity_has_evade_guard(selected_entity):                        
                     message["move_type"] = "ATTACK"
                     message["card"] = selected_entity.id
                     message["card_name"] = selected_entity.name
@@ -773,7 +773,7 @@ class Game:
                             if self.current_player().entity_has_ambush(card):
                                 if card.turn_played == self.turn:
                                     only_has_ambush_attack = True
-                        if not self.opponent().has_guard() and not only_has_ambush_attack:
+                        if (self.current_player().entity_has_evade_guard(card) or not self.opponent().has_guard()) and not only_has_ambush_attack:
                             message["card"] = card.id
                             message["card_name"] = card.name
                             message["move_type"] = "ATTACK"
@@ -1797,6 +1797,9 @@ class Player:
 
     def entity_has_guard(self, entity):
         return self.entity_has_ability(entity, "Guard")
+
+    def entity_has_evade_guard(self, entity):
+        return self.entity_has_ability(entity, "Evade Guard")
 
     def entity_has_damage_draw(self, entity):
         return self.entity_has_ability(entity, "DamageDraw")

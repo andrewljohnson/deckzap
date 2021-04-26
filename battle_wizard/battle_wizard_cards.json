@@ -428,6 +428,24 @@
 		}]	
 	},
 	{
+		"name": "Infernus",
+		"race": "genie",
+		"card_type": "Entity",
+		"description": "✦: +1/+0",
+		"power": 5,
+		"toughness": 5,
+		"cost": 1,
+		"abilities": [
+			{"name": "Evade Guard", "descriptive_id": "Evade Guard"}
+		],
+		"activated_effects": [{
+				"name": "pump_power",
+				"target_type": "this",
+				"cost": 1,
+				"amount": 1		
+		}]
+	},
+	{
 		"name": "Nature's Guardian",
 		"race": "elf",
 		"card_type": "Entity",
@@ -672,6 +690,18 @@
 			"name": "damage",
 			"target_type": "any",
 			"amount": 3
+		}]
+	},
+	{
+		"name": "Blast",
+		"race": "genie",
+		"cost": 4,
+		"card_type": "Spell",
+		"description": "Deal 6 damage.",
+		"effects": [{
+			"name": "damage",
+			"target_type": "any",
+			"amount": 6
 		}]
 	},
 	{
