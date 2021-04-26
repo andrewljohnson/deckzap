@@ -201,6 +201,8 @@ class Game:
             message = self.attack(message)            
         elif move_type == 'ACTIVATE_RELIC':
             message = self.activate_relic(message)            
+        elif move_type == 'ACTIVATE_ENTITY':
+            message = self.activate_entity(message)            
         elif move_type == 'HIDE_REVEALED_CARDS':
             message = self.hide_revealed_cards(message)            
         elif move_type == 'PLAY_CARD':
@@ -839,6 +841,18 @@ class Game:
                 message = self.current_player().do_card_effect(relic, e, message, message["effect_targets"])
         return message
 
+    def activate_entity(self, message):
+        card_id = message["card"]
+        entity, _ = self.get_in_play_for_id(card_id)
+        #todo don't hardcode for Infernus
+        e = entity.enabled_activated_effects()[0]
+        message["log_lines"].append(f"{self.current_player().username} pumps {entity.name} +1./+0.")
+        effect_targets = {}
+        effect_targets[e.id] = {"id": entity.id, "target_type":e.target_type};
+        message = self.current_player().do_card_effect(entity, e, message, effect_targets)
+        return message
+
+
     def make_card(self, message):
         self.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
         self.current_player().make_to_resolve = []
@@ -1190,6 +1204,9 @@ class Player:
         elif e.name == "double_power":
             self.do_double_power_effect_on_entity(card, effect_targets[e.id]["id"])
             message["log_lines"].append(f"{self.username} doubles the power of {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
+        elif e.name == "pump_power":
+            self.do_pump_power_effect_on_entity(card, effect_targets[e.id]["id"], e.amount, e.cost)
+            message["log_lines"].append(f"{self.username} pumps the power of {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name} by {e.amount}.")
         elif e.name == "kill":
             message["log_lines"].append(f"{self.username} kills {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
             self.do_kill_effect_on_entity(effect_targets[e.id]["id"])
@@ -1391,6 +1408,10 @@ class Player:
     def do_double_power_effect_on_entity(self, card, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_card.power += target_card.power_with_tokens()
+
+    def do_pump_power_effect_on_entity(self, card, target_entity_id, amount, cost):
+        target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
+        target_card.power += amount
 
     def do_kill_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)

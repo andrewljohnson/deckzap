@@ -292,9 +292,12 @@ class GameUX {
         cardDiv.appendChild(nameDiv)
 
         if (card.description) {
-            let descriptionDiv = document.createElement("div");
-            descriptionDiv.innerHTML = card.description;
-            cardDiv.appendChild(descriptionDiv);
+            // todo don't hardcode hide description for Infernus
+            if (card.activated_effects.length == 0 || card.activated_effects[0].target_type != "this" || card.turn_played == -1) {
+                let descriptionDiv = document.createElement("div");
+                descriptionDiv.innerHTML = card.description;
+                cardDiv.appendChild(descriptionDiv);
+            }
         }
 
         if (card.added_descriptions.length) {
@@ -356,43 +359,42 @@ class GameUX {
             cardDiv.appendChild(powerChargesDiv);                       
         }
 
-        if (card.activated_effects.length > 0 && card.activated_effects[0].target_type == "this" && card.selected) {
-            var menuDiv = document.createElement("div");
-            menuDiv.style.height = "200px";
-            menuDiv.style.width = "100px";
-            menuDiv.style.position = "absolute";
-            menuDiv.style.right = "-100px";
-            menuDiv.style.backgroundColor = "white";
-            cardDiv.appendChild(menuDiv);  
-            
+        if (card.activated_effects.length > 0 && card.activated_effects[0].target_type == "this" && card.activated_effects[0].target_type == "this" && card.turn_played > -1) {
             var input = document.createElement("div");
             input.className = "button"
-            input.innerHTML = "Attack";
-            input.onclick = function() { 
-                alert("attack");
-            };
-            menuDiv.appendChild(input);
-
-            input = document.createElement("div");
-            input.className = "button"
-            input.innerHTML = "+1/+0";
-            input.onclick = function() { 
-                alert("pump");
-            };
-            menuDiv.appendChild(input);
-
-        } else {
+            input.style.width = "40px";
+            input.style.height = "15px";
+            input.style.fontSize = "10px";
+            input.style.padding = "5px";
+            input.style.marginTop = "10px";
+            input.innerHTML = "✦: +1/+0";
+            if (card.activated_effects[0].cost <= this.thisPlayer(game).mana) {
+                input.disabled = false;                
+                input.style.backgroundColor = "blue"
+            } else {
+                input.disabled = true;
+                input.style.backgroundColor = "lightgray"
+            }
             var self = this;
-            cardDiv.onclick = function() { 
-                if (cardDiv.parentElement == document.getElementById("hand")) {  
-                    self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-                } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
-                    self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
-                } else { 
-                    self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
+            input.onclick = function(event) { 
+                if (card.activated_effects[0].cost <= self.thisPlayer(game).mana) {
+                    self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id});
                 }
-            }            
+                event.stopPropagation()
+            };
+            cardDiv.appendChild(input);
         }
+
+        var self = this;
+        cardDiv.onclick = function() { 
+            if (cardDiv.parentElement == document.getElementById("hand")) {  
+                self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+            } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
+                self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+            } else { 
+                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
+            }
+        }            
 
         return cardDiv;
     }
