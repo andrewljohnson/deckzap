@@ -85,6 +85,7 @@ class Game:
             moves = self.add_attack_and_play_card_moves(moves)
             moves.append({"move_type": "END_TURN", "username": self.ai})
 
+        print(moves)
         return moves
 
     def add_resolve_entities_moves(self, player, moves):
@@ -889,6 +890,7 @@ class Game:
                     "power": e.power,
                     "toughness": e.toughness,
                     "name": e.card_name,
+                    "abilities": [a.as_dict() for a in e.abilities],
                     "turn_played": self.turn,
                     "is_token": True
                 }
