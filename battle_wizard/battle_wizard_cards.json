@@ -84,6 +84,19 @@
 		}]
 	},
 	{
+		"name": "Mirror of Fate",
+		"race": "genie",
+		"card_type": "Relic",
+		"cost": 6,
+		"description": "✦✦✦✦✦✦: Switch hit points with your opponent. Sacrifice this.",
+		"activated_effects": [{
+			"name": "switch_hit_points",
+			"target_type": "self",
+			"cost": 5,
+			"sacrifice_on_activate": true
+		}]
+	},
+	{
 		"name": "Scepter of Manipulation",
 		"race": "genie",
 		"card_type": "Relic",
@@ -962,6 +975,13 @@
 		}]
 	},
 	{
+		"name": "Orc",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 3,
+		"cost": 4
+	},
+	{
 		"name": "Common Bunger",
 		"card_type": "Entity",
 		"power": 4,
@@ -1125,6 +1145,18 @@
 				"cost": 2,
 				"cost_hp": 2,
 				"amount": 1
+		}]
+	},
+	{
+		"name": "Wish Stone",
+		"card_type": "Relic",
+		"cost": 4,
+		"description": "0: sacrifice this, put a relic from your deck into play.",
+		"activated_effects": [{
+				"name": "fetch_card",
+				"target_type": "Relic",
+				"cost": 0,
+				"sacrifice_on_activate": true
 		}]
 	}
 ]

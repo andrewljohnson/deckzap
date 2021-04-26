@@ -476,6 +476,8 @@ class GameUX {
             this.showChooseRace(game);
         } else if (this.thisPlayer(game).make_to_resolve.length) {
             this.showMakeView(game);
+        } else if (this.thisPlayer(game).fetch_relic_to_resolve.length) {
+            this.showChooseCardView(game);
         } else if (this.thisPlayer(game).cards_to_reveal.length) {
             this.showRevealView(game);
         } else {
@@ -788,6 +790,42 @@ class GameUX {
             let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
             cardDiv.style.pointerEvents = "none";
             delete cardDiv.onclick;
+            cardContainerDiv.appendChild(cardDiv);
+        }
+    }
+
+    showChooseCardView(game) {
+        document.getElementById("make_selector").innerHTML = "";
+        var makeSelector = document.getElementById("make_selector");
+        makeSelector.style.display = "flex";
+        makeSelector.style.background = "rgba(0, 0, 0, .7)";
+
+        var container = document.createElement("div");
+        container.style.width = 90+ 80*10 + "px";
+        container.style.height = 130+50+100 + "px";
+        container.style.margin = "auto";
+        container.style.backgroundColor = "white";
+        makeSelector.appendChild(container);
+
+
+        var h1 = document.createElement("h1");
+        h1.innerHTML = "Relics in Your Deck"
+        container.appendChild(h1);
+        container.appendChild(document.createElement('br'));
+        container.appendChild(document.createElement('br'));
+
+        var cardContainerDiv = document.createElement('div');
+        cardContainerDiv.classList.add("card_container");
+        container.appendChild(cardContainerDiv);
+
+        var self = this;
+
+        var cards = this.thisPlayer(game).fetch_relic_to_resolve;
+        for (let card of cards) {
+            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
+            cardDiv.onclick = function () {
+                self.sendPlayMoveEvent("FETCH_CARD", {"card":card.id});                
+            }
             cardContainerDiv.appendChild(cardDiv);
         }
     }
