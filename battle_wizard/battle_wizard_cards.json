@@ -14,7 +14,7 @@
 		"name": "Fountain of Youth",
 		"race": "elf",
 		"card_type": "Relic",
-		"description": "Gain 1 life per card in hand at beginning of your turn, to a maximum of 30 total life.",
+		"description": "Gain 1 hit point per card in hand at beginning of your turn, to a maximum of 30 total life.",
 		"cost": 1,
 		"triggered_effects": [{
 			"name": "gain_hp_for_hand",
@@ -939,7 +939,7 @@
 		"name": "Dagger",
 		"card_type": "Relic",
 		"cost": 1,
-		"description": "0: Attack an enemy for 1 damage.",
+		"description": "Make this a 1 power weapon with 2 charges.",
 		"abilities": [
 			{
 				"name": "Starts in Play",
@@ -947,10 +947,17 @@
 			}
 		],
 		"activated_effects": [{
-				"name": "attack",
-				"target_type": "any_enemy",
-				"cost": 0,
-				"power": 1
+				"name": "enable_activated_effect",
+				"target_type": "self",
+				"description": "Remove a counter: Attack an enemy for 1 damage.",
+				"cost": 2,
+				"effect_to_activate": {
+					"name": "attack",
+					"target_type": "any_enemy",
+					"counters": 2,
+					"cost": 0,
+					"power": 1
+				}
 		}]
 	},
 	{
@@ -986,6 +993,24 @@
 				"name": "damage",
 				"target_type": "opponent",
 				"cost": 0,
+				"amount": 2
+		}]
+	},
+	{
+		"name": "Prayer Beads",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Heal 2 hit points",
+		"abilities": [
+			{
+				"name": "Starts in Play",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"activated_effects": [{
+				"name": "heal",
+				"target_type": "any",
+				"cost": 2,
 				"amount": 2
 		}]
 	}
