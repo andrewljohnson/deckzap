@@ -1379,6 +1379,7 @@
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
+		"description": "Make a Spell.",
 		"effects": [{
 			"name": "make",
 			"target_type": "self",
@@ -1400,6 +1401,7 @@
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
+		"description": "Make an Entity.",
 		"effects": [{
 			"name": "make",
 			"target_type": "self",
@@ -1421,6 +1423,7 @@
 		"power": 1,
 		"toughness": 2,
 		"cost": 1,
+		"description": "Heal for 2.",
 		"effects": [{
 			"name": "heal",
 			"target_type": "any",
@@ -1457,5 +1460,30 @@
 					"cost": 0
 				}
 		}]
+	},
+	{
+		"name": "Gnomish Mayor",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Summon a Townie.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Townie",
+			"target_type": "self",
+			"power": 1,
+			"toughness": 1,
+			"amount": 1,
+			"cost": 1
+		}],
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
 	}
 ]
