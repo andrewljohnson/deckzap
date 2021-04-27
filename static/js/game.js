@@ -759,99 +759,51 @@ class GameUX {
     }
 
     showMakeView(game) {
-        document.getElementById("make_selector").innerHTML = "";
-        var makeSelector = document.getElementById("make_selector");
-        makeSelector.style.display = "flex";
-        makeSelector.style.background = "rgba(0, 0, 0, .7)";
-
-        var container = document.createElement("div");
-        container.style.width = 80+ 80*3 + "px";
-        container.style.height = 130+50+100 + "px";
-        container.style.margin = "auto";
-        container.style.backgroundColor = "white";
-        makeSelector.appendChild(container);
-
-        var cards = this.thisPlayer(game).card_choice_info["cards"];
-
-        var h1 = document.createElement("h1");
-        h1.innerHTML = "Make a Card"
-        container.appendChild(h1);
-        container.appendChild(document.createElement('br'));
-        container.appendChild(document.createElement('br'));
-
-        var cardContainerDiv = document.createElement('div');
-        cardContainerDiv.classList.add("card_container");
-        container.appendChild(cardContainerDiv);
-
         var self = this;
-        for (let card of cards) {
-            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
-            cardContainerDiv.appendChild(cardDiv);
-            cardDiv.onclick = function() {
+        this.showSelectCardView(game, "make_selector", "Make a Card", function(card) {
                 if (card.starting_effect) {
                     self.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
                 } else {
-                    self.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
+                    self.sendPlayMoveEvent("MAKE_CARD", {"card":card});
                 }
-            };
-        }
+            });
     }
 
-    showRevealView(game) {
-        document.getElementById("make_selector").innerHTML = "";
-        var makeSelector = document.getElementById("make_selector");
-        makeSelector.style.display = "flex";
-        makeSelector.style.background = "rgba(0, 0, 0, .7)";
-
-        var container = document.createElement("div");
-        container.style.width = 90+ 80*10 + "px";
-        container.style.height = 130+50+100 + "px";
-        container.style.margin = "auto";
-        container.style.backgroundColor = "white";
-        makeSelector.appendChild(container);
-
-
-        var h1 = document.createElement("h1");
-        h1.innerHTML = "Opponent's Hand"
-        container.appendChild(h1);
-        container.appendChild(document.createElement('br'));
-        container.appendChild(document.createElement('br'));
-
-        var cardContainerDiv = document.createElement('div');
-        cardContainerDiv.classList.add("card_container");
-        container.appendChild(cardContainerDiv);
-
+   showRevealView(game) {
+        this.showSelectCardView(game, "make_selector", "Opponent's Hand", null);
         var self = this;
-        container.onclick = function() {
+        document.getElementById("make_selector").onclick = function() {
             self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
             self.showGame();
-        }
-
-        var cards = this.thisPlayer(game).card_choice_info["cards"];
-        for (let card of cards) {
-            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
-            cardDiv.style.pointerEvents = "none";
-            delete cardDiv.onclick;
-            cardContainerDiv.appendChild(cardDiv);
+            this.onclick = null
         }
     }
 
     showChooseCardView(game) {
-        document.getElementById("make_selector").innerHTML = "";
-        var makeSelector = document.getElementById("make_selector");
+        var self = this;
+        this.showSelectCardView(game, "make_selector", "Relics in Your Deck", function (card) {
+                self.sendPlayMoveEvent("FETCH_CARD", {"card":card.id});                
+            });
+        
+    }
+
+    showSelectCardView(game, element_id, title, card_on_click) {
+        document.getElementById(element_id).innerHTML = "";
+        var makeSelector = document.getElementById(element_id);
         makeSelector.style.display = "flex";
         makeSelector.style.background = "rgba(0, 0, 0, .7)";
 
         var container = document.createElement("div");
-        container.style.width = 90+ 80*10 + "px";
+        container.style.width = "100%";
         container.style.height = 130+50+100 + "px";
         container.style.margin = "auto";
         container.style.backgroundColor = "white";
         makeSelector.appendChild(container);
 
+        var cards = this.thisPlayer(game).card_choice_info["cards"];
 
         var h1 = document.createElement("h1");
-        h1.innerHTML = "Relics in Your Deck"
+        h1.innerHTML = title
         container.appendChild(h1);
         container.appendChild(document.createElement('br'));
         container.appendChild(document.createElement('br'));
@@ -860,26 +812,18 @@ class GameUX {
         cardContainerDiv.classList.add("card_container");
         container.appendChild(cardContainerDiv);
 
-        var self = this;
-
-        var cards = this.thisPlayer(game).card_choice_info["cards"];
         for (let card of cards) {
-            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
-            cardDiv.onclick = function () {
-                self.sendPlayMoveEvent("FETCH_CARD", {"card":card.id});                
-            }
+            let cardDiv = this.cardSprite(game, card, this.usernameOrP1(game));
             cardContainerDiv.appendChild(cardDiv);
+            if (card_on_click == null) {
+               delete cardDiv.onclick;
+               cardDiv.style.pointerEvents = "none";
+            } else {
+                cardDiv.onclick = function() {
+                    card_on_click(card);
+                }                
+            }
         }
-    }
-
-    addLogLine() {
-        var line = document.createElement('div');
-        document.getElementById("game_log_inner").appendChild(line);
-        return line;
-    }
-
-    scrollLogToEnd() {
-        document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
     }
 
     endTurn() {
@@ -905,6 +849,16 @@ class GameUX {
             line.innerHTML = text
         }
         this.scrollLogToEnd()
+    }
+
+    addLogLine() {
+        var line = document.createElement('div');
+        document.getElementById("game_log_inner").appendChild(line);
+        return line;
+    }
+
+    scrollLogToEnd() {
+        document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
     }
 
     nextRoom() {
