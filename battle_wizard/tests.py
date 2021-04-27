@@ -186,7 +186,7 @@ class GameObjectTests(TestCase):
         """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Counterspell"], ["PantherKin"]]
+        player_decks = [["Counterspell"], ["LionKin"]]
         game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
         game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
@@ -202,7 +202,7 @@ class GameObjectTests(TestCase):
         """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Big Counterspell"], ["PantherKin", "Mana Tree"]]
+        player_decks = [["Big Counterspell"], ["LionKin", "Mana Tree"]]
         game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
         game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
@@ -282,3 +282,74 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.current_player().played_pile[0].attacked, False)
         os.remove(f"database/games/{dbName}.json")
 
+    def test_gnomish_minstrel_takes_control(self):
+        """
+            Test Gnomish Minstrel takes control of an entity it damages.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Gnomish Minstrel"], ["Air Elemental"]]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(len(game.opponent().in_play), 0)
+        os.remove(f"database/games/{dbName}.json")
+
+
+    def test_town_ranger_guards(self):
+        """
+            Test Guard works on Town Ranger by checking if there are only two legal moves (attack ranger and end turn).
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Familiar"], ["Town Ranger"]]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        print(game.legal_moves_for_ai(game.current_player()))
+        self.assertEqual(len(game.legal_moves_for_ai(game.current_player())), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_town_wizard_makes(self):
+        """
+            Test Town Wizard makes a card.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Town Wizard"], []]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "MAKE_CARD", "card": game.current_player().card_choice_info["cards"][0].as_dict(), "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_town_shaman_makes(self):
+        """
+            Test Town Shaman makes a card.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Town Shaman"], []]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "MAKE_CARD", "card": game.current_player().card_choice_info["cards"][0].as_dict(), "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 1)
+        os.remove(f"database/games/{dbName}.json")

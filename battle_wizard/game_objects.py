@@ -87,7 +87,8 @@ class Game:
                 "username": self.ai})
         else:
             moves = self.add_attack_and_play_card_moves(moves)
-            moves.append({"move_type": "END_TURN", "username": self.ai})
+            if not player.selected_entity() and not player.selected_relic() and not player.selected_spell():
+                moves.append({"move_type": "END_TURN", "username": self.ai})
 
         return moves
 
@@ -483,16 +484,16 @@ class Game:
         join_occured = True
         if len(self.players) == 0:
             self.players.append(Player(self, {"username":message["username"]}, new=True))            
-            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
+            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
             if self.ai_type == "pvai":
                 message["log_lines"].append(f"{self.ai} joined the game.")
                 self.players.append(Player(self, {"username":self.ai}, new=True, bot=self.ai))
-                self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
+                self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
             self.players.append(Player(self, {"username":message["username"]}, new=True))
-            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if message["deck_id"] != "None" else None
+            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
         elif len(self.players) >= 2:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
@@ -1029,6 +1030,7 @@ class Game:
         new_card.id = card.id
         new_card.owner_username = player.username
         new_card = player.modify_new_card(self, new_card)
+
         return new_card
 
     def resolve_combat(self, attacking_card, defending_card):
@@ -1039,6 +1041,9 @@ class Game:
             attacking_card.damage_this_turn += defending_card.power_with_tokens()
             if attacking_card.damage >= attacking_card.toughness_with_tokens():
                 self.send_card_to_played_pile(attacking_card, self.current_player())
+            elif defending_card.has_ability("DamageTakeControl"):
+                self.current_player().in_play.remove(attacking_card)
+                self.opponent().in_play.append(attacking_card)
         if defending_card.shielded:
             defending_card.shielded = False
         else:
@@ -1046,6 +1051,9 @@ class Game:
             defending_card.damage_this_turn += attacking_card.power_with_tokens()
             if defending_card.damage >= defending_card.toughness_with_tokens():
                 self.send_card_to_played_pile(defending_card, self.opponent())
+            elif attacking_card.has_ability("DamageTakeControl"):
+                self.opponent().in_play.remove(defending_card)
+                self.current_player().in_play.append(defending_card)
 
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
@@ -1584,6 +1592,15 @@ class Player:
     def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_player.in_play.remove(target_card)  
+
+        for e in target_card.effects_leave_play:
+            if e.name == "decrease_max_mana":
+                target_player.max_mana -= e.amount
+        for e in target_card.added_effects["effects_leave_play"]:
+            if e.name == "decrease_max_mana":
+                target_player.max_mana -= e.amount
+            target_player.mana = min(target_player.max_mana, target_player.mana)
+
         new_card = self.game.factory_reset_card(target_card, target_player)
         target_player.hand.append(new_card)  
 

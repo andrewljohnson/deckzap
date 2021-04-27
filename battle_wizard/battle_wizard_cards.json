@@ -1316,5 +1316,121 @@
 				}
 			]				
 		}]
+	},
+	{
+		"name": "Gnomish Minstrel",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "DamageTakeControl",
+				"descriptive_id": "DamageTakeControl",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Town Ranger",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 2,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			},
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Fighter",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Wizard",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Spell",
+			"amount": 1
+		}],	
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Shaman",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"effects": [{
+			"name": "make",
+			"target_type": "self",
+			"make_type": "Entity",
+			"amount": 1
+		}],	
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Priest",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 2,
+		"cost": 1,
+		"effects": [{
+			"name": "heal",
+			"target_type": "any",
+			"amount": 2
+		}],	
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
 	}
 ]
