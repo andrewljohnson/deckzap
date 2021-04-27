@@ -752,7 +752,7 @@
 	{
 		"name": "Hide",
 		"race": "genie",
-		"cost": 1,
+		"cost": 2,
 		"card_type": "Spell",
 		"description": "Target entity gains Lurker.",
 		"effects": [ 
@@ -962,7 +962,7 @@
 		"race": "genie",
 		"cost": 4,
 		"card_type": "Spell",
-		"description": "All your entities can attack the turn they come into play.",
+		"description": "All your entities get Fast (attack turn summoned).",
 		"effects": [{
 			"name": "add_player_abilities",
 			"target_type": "new_self_entities",
@@ -1246,6 +1246,35 @@
 			"toughness": 1,
 			"amount": 7,
 			"cost": 7
+		}]
+	},
+	{
+		"name": "Kano from Barias",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 0,
+		"toughness": 2,
+		"cost": 4,
+		"description": "You can't be reduced to less than 1 life.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"target_type": "self",
+			"abilities": [
+				{
+					"name": "Can't Die",
+					"description": "Can't Die",
+					"descriptive_id": "Can't Die"
+				}
+			]				
+		}],
+		"effects_leave_play": [{
+			"name": "remove_player_abilities",
+			"target_type": "self",
+			"abilities": [
+				{
+					"descriptive_id": "Can't Die"
+				}
+			]				
 		}]
 	}
 ]

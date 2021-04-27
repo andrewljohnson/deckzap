@@ -1252,6 +1252,8 @@ class Player:
 
         while amount > 0 and self.hit_points > 0:
             amount -= 1
+            if self.hit_points == 1 and self.cant_die_ability():
+                continue
             self.hit_points -= 1
 
     def draw(self, number_of_cards):
@@ -1660,6 +1662,11 @@ class Player:
                 e, 
                 self.game.opponent()
             )
+        elif e.target_type == "self":
+            self.do_add_abilities_effect_on_player(
+                e, 
+                self
+            )
 
     def do_make_token_effect(self, e):
         for x in range(0, e.amount):
@@ -1796,8 +1803,10 @@ class Player:
                 if card.turn_played == self.game.turn:
                     if card.has_ability("Fast"):
                         return True
-                    if card.has_ability("Ambush") and len(self.game.opponent().in_play) > 0:
-                        return True
+                    if card.has_ability("Ambush"):
+                        for card in self.game.opponent().in_play:
+                            if not card.has_ability("Lurker"):
+                                return True
                     return False
         return True
 
@@ -1880,6 +1889,12 @@ class Player:
     def fast_ability(self):
         for a in self.added_abilities:
             if a.descriptive_id == "Fast":
+                return a
+        return None 
+
+    def cant_die_ability(self):
+        for a in self.added_abilities:
+            if a.descriptive_id == "Can't Die":
                 return a
         return None 
 
