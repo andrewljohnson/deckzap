@@ -1343,16 +1343,22 @@ class Player:
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
                 message["log_lines"].append(f"{self.username} deals {e.amount} damage to {effect_targets[e.id]['id']}.")
             elif effect_targets[e.id]["target_type"] == "all_entities":
+                dead_entities = []
                 for entity in self.in_play:
                     entity.damage += e.amount
                     entity.damage_this_turn += e.amount
                     if entity.damage >= entity.toughness_with_tokens():
-                        self.game.send_card_to_played_pile(entity, self)
+                        dead_entities.append(entity)
+                for entity in dead_entities:
+                    self.game.send_card_to_played_pile(entity, self)
+                dead_entities = []
                 for entity in self.game.opponent().in_play:
                     entity.damage += e.amount
                     entity.damage_this_turn += e.amount
                     if entity.damage >= entity.toughness_with_tokens():
-                        self.game.send_card_to_played_pile(entity, self.game.opponent())
+                        dead_entities.append(entity)
+                for entity in dead_entities:
+                    self.game.send_card_to_played_pile(entity, self.game.opponent())
                 message["log_lines"].append(f"{self.username} deals {e.amount} damage to all entities.")
             else:
                 message["log_lines"].append(f"{self.username} deals {e.amount} damage to {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
