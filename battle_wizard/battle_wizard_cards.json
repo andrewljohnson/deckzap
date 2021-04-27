@@ -1485,5 +1485,20 @@
 				"descriptive_id": "Townie"
 			}
 		]
+	},
+	{
+		"name": "Gnomish Press Gang",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 2,
+		"description": "Add a Townie to your hand.",
+		"effects": [{
+			"name": "make_random_townie",
+			"target_type": "self",
+			"amount": 1
+		}]
 	}
 ]
