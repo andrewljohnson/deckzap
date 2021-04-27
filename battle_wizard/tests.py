@@ -407,3 +407,45 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
         os.remove(f"database/games/{dbName}.json")
+
+
+    def test_gnomish_soundsmith_makes(self):
+        """
+            Test Gnomish Soundsmith fetches an Instrument from deck.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        deck = ["Gnomish Soundsmith", "LionKin", "LionKin", "LionKin", "Lute", "Lute"]
+        deck.reverse()
+        player_decks = [deck, []]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 5, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "FETCH_CARD", "card": game.current_player().card_choice_info["cards"][0].id, "log_lines":[]})
+        self.assertEqual(game.current_player().hand[-1].name, "Lute")
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_wishstone_makes(self):
+        """
+            Test Wishstone makes a Relic from deck into in play.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        deck = ["Wish Stone", "LionKin", "LionKin", "LionKin", "Scepter of Manipulation"]
+        deck.reverse()
+        player_decks = [deck, []]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 4, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 4, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "FETCH_CARD_INTO_PLAY", "card": game.current_player().card_choice_info["cards"][0].id, "log_lines":[]})
+        self.assertEqual(game.current_player().relics[-1].name, "Scepter of Manipulation")
+        os.remove(f"database/games/{dbName}.json")

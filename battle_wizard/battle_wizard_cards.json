@@ -1136,6 +1136,10 @@
 			{
 				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
+			},
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
 			}
 		],
 		"activated_effects": [{
@@ -1266,7 +1270,7 @@
 		"cost": 4,
 		"description": "0: sacrifice this, put a relic from your deck into play.",
 		"activated_effects": [{
-				"name": "fetch_card",
+				"name": "fetch_card_into_play",
 				"target_type": "Relic",
 				"cost": 0,
 				"sacrifice_on_activate": true
@@ -1445,6 +1449,10 @@
 			{
 				"name": "Starts in play, max 1.",
 				"descriptive_id": "Starts in Play"
+			},
+			{
+				"name": "Instrument",
+				"descriptive_id": "Instrument"
 			}
 		],
 		"activated_effects": [{
@@ -1498,6 +1506,22 @@
 		"effects": [{
 			"name": "make_random_townie",
 			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Gnomish Soundsmith",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+		"description": "Select an instrument from your deck.",
+		"effects": [{
+			"name": "fetch_card",
+			"target_type": "Relic",
+			"target_restrictions": [{"needs_instrument": null}],
 			"amount": 1
 		}]
 	}

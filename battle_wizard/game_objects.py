@@ -76,6 +76,8 @@ class Game:
             moves = self.add_resolve_make_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic":
             moves = self.add_resolve_fetch_relic_moves(player, moves)
+        elif player.card_choice_info["choice_type"] == "fetch_relic_into_play":
+            moves = self.add_resolve_fetch_relic_into_play_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "select_entity_for_ice_prison":
             moves = self.add_select_entity_for_ice_prison_moves(moves)
             if len(moves) == 0:
@@ -140,6 +142,11 @@ class Game:
     def add_resolve_fetch_relic_moves(self, player, moves):
         for c in player.card_choice_info["cards"]:
             moves.append({"card":c.as_dict() , "move_type": "FETCH_CARD", "username": self.ai})              
+        return moves 
+
+    def add_resolve_fetch_relic_into_play_moves(self, player, moves):
+        for c in player.card_choice_info["cards"]:
+            moves.append({"card":c.as_dict() , "move_type": "FETCH_CARD_INTO_PLAY", "username": self.ai})              
         return moves 
 
     def add_attack_and_play_card_moves(self, moves):
@@ -225,6 +232,8 @@ class Game:
             message = self.make_effect(message)        
         elif move_type == 'FETCH_CARD':
             message = self.fetch_card(message, "Relic")        
+        elif move_type == 'FETCH_CARD_INTO_PLAY':
+            message = self.fetch_card(message, "Relic", into_play=True)        
         # moves that get triggered indirectly from game UX actions (e.g. SELECT_ENTITY twice could be an ATTACK)
         elif move_type == 'ATTACK':
             message = self.attack(message)            
@@ -967,16 +976,20 @@ class Game:
         self.current_player().reset_card_choice_info()
         return message
 
-    def fetch_card(self, message, card_type):
+    def fetch_card(self, message, card_type, into_play=False):
         """
-            Fetch the selected card from current_player's deck and put it in play
+            Fetch the selected card from current_player's deck
         """
         card = None
+        print("fetching card from deck")
         for c in self.current_player().deck:
             if c.id == message['card']:
                 card = c
         if card_type == "Relic":
-            self.current_player().relics.append(card)
+            if into_play:
+                self.current_player().relics.append(card)
+            else:
+                self.current_player().hand.append(card)
             self.current_player().deck.remove(card)
         message["log_lines"].append(f"{message['username']} chose {card.name}.")
 
@@ -1306,7 +1319,10 @@ class Player:
                 self.game.opponent().do_make_token_effect(e)
                 message["log_lines"].append(f"{card.name} makes {e.amount} tokens for {self.game.opponent().username}.")
         elif e.name == "fetch_card":
-            self.do_fetch_card_effect_on_player(card, effect_targets[e.id]["id"], e.target_type)
+            self.do_fetch_card_effect_on_player(card, effect_targets[e.id]["id"], e.target_type, e.target_restrictions, choice_type="fetch_relic_into_hand")
+            message["log_lines"].append(f"{self.username} cracks {card.name} to fetch a relic.")
+        elif e.name == "fetch_card_into_play":
+            self.do_fetch_card_effect_on_player(card, effect_targets[e.id]["id"], e.target_type, e.target_restrictions, choice_type="fetch_relic_into_play")
             message["log_lines"].append(f"{self.username} cracks {card.name} to fetch a relic.")
         elif e.name == "gain_armor":
             self.do_gain_armor_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
@@ -1626,12 +1642,12 @@ class Player:
             target_player = self.game.players[1]
         return target_player.make(1, make_type)
 
-    def do_fetch_card_effect_on_player(self, card, target_player_username, card_type):
+    def do_fetch_card_effect_on_player(self, card, target_player_username, card_type, target_restrictions, choice_type=None):
         if card_type == "Relic":
             target_player = self.game.players[0]
             if target_player.username != target_player_username:
                 target_player = self.game.players[1]
-            return target_player.display_deck_relics()
+            return target_player.display_deck_relics(target_restrictions, choice_type)
         else:
             print("can't fetch unsupported type")
             return None
@@ -1798,13 +1814,17 @@ class Player:
             card3 = random.choice(all_cards)
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
 
-    def display_deck_relics(self):
+    def display_deck_relics(self, target_restrictions, choice_type):
+        print("display_deck_relics")
         all_cards = Game.all_cards()
         relics = []
         for card in self.deck:
             if card.card_type == "Relic":
-                relics.append(card)
-        self.card_choice_info = {"cards": relics, "choice_type": "fetch_relic"}
+                if len(target_restrictions) == 0 or \
+                    (list(target_restrictions[0].keys())[0] == "needs_weapon" and card.has_ability("Weapon")) or \
+                    (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
+                    relics.append(card)
+        self.card_choice_info = {"cards": relics, "choice_type": choice_type}
 
     def relic_in_play(self, card_id):
         for card in self.relics:
@@ -1969,7 +1989,7 @@ class Player:
                 for e in effects:
                     if not "effect_targets" in message:
                         effect_targets = {}
-                        if e.target_type == "self":           
+                        if e.target_type == "self" or e.name == "fetch_card":           
                             effect_targets[effects[0].id] = {"id": username, "target_type":"player"};
                         message["effect_targets"] = effect_targets
                     message = self.do_card_effect(card, e, message, message["effect_targets"])

@@ -519,7 +519,9 @@ class GameUX {
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic") {
-            this.showChooseCardView(game);
+            this.showChooseCardView(game, "FETCH_CARD");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_play") {
+            this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
             this.showRevealView(game);
         } else {
@@ -637,10 +639,10 @@ class GameUX {
         }
     }
 
-    showChooseCardView(game) {
+    showChooseCardView(game, event_name) {
         var self = this;
         this.showSelectCardView(game, "make_selector", "Relics in Your Deck", function (card) {
-                self.sendPlayMoveEvent("FETCH_CARD", {"card":card.id});                
+                self.sendPlayMoveEvent(event_name, {"card":card.id});                
             });
         
     }
