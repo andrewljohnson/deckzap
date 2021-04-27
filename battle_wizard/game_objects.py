@@ -9,7 +9,7 @@ from battle_wizard.jsonDB import JsonDB
 class Game:
     def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None):
 
-        # can be ingame, pregame, or choose_race
+        # can be ingame or choose_race
         # there is also a test_stacked_deck variant for tests
         self.game_type = game_type
 
@@ -23,9 +23,8 @@ class Game:
         # the next id to give a card when doing make_card effects
         # each card gets the next unusued integer
         self.next_card_id = int(info["next_card_id"]) if info else 0
-        # only used for game_type=pregame
-        self.starting_effects = info["starting_effects"] if info and "starting_effects" in info else []
-        self.decks_to_set = info["decks_to_set"] if info and "decks_to_set" in info else None
+        # created by Make Effect
+        self.global_effects = info["global_effects"] if info and "global_effects" in info else []
 
         # the name of the json database on disk
         self.db_name = db_name
@@ -40,8 +39,7 @@ class Game:
             "players": [p.as_dict() for p in self.players], 
             "turn": self.turn, 
             "next_card_id": self.next_card_id, 
-            "starting_effects": self.starting_effects, 
-            "decks_to_set": self.decks_to_set, 
+            "global_effects": self.global_effects, 
             "db_name": self.db_name, 
             "ai_type": self.ai_type, 
         }
@@ -180,8 +178,6 @@ class Game:
         # moves to join/configure/start a game
         if move_type == 'JOIN':
             message = self.join(message)
-        elif move_type == 'CHOOSE_STARTING_EFFECT':
-            message = self.choose_starting_effect_and_deck(message)
         elif move_type == 'CHOOSE_RACE':
             message = self.choose_race(message)
         else:
@@ -501,27 +497,7 @@ class Game:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
 
-        if self.game_type == "pregame":
-            if len(self.players) == 2 and self.turn == 0 and len(self.players[0].hand) == 0:
-                self.decks_to_set = {}
-                player_db = JsonDB().player_database()
-                for p in self.players:
-                    if "card_counts" in player_db[p.username]:
-                        self.decks_to_set[p.username] = player_db[p.username]["card_counts"]
-        
         if len(self.players) == 2 and join_occured and self.game_type in ["ingame", "test_stacked_deck", "constructed"]:
-            self.start_game(message, self.game_type)
-        return message
-
-    def choose_starting_effect_and_deck(self, message):
-        message["log_lines"].append(f"{message['username']} chose {message['id']}.")
-        self.starting_effects.append(message["id"])
-        player = self.players[0]
-        if player.username != message["username"]:
-            player = self.players[1]
-        player_db = JsonDB().update_deck_in_player_database(player.username, message["card_counts"], JsonDB().player_database())
-
-        if len(self.starting_effects) == 2:
             self.start_game(message, self.game_type)
         return message
 
@@ -540,8 +516,6 @@ class Game:
         print(f"START GAME FOR {game_type}")
         if game_type == "ingame":
             self.start_ingame_deckbuilder_game(message)
-        elif game_type == "pregame":
-            self.start_pregame_deckbuilder_game(message)
         elif game_type == "choose_race":
             self.start_choose_race_game(message)
         elif game_type == "choose_race_prebuilt":
@@ -563,16 +537,6 @@ class Game:
         if self.players[0].max_mana == 1: 
            self.send_start_first_turn(message)
         
-    def start_pregame_deckbuilder_game(self, message):
-        player_db = JsonDB().player_database()
-        for p in self.players:
-            for card_name in player_db[p.username]["card_counts"].keys():
-                p.add_to_deck(card_name, int(player_db[p.username]["card_counts"][card_name]))
-            random.shuffle(p.deck)
-            p.max_mana = 0
-            p.draw(6)
-        self.send_start_first_turn(message)
-
     def start_choose_race_game(self, message):
         use_test = False
         test = ["Stiff Wind", "Stiff Wind", "Stone Elemental", "Stone Elemental"]
@@ -991,8 +955,8 @@ class Game:
         self.current_player().reset_card_choice_info()
 
     def make_effect(self, message):
-        message["log_lines"].append(f"{message['username']} chose {message['card']['starting_effect']}.")
-        self.starting_effects.append(message["card"]["starting_effect"])
+        message["log_lines"].append(f"{message['username']} chose {message['card']['global_effect']}.")
+        self.global_effects.append(message["card"]["global_effect"])
         self.current_player().reset_card_choice_info()
         return message
 
@@ -1705,7 +1669,7 @@ class Player:
                 "cost": 0,
                 "card_type": "Effect",
                 "description": "Spells cost 1 more",
-                "starting_effect": "spells_cost_more"
+                "global_effect": "spells_cost_more"
             }
             effects.append(Card(card_info))
             card_info = {
@@ -1713,7 +1677,7 @@ class Player:
                 "cost": 0,
                 "card_type": "Effect",
                 "description": "Entities cost 1 more",
-                "starting_effect": "entities_cost_more"
+                "global_effect": "entities_cost_more"
             }
             effects.append(Card(card_info))
             card_info = {
@@ -1721,7 +1685,7 @@ class Player:
                 "cost": 0,
                 "card_type": "Effect",
                 "description": "Players draw an extra card on their turn.",
-                "starting_effect": "draw_extra_card"
+                "global_effect": "draw_extra_card"
             }
             effects.append(Card(card_info))
             card_info = {
@@ -1729,7 +1693,7 @@ class Player:
                 "cost": 0,
                 "card_type": "Effect",
                 "description": "Spells cost 1 less",
-                "starting_effect": "spells_cost_less"
+                "global_effect": "spells_cost_less"
             }
             effects.append(Card(card_info))
             card_info = {
@@ -1737,7 +1701,7 @@ class Player:
                 "cost": 0,
                 "card_type": "Effect",
                 "description": "Entities cost 1 less",
-                "starting_effect": "entities_cost_less"
+                "global_effect": "entities_cost_less"
             }
             effects.append(Card(card_info))
             self.card_choice_info["cards"] = effects
@@ -1948,32 +1912,32 @@ class Player:
 
     def modify_new_card(self, game, card):
         if card.card_type == "Spell":            
-            if 'spells_cost_more' in game.starting_effects:
-                card.cost += game.starting_effects.count('spells_cost_more')
-            if 'spells_cost_less' in game.starting_effects:
-                card.cost -= game.starting_effects.count('spells_cost_less')
+            if 'spells_cost_more' in game.global_effects:
+                card.cost += game.global_effects.count('spells_cost_more')
+            if 'spells_cost_less' in game.global_effects:
+                card.cost -= game.global_effects.count('spells_cost_less')
                 card.cost = max(0, card.cost)
         elif card.card_type == "Entity":            
-            if 'entities_cost_more' in game.starting_effects:
-                card.cost += game.starting_effects.count('entities_cost_more')
-            if 'entities_cost_less' in game.starting_effects:
-                card.cost -= game.starting_effects.count('entities_cost_less')
+            if 'entities_cost_more' in game.global_effects:
+                card.cost += game.global_effects.count('entities_cost_more')
+            if 'entities_cost_less' in game.global_effects:
+                card.cost -= game.global_effects.count('entities_cost_less')
                 card.cost = max(0, card.cost)
-            if 'entities_get_more_toughness' in game.starting_effects:
-                card.toughness += game.starting_effects.count('entities_get_more_toughness')*2
-            if 'entities_get_less_toughness' in game.starting_effects:
-                card.toughness -= game.starting_effects.count('entities_get_less_toughness')*2
+            if 'entities_get_more_toughness' in game.global_effects:
+                card.toughness += game.global_effects.count('entities_get_more_toughness')*2
+            if 'entities_get_less_toughness' in game.global_effects:
+                card.toughness -= game.global_effects.count('entities_get_less_toughness')*2
                 card.toughness = max(0, card.toughness)
-            if 'entities_get_more_power' in game.starting_effects:
-                card.power += game.starting_effects.count('entities_get_more_power')*2
-            if 'entities_get_less_power' in game.starting_effects:
-                card.power -= game.starting_effects.count('entities_get_less_power')*2
+            if 'entities_get_more_power' in game.global_effects:
+                card.power += game.global_effects.count('entities_get_more_power')*2
+            if 'entities_get_less_power' in game.global_effects:
+                card.power -= game.global_effects.count('entities_get_less_power')*2
                 card.power = max(0, card.power)
         return card
 
     def start_turn(self, message):
         if self.game.turn != 0:
-            self.draw(1 + self.game.starting_effects.count("draw_extra_card"))
+            self.draw(1 + self.game.global_effects.count("draw_extra_card"))
         self.max_mana += 1
         self.mana = self.max_mana
 
@@ -2107,7 +2071,7 @@ class Card:
         self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.activated_effects = [CardEffect(e, idx) for idx, e in enumerate(info["activated_effects"])] if "activated_effects" in info else []
         self.triggered_effects = [CardEffect(e, idx) for idx, e in enumerate(info["triggered_effects"])] if "triggered_effects" in info else []
-        self.starting_effect = info["starting_effect"] if "starting_effect" in info else None
+        self.global_effect = info["global_effect"] if "global_effect" in info else None
         self.attacked = info["attacked"] if "attacked" in info else False
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.effects_leave_play = [CardEffect(e, idx) for idx, e in enumerate(info["effects_leave_play"])] if "effects_leave_play" in info else []
@@ -2163,7 +2127,7 @@ class Card:
             "effects": [e.as_dict() for e in self.effects],
             "activated_effects": [e.as_dict() for e in self.activated_effects],
             "triggered_effects": [e.as_dict() for e in self.triggered_effects],
-            "starting_effect": self.starting_effect,
+            "global_effect": self.global_effect,
             "attacked": self.attacked,
             "can_be_clicked": self.can_be_clicked,
             "can_activate_abilities": self.can_activate_abilities,
