@@ -78,6 +78,10 @@ class Game:
             moves = self.add_resolve_make_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic":
             moves = self.add_resolve_fetch_relic_moves(player, moves)
+        elif player.card_choice_info["choice_type"] == "view_hand":
+            moves.append({
+                "move_type": "HIDE_REVEALED_CARDS", 
+                "username": self.ai})
         else:
             moves = self.add_attack_and_play_card_moves(moves)
             moves.append({"move_type": "END_TURN", "username": self.ai})
@@ -132,7 +136,7 @@ class Game:
     def add_attack_and_play_card_moves(self, moves):
         for relic in self.current_player().relics:
             if relic.can_be_clicked:
-                moves.append({"card":entity.id , "move_type": "SELECT_RELIC", "username": self.ai})
+                moves.append({"card":relic.id , "move_type": "SELECT_RELIC", "username": self.ai})
         for entity in self.current_player().in_play:
             if entity.can_be_clicked:
                 moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": self.ai})
@@ -409,7 +413,7 @@ class Game:
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "needs_guard":
             set_targets = False
             for e in self.opponent().in_play:
-                if not card.has_ability("Lurker"):
+                if not e.has_ability("Lurker"):
                     if e.has_ability("Guard"):
                         set_targets = True
                         e.can_be_clicked = True
@@ -423,12 +427,19 @@ class Game:
         return set_targets
 
     def has_targets_for_entity_effect(self, target_restrictions):
-        has_friendly_target = False
-        if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
+        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "needs_guard":
             for e in self.current_player().in_play:
                 if e.has_ability("Guard"):
                     if not e.has_ability("Lurker"):
                         return True
+            return False
+
+        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
+            for e in self.current_player().in_play:
+                if e.power_with_tokens() >= list(target_restrictions[0].values())[0]:
+                    return True
+            return False
+
         for e in self.current_player().in_play:
             if not e.has_ability("Lurker"):
                 return True
@@ -441,6 +452,13 @@ class Game:
                     if not e.has_ability("Lurker"):
                         return True
             return False
+
+        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
+            for e in self.opponent().in_play:
+                if e.power_with_tokens() >= list(target_restrictions[0].values())[0]:
+                    return True
+            return False
+
         for e in self.opponent().in_play:
             if not e.has_ability("Lurker"):
                 return True
@@ -953,6 +971,12 @@ class Game:
         self.current_player().add_to_deck(message["card"]["name"], 1, add_to_hand=True)
         self.current_player().reset_card_choice_info()
 
+    def make_effect(self, message):
+        message["log_lines"].append(f"{message['username']} chose {message['card']['starting_effect']}.")
+        self.starting_effects.append(message["card"]["starting_effect"])
+        self.current_player().reset_card_choice_info()
+        return message
+
     def fetch_card(self, message, card_type):
         """
             Fetch the selected card from current_player's deck and put it in play
@@ -1123,7 +1147,7 @@ class Game:
         new_message = copy.deepcopy(message)
         new_message["move_type"] = move_type
         effect_targets = {}
-        if entity_with_effect_to_target.card_type == "Relic" or (entity_with_effect_to_target.card_type == "Entity" and entity_with_effect_to_target.turn_played > -1):
+        if entity_with_effect_to_target.card_type == "Relic" or (entity_with_effect_to_target.card_type == "Entity" and entity_with_effect_to_target.turn_played > self.turn):
             effect_targets[entity_with_effect_to_target.enabled_activated_effects()[0].id] = {"id": username, "target_type":"player"}            
         else:
             effect_targets[entity_with_effect_to_target.effects[0].id] = {"id": username, "target_type":"player"}            
