@@ -1281,6 +1281,10 @@ class Player:
                         card.cost = max(0, card.cost)
 
     def do_card_effect(self, card, e, message, effect_targets):
+        # weapons and instruments
+        if e.counters >= 1:
+            e.counters -= 1
+
         print(f"Do card effect: {e.name}");
         if e.name == "increase_max_mana":
             self.do_increase_max_mana_effect_on_player(effect_targets[e.id]["id"], e.amount)
@@ -1337,7 +1341,6 @@ class Player:
                 message["log_lines"].append(f"{self.username} heals {e.amount} on {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
                 self.do_heal_effect_on_entity(card, effect_targets[e.id]["id"], e.amount)
         elif e.name == "attack":
-            e.counters -= 1
             if effect_targets[e.id]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.power)
                 message["log_lines"].append(f"{self.username} attacks {effect_targets[e.id]['id']} for {e.power} damage.")
@@ -1385,6 +1388,11 @@ class Player:
             self.do_view_hand_effect()
         elif e.name == "make":
             self.do_make_effect(card, effect_targets[e.id]["id"], e.make_type, e.amount)
+        elif e.name == "make_random_townie":
+            self.do_make_random_townie_effect(e.amount)
+            #todo fix hardcoding
+            if e.counters == 0 and card.name == "Lute":
+                card.deactivate_instrument()
         elif e.name == "mana":
             message["log_lines"].append(f"{effect_targets[e.id]['id']} gets {e.amount} mana.")
             self.do_mana_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
@@ -1704,6 +1712,16 @@ class Player:
             }
             self.in_play.append(Card(token_card))
             self.game.next_card_id += 1
+
+    def do_make_random_townie_effect(self, amount):
+        townies = []
+        for c in Game.all_cards():
+            for a in c.abilities:
+                if a.descriptive_id == "Townie":
+                    townies.append(c)
+        t = random.choice(townies)
+        self.add_to_deck(t.name, 1, add_to_hand=True)
+
 
     def make(self, amount, make_type):
         '''
@@ -2215,6 +2233,13 @@ class Card:
         self.added_effects["activated_effects"].pop()
         self.activated_effects[0].enabled = True
         self.description = "✦✦: Make this a 1 power weapon with 2 charges."
+        self.can_activate_abilities = True        
+
+    def deactivate_instrument(self):
+        # todo: don't hardcode for dagger
+        self.added_effects["activated_effects"].pop()
+        self.activated_effects[0].enabled = True
+        self.description = "✦✦: Make this an instrument with 2 charges that fetches Townies."
         self.can_activate_abilities = True        
 
     def reset_added_effects(self):

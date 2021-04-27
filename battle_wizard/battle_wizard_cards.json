@@ -1432,5 +1432,30 @@
 				"descriptive_id": "Townie"
 			}
 		]
+	},
+	{
+		"name": "Lute",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"activated_effects": [{
+				"name": "enable_activated_effect",
+				"target_type": "self",
+				"description": "Remove a counter: Add a Townie to your hand",
+				"cost": 2,
+				"effect_to_activate": {
+					"name": "make_random_townie",
+					"target_type": "self",
+					"amount": 2,
+					"counters": 2,
+					"cost": 0
+				}
+		}]
 	}
 ]
