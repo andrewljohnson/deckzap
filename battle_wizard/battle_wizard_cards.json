@@ -786,6 +786,18 @@
 		}]
 	},
 	{
+		"name": "Lightning Storm",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Deal 2 damage to all entities.",
+		"effects": [{
+			"name": "damage",
+			"target_type": "all_entities",
+			"amount": 2
+		}]
+	},
+	{
 		"name": "Blast",
 		"race": "genie",
 		"cost": 4,

@@ -1314,6 +1314,10 @@ class Player:
             if effect_targets[e.id]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
                 message["log_lines"].append(f"{self.username} deals {e.amount} damage to {effect_targets[e.id]['id']}.")
+            elif effect_targets[e.id]["target_type"] == "all_entities":
+                for entity in self.in_play + self.game.opponent().in_play:
+                    entity.damage += e.amount
+                message["log_lines"].append(f"{self.username} deals {e.amount} damage to all entities.")
             else:
                 message["log_lines"].append(f"{self.username} deals {e.amount} damage to {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name}.")
                 self.do_damage_effect_on_entity(card, effect_targets[e.id]["id"], e.amount)
@@ -1877,8 +1881,8 @@ class Player:
                 for e in card.effects:
                     if e.target_type == "self":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"}
-                    elif e.target_type == "all_players":           
-                        message["effect_targets"][e.id] = {"target_type":"all_players"};
+                    elif e.target_type == "all_players" or e.target_type == "all_entities":           
+                        message["effect_targets"][e.id] = {"target_type": e.target_type};
                     message = self.do_card_effect(card, e, message, message["effect_targets"])
 
         message["card_name"] = card.name
