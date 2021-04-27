@@ -275,7 +275,9 @@ class GameUX {
             cardDiv.appendChild(div)
         }
 
-        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
+        if (((card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled) ||
+        (card.added_abilities.length > 0 && card.added_abilities[0].descriptive_id == "Lurker" && card.added_abilities[0].enabled)) 
+            && card.turn_played > -1) {
             var div = document.createElement("div");
             div.style.backgroundColor = 'black';
             div.style.opacity = ".6";

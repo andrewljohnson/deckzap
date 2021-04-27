@@ -599,7 +599,7 @@ class Game:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
 
-                default_deck = {"cards": {"Fire Elemental": 10, "Riftwalker Djinn": 10, "Mana Shrub": 2, "Thought Sprite": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 2, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Fire Elemental": 2, "Siz Pop": 2, "Counterspell": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
+                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 2, "Thought Sprite": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 2, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Fire Elemental": 2, "Siz Pop": 2, "Counterspell": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
                 deck_to_use = deck_to_use if deck_to_use else default_deck
                 card_names = []
                 for key in deck_to_use["cards"]:
@@ -862,6 +862,9 @@ class Game:
         for a in attacking_card.abilities:
             if a.descriptive_id == "Lurker":
                 a.enabled = False
+        for a in attacking_card.added_abilities:
+            if a.descriptive_id == "Lurker":
+                a.enabled = False
         if "defending_card" in message:
             defending_card_id = message["defending_card"]
             defending_card = self.opponent().in_play_card(defending_card_id)
@@ -929,6 +932,9 @@ class Game:
         e = entity.enabled_activated_effects()[0]
 
         for a in entity.abilities:
+            if a.descriptive_id == "Lurker":
+                a.enabled = False
+        for a in entity.added_abilities:
             if a.descriptive_id == "Lurker":
                 a.enabled = False
 
@@ -1386,6 +1392,9 @@ class Player:
             else:
                 message["log_lines"].append(f"{self.username} gains {card.description}.")
             self.do_add_abilities_effect(e, card)           
+        elif e.name == "add_entity_abilities":
+            message["log_lines"].append(f"{self.username} adds {e.abilities[0].name} to {effect_targets[e.id]['id']} with {card.name}.")
+            self.do_add_abilities_effect(e, self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0])           
 
         self.mana -= e.cost
         self.hit_points -= e.cost_hp
@@ -1604,6 +1613,9 @@ class Player:
     def do_add_abilities_effect_on_player(self, effect, player):
         player.added_abilities.append(effect.abilities[0])
 
+    def do_add_abilities_effect_on_entity(self, effect, entity):
+        entity.added_abilities.append(effect.abilities[0])
+
     def do_add_tokens_effect(self, e, effect_targets):
         if e.target_type == "entity":
             for token in e.tokens:
@@ -1637,6 +1649,11 @@ class Player:
             self.do_add_abilities_effect_on_player(
                 e, 
                 self
+            )
+        elif e.target_type == "entity":
+            self.do_add_abilities_effect_on_entity(
+                e, 
+                card
             )
         elif e.target_type == "opponent":
             self.do_add_abilities_effect_on_player(
@@ -2230,10 +2247,10 @@ class Card:
 
     def has_ability(self, ability_name):
         for a in self.abilities:
-            if a.descriptive_id == ability_name:
+            if a.descriptive_id == ability_name and a.enabled:
                 return True
         for a in self.added_abilities:
-            if a.descriptive_id == ability_name:
+            if a.descriptive_id == ability_name and a.enabled:
                 return True
         return False
 
