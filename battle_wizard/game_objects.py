@@ -78,6 +78,11 @@ class Game:
             moves = self.add_resolve_make_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic":
             moves = self.add_resolve_fetch_relic_moves(player, moves)
+        elif player.card_choice_info["choice_type"] == "select_entity_for_ice_prison":
+            moves = self.add_select_entity_for_ice_prison_moves(moves)
+            if len(moves) == 0:
+                moves = self.add_attack_and_play_card_moves(moves)
+                moves.append({"move_type": "END_TURN", "username": self.ai})                
         elif player.card_choice_info["choice_type"] == "view_hand":
             moves.append({
                 "move_type": "HIDE_REVEALED_CARDS", 
@@ -102,6 +107,11 @@ class Game:
                 "effect_targets": {effect_id: effect_target}})
         return moves
 
+    def add_select_entity_for_ice_prison_moves(self, moves):
+        for card in self.current_player().in_play:
+            if card.can_be_clicked:
+                moves.append({"card":card.id , "move_type": "SELECT_ENTITY", "username": self.ai})
+        return moves
 
     def add_resolve_entity_effects_moves(self, player, moves):
         entity_to_target = self.current_player().selected_entity()
@@ -307,7 +317,7 @@ class Game:
         if cp.card_info_to_resolve["effect_type"]:
             return
 
-        if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] == "select_entity_for_effect":
+        if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_entity_for_effect", "select_entity_for_ice_prison"]:
             for c in cp.card_choice_info["cards"]:
                 c.can_be_clicked = True
             return
@@ -337,8 +347,13 @@ class Game:
                     card.can_be_clicked = False if len(cp.relics) == 0 and len(opp.relics) == 0 else True
                 if card.card_type == "Entity" and not cp.can_summon():
                     card.can_be_clicked = False
-                if card.name == "Mind Manacles" and len(opp.in_play) == 0:
+                if card.name == "Mind Manacles":
+                    if len(opp.in_play) == 0:
+                        card.can_be_clicked = False
                     card.can_be_clicked = False
+                    for e in opp.in_play:
+                        if not e.has_ability("Lurker"):
+                            card.can_be_clicked = True
 
     def set_targets_for_target_type(self, target_type, target_restrictions):
         if target_type == "any_player":
@@ -643,7 +658,7 @@ class Game:
     def end_turn(self, message):
         if len(self.current_player().card_choice_info["cards"]) > 0 or \
             self.current_player().card_info_to_resolve["card_id"]:
-            print(f"can't end turn when there is an effect left to resolve {self.current_player().card_info_to_resolve['effect_type']}")
+            print(f"can't end turn when there is an effect left to resolve {self.current_player().card_info_to_resolve['effect_type']} {self.current_player().card_choice_info}")
             return message
         self.remove_temporary_tokens()
         self.remove_temporary_abilities()
@@ -880,10 +895,9 @@ class Game:
         attacking_card = self.current_player().in_play_card(card_id)
         attacking_card.attacked = True
         self.current_player().reset_card_info_to_resolve()
-        if attacking_card.has_ability("Lurker"):
-            for a in attacking_card.abilities:
-                if a.descriptive_id == "Lurker":
-                    a.enabled = False
+        for a in attacking_card.abilities:
+            if a.descriptive_id == "Lurker":
+                a.enabled = False
         if "defending_card" in message:
             defending_card_id = message["defending_card"]
             defending_card = self.opponent().in_play_card(defending_card_id)
@@ -949,6 +963,11 @@ class Game:
             return None
 
         e = entity.enabled_activated_effects()[0]
+
+        for a in entity.abilities:
+            if a.descriptive_id == "Lurker":
+                a.enabled = False
+
         if e.name == "pump_power":
             # todo don't hardcode for Infernus
             message["log_lines"].append(f"{self.current_player().username} pumps {entity.name} +1/+0.")
@@ -1981,6 +2000,7 @@ class Player:
                     self.game.opponent().damage(len(self.game.opponent().hand))
                     message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
 
+        print("START TURN")
         if self.game.is_under_ice_prison():
             entities_to_select_from = []
             for e in self.in_play:
