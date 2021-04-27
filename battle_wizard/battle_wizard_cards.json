@@ -193,7 +193,7 @@
 		"card_type": "Entity",
 		"power": 6,
 		"toughness": 2,
-		"cost": 1,
+		"cost": 5,
 		"description": "Your opponent gets two 1/1 elemental tokens.",
 		"abilities": [
 			{

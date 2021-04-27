@@ -13,8 +13,8 @@ class Game:
         # there is also a test_stacked_deck variant for tests
         self.game_type = game_type
 
-        self.ai_type = info["ai_type"] if info and "ai_type" in info else ai_type
         self.ai = ai
+        self.ai_type = info["ai_type"] if info and "ai_type" in info else ai_type
 
         # support 2 players
         self.players = [Player(self, u) for u in info["players"]] if info else []
@@ -293,11 +293,11 @@ class Game:
                 if selected_entity.has_ability("Ambush"):
                     if selected_entity.turn_played == self.turn:
                         only_has_ambush_attack = True
-            if (selected_entity.has_ability("Evade Guard") or not opp.has_ability("Guard")) and not only_has_ambush_attack:
+            if (selected_entity.has_ability("Evade Guard") or not opp.has_guard()) and not only_has_ambush_attack:
                 selected_entity.can_be_clicked = True
                 opp.can_be_clicked = True
             for card in opp.in_play:
-                if card.has_ability("Guard") or not opp.has_ability("Guard") or selected_entity.has_ability("Evade Guard"):
+                if card.has_ability("Guard") or not opp.has_guard() or selected_entity.has_ability("Evade Guard"):
                     if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
         if cp.card_info_to_resolve["effect_type"]:
@@ -727,7 +727,7 @@ class Game:
                             only_has_ambush_attack = True
                 if only_has_ambush_attack:
                     print(f"can't attack opponent because an entity only has Ambush")
-                elif self.opponent().has_ability("Guard") and not cp.in_play_card(message["card"]).has_ability("Evade Guard"):                        
+                elif self.opponent().has_guard() and not cp.in_play_card(message["card"]).has_ability("Evade Guard"):                        
                     self.current_player().reset_card_info_to_resolve()
                     print(f"can't attack opponent because an entity has Guard")
                 else:                 
@@ -746,7 +746,7 @@ class Game:
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
             selected_entity = cp.selected_entity()
             if selected_entity:
-                if not defending_card.has_ability("Lurker") and (not self.opponent().has_ability("Guard") or defending_card.has_ability("Guard") or selected_entity.has_ability("Evade Guard")):                        
+                if not defending_card.has_ability("Lurker") and (not self.opponent().has_guard() or defending_card.has_ability("Guard") or selected_entity.has_ability("Evade Guard")):                        
                     message["move_type"] = "ATTACK"
                     message["card"] = selected_entity.id
                     message["card_name"] = selected_entity.name
@@ -843,7 +843,7 @@ class Game:
                     if card.has_ability("Ambush"):
                         if card.turn_played == self.turn:
                             only_has_ambush_attack = True
-                if (card.has_ability("Evade Guard") or not self.opponent().has_ability("Guard")) and not only_has_ambush_attack:
+                if (card.has_ability("Evade Guard") or not self.opponent().has_guard()) and not only_has_ambush_attack:
                     message["card"] = card.id
                     message["card_name"] = card.name
                     message["move_type"] = "ATTACK"
