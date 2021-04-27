@@ -360,6 +360,34 @@
 		]
 	},
 	{
+		"name": "Largest Gorilla in the Forest",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 8,
+		"toughness": 8,
+		"cost": 9,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{
+		"name": "Tame-ish Sabretooth",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 7,
+		"toughness": 7,
+		"cost": 8,
+		"abilities": [
+			{
+				"name": "Ambush",
+				"descriptive_id": "Ambush"
+			}
+		]
+	},
+	{
 		"name": "Riftwalker Djinn",
 		"race": "genie",
 		"card_type": "Entity",
