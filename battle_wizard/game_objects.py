@@ -84,42 +84,44 @@ class Game:
 
         return moves
 
+    def add_effect_resolve_move(self, entity_to_target, effect_target, effect_type, moves):
+        # todo handle cards with more than one effect that gets triggered at the same time
+        effect_id = None
+        if effect_type == "entity_comes_into_play": 
+            effect_id = entity_to_target.effects[0].id
+        elif effect_type == "entity_activated": 
+            effect_id = entity_to_target.activated_effects[0].id
+        moves.append({
+                "card":entity_to_target.id, 
+                "move_type": "RESOLVE_ENTITY_EFFECT", 
+                "username": self.ai,
+                "effect_targets": {effect_id: effect_target}})
+        return moves
+
+
     def add_resolve_entity_effects_moves(self, player, moves):
         entity_to_target = self.current_player().selected_entity()
+        effect_type = self.current_player().card_info_to_resolve["effect_type"]
         for card in self.opponent().in_play + self.current_player().in_play:
             if card.can_be_clicked:
-                effect_targets = {}
-                # todo handle cards with more than one effect that gets triggered at the same time
-                if self.current_player().card_info_to_resolve["effect_type"] == "entity_comes_into_play": 
-                    effect_targets[entity_to_target.effects[0].id] = {"id": card.id, "target_type":"entity"}           
-                elif self.current_player().card_info_to_resolve["effect_type"] == "entity_activated": 
-                    effect_targets[entity_to_target.activated_effects[0].id] = {"id": card.id, "target_type":"entity"}           
-                moves.append({
-                        "card":entity_to_target.id, 
-                        "move_type": "RESOLVE_ENTITY_EFFECT", 
-                        "username": self.ai,
-                        "effect_targets": effect_targets})
+                effect_target = {"id": card.id, "target_type":"entity"}
+                moves = self.add_effect_resolve_move(entity_to_target, effect_target, effect_type, moves)
         for p in self.players:
             if p.can_be_clicked:
-                effect_targets = {}
                 # todo don't hardcode index
-                if self.current_player().card_info_to_resolve["effect_type"] == "entity_comes_into_play": 
-                    effect_targets[entity_to_target.effects[0].id] = {"id": self.opponent().username, "target_type":"player"}            
-                elif self.current_player().card_info_to_resolve["effect_type"] == "entity_activated": 
-                    effect_targets[entity_to_target.activated_effects[0].id] = {"id": card.id, "target_type":"entity"}            
-                moves.append({"card":entity_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": self.ai, "effect_targets": effect_targets})
+                effect_target = {"id": p.username, "target_type":"player"}
+                moves = self.add_effect_resolve_move(entity_to_target, effect_target, effect_type, moves)
         return moves 
+
     def add_resolve_make_moves(self, player, moves):
+        move_type = "MAKE_CARD"
         if player.card_choice_info["cards"][0].card_type == "Effect":
+            move_type = "MAKE_EFFECT"
+        for x in range(0,3):
             # todo don't hardcode index
-            moves.append({"card":player.card_choice_info["cards"][0].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
-            moves.append({"card":player.card_choice_info["cards"][1].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
-            moves.append({"card":player.card_choice_info["cards"][2].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
-        else:
-            # todo don't hardcode index
-            moves.append({"card_name":player.card_choice_info["cards"][0].name , "move_type": "MAKE_CARD", "username": self.ai})             
-            moves.append({"card_name":player.card_choice_info["cards"][1].name , "move_type": "MAKE_CARD", "username": self.ai})             
-            moves.append({"card_name":player.card_choice_info["cards"][2].name , "move_type": "MAKE_CARD", "username": self.ai})             
+            moves.append({"card":player.card_choice_info["cards"][0].as_dict() , "move_type": move_type, "username": self.ai})              
+            moves.append({"card":player.card_choice_info["cards"][1].as_dict() , "move_type": move_type, "username": self.ai})              
+            moves.append({"card":player.card_choice_info["cards"][2].as_dict() , "move_type": move_type, "username": self.ai})              
         return moves 
 
     def add_resolve_fetch_relic_moves(self, player, moves):
@@ -287,16 +289,16 @@ class Game:
         elif cp.card_info_to_resolve["effect_type"] in ["entity_at_ready"]:
             selected_entity = cp.selected_entity()
             only_has_ambush_attack = False
-            if not cp.entity_has_fast(selected_entity):
-                if cp.entity_has_ambush(selected_entity):
+            if not selected_entity.has_ability("Fast"):
+                if selected_entity.has_ability("Ambush"):
                     if selected_entity.turn_played == self.turn:
                         only_has_ambush_attack = True
-            if (cp.entity_has_evade_guard(selected_entity) or not opp.has_guard()) and not only_has_ambush_attack:
+            if (selected_entity.has_ability("Evade Guard") or not opp.has_ability("Guard")) and not only_has_ambush_attack:
                 selected_entity.can_be_clicked = True
                 opp.can_be_clicked = True
             for card in opp.in_play:
-                if opp.entity_has_guard(card) or not opp.has_guard() or cp.entity_has_evade_guard(selected_entity):
-                    if not opp.entity_has_lurker(card):
+                if card.has_ability("Guard") or not opp.has_ability("Guard") or selected_entity.has_ability("Evade Guard"):
+                    if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
         if cp.card_info_to_resolve["effect_type"]:
             return
@@ -350,10 +352,10 @@ class Game:
 
     def set_targets_for_damage_effect(self):
         for card in self.opponent().in_play:
-            if not self.opponent().entity_has_lurker(card):
+            if not card.has_ability("Lurker"):
                 card.can_be_clicked = True
         for card in self.current_player().in_play:
-            if not self.current_player().entity_has_lurker(card):
+            if not card.has_ability("Lurker"):
                 card.can_be_clicked = True
         self.opponent().can_be_clicked = True
         self.current_player().can_be_clicked = True        
@@ -372,23 +374,23 @@ class Game:
             did_target = False
             for card in self.opponent().in_play:
                 if card.power >= list(target_restrictions[0].values())[0]:
-                    if not self.opponent().entity_has_lurker(card):
+                    if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
                         did_target = True
             for card in self.current_player().in_play:
                 if card.power >= list(target_restrictions[0].values())[0]:
-                    if not self.current_player().entity_has_lurker(card):
+                    if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
                         did_target = True
             return did_target
 
         did_target = False
         for card in self.opponent().in_play:
-            if not self.opponent().entity_has_lurker(card):
+            if not card.has_ability("Lurker"):
                 card.can_be_clicked = True
                 did_target = True
         for card in self.current_player().in_play:
-            if not self.current_player().entity_has_lurker(card):
+            if not card.has_ability("Lurker"):
                 card.can_be_clicked = True
                 did_target = True
         return did_target
@@ -407,15 +409,15 @@ class Game:
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "needs_guard":
             set_targets = False
             for e in self.opponent().in_play:
-                if not self.opponent().entity_has_lurker(card):
-                    if self.opponent().entity_has_guard(e):
+                if not card.has_ability("Lurker"):
+                    if e.has_ability("Guard"):
                         set_targets = True
                         e.can_be_clicked = True
             return set_targets
 
         set_targets = False
         for card in self.opponent().in_play:
-            if not self.opponent().entity_has_lurker(card):
+            if not card.has_ability("Lurker"):
                 card.can_be_clicked = True
                 set_targets = True
         return set_targets
@@ -424,23 +426,23 @@ class Game:
         has_friendly_target = False
         if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
             for e in self.current_player().in_play:
-                if self.current_player().entity_has_guard(e):
-                    if not self.current_player().entity_has_lurker(e):
+                if e.has_ability("Guard"):
+                    if not e.has_ability("Lurker"):
                         return True
         for e in self.current_player().in_play:
-            if not self.current_player().entity_has_lurker(e):
+            if not e.has_ability("Lurker"):
                 return True
         return self.has_targets_for_opponents_entity_effect(target_restrictions)
 
     def has_targets_for_opponents_entity_effect(self, target_restrictions):
         if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
             for e in self.opponent().in_play:
-                if self.opponent().entity_has_guard(e):
-                    if not self.opponent().entity_has_lurker(e):
+                if e.has_ability("Guard"):
+                    if not e.has_ability("Lurker"):
                         return True
             return False
         for e in self.opponent().in_play:
-            if not self.opponent().entity_has_lurker(e):
+            if not e.has_ability("Lurker"):
                 return True
         return False
 
@@ -680,7 +682,7 @@ class Game:
         cp = self.current_player()
         if cp.card_info_to_resolve["effect_type"] in ["entity_comes_into_play", "entity_activated"]:
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
-            if defending_player.entity_has_lurker(defending_card):
+            if defending_card.has_ability("Lurker"):
                 print(f"can't target entity with Lurker")
                 return None                
             message["defending_card"] = message["card"]
@@ -695,7 +697,7 @@ class Game:
             if not selected_card.can_target_entities():
                 print(f"can't target entity with {selected_card.name}")
                 return None                                
-            if defending_player.entity_has_lurker(defending_card):
+            if defending_card.has_ability("Lurker"):
                 print(f"can't target entity with Lurker")
                 return None                
             # todo handle cards with multiple effects
@@ -719,13 +721,13 @@ class Game:
             card, _ = self.get_in_play_for_id(message["card"])
             if card == cp.selected_entity():                
                 only_has_ambush_attack = False
-                if not cp.entity_has_fast(card):
-                    if cp.entity_has_ambush(card):
+                if not card.has_ability("Fast"):
+                    if card.has_ability("Ambush"):
                         if card.turn_played == self.turn:
                             only_has_ambush_attack = True
                 if only_has_ambush_attack:
                     print(f"can't attack opponent because an entity only has Ambush")
-                elif self.opponent().has_guard() and not cp.entity_has_evade_guard(cp.in_play_card(message["card"])):                        
+                elif self.opponent().has_ability("Guard") and not cp.in_play_card(message["card"]).has_ability("Evade Guard"):                        
                     self.current_player().reset_card_info_to_resolve()
                     print(f"can't attack opponent because an entity has Guard")
                 else:                 
@@ -744,14 +746,14 @@ class Game:
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
             selected_entity = cp.selected_entity()
             if selected_entity:
-                if not defending_player.entity_has_lurker(defending_card) and (not self.opponent().has_guard() or self.opponent().entity_has_guard(defending_card) or cp.entity_has_evade_guard(selected_entity)):                        
+                if not defending_card.has_ability("Lurker") and (not self.opponent().has_ability("Guard") or defending_card.has_ability("Guard") or selected_entity.has_ability("Evade Guard")):                        
                     message["move_type"] = "ATTACK"
                     message["card"] = selected_entity.id
                     message["card_name"] = selected_entity.name
                     message["defending_card"] = defending_card.id
                     message = self.play_move(message)
                 else:
-                    if defending_player.entity_has_lurker(defending_card):
+                    if defending_card.has_ability("Lurker"):
                         print(f"can't attack {defending_card.name} because it has Lurker")
                     else:
                         print(f"can't attack {defending_card.name} because another entity has Guard")
@@ -766,7 +768,7 @@ class Game:
         return message
 
     def activate_relic_on_entity(self, message, defending_card, defending_player):
-        if defending_player.entity_has_lurker(defending_card):
+        if defending_card.has_ability("Lurker"):
             print(f"can't target entity with Lurker")
             return None                
         message["move_type"] = "ACTIVATE_RELIC"
@@ -837,11 +839,11 @@ class Game:
             if self.current_player().selected_entity():
                 card = self.current_player().selected_entity()
                 only_has_ambush_attack = False
-                if not self.current_player().entity_has_fast(card):
-                    if self.current_player().entity_has_ambush(card):
+                if not card.has_ability("Fast"):
+                    if card.has_ability("Ambush"):
                         if card.turn_played == self.turn:
                             only_has_ambush_attack = True
-                if (self.current_player().entity_has_evade_guard(card) or not self.opponent().has_guard()) and not only_has_ambush_attack:
+                if (card.has_ability("Evade Guard") or not self.opponent().has_ability("Guard")) and not only_has_ambush_attack:
                     message["card"] = card.id
                     message["card_name"] = card.name
                     message["move_type"] = "ATTACK"
@@ -860,7 +862,7 @@ class Game:
         attacking_card = self.current_player().in_play_card(card_id)
         attacking_card.attacked = True
         self.current_player().reset_card_info_to_resolve()
-        if self.current_player().entity_has_lurker(attacking_card):
+        if attacking_card.has_ability("Lurker"):
             for a in attacking_card.abilities:
                 if a.descriptive_id == "Lurker":
                     a.enabled = False
@@ -876,11 +878,11 @@ class Game:
         else:
             message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens()}.")
             self.opponent().damage(attacking_card.power_with_tokens())
-            if self.current_player().entity_has_damage_draw(attacking_card):
+            if attacking_card.has_ability("DamageDraw"):
                 # todo find the actual ability in the list, it might not be zero later
                 self.current_player().draw(attacking_card.abilities[0].amount)
             #todo syphon ignores Shield and Armor
-            if self.current_player().entity_has_syphon(attacking_card):
+            if attacking_card.has_ability("Syphon"):
                 self.current_player().hit_points += attacking_card.power_with_tokens()
                 self.current_player().hit_points = min(30, self.current_player().hit_points)
         return message
@@ -948,7 +950,7 @@ class Game:
         return message
 
     def make_card(self, message):
-        self.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
+        self.current_player().add_to_deck(message["card"]["name"], 1, add_to_hand=True)
         self.current_player().reset_card_choice_info()
 
     def fetch_card(self, message, card_type):
@@ -1015,7 +1017,6 @@ class Game:
         new_card.owner_username = player.username
         new_card = player.modify_new_card(self, new_card)
         return new_card
-
 
     def resolve_combat(self, attacking_card, defending_card):
         if attacking_card.shielded:
@@ -1767,9 +1768,9 @@ class Player:
                     if t.set_can_act == False:
                         return False                        
                 if card.turn_played == self.game.turn:
-                    if self.entity_has_fast(card):
+                    if card.has_ability("Fast"):
                         return True
-                    if self.entity_has_ambush(card) and len(self.game.opponent().in_play) > 0:
+                    if card.has_ability("Ambush") and len(self.game.opponent().in_play) > 0:
                         return True
                     return False
         return True
@@ -1829,7 +1830,7 @@ class Player:
         else:
             self.played_pile.append(card)            
 
-        if card.card_type == "Entity" and self.entity_has_shield(card):
+        if card.card_type == "Entity" and card.has_ability("Shield"):
             card.shielded = True
 
         if len(card.effects) > 0:
@@ -2006,46 +2007,7 @@ class Player:
 
     def has_guard(self):
         for c in self.in_play:
-            if self.entity_has_guard(c):
-                return True
-        return False
-
-    def entity_has_guard(self, entity):
-        return self.entity_has_ability(entity, "Guard")
-
-    def entity_has_evade_guard(self, entity):
-        return self.entity_has_ability(entity, "Evade Guard")
-
-    def entity_has_damage_draw(self, entity):
-        return self.entity_has_ability(entity, "DamageDraw")
-
-    def entity_has_fast(self, entity):
-        return self.entity_has_ability(entity, "Fast")
-
-    def entity_has_lurker(self, entity):
-        for a in entity.abilities:
-            if a.descriptive_id == "Lurker" and a.enabled:
-                return True
-        for a in entity.added_abilities:
-            if a.descriptive_id == "Lurker" and a.enabled:
-                return True
-        return False
-
-    def entity_has_ambush(self, entity):
-        return self.entity_has_ability(entity, "Ambush")
-
-    def entity_has_syphon(self, entity):
-        return self.entity_has_ability(entity, "Syphon")
-
-    def entity_has_shield(self, entity):
-        return self.entity_has_ability(entity, "Shield")
-
-    def entity_has_ability(self, entity, ability_name):
-        for a in entity.abilities:
-            if a.descriptive_id == ability_name:
-                return True
-        for a in entity.added_abilities:
-            if a.descriptive_id == ability_name:
+            if c.has_ability("Guard"):
                 return True
         return False
 
@@ -2256,31 +2218,40 @@ class Card:
             toughness += t.toughness_modifier
         return toughness
 
+    def has_ability(self, ability_name):
+        for a in self.abilities:
+            if a.descriptive_id == ability_name:
+                return True
+        for a in self.added_abilities:
+            if a.descriptive_id == ability_name:
+                return True
+        return False
+
 
 class CardEffect:
     def __init__(self, info, effect_id):
-        self.id = effect_id
-        self.name = info["name"]
-        self.card_name = info["card_name"] if "card_name" in info else None
-        self.power = info["power"] if "power" in info else None
-        self.toughness = info["toughness"] if "toughness" in info else None
-        self.trigger = info["trigger"] if "trigger" in info else None
-        self.description = info["description"] if "description" in info else None
+        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
+        self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
         self.amount = info["amount"] if "amount" in info else None
+        self.card_name = info["card_name"] if "card_name" in info else None
+        self.counters = info["counters"] if "counters" in info else 0
         self.cost = info["cost"] if "cost" in info else 0
         self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
-        self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
-        self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
-        self.counters = info["counters"] if "counters" in info else 0
-        self.make_type = info["make_type"] if "make_type" in info else None
+        self.description = info["description"] if "description" in info else None
+        self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
+        self.effect_to_activate = CardEffect(info["effect_to_activate"], 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
+        self.enabled = info["enabled"] if "enabled" in info else True
+        self.id = effect_id
+        self.make_type = info["make_type"] if "make_type" in info else None
+        self.name = info["name"]
+        self.power = info["power"] if "power" in info else None
+        self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
+        self.target_restrictions = info["target_restrictions"] if "target_restrictions" in info else []
         self.target_type = info["target_type"] if "target_type" in info else None
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
-        self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
-        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
-        self.target_restrictions = info["target_restrictions"] if "target_restrictions" in info else []
-        self.enabled = info["enabled"] if "enabled" in info else True
-        self.effect_to_activate = CardEffect(info["effect_to_activate"], 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
+        self.toughness = info["toughness"] if "toughness" in info else None
+        self.trigger = info["trigger"] if "trigger" in info else None
 
     def __repr__(self):
         return f"\
@@ -2296,39 +2267,39 @@ class CardEffect:
 
     def as_dict(self):
         return {
-            "id": self.id,
-            "name": self.name,
-            "card_name": self.card_name,
-            "power": self.power,
-            "toughness": self.toughness,
-            "trigger": self.trigger,
-            "target_restrictions": self.target_restrictions,
+            "abilities": [a.as_dict() for a in self.abilities] if self.abilities else [],
+            "activate_on_add": self.activate_on_add,
             "amount": self.amount,
+            "card_name": self.card_name,
+            "counters": self.counters,
             "cost": self.cost,
             "cost_hp": self.cost_hp,
             "description": self.description,
-            "activate_on_add": self.activate_on_add,
-            "sacrifice_on_activate": self.sacrifice_on_activate,
-            "enabled": self.enabled,
-            "counters": self.counters,
-            "make_type": self.make_type,
+            "effects": [e.as_dict() for e in self.effects] if self.effects else [],
+            "effect_to_activate": self.effect_to_activate.as_dict() if self.effect_to_activate else None,
             "effect_type": self.effect_type,
+            "enabled": self.enabled,
+            "id": self.id,
+            "make_type": self.make_type,
+            "name": self.name,
+            "power": self.power,
+            "sacrifice_on_activate": self.sacrifice_on_activate,
+            "target_restrictions": self.target_restrictions,
             "target_type": self.target_type,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
-            "effects": [e.as_dict() for e in self.effects] if self.effects else [],
-            "abilities": [a.as_dict() for a in self.abilities] if self.abilities else [],
-            "effect_to_activate": self.effect_to_activate.as_dict() if self.effect_to_activate else None,
+            "toughness": self.toughness,
+            "trigger": self.trigger
         }
 
 
 class CardAbility:
     def __init__(self, info, ability_id):
-        self.id = ability_id
-        self.descriptive_id = info["descriptive_id"] if "descriptive_id" in info else None
-        self.name = info["name"] if "name" in info else None
         self.amount = info["amount"] if "amount" in info else None
-        self.turns = info["turns"] if "turns" in info else -1
+        self.descriptive_id = info["descriptive_id"] if "descriptive_id" in info else None
         self.enabled = info["enabled"] if "enabled" in info else True
+        self.id = ability_id
+        self.name = info["name"] if "name" in info else None
+        self.turns = info["turns"] if "turns" in info else -1
 
     def __repr__(self):
         return f"self.id: {self.id} self.name: {self.name} self.amount: {self.amount}\n\
@@ -2336,21 +2307,21 @@ class CardAbility:
 
     def as_dict(self):
         return {
+            "amount": self.amount,
+            "descriptive_id": self.descriptive_id,
+            "enabled": self.enabled,
             "id": self.id,
             "name": self.name,
-            "descriptive_id": self.descriptive_id,
-            "amount": self.amount,
             "turns": self.turns,
-            "enabled": self.enabled,
         }
 
 
 class CardToken:
     def __init__(self, info):
-        self.turns = info["turns"] if "turns" in info else -1
         self.power_modifier = info["power_modifier"] if "power_modifier" in info else 0
-        self.toughness_modifier = info["toughness_modifier"] if "toughness_modifier" in info else 0
         self.set_can_act = info["set_can_act"] if "set_can_act" in info else None
+        self.toughness_modifier = info["toughness_modifier"] if "toughness_modifier" in info else 0
+        self.turns = info["turns"] if "turns" in info else -1
 
     def __repr__(self):
         if self.set_can_act is not None:
@@ -2359,8 +2330,8 @@ class CardToken:
 
     def as_dict(self):
         return {
-            "turns": self.turns,
             "power_modifier": self.power_modifier,
-            "toughness_modifier": self.toughness_modifier,
             "set_can_act": self.set_can_act,
+            "toughness_modifier": self.toughness_modifier,
+            "turns": self.turns,
         }
