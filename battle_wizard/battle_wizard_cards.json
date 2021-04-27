@@ -996,7 +996,7 @@
 	{
 		"name": "Mind Manacles",
 		"race": "genie",
-		"cost": 6,
+		"cost": 1,
 		"card_type": "Spell",
 		"description": "Take control of an entity.",
 		"effects": [{
@@ -1033,7 +1033,7 @@
 	},
 	{
 		"name": "Make Entity",
-		"cost": 1,
+		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 entities to make and add to your deck.",
 		"effects": [{
@@ -1045,7 +1045,7 @@
 	},
 	{
 		"name": "Make Spell",
-		"cost": 1,
+		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 spells to make and add to your deck.",
 		"effects": [{
@@ -1057,7 +1057,7 @@
 	},
 	{
 		"name": "Make Global Effect",
-		"cost": 1,
+		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 global effects to affect all players",
 		"effects": [{

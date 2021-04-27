@@ -1562,7 +1562,11 @@ class Player:
         self.game.current_player().in_play.append(target_card)
         if self.game.current_player().fast_ability():
             target_card.attacked = False
-            target_card.added_abilities.append(self.game.current_player().fast_ability())         
+            target_card.added_abilities.append(self.game.current_player().fast_ability())       
+        elif target_card.has_ability("Fast") or target_card.has_ability("Ambush"):
+            target_card.attacked = False
+        else:  
+            target_card.attacked = True
     
     def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
