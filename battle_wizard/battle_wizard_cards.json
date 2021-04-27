@@ -365,7 +365,7 @@
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 2,
-		"cost": 5,
+		"cost": 1,
 		"abilities": [
 			{
 				"name": "Guard",
@@ -822,7 +822,7 @@
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 3,
-		"cost": 4,
+		"cost": 1,
 		"abilities": [
 			{
 				"name": "Fast",
