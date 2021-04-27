@@ -516,11 +516,11 @@ class GameUX {
             this.showFXSelectionView(game);
         } else if ((this.gameType == "choose_race" || this.gameType == "choose_race_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
             this.showChooseRace(game);
-        } else if (this.thisPlayer(game).make_to_resolve.length) {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
-        } else if (this.thisPlayer(game).fetch_relic_to_resolve.length) {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic") {
             this.showChooseCardView(game);
-        } else if (this.thisPlayer(game).cards_to_reveal.length) {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
             this.showRevealView(game);
         } else {
             this.showGame();
@@ -771,7 +771,7 @@ class GameUX {
         container.style.backgroundColor = "white";
         makeSelector.appendChild(container);
 
-        var cards = this.thisPlayer(game).make_to_resolve;
+        var cards = this.thisPlayer(game).card_choice_info["cards"];
 
         var h1 = document.createElement("h1");
         h1.innerHTML = "Make a Card"
@@ -827,7 +827,7 @@ class GameUX {
             self.showGame();
         }
 
-        var cards = this.thisPlayer(game).cards_to_reveal;
+        var cards = this.thisPlayer(game).card_choice_info["cards"];
         for (let card of cards) {
             let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
             cardDiv.style.pointerEvents = "none";
@@ -862,7 +862,7 @@ class GameUX {
 
         var self = this;
 
-        var cards = this.thisPlayer(game).fetch_relic_to_resolve;
+        var cards = this.thisPlayer(game).card_choice_info["cards"];
         for (let card of cards) {
             let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
             cardDiv.onclick = function () {

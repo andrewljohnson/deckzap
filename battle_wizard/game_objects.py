@@ -6,12 +6,6 @@ import time
 from battle_wizard.jsonDB import JsonDB
 
 
-# notes on relics project
-'''
-# select_entity_target_for_entity_effect - called nowhere?
-current_player().select_relic_target?
-'''
-
 class Game:
     def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None):
 
@@ -80,16 +74,15 @@ class Game:
         moves = []
         if player.card_info_to_resolve["effect_type"] in ["entity_activated", "entity_comes_into_play"]:
             moves = self.add_resolve_entity_effects_moves(player, moves)
-        elif player.make_to_resolve:
+        elif player.card_choice_info["choice_type"] == "make":
             moves = self.add_resolve_make_moves(player, moves)
-        elif player.fetch_relic_to_resolve:
+        elif player.card_choice_info["choice_type"] == "fetch_relic":
             moves = self.add_resolve_fetch_relic_moves(player, moves)
         else:
             moves = self.add_attack_and_play_card_moves(moves)
             moves.append({"move_type": "END_TURN", "username": self.ai})
 
         return moves
-
 
     def add_resolve_entity_effects_moves(self, player, moves):
         entity_to_target = self.current_player().selected_entity()
@@ -116,22 +109,21 @@ class Game:
                     effect_targets[entity_to_target.activated_effects[0].id] = {"id": card.id, "target_type":"entity"}            
                 moves.append({"card":entity_to_target.id , "move_type": "RESOLVE_ENTITY_EFFECT", "username": self.ai, "effect_targets": effect_targets})
         return moves 
-
     def add_resolve_make_moves(self, player, moves):
-        if player.make_to_resolve[0].card_type == "Effect":
+        if player.card_choice_info["cards"][0].card_type == "Effect":
             # todo don't hardcode index
-            moves.append({"card":player.make_to_resolve[0].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
-            moves.append({"card":player.make_to_resolve[1].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
-            moves.append({"card":player.make_to_resolve[2].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
+            moves.append({"card":player.card_choice_info["cards"][0].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
+            moves.append({"card":player.card_choice_info["cards"][1].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
+            moves.append({"card":player.card_choice_info["cards"][2].as_dict() , "move_type": "MAKE_EFFECT", "username": self.ai})              
         else:
             # todo don't hardcode index
-            moves.append({"card_name":player.make_to_resolve[0].name , "move_type": "MAKE_CARD", "username": self.ai})             
-            moves.append({"card_name":player.make_to_resolve[1].name , "move_type": "MAKE_CARD", "username": self.ai})             
-            moves.append({"card_name":player.make_to_resolve[2].name , "move_type": "MAKE_CARD", "username": self.ai})             
+            moves.append({"card_name":player.card_choice_info["cards"][0].name , "move_type": "MAKE_CARD", "username": self.ai})             
+            moves.append({"card_name":player.card_choice_info["cards"][1].name , "move_type": "MAKE_CARD", "username": self.ai})             
+            moves.append({"card_name":player.card_choice_info["cards"][2].name , "move_type": "MAKE_CARD", "username": self.ai})             
         return moves 
 
     def add_resolve_fetch_relic_moves(self, player, moves):
-        for c in player.fetch_relic_to_resolve:
+        for c in player.card_choice_info["cards"]:
             moves.append({"card":c.as_dict() , "move_type": "FETCH_CARD", "username": self.ai})              
         return moves 
 
@@ -309,9 +301,9 @@ class Game:
         if cp.card_info_to_resolve["effect_type"]:
             return
 
-        if len(cp.entities_to_select_from) > 0:
-            for e in cp.entities_to_select_from:
-                e.can_be_clicked = True
+        if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] == "select_entity_for_effect":
+            for c in cp.card_choice_info["cards"]:
+                c.can_be_clicked = True
             return
 
         for card in cp.relics:
@@ -453,7 +445,7 @@ class Game:
         return False
 
     def hide_revealed_cards(self, message):
-        self.current_player().cards_to_reveal = []
+        self.current_player().reset_card_choice_info()
         return message
 
     def join(self, message):
@@ -629,10 +621,8 @@ class Game:
         self.play_move(new_message)
 
     def end_turn(self, message):
-        if len(self.current_player().make_to_resolve) > 0 or \
-            len(self.current_player().fetch_relic_to_resolve) > 0 \
-            or self.current_player().card_info_to_resolve["card_id"] \
-            or self.current_player().entities_to_select_from:
+        if len(self.current_player().card_choice_info["cards"]) > 0 or \
+            self.current_player().card_info_to_resolve["card_id"]:
             print(f"can't end turn when there is an effect left to resolve {self.current_player().card_info_to_resolve['effect_type']}")
             return message
         self.remove_temporary_tokens()
@@ -714,14 +704,14 @@ class Game:
                 return None
             message["defending_card"] = message["card"]
             message = self.select_entity_target_for_spell(cp.selected_spell(), message)
-        elif len(cp.entities_to_select_from) > 0:
+        elif len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] == "select_entity_for_ice_prison":
              selected_card = cp.in_play_card(message["card"])
              chose_card = False
              if selected_card:
-                for c in cp.entities_to_select_from:
+                for c in cp.card_choice_info["cards"]:
                     if c.id == selected_card.id:
                         selected_card.attacked = False
-                        cp.entities_to_select_from = []
+                        cp.reset_card_choice_info()
                         chose_card = True
              if not chose_card:
                 print("can't select that entity to un-attack for ice prison")
@@ -941,7 +931,7 @@ class Game:
         e = entity.enabled_activated_effects()[0]
         if e.name == "pump_power":
             # todo don't hardcode for Infernus
-            message["log_lines"].append(f"{self.current_player().username} pumps {entity.name} +1./+0.")
+            message["log_lines"].append(f"{self.current_player().username} pumps {entity.name} +1/+0.")
             effect_targets = {}
             effect_targets[e.id] = {"id": entity.id, "target_type":e.target_type};
             message = self.current_player().do_card_effect(entity, e, message, effect_targets)
@@ -959,7 +949,7 @@ class Game:
 
     def make_card(self, message):
         self.current_player().add_to_deck(message["card_name"], 1, add_to_hand=True)
-        self.current_player().make_to_resolve = []
+        self.current_player().reset_card_choice_info()
 
     def fetch_card(self, message, card_type):
         """
@@ -973,7 +963,8 @@ class Game:
             self.current_player().relics.append(card)
             self.current_player().deck.remove(card)
         message["log_lines"].append(f"{message['username']} chose {card.name}.")
-        self.current_player().fetch_relic_to_resolve = []
+
+        self.current_player().reset_card_choice_info()
         return message
 
     def get_in_play_for_id(self, card_id):
@@ -1176,14 +1167,10 @@ class Player:
             self.relics = []
             self.deck = []
             self.played_pile = []
-            self.make_to_resolve = []
-            self.cards_to_reveal = []
-            self.fetch_relic_to_resolve = []
-            self.entities_to_select_from = []
             self.can_be_clicked = False
             self.added_abilities = []
             self.reset_card_info_to_resolve()
-
+            self.reset_card_choice_info()
         else:
             self.hand = [Card(c_info) for c_info in info["hand"]]
             self.in_play = [Card(c_info) for c_info in info["in_play"]]
@@ -1194,23 +1181,19 @@ class Player:
             self.max_mana = info["max_mana"]
             self.deck = [Card(c_info) for c_info in info["deck"]]
             self.played_pile = [Card(c_info) for c_info in info["played_pile"]]
-            self.make_to_resolve = [Card(c_info) for c_info in info["make_to_resolve"]]
-            self.fetch_relic_to_resolve = [Card(c_info) for c_info in info["fetch_relic_to_resolve"]]
-            self.cards_to_reveal = [Card(c_info) for c_info in info["cards_to_reveal"]]
-            self.entities_to_select_from = [Card(c_info) for c_info in info["entities_to_select_from"]]
             self.can_be_clicked = info["can_be_clicked"]
             self.added_abilities = [CardAbility(a, idx) for idx, a in enumerate(info["added_abilities"])] if "added_abilities" in info and info["added_abilities"] else []
             self.card_info_to_resolve = info["card_info_to_resolve"]
+            self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"]}
 
     def __repr__(self):
         return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - \
                 {self.hit_points} hp - {self.armor} armor, {self.mana} mana, self.card_info_to_resolve {self.card_info_to_resolve} \
                 {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
                 {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
-                {len(self.make_to_resolve)} in make_to_resolve, self.can_be_clicked {self.can_be_clicked}, \
-                self.added_abilities \
-                {self.added_abilities}, self.relics {self.relics}, len(self.cards_to_reveal) {len(self.cards_to_reveal)} \
-                self.entities_to_select_from {self.entities_to_select_from}, {len(self.fetch_relic_to_resolve)} in fetch_relic_to_resolve,"
+                self.can_be_clicked {self.can_be_clicked}, \
+                self.added_abilities self.card_choice_info \
+                {self.added_abilities}, self.relics {self.relics}"
 
     def as_dict(self):
         return {
@@ -1225,14 +1208,11 @@ class Player:
             "hand": [c.as_dict() for c in self.hand],
             "in_play": [c.as_dict() for c in self.in_play],
             "relics": [c.as_dict() for c in self.relics],
-            "cards_to_reveal": [c.as_dict() for c in self.cards_to_reveal],
-            "entities_to_select_from": [c.as_dict() for c in self.entities_to_select_from],
             "deck": [c.as_dict() for c in self.deck],
             "played_pile": [c.as_dict() for c in self.played_pile],
-            "make_to_resolve": [c.as_dict() for c in self.make_to_resolve],
-            "fetch_relic_to_resolve": [c.as_dict() for c in self.fetch_relic_to_resolve],
             "can_be_clicked": self.can_be_clicked,
-            "added_abilities": [a.as_dict() for a in self.added_abilities]
+            "added_abilities": [a.as_dict() for a in self.added_abilities],
+            "card_choice_info": {"cards": [c.as_dict() for c in self.card_choice_info["cards"]], "choice_type": self.card_choice_info["choice_type"]}
         }
 
     def add_to_deck(self, card_name, count, add_to_hand=False):
@@ -1500,7 +1480,8 @@ class Player:
         card.can_activate_abilities = True
 
     def do_view_hand_effect(self):
-        self.cards_to_reveal = copy.deepcopy(self.game.opponent().hand)
+        self.card_choice_info["cards"] = copy.deepcopy(self.game.opponent().hand)
+        self.card_choice_info["choice_type"] = "view_hand"
 
     def do_mana_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -1577,6 +1558,7 @@ class Player:
     
     def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
+        target_player.in_play.remove(target_card)  
         new_card = self.game.factory_reset_card(target_card, target_player)
         target_player.hand.append(new_card)  
 
@@ -1714,7 +1696,8 @@ class Player:
                 "starting_effect": "entities_cost_less"
             }
             effects.append(Card(card_info))
-            self.make_to_resolve = effects
+            self.card_choice_info["cards"] = effects
+            self.card_choice_info["choice_type"] = "make"
             return
 
         requiredEntityCost = None
@@ -1732,7 +1715,7 @@ class Player:
         card3 = None
         while not card3 or card3.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
             card3 = random.choice(all_cards)
-        self.make_to_resolve = [card1, card2, card3]
+        self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
 
     def display_deck_relics(self):
         all_cards = Game.all_cards()
@@ -1740,7 +1723,7 @@ class Player:
         for card in self.deck:
             if card.card_type == "Relic":
                 relics.append(card)
-        self.fetch_relic_to_resolve = relics
+        self.card_choice_info = {"cards": relics, "choice_type": "fetch_relic"}
 
     def relic_in_play(self, card_id):
         for card in self.relics:
@@ -1974,9 +1957,12 @@ class Player:
                     message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
 
         if self.game.is_under_ice_prison():
+            entities_to_select_from = []
             for e in self.in_play:
                 if e.attacked:
-                    self.entities_to_select_from.append(e)
+                    entities_to_select_from.append(e)
+            if len(entities_to_select_from) > 0:
+                self.card_choice_info = {"cards": entities_to_select_from, "choice_type": "select_entity_for_ice_prison"}
         return message
 
     def controls_relic(self, card_id):
@@ -2091,6 +2077,9 @@ class Player:
 
     def reset_card_info_to_resolve(self):
         self.card_info_to_resolve = {"card_id": None, "effect_type": None}
+
+    def reset_card_choice_info(self):
+        self.card_choice_info = {"cards": [], "choice_type": None}
 
 
 class Card:
