@@ -306,13 +306,14 @@ class GameUX {
         nameDiv.innerHTML = card.name;
         cardDiv.appendChild(nameDiv)
 
+        let descriptionDiv = document.createElement("div");
+        descriptionDiv.style.maxHeight = "60px"
+        cardDiv.appendChild(descriptionDiv);
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
             if (card.activated_effects.length == 0 || (card.activated_effects[0].target_type != "this" && card.card_type != "Entity") || card.turn_played == -1) {
-                let descriptionDiv = document.createElement("div");
                 descriptionDiv.innerHTML = card.description;
-                cardDiv.appendChild(descriptionDiv);
             }
         }
 
@@ -327,7 +328,7 @@ class GameUX {
         for (let a of card.added_abilities) {
             let abilitiesDiv = document.createElement("div");
             abilitiesDiv.innerHTML = a.name;
-            cardDiv.appendChild(abilitiesDiv);            
+            descriptionDiv.appendChild(abilitiesDiv);            
         }
 
         let abilitiesDiv = document.createElement("div");
@@ -340,7 +341,7 @@ class GameUX {
                 }                
             }
         }
-        cardDiv.appendChild(abilitiesDiv);
+        descriptionDiv.appendChild(abilitiesDiv);
 
         if (card.card_type == "Entity") {
             let cardPower = card.power;
@@ -377,12 +378,25 @@ class GameUX {
             typeDiv.style.borderRadius = "3px"
             cardDiv.appendChild(typeDiv);           
         }
+        if (card.activated_effects.length > 0 && card.activated_effects[0].name == "attack") {
+            let powerChargesDiv = document.createElement("em");
+            powerChargesDiv.innerHTML = card.activated_effects[0].power + "/" + card.activated_effects[0].counters;
+            powerChargesDiv.style.position = "absolute";
+            powerChargesDiv.style.bottom = "0px";
+            powerChargesDiv.style.left = "0px";
+            powerChargesDiv.style.backgroundColor = "black"
+            powerChargesDiv.style.color = "white";
+            powerChargesDiv.style.paddingLeft = "3px"
+            powerChargesDiv.style.paddingRight = "3px"
+            powerChargesDiv.style.borderRadius = "3px"
+            cardDiv.appendChild(powerChargesDiv);                       
+        }
         if (card.added_effects.activated_effects.length > 0 && card.added_effects.activated_effects[0].name == "attack") {
             let powerChargesDiv = document.createElement("em");
             powerChargesDiv.innerHTML = card.added_effects.activated_effects[0].power + "/" + card.added_effects.activated_effects[0].counters;
             powerChargesDiv.style.position = "absolute";
             powerChargesDiv.style.bottom = "0px";
-            powerChargesDiv.style.right = "0px";
+            powerChargesDiv.style.left = "0px";
             cardDiv.appendChild(powerChargesDiv);                       
         }
 
@@ -441,6 +455,14 @@ class GameUX {
             cardDiv.appendChild(input);
         }
 
+        cardDiv.addEventListener('mouseleave', function(){
+            if(document.getElementById("bigger_card")) {
+                cardDiv.style.height = "114px";
+                cardDiv.style.width = "81px";
+                document.getElementById("bigger_card").parentNode.removeChild(document.getElementById("bigger_card"));4            
+            }
+        }, false);   
+
         if (dont_attach_listeners) {
             var span = document.createElement("span");
             span.appendChild(cardDiv)
@@ -454,8 +476,14 @@ class GameUX {
             clickTime = new Date();
             setTimeout(function() { 
                 if (!cancel) {
-                    cardDiv.style.height = "171px";
-                    cardDiv.style.width = "120px";                    
+                     var cln = cardDiv.cloneNode(true);
+                     cln.id = "bigger_card";
+                     cln.style.height = "171px";
+                     cln.style.width = "120px"; 
+                     cln.style.position = "absolute"; 
+                     cln.style.left = "400px"; 
+                     cln.style.top = document.getElementById("all_but_player_hand").innerHeight / 2;
+                     document.getElementById("all_but_player_hand").appendChild(cln)
                 }
                 cancel = false;
             }, 150);
@@ -464,6 +492,10 @@ class GameUX {
         cardDiv.addEventListener('mouseup', function(event){
             cardDiv.style.height = "114px";
             cardDiv.style.width = "81px";
+            if(document.getElementById("bigger_card")) {
+                document.getElementById("bigger_card").parentNode.removeChild(document.getElementById("bigger_card"));
+            }
+
             event.stopPropagation();
 
             function captureClick(e) {
@@ -471,7 +503,7 @@ class GameUX {
                     // play the card if it's a quick click
                     if (cardDiv.parentElement.parentElement == document.getElementById("hand")) {  
                         self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-                    } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
+                    } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
                         self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
                     } else { 
                         self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
@@ -492,11 +524,6 @@ class GameUX {
                      //     phase instead of the bubbling phase!
             ); 
 
-        }, false);   
-
-        cardDiv.addEventListener('mouseleave', function(){
-            cardDiv.style.height = "114px";
-            cardDiv.style.width = "81px";
         }, false);   
 
         var span = document.createElement("span");
@@ -712,6 +739,7 @@ class GameUX {
         var makeSelector = document.getElementById(element_id);
         makeSelector.style.display = "flex";
         makeSelector.style.background = "rgba(0, 0, 0, .7)";
+        makeSelector.style.zIndex = "100";
 
         var container = document.createElement("div");
         container.style.width = "100%";

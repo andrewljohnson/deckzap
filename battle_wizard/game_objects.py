@@ -1583,8 +1583,11 @@ class Player:
             target_player.hand.remove(card)
             self.game.send_card_to_played_pile(card, target_player)
             if to_deck:
-                target_player.played_pile.remove(card)
-                target_player.deck.append(card)
+                for c in target_player.played_pile:
+                    if c.id == card.id:
+                        break
+                target_player.played_pile.remove(c)
+                target_player.deck.append(c)
                 random.shuffle(target_player.deck)
 
     def do_damage_effect_on_entity(self, card, target_entity_id, amount):
