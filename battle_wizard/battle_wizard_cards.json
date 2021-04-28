@@ -1600,5 +1600,70 @@
 				"multiplier": "half_self_entities"
 			}]
 		}]
+	},
+	{
+		"name": "Totem Cat",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Get a 2/1 ghost token when this dies.",
+		"effects_leave_play": [{
+			"name": "make_token",
+			"card_name": "Ghost of the Cat",
+			"target_type": "self",
+			"power": 2,
+			"toughness": 1,
+			"amount": 1
+		}]
+	},
+	{
+
+		"name": "Taunted Bear",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 2,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Fade",
+				"descriptive_id": "Fade"
+			},
+			{
+				"name": "Stomp",
+				"descriptive_id": "Stomp"
+			}
+		]
+	},
+	{
+
+		"name": "War Scorpion",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Ambush",
+				"descriptive_id": "Ambush"
+			}
+		],
+		"triggered_effects": [
+			{
+				"name": "toggle_symbiotic_fast",
+				"target_type": "self",
+				"trigger": "entity_changes_zones"
+			}
+		]
 	}
 ]

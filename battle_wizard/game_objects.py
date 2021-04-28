@@ -998,12 +998,12 @@ class Game:
             for card in p.in_play + p.relics:
                 if card.id == card_id:
                     return card, p
+        return None, None
 
     def send_card_to_played_pile(self, card, player):
         """
             Send the card to the player's played_pile and reset any temporary effects on the card
         """
-
         if card in player.relics:
             player.relics.remove(card)
         if card in player.in_play:
@@ -1027,7 +1027,36 @@ class Game:
 
         if not card.is_token:
             new_card = self.factory_reset_card(card, player)
-            player.played_pile.append(new_card)  
+            player.played_pile.append(new_card)
+
+        print("update_for_entity_changes_zones")
+        self.update_for_entity_changes_zones(player)
+
+    def update_for_entity_changes_zones(self, player):
+
+        for e in player.in_play:
+            effect = e.effect_with_trigger("entity_changes_zones")
+            if effect and effect.name == "toggle_symbiotic_fast":
+                abilities_to_remove = []
+                for ability in e.added_abilities:
+                    if ability.name == "Fast":
+                       abilities_to_remove.append(ability) 
+                for ability in abilities_to_remove:
+                    e.added_abilities.remove(ability)
+
+        anything_friendly_has_fast = False
+        for e in player.in_play:
+            if e.has_ability("Fast"):
+                anything_friendly_has_fast = True
+
+        for e in player.in_play:
+            effect = e.effect_with_trigger("entity_changes_zones")
+            if effect and effect.name == "toggle_symbiotic_fast":
+                if anything_friendly_has_fast:
+                    e.added_abilities.append(CardAbility({
+                        "name": "Fast",
+                        "descriptive_id": "Fast"
+                    }, len(e.added_abilities)))
 
     def factory_reset_card(self, card, player):
         new_card = None
@@ -1051,9 +1080,15 @@ class Game:
             elif defending_card.has_ability("DamageTakeControl"):
                 self.current_player().in_play.remove(attacking_card)
                 self.opponent().in_play.append(attacking_card)
+                self.update_for_entity_changes_zones(self.current_player())
+                self.update_for_entity_changes_zones(self.opponent())
         if defending_card.shielded:
             defending_card.shielded = False
         else:
+            if attacking_card.has_ability("Stomp"):
+                stomp_damage = attacking_card.power_with_tokens() - (defending_card.toughness_with_tokens() - defending_card.damage)
+                if stomp_damage > 0:
+                    self.opponent().damage(stomp_damage)
             defending_card.damage += attacking_card.power_with_tokens()
             defending_card.damage_this_turn += attacking_card.power_with_tokens()
             if defending_card.damage >= defending_card.toughness_with_tokens():
@@ -1061,6 +1096,9 @@ class Game:
             elif attacking_card.has_ability("DamageTakeControl"):
                 self.opponent().in_play.remove(defending_card)
                 self.current_player().in_play.append(defending_card)
+                self.update_for_entity_changes_zones(self.current_player())
+                self.update_for_entity_changes_zones(self.opponent())
+
 
     def remove_temporary_tokens(self):
         for c in self.current_player().in_play + self.opponent().in_play:
@@ -1464,6 +1502,7 @@ class Player:
                 entity_to_summon = random.choice(entities)
                 target_player.deck.remove(entity_to_summon)
                 target_player.in_play.append(entity_to_summon)
+                self.game.update_for_entity_changes_zones(target_player)
                 entity_to_summon.turn_played = self.game.turn   
                 if target_player.fast_ability():
                     entity_to_summon.added_abilities.append(target_player.fast_ability())          
@@ -1480,6 +1519,7 @@ class Player:
                     entity_to_summon.id = self.game.next_card_id
                     self.game.next_card_id += 1
                     p.in_play.append(entity_to_summon)
+                    self.game.update_for_entity_changes_zones(p)
                     entity_to_summon.turn_played = self.game.turn     
                     if p.fast_ability():
                         entity_to_summon.added_abilities.append(p.fast_ability())                            
@@ -1632,6 +1672,8 @@ class Player:
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_player.in_play.remove(target_card)
         self.game.current_player().in_play.append(target_card)
+        self.game.update_for_entity_changes_zones(self.game.current_player())
+        self.game.update_for_entity_changes_zones(self.game.opponent())
         target_card.turn_played = self.game.turn
         if self.game.current_player().fast_ability():
             target_card.added_abilities.append(self.game.current_player().fast_ability())       
@@ -1670,12 +1712,14 @@ class Player:
             return None
 
     def do_add_token_effect_on_entity(self, token, target_entity_id):
-        target_card, _ = self.game.get_in_play_for_id(target_entity_id)
+        target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         if token.multiplier and token.multiplier == "half_self_entities":
             for x in ranger(0, math.floor(len(self.in_play)/2)):
                 target_card.tokens.append(token)
         else:
             target_card.tokens.append(token)
+        if target_card.toughness_with_tokens() <= 0:
+            self.game.send_card_to_played_pile(target_card, target_player)
 
     def do_add_effect_effect_on_entity(self, effect, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)  
@@ -1756,6 +1800,7 @@ class Player:
                 "is_token": True
             }
             self.in_play.append(Card(token_card))
+            self.game.update_for_entity_changes_zones(self)
             self.game.next_card_id += 1
 
     def do_make_random_townie_effect(self, amount):
@@ -1949,6 +1994,8 @@ class Player:
                                 message["log_lines"].append(f"{c.name} deal {c.triggered_effects[0].amount} damage to {entity.name}.")
 
             self.in_play.append(card)
+            self.game.update_for_entity_changes_zones(self)
+
             if self.fast_ability():
                 card.added_abilities.append(self.fast_ability())          
             card.turn_played = self.game.turn
@@ -2074,6 +2121,14 @@ class Player:
             self.reset_card_info_to_resolve()
 
         for card in self.in_play:
+            if card.has_ability("Fade"):
+                token = {
+                    "turns": -1,
+                    "power_modifier": -1,
+                    "toughness_modifier": -1
+                }
+                self.do_add_token_effect_on_entity(CardToken(token), card.id)
+
             if not self.game.is_under_ice_prison():
                 card.attacked = False
             card.can_activate_abilities = True
@@ -2396,6 +2451,12 @@ class Card:
             if a.descriptive_id == ability_name and a.enabled:
                 return True
         return False
+
+    def effect_with_trigger(self, trigger_name):
+        for e in self.triggered_effects:
+            if e.trigger == trigger_name:
+                return e
+        return None
 
 
 class CardEffect:
