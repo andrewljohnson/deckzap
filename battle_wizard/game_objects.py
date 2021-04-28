@@ -1836,13 +1836,19 @@ class Player:
         print("display_deck_relics")
         all_cards = Game.all_cards()
         relics = []
+        if len(target_restrictions) >0:
+            print(list(target_restrictions[0].keys())[0])
         for card in self.deck:
+            print("CARD")
             if card.card_type == "Relic":
+                print("RELIC")
                 if len(target_restrictions) == 0 or \
                     (list(target_restrictions[0].keys())[0] == "needs_weapon" and card.has_ability("Weapon")) or \
                     (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
+                    print("RELIC APPENDED")
                     relics.append(card)
         self.card_choice_info = {"cards": relics, "choice_type": choice_type}
+        print(self.card_choice_info)
 
     def relic_in_play(self, card_id):
         for card in self.relics:

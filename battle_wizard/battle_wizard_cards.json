@@ -1562,7 +1562,7 @@
 			},
 			{
 				"name": "discard_random_to_deck",
-				"descriptive_id": "discard_random",
+				"descriptive_id": "discard_random_to_deck",
 				"amount": 1
 			},
 			{

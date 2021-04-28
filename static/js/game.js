@@ -240,11 +240,11 @@ class GameUX {
                 || game.turn % 2 == 1 && this.usernameOrP1(game) == game.players[1].username)
     }
 
-    cardSprite(game, card, username) {
+    cardSprite(game, card, username, dont_attach_listeners) {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
-        cardDiv.style = 'position:relative;margin-right:2px;cursor: pointer;height:114px;width:81px;border-radius:4px;padding:5px;font-size:12px';
+        cardDiv.style = 'position:relative;margin-right:2px;cursor: pointer;height:114px;width:81px;border-radius:4px;padding:5px;font-size:12px;overflow:hidden';
         if (card.attacked) {
             cardDiv.style.backgroundColor = "#C4A484";                
         } else if (card.selected) {
@@ -333,7 +333,7 @@ class GameUX {
         let abilitiesDiv = document.createElement("div");
         abilitiesDiv.style.color = "gray"
         for (let a of card.abilities) {
-            if (a.descriptive_id != "Starts in Play") {
+            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
                 abilitiesDiv.innerHTML += a.name;
                 if (a != card.abilities[card.abilities.length-1]) {                
                     abilitiesDiv.innerHTML += ", ";
@@ -357,6 +357,12 @@ class GameUX {
             powerToughnessDiv.innerHTML = cardPower + "/" + cardToughness;
             powerToughnessDiv.style.position = "absolute";
             powerToughnessDiv.style.bottom = "0px";
+            powerToughnessDiv.style.right = "0px";
+            powerToughnessDiv.style.backgroundColor = "black"
+            powerToughnessDiv.style.color = "white";
+            powerToughnessDiv.style.paddingLeft = "3px"
+            powerToughnessDiv.style.paddingRight = "3px"
+            powerToughnessDiv.style.borderRadius = "3px"
             cardDiv.appendChild(powerToughnessDiv);
         } else {
             let typeDiv = document.createElement("em");
@@ -364,6 +370,11 @@ class GameUX {
             typeDiv.style.position = "absolute";
             typeDiv.style.bottom = "0px";
             typeDiv.style.right = "0px";
+            typeDiv.style.backgroundColor = "black"
+            typeDiv.style.color = "white";
+            typeDiv.style.paddingLeft = "3px"
+            typeDiv.style.paddingRight = "3px"
+            typeDiv.style.borderRadius = "3px"
             cardDiv.appendChild(typeDiv);           
         }
         if (card.added_effects.activated_effects.length > 0 && card.added_effects.activated_effects[0].name == "attack") {
@@ -430,18 +441,67 @@ class GameUX {
             cardDiv.appendChild(input);
         }
 
-        var self = this;
-        cardDiv.onclick = function() { 
-            if (cardDiv.parentElement == document.getElementById("hand")) {  
-                self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-            } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
-                self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
-            } else { 
-                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
-            }
-        }            
+        if (dont_attach_listeners) {
+            var span = document.createElement("span");
+            span.appendChild(cardDiv)
+            return span;
+        }
 
-        return cardDiv;
+        var self = this;
+        var cancel = false;
+        let clickTime;
+        cardDiv.addEventListener('mousedown', function(){
+            clickTime = new Date();
+            setTimeout(function() { 
+                if (!cancel) {
+                    cardDiv.style.height = "171px";
+                    cardDiv.style.width = "120px";                    
+                }
+                cancel = false;
+            }, 150);
+        }, false);   
+
+        cardDiv.addEventListener('mouseup', function(event){
+            cardDiv.style.height = "114px";
+            cardDiv.style.width = "81px";
+            event.stopPropagation();
+
+            function captureClick(e) {
+                if (new Date() - clickTime < 150) {
+                    // play the card if it's a quick click
+                    if (cardDiv.parentElement.parentElement == document.getElementById("hand")) {  
+                        self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+                    } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
+                        self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+                    } else { 
+                        self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
+                    }
+                    cancel = true;
+                } else {
+                    // just shrink the zoom
+                }
+                e.stopPropagation(); // Stop the click from being propagated.
+                console.log('click captured');
+                window.removeEventListener('click', captureClick, true); // cleanup
+            }
+
+            window.addEventListener(
+                'click',
+                captureClick,
+                true // <-- This registeres this listener for the capture
+                     //     phase instead of the bubbling phase!
+            ); 
+
+        }, false);   
+
+        cardDiv.addEventListener('mouseleave', function(){
+            cardDiv.style.height = "114px";
+            cardDiv.style.width = "81px";
+        }, false);   
+
+        var span = document.createElement("span");
+        span.appendChild(cardDiv)
+        return span;
     }
 
     selfClick () {
@@ -518,7 +578,7 @@ class GameUX {
             this.showChooseRace(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
-        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic") {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_play") {
             this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
@@ -672,16 +732,78 @@ class GameUX {
         cardContainerDiv.classList.add("card_container");
         container.appendChild(cardContainerDiv);
 
+        let clickTime;
+        let cancel = false;
         for (let card of cards) {
-            let cardDiv = this.cardSprite(game, card, this.usernameOrP1(game));
+            let cardDiv = this.cardSprite(game, card, this.usernameOrP1(game), true);
             cardContainerDiv.appendChild(cardDiv);
+            cardDiv.addEventListener('mousedown', function(){
+                clickTime = new Date();
+                setTimeout(function() { 
+                    if (!cancel) {
+                        cardDiv.children[0].style.height = "171px";
+                        cardDiv.children[0].style.width = "120px";                    
+                    }
+                    cancel = false;
+                }, 150);
+            }, false);   
+
             if (card_on_click == null) {
-               delete cardDiv.onclick;
                cardDiv.style.pointerEvents = "none";
+                cardDiv.children[0].addEventListener('mouseup', function(event){
+                    cardDiv.children[0].style.height = "114px";
+                    cardDiv.children[0].style.width = "81px";
+                    event.stopPropagation();
+
+                    function captureClick(e) {
+                        if (new Date() - clickTime < 150) {
+                            // do nothing for a click
+                            cancel = true;
+                        } else {
+                            // just shrink the zoom
+                        }
+                        e.stopPropagation(); // Stop the click from being propagated.
+                        console.log('click captured');
+                        window.removeEventListener('click', captureClick, true); // cleanup
+                    }
+
+                    window.addEventListener(
+                        'click',
+                        captureClick,
+                        true // <-- This registeres this listener for the capture
+                             //     phase instead of the bubbling phase!
+                    ); 
+
+                }, false);   
             } else {
-                cardDiv.onclick = function() {
-                    card_on_click(card);
-                }                
+                cardDiv.children[0].addEventListener('mouseup', function(event){
+                    cardDiv.children[0].style.height = "114px";
+                    cardDiv.children[0].style.width = "81px";
+                    event.stopPropagation();
+
+                    function captureClick(e) {
+                        if (new Date() - clickTime < 150) {
+                            // play the card if it's a quick click
+                            console.log(card)
+                            card_on_click(card);
+                            cancel = true;
+                        } else {
+                            // just shrink the zoom
+                        }
+                        e.stopPropagation(); // Stop the click from being propagated.
+                        console.log('click captured');
+                        window.removeEventListener('click', captureClick, true); // cleanup
+                    }
+
+                    window.addEventListener(
+                        'click',
+                        captureClick,
+                        true // <-- This registeres this listener for the capture
+                             //     phase instead of the bubbling phase!
+                    ); 
+
+                }, false);   
+
             }
         }
     }
