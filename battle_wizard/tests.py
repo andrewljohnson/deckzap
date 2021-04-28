@@ -31,6 +31,14 @@ class GameObjectTests(TestCase):
     def TEST_DB_NAME(self):
         return self.testDBName
     
+    def game_for_decks(self, player_decks):
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        return dbName, game
+
     def game_with_two_players(self):
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
@@ -61,24 +69,14 @@ class GameObjectTests(TestCase):
         """
             Vanilla entity.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Stone Elemental"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Stone Elemental"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 1)
         os.remove(f"database/games/{dbName}.json")
 
     def test_play_summoning_sickness(self):
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Stone Elemental"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Stone Elemental"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
@@ -90,12 +88,7 @@ class GameObjectTests(TestCase):
         """
             Test Training Master's target's power doubles and can still attack.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Stone Elemental", "Training Master"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Stone Elemental", "Training Master"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -117,13 +110,7 @@ class GameObjectTests(TestCase):
 
             Make sure Mana Shrub's effects trigger on leaving play.
         """
-
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Mana Shrub", "Unwind"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Mana Shrub", "Unwind"], []])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -141,12 +128,7 @@ class GameObjectTests(TestCase):
 
             2 effects card.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Stone Elemental", "Stiff Wind"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Stone Elemental", "Stiff Wind"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -165,12 +147,7 @@ class GameObjectTests(TestCase):
 
             2 Effects card.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Siz Pop", "Siz Pop"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Siz Pop", "Siz Pop"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_SELF", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 2)
@@ -184,12 +161,7 @@ class GameObjectTests(TestCase):
         """
             Tests Counterspell sends card to opponent's played_pile and Counterspell to current_player's played_pile.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Counterspell"], ["LionKin"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Counterspell"], ["LionKin"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
         self.assertEqual(len(game.current_player().played_pile), 1)
@@ -200,12 +172,7 @@ class GameObjectTests(TestCase):
         """
             Tests Counterspell sends card to opponent's played_pile and Counterspell to current_player's played_pile.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Big Counterspell"], ["LionKin", "Mana Tree"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Big Counterspell"], ["LionKin", "Mana Tree"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
@@ -219,12 +186,7 @@ class GameObjectTests(TestCase):
         """
             Tests Mind Manacles makes the entity switch sides.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Stone Elemental"], ["Mind Manacles"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Stone Elemental"], ["Mind Manacles"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         for x in range(0, 4):
@@ -242,12 +204,7 @@ class GameObjectTests(TestCase):
         """
             Tests Mind Manacles entity gains Fast if the player has it from casting Master Time
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Stone Elemental"], ["Mind Manacles", "Master Time"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Stone Elemental"], ["Mind Manacles", "Master Time"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         for x in range(0, 8):
@@ -266,12 +223,7 @@ class GameObjectTests(TestCase):
         """
             Tests if an entity that dies in combat gets the attacked flag reset properly.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Stone Elemental"], ["Stone Elemental"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Stone Elemental"], ["Stone Elemental"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
@@ -285,12 +237,7 @@ class GameObjectTests(TestCase):
         """
             Test Gnomish Minstrel takes control of an entity it damages.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Gnomish Minstrel"], ["Air Elemental"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Gnomish Minstrel"], ["Air Elemental"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -308,12 +255,7 @@ class GameObjectTests(TestCase):
         """
             Test Guard works on Town Ranger by checking if there are only two legal moves (attack ranger and end turn).
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Familiar"], ["Town Ranger"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Familiar"], ["Town Ranger"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
@@ -326,12 +268,7 @@ class GameObjectTests(TestCase):
         """
             Test Town Wizard makes a card.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Town Wizard"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Town Wizard"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "MAKE_CARD", "card": game.current_player().card_choice_info["cards"][0].as_dict(), "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
@@ -341,12 +278,7 @@ class GameObjectTests(TestCase):
         """
             Test Town Shaman makes a card.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Town Shaman"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Town Shaman"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "MAKE_CARD", "card": game.current_player().card_choice_info["cards"][0].as_dict(), "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
@@ -356,12 +288,7 @@ class GameObjectTests(TestCase):
         """
             Test Town Shaman makes a card.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Lute"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Lute"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
@@ -382,12 +309,7 @@ class GameObjectTests(TestCase):
         """
             Test Town Shaman makes a card.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Gnomish Mayor"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Gnomish Mayor"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 2)
         os.remove(f"database/games/{dbName}.json")
@@ -396,12 +318,7 @@ class GameObjectTests(TestCase):
         """
             Test Town Shaman makes a card.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Gnomish Press Gang"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Gnomish Press Gang"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
         os.remove(f"database/games/{dbName}.json")
@@ -411,14 +328,9 @@ class GameObjectTests(TestCase):
         """
             Test Gnomish Soundsmith fetches an Instrument from deck.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
         deck = ["Gnomish Soundsmith", "LionKin", "LionKin", "LionKin", "Lute", "Lute"]
         deck.reverse()
-        player_decks = [deck, []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([deck, []])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 5, "log_lines":[]})
@@ -430,14 +342,10 @@ class GameObjectTests(TestCase):
         """
             Test Wishstone makes a Relic from deck into in play.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
         deck = ["Wish Stone", "LionKin", "LionKin", "LionKin", "Scepter of Manipulation"]
         deck.reverse()
         player_decks = [deck, []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks(player_decks)
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -452,12 +360,7 @@ class GameObjectTests(TestCase):
         """
             Test Bewitching Lights makes a Relic from deck into in play.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Bewitching Lights"], ["LionKin"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Bewitching Lights"], ["LionKin"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -474,12 +377,7 @@ class GameObjectTests(TestCase):
         """
             Test Befuddling Guitar.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Befuddling Guitar"], ["LionKin"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Befuddling Guitar"], ["LionKin"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -492,12 +390,7 @@ class GameObjectTests(TestCase):
         """
             Test Befuddling Guitar.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Befuddling Guitar"], ["LionKin"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Befuddling Guitar"], ["LionKin"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
@@ -513,12 +406,7 @@ class GameObjectTests(TestCase):
         """
             Test Befuddling Guitar.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Town Council", "Mana Shrub", "Mana Shrub", "Mana Shrub"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Town Council", "Mana Shrub", "Mana Shrub", "Mana Shrub"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -534,12 +422,7 @@ class GameObjectTests(TestCase):
         """
             Test Taunted Bear Fade abilities.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Taunted Bear"], ["Totem Cat"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Taunted Bear"], ["Totem Cat"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
@@ -554,12 +437,7 @@ class GameObjectTests(TestCase):
         """
             Test Taunted Bear Fast and Stomp abilities.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["War Scorpion"], ["Taunted Bear"]]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["War Scorpion"], ["Taunted Bear"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
@@ -572,12 +450,7 @@ class GameObjectTests(TestCase):
         """
             Test War Scorpion.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["War Scorpion", "Taunted Bear"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["War Scorpion", "Taunted Bear"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertTrue(not game.current_player().in_play[0].has_ability("Fast"))
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
@@ -594,12 +467,7 @@ class GameObjectTests(TestCase):
         """
             Test Berserk Monkey
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Berserk Monkey", "Berserk Monkey", "Berserk Monkey"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Berserk Monkey", "Berserk Monkey", "Berserk Monkey"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(), 2)
@@ -614,12 +482,7 @@ class GameObjectTests(TestCase):
         """
             Test Taunted Bear Fast and Stomp abilities.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Frenzy", "Frenzy", "Frenzy", "Taunted Bear"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Frenzy", "Frenzy", "Frenzy", "Taunted Bear"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
@@ -629,12 +492,7 @@ class GameObjectTests(TestCase):
         """
             Test Taunted Bear Fast and Stomp abilities.
         """
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        player_decks = [["Frenzy", "Frenzy", "Frenzy", "Taunted Bear"], []]
-        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        dbName, game = self.game_for_decks([["Frenzy", "Frenzy", "Frenzy", "Taunted Bear"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 3, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 3, "log_lines":[]})
