@@ -887,13 +887,7 @@ class Game:
         else:
             message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens()}.")
             self.opponent().damage(attacking_card.power_with_tokens())
-            if attacking_card.has_ability("DamageDraw"):
-                # todo find the actual ability in the list, it might not be zero later
-                self.current_player().draw(attacking_card.abilities[0].amount)
-            #todo syphon ignores Shield and Armor
-            if attacking_card.has_ability("Syphon"):
-                self.current_player().hit_points += attacking_card.power_with_tokens()
-                self.current_player().hit_points = min(30, self.current_player().hit_points)
+            self.current_player().do_attack_abilities(attacking_card)
         return message
 
     def activate_relic(self, message):
@@ -1373,10 +1367,12 @@ class Player:
         elif e.name == "attack":
             if effect_targets[e.id]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[e.id]["id"], e.power)
+                self.do_attack_abilities(card)
                 message["log_lines"].append(f"{self.username} attacks {effect_targets[e.id]['id']} for {e.power} damage.")
             else:
                 message["log_lines"].append(f"{self.username} attacks {self.game.get_in_play_for_id(effect_targets[e.id]['id'])[0].name} for {e.power} damage.")
                 self.do_attack_effect_on_entity(card, effect_targets[e.id]["id"], e.power)
+
             if e.counters == 0 and card.name == "Dagger":
                 card.deactivate_weapon()
         elif e.name == "double_power":
@@ -1577,7 +1573,7 @@ class Player:
         target_player.hit_points += amount
         target_player.hit_points = min(target_player.hit_points, 30)
 
-    def do_discard_random_effect_on_player(self, card, target_player_username, amount):
+    def do_discard_random_effect_on_player(self, card, target_player_username, amount, to_deck=False):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
@@ -1585,6 +1581,11 @@ class Player:
             amount -= 1
             card = random.choice(target_player.hand)
             target_player.hand.remove(card)
+            self.game.send_card_to_played_pile(card, target_player)
+            if to_deck:
+                target_player.played_pile.remove(card)
+                target_player.deck.append(card)
+                random.shuffle(target_player.deck)
 
     def do_damage_effect_on_entity(self, card, target_entity_id, amount):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -1592,8 +1593,13 @@ class Player:
             target_card.shielded = False
         else:
             target_card.damage += amount
-            if target_card.damage >= target_card.toughness:
+            if target_card.damage >= target_card.toughness_with_tokens():
+                print("die_")
                 self.game.send_card_to_played_pile(target_card, target_player)
+                if card.has_ability("die_to_top_deck"):
+                    print("die_to_top_deck")
+                    target_player.played_pile.remove(target_card)
+                    target_player.deck.append(target_card)
 
     def do_heal_effect_on_entity(self, card, target_entity_id, amount):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -2158,6 +2164,33 @@ class Player:
     def reset_card_choice_info(self):
         self.card_choice_info = {"cards": [], "choice_type": None}
 
+    def do_attack_abilities(self, attacking_card):
+        if attacking_card.has_ability("Syphon"):
+            ability = None
+            for a in attacking_card.abilities:
+                if a.descriptive_id == "DamageDraw":
+                    ability = a
+            if ability.target_type == "opponent":
+                self.game.opponent().draw(ability.amount)
+            else:
+                self.draw(ability.amount)
+        #todo syphon ignores Shield and Armor
+        if attacking_card.has_ability("Syphon"):
+            self.hit_points += attacking_card.power_with_tokens()
+            self.hit_points = min(30, self.hit_points)
+        if attacking_card.has_ability("discard_random"):
+            ability = None
+            for a in attacking_card.abilities:
+                if a.descriptive_id == "discard_random":
+                    ability = a
+            self.do_discard_random_effect_on_player(attacking_card, self.game.opponent().username, ability.amount)
+        if attacking_card.has_ability("discard_random_to_deck"):
+            ability = None
+            for a in attacking_card.abilities:
+                if a.descriptive_id == "discard_random_to_deck":
+                    ability = a
+            self.do_discard_random_effect_on_player(attacking_card, self.game.opponent().username, ability.amount, to_deck=True)
+
 
 class Card:
 
@@ -2421,10 +2454,11 @@ class CardAbility:
         self.enabled = info["enabled"] if "enabled" in info else True
         self.id = ability_id
         self.name = info["name"] if "name" in info else None
+        self.target_type = info["target_type"] if "target_type" in info else None
         self.turns = info["turns"] if "turns" in info else -1
 
     def __repr__(self):
-        return f"self.id: {self.id} self.name: {self.name} self.amount: {self.amount}\n\
+        return f"self.id: {self.id} self.name: {self.name} self.amount: {self.amount} self.target_type: {self.target_type}\n\
                 self.descriptive_id: {self.descriptive_id} self.turns: {self.turns} self.enabled: {self.enabled}"
 
     def as_dict(self):
@@ -2434,6 +2468,7 @@ class CardAbility:
             "enabled": self.enabled,
             "id": self.id,
             "name": self.name,
+            "target_type": self.target_type,
             "turns": self.turns,
         }
 

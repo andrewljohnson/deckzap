@@ -1524,5 +1524,61 @@
 			"target_restrictions": [{"needs_instrument": null}],
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Bewitching Lights",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+			"abilities": [
+				{
+					"name": "discard_random",
+					"descriptive_id": "discard_random",
+					"amount": 1
+				}
+		]
+	},
+	{
+		"name": "Befuddling Guitar",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "If this kills an entity, put it on top of it's owner's deck. If it attacks a player, they put a random card from their hand into their deck then draw a card.",
+		"abilities": [
+			{
+				"name": "Instrument",
+				"descriptive_id": "Instrument"
+			},
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
+			}
+		],
+		"activated_effects": [{
+					"name": "attack",
+					"target_type": "any_enemy",
+					"counters": 2,
+					"cost": 0,
+					"power": 3,
+					"abilities": [
+					{
+						"name": "die_to_top_deck",
+						"descriptive_id": "die_to_top_deck"
+					},
+					{
+						"name": "discard_random_to_deck",
+						"descriptive_id": "discard_random",
+						"amount": 1
+					},
+					{
+						"name": "DamageDraw",
+						"descriptive_id": "DamageDraw",
+						"target_type": "opponent",
+						"amount": 1
+					}
+		]
+
+		}]
 	}
 ]
