@@ -2033,6 +2033,8 @@ class Player:
                 for e in card.effects:
                     if e.target_type == "self":           
                         message["effect_targets"][e.id] = {"id": message["username"], "target_type":"player"}
+                    elif e.target_type == "opponent":           
+                        message["effect_targets"][e.id] = {"id": self.game.opponent().username, "target_type":"player"}
                     elif e.target_type == "all_players" or e.target_type == "all_entities":           
                         message["effect_targets"][e.id] = {"target_type": e.target_type};
                     message = self.do_card_effect(card, e, message, message["effect_targets"])

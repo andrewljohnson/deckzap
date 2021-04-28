@@ -1704,5 +1704,24 @@
 			"target_type": "self",
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Impale",
+		"race": "human",
+		"class": "Fighter",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Deal 3 damage to an entity and your opponent",
+		"effects": [
+			{
+				"name": "damage",
+				"target_type": "any",
+				"amount": 3
+			},
+			{
+				"name": "damage",
+				"target_type": "opponent",
+				"amount": 3
+			}]
 	}
 ]
