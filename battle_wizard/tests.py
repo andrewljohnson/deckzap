@@ -550,10 +550,27 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.current_player().in_play), 0)
         os.remove(f"database/games/{dbName}.json")
 
+    def test_taunted_bear_fast_stomp(self):
+        """
+            Test Taunted Bear Fast and Stomp abilities.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["War Scorpion"], ["Taunted Bear"]]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, 29)
+        os.remove(f"database/games/{dbName}.json")
 
     def test_war_scorpion(self):
         """
-            Test Taunted Bear Fast and Stomp abilities.
+            Test War Scorpion.
         """
         dbName = self.TEST_DB_NAME()
         game_dict = JsonDB().game_database(dbName)
@@ -591,4 +608,36 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(), 3)
         self.assertEqual(game.current_player().in_play[1].power_with_tokens(), 2)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_frenzy_one_card(self):
+        """
+            Test Taunted Bear Fast and Stomp abilities.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Frenzy", "Frenzy", "Frenzy", "Taunted Bear"], []]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_frenzy_two_cards(self):
+        """
+            Test Taunted Bear Fast and Stomp abilities.
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Frenzy", "Frenzy", "Frenzy", "Taunted Bear"], []]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 3, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 3, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 2)
         os.remove(f"database/games/{dbName}.json")

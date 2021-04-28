@@ -1686,5 +1686,23 @@
 				}]
 			}
 		]
+	},
+	{
+		"name": "Frenzy",
+		"race": "human",
+		"class": "Fighter",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Draw a card this turn. Draw another card if you dealt damage to your opponent.",
+		"effects": [{
+			"name": "draw_if_damaged_opponent",
+			"target_type": "self",
+			"amount": 1
+		}, 
+		{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
 	}
 ]

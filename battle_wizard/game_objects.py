@@ -1123,6 +1123,8 @@ class Game:
     def clear_damage_this_turn(self):
         for c in self.current_player().in_play + self.opponent().in_play:
             c.damage_this_turn = 0
+        self.current_player().damage_this_turn = 0
+        self.opponent().damage_this_turn = 0
 
     def select_relic_target(self, card_to_target, message, move_type):
         new_message = copy.deepcopy(message)
@@ -1224,6 +1226,7 @@ class Player:
         self.game = game
         if new:
             self.hit_points = 30
+            self.damage_this_turn = 0
             self.armor = 0
             self.mana = 0
             self.max_mana = 0
@@ -1241,6 +1244,7 @@ class Player:
             self.in_play = [Card(c_info) for c_info in info["in_play"]]
             self.relics = [Card(c_info) for c_info in info["relics"]]
             self.hit_points = info["hit_points"]
+            self.damage_this_turn = info["damage_this_turn"]
             self.armor = info["armor"]
             self.mana = info["mana"]
             self.max_mana = info["max_mana"]
@@ -1253,7 +1257,7 @@ class Player:
 
     def __repr__(self):
         return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - \
-                {self.hit_points} hp - {self.armor} armor, {self.mana} mana, self.card_info_to_resolve {self.card_info_to_resolve} \
+                {self.hit_points} hp - {self.damage_this_turn} damage_this_turn - {self.armor} armor, {self.mana} mana, self.card_info_to_resolve {self.card_info_to_resolve} \
                 {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
                 {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
                 self.can_be_clicked {self.can_be_clicked}, \
@@ -1265,6 +1269,7 @@ class Player:
             "username": self.username,
             "race": self.race,
             "hit_points": self.hit_points,
+            "damage_this_turn": self.damage_this_turn,
             "armor": self.armor,
             "mana": self.mana,
             "max_mana": self.max_mana,
@@ -1306,6 +1311,7 @@ class Player:
             if self.hit_points == 1 and self.cant_die_ability():
                 continue
             self.hit_points -= 1
+            self.damage_this_turn += 1
 
     def draw(self, number_of_cards):
         for i in range(0,number_of_cards):
@@ -1341,6 +1347,10 @@ class Player:
         elif e.name == "draw":
             self.do_draw_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
+        elif e.name == "draw_if_damaged_opponent":
+            drawn_count = self.do_draw_if_damaged_opponent_effect_on_player(card, effect_targets[e.id]["id"], e.amount)
+            if drawn_count > 0:
+                message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
         elif e.name == "make_token":
             if e.target_type == "self":
                 self.do_make_token_effect(e)
@@ -1530,6 +1540,15 @@ class Player:
             target_player = self.game.players[1]
         target_player.draw(amount)
 
+    def do_draw_if_damaged_opponent_effect_on_player(self, card, target_player_username, amount):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+        if target_player.game.opponent().damage_this_turn > 0:
+            target_player.draw(amount)
+            return amount
+        return 0
+    
     def do_reduce_mana_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
