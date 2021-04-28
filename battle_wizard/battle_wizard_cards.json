@@ -1553,6 +1553,21 @@
 			{
 				"name": "Weapon",
 				"descriptive_id": "Weapon"
+			},
+			{
+				"name": "die_to_top_deck",
+				"descriptive_id": "die_to_top_deck"
+			},
+			{
+				"name": "discard_random_to_deck",
+				"descriptive_id": "discard_random",
+				"amount": 1
+			},
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"target_type": "opponent",
+				"amount": 1
 			}
 		],
 		"activated_effects": [{
@@ -1560,25 +1575,7 @@
 					"target_type": "any_enemy",
 					"counters": 2,
 					"cost": 0,
-					"power": 3,
-					"abilities": [
-					{
-						"name": "die_to_top_deck",
-						"descriptive_id": "die_to_top_deck"
-					},
-					{
-						"name": "discard_random_to_deck",
-						"descriptive_id": "discard_random",
-						"amount": 1
-					},
-					{
-						"name": "DamageDraw",
-						"descriptive_id": "DamageDraw",
-						"target_type": "opponent",
-						"amount": 1
-					}
-		]
-
+					"power": 3
 		}]
 	}
 ]

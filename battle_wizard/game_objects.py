@@ -1594,12 +1594,14 @@ class Player:
         else:
             target_card.damage += amount
             if target_card.damage >= target_card.toughness_with_tokens():
-                print("die_")
                 self.game.send_card_to_played_pile(target_card, target_player)
                 if card.has_ability("die_to_top_deck"):
-                    print("die_to_top_deck")
-                    target_player.played_pile.remove(target_card)
-                    target_player.deck.append(target_card)
+                    card = None
+                    for c in target_player.played_pile:
+                        if c.id == target_card.id:
+                            card = c
+                    target_player.played_pile.remove(card)
+                    target_player.deck.append(card)
 
     def do_heal_effect_on_entity(self, card, target_entity_id, amount):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
