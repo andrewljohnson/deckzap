@@ -1665,5 +1665,26 @@
 				"trigger": "entity_changes_zones"
 			}
 		]
+	},
+	{
+
+		"name": "Berserk Monkey",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"triggered_effects": [
+			{
+				"name": "add_tokens",
+				"target_type": "self",
+				"trigger": "friendly_card_played",
+				"tokens": [{
+					"power_modifier": 1,
+					"toughness_modifier": 1
+				}]
+			}
+		]
 	}
 ]

@@ -211,7 +211,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})        
-        print(game.as_dict())
         self.assertEqual(len(game.current_player().played_pile), 1)
         self.assertEqual(len(game.opponent().played_pile), 1)
         os.remove(f"database/games/{dbName}.json")
@@ -320,7 +319,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
-        print(game.legal_moves_for_ai(game.current_player()))
         self.assertEqual(len(game.legal_moves_for_ai(game.current_player())), 1)
         os.remove(f"database/games/{dbName}.json")
 
@@ -572,6 +570,25 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        self.assertEqual(len(game.current_player().in_play), 1)
         self.assertTrue(not game.current_player().in_play[0].has_ability("Fast"))
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_berserk_monkey(self):
+        """
+            Test Berserk Monkey
+        """
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        player_decks = [["Berserk Monkey", "Berserk Monkey", "Berserk Monkey"], []]
+        game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        self.assertEqual(game.current_player().in_play[0].power_with_tokens(), 2)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(game.current_player().in_play[0].power_with_tokens(), 3)
+        self.assertEqual(game.current_player().in_play[1].power_with_tokens(), 2)
         os.remove(f"database/games/{dbName}.json")

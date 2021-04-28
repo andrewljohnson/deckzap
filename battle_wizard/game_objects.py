@@ -975,7 +975,6 @@ class Game:
             Fetch the selected card from current_player's deck
         """
         card = None
-        print("fetching card from deck")
         for c in self.current_player().deck:
             if c.id == message['card']:
                 card = c
@@ -1029,7 +1028,6 @@ class Game:
             new_card = self.factory_reset_card(card, player)
             player.played_pile.append(new_card)
 
-        print("update_for_entity_changes_zones")
         self.update_for_entity_changes_zones(player)
 
     def update_for_entity_changes_zones(self, player):
@@ -1737,7 +1735,7 @@ class Player:
         entity.added_abilities.append(effect.abilities[0])
 
     def do_add_tokens_effect(self, e, effect_targets):
-        if e.target_type == "entity":
+        if effect_targets[e.id]["target_type"] == "entity":
             for token in e.tokens:
                 self.do_add_token_effect_on_entity(
                     token, 
@@ -1881,22 +1879,15 @@ class Player:
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
 
     def display_deck_relics(self, target_restrictions, choice_type):
-        print("display_deck_relics")
         all_cards = Game.all_cards()
         relics = []
-        if len(target_restrictions) >0:
-            print(list(target_restrictions[0].keys())[0])
         for card in self.deck:
-            print("CARD")
             if card.card_type == "Relic":
-                print("RELIC")
                 if len(target_restrictions) == 0 or \
                     (list(target_restrictions[0].keys())[0] == "needs_weapon" and card.has_ability("Weapon")) or \
                     (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
-                    print("RELIC APPENDED")
                     relics.append(card)
         self.card_choice_info = {"cards": relics, "choice_type": choice_type}
-        print(self.card_choice_info)
 
     def relic_in_play(self, card_id):
         for card in self.relics:
@@ -1961,7 +1952,12 @@ class Player:
         self.reset_card_info_to_resolve()
         self.hand.remove(card)
         self.mana -= card.cost
-        
+
+        for e in self.in_play:
+            for effect in e.triggered_effects:
+                if effect.trigger == "friendly_card_played" and effect.target_type == "self":
+                    self.do_add_tokens_effect(effect, {effect.id: {"id": e.id, "target_type":"entity"}})
+
         # todo: wrap this into a counterspell method
         for o_card in self.game.opponent().hand:
             for effect in o_card.effects:
@@ -2025,7 +2021,9 @@ class Player:
         message["card_name"] = card.name
         message["played_card"] = True
         message["was_countered"] = False
+
         return message
+
 
     def fast_ability(self):
         for a in self.added_abilities:
@@ -2147,7 +2145,6 @@ class Player:
                     self.game.opponent().damage(len(self.game.opponent().hand))
                     message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
 
-        print("START TURN")
         if self.game.is_under_ice_prison():
             entities_to_select_from = []
             for e in self.in_play:
