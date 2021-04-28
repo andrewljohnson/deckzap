@@ -1668,7 +1668,11 @@ class Player:
 
     def do_add_token_effect_on_entity(self, token, target_entity_id):
         target_card, _ = self.game.get_in_play_for_id(target_entity_id)
-        target_card.tokens.append(token)
+        if token.multiplier and token.multiplier == "half_self_entities":
+            for x in ranger(0, math.floor(len(self.in_play)/2)):
+                target_card.tokens.append(token)
+        else:
+            target_card.tokens.append(token)
 
     def do_add_effect_effect_on_entity(self, effect, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)  
@@ -2481,11 +2485,12 @@ class CardToken:
         self.set_can_act = info["set_can_act"] if "set_can_act" in info else None
         self.toughness_modifier = info["toughness_modifier"] if "toughness_modifier" in info else 0
         self.turns = info["turns"] if "turns" in info else -1
+        self.multiplier = info["multiplier"] if "multiplier" in info else 0
 
     def __repr__(self):
         if self.set_can_act is not None:
             return "Can't Attack"
-        return f"+{self.power_modifier}/+{self.toughness_modifier}"
+        return f"+{self.power_modifier}/+{self.toughness_modifier} (multiplier: {self.multiplier})"
 
     def as_dict(self):
         return {
@@ -2493,4 +2498,5 @@ class CardToken:
             "set_can_act": self.set_can_act,
             "toughness_modifier": self.toughness_modifier,
             "turns": self.turns,
+            "multiplier": self.multiplier,
         }

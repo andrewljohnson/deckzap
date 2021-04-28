@@ -1542,6 +1542,8 @@
 	},
 	{
 		"name": "Befuddling Guitar",
+		"race": "gnome",
+		"class": "bard",
 		"card_type": "Relic",
 		"cost": 1,
 		"description": "If this kills an entity, put it on top of it's owner's deck. If it attacks a player, they put a random card from their hand into their deck then draw a card.",
@@ -1576,6 +1578,27 @@
 					"counters": 2,
 					"cost": 0,
 					"power": 3
+		}]
+	},
+	{
+		"name": "Town Council",
+		"race": "gnome",
+		"class": "bard",
+		"description": "Each entity you control gets +1/+1 for every 2 entities you control, rounded down.",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 4,
+		"cost": 3,
+		"effects": [{
+			"name": "add_tokens",
+			"target_type": "entity",
+			"tokens": [{
+				"turns": 1,
+				"target_type": "self_entities",
+				"power_modifier": 1,
+				"toughness_modifier": 1,
+				"multiplier": "half_self_entities"
+			}]
 		}]
 	}
 ]
