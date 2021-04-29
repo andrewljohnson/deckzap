@@ -537,7 +537,7 @@
 		],
 		"effects": [{
 				"name": "pump_power",
-				"effect_type": "triggered",
+				"effect_type": "activated",
 				"target_type": "this",
 				"cost": 1,
 				"amount": 1		
@@ -556,7 +556,7 @@
 		],
 		"effects": [{
 				"name": "unwind",
-				"effect_type": "triggered",
+				"effect_type": "activated",
 				"target_type": "entity",
 				"cost": 3
 		}]
@@ -1844,12 +1844,12 @@
 				"name": "enable_activated_effect",
 				"effect_type": "activated",
 				"target_type": "self",
-				"description": "Remove a counter: Attack an enemy for 2 damage.",
 				"cost": 2,
 				"effect_to_activate": {
 					"name": "attack",
 					"effect_type": "activated",
 					"target_type": "any_enemy",
+					"description": "Remove a counter: Attack an enemy for 2 damage.",
 					"counters": 2,
 					"cost": 2,
 					"power": 2,

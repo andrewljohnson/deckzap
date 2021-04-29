@@ -310,7 +310,8 @@ class GameUX {
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
-            if (card.effects.length == 0 || (card.effects[0].target_type != "this") || card.turn_played == -1) {
+            if ((card.effects.length == 0 || card.effects[0].target_type == "this" || card.turn_played == -1 || card.effects[0].name == "attack" || card.effects[0].name == "enable_activated_effect") ||
+                card.effects[0].effect_type != "activated") {
                 descriptionDiv.innerHTML = card.description;
             }
         }
@@ -420,7 +421,7 @@ class GameUX {
         }
 
         // todo: don't hardcode for Winding One
-        if (card.effects.length > 0 && card.effects[0].target_type == "entity" && card.turn_played > -1) {
+        if (card.effects.length > 0 && card.effects[0].effect_type == "activated" && card.effects[0].target_type == "entity" && card.turn_played > -1) {
             var input = document.createElement("div");
             input.className = "button"
             input.style.width = "70px";
@@ -504,7 +505,7 @@ class GameUX {
                 } else {
                     // just shrink the zoom
                 }
-                e.stopPropagation(); // Stop the click from being propagated.
+                // e.stopPropagation(); // Stop the click from being propagated.
                 window.removeEventListener('click', captureClick, true); // cleanup
             }
 
