@@ -312,7 +312,7 @@ class GameUX {
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
-            if (card.activated_effects.length == 0 || (card.activated_effects[0].target_type != "this" && card.card_type != "Entity") || card.turn_played == -1) {
+            if (card.effects.length == 0 || (card.effects[0].target_type != "this") || card.turn_played == -1) {
                 descriptionDiv.innerHTML = card.description;
             }
         }
@@ -378,9 +378,9 @@ class GameUX {
             typeDiv.style.borderRadius = "3px"
             cardDiv.appendChild(typeDiv);           
         }
-        if (card.activated_effects.length > 0 && card.activated_effects[0].name == "attack") {
+        if (card.effects.length > 0 && card.effects[0].name == "attack") {
             let powerChargesDiv = document.createElement("em");
-            powerChargesDiv.innerHTML = card.activated_effects[0].power + "/" + card.activated_effects[0].counters;
+            powerChargesDiv.innerHTML = card.effects[0].power + "/" + card.effects[0].counters;
             powerChargesDiv.style.position = "absolute";
             powerChargesDiv.style.bottom = "0px";
             powerChargesDiv.style.left = "0px";
@@ -391,9 +391,11 @@ class GameUX {
             powerChargesDiv.style.borderRadius = "3px"
             cardDiv.appendChild(powerChargesDiv);                       
         }
-        if (card.added_effects.activated_effects.length > 0 && card.added_effects.activated_effects[0].name == "attack") {
+
+        // todo: does this even work?
+        if (card.effects.length > 0 && card.effects[0].name == "attack") {
             let powerChargesDiv = document.createElement("em");
-            powerChargesDiv.innerHTML = card.added_effects.activated_effects[0].power + "/" + card.added_effects.activated_effects[0].counters;
+            powerChargesDiv.innerHTML = card.effects[0].power + "/" + card.effects[0].counters;
             powerChargesDiv.style.position = "absolute";
             powerChargesDiv.style.bottom = "0px";
             powerChargesDiv.style.left = "0px";
@@ -401,7 +403,7 @@ class GameUX {
         }
 
         // todo: don't hardcode for Infernus
-        if (card.activated_effects.length > 0 && card.activated_effects[0].target_type == "this" && card.turn_played > -1) {
+        if (card.effects.length > 0 && card.effects[0].target_type == "this" && card.turn_played > -1) {
             var input = document.createElement("div");
             input.className = "button"
             input.style.width = "40px";
@@ -410,7 +412,7 @@ class GameUX {
             input.style.padding = "5px";
             input.style.marginTop = "10px";
             input.innerHTML = "✦: +1/+0";
-            if (card.activated_effects[0].cost <= this.thisPlayer(game).mana) {
+            if (card.effects[0].cost <= this.thisPlayer(game).mana) {
                 input.disabled = false;                
                 input.style.backgroundColor = "blue"
             } else {
@@ -419,7 +421,7 @@ class GameUX {
             }
             var self = this;
             input.onclick = function(event) { 
-                if (card.activated_effects[0].cost <= self.thisPlayer(game).mana) {
+                if (card.effects[0].cost <= self.thisPlayer(game).mana) {
                     self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id});
                 }
                 event.stopPropagation()
@@ -428,7 +430,7 @@ class GameUX {
         }
 
         // todo: don't hardcode for Winding One
-        if (card.activated_effects.length > 0 && card.activated_effects[0].target_type == "entity" && card.turn_played > -1) {
+        if (card.effects.length > 0 && card.effects[0].target_type == "entity" && card.turn_played > -1) {
             var input = document.createElement("div");
             input.className = "button"
             input.style.width = "70px";
@@ -438,7 +440,7 @@ class GameUX {
             input.style.marginTop = "10px";
             input.style.textAlign = "left";
             input.innerHTML = "✦✦✦: unwind an entity";
-            if (card.activated_effects[0].cost <= this.thisPlayer(game).mana && card.can_activate_abilities) {
+            if (card.effects[0].cost <= this.thisPlayer(game).mana && card.can_activate_abilities) {
                 input.disabled = false;                
                 input.style.backgroundColor = "blue"
             } else {
@@ -447,7 +449,7 @@ class GameUX {
             }
             var self = this;
             input.onclick = function(event) { 
-                if (card.activated_effects[0].cost <= self.thisPlayer(game).mana) {
+                if (card.effects[0].cost <= self.thisPlayer(game).mana) {
                     self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id});
                 }
                 event.stopPropagation()
@@ -513,7 +515,6 @@ class GameUX {
                     // just shrink the zoom
                 }
                 e.stopPropagation(); // Stop the click from being propagated.
-                console.log('click captured');
                 window.removeEventListener('click', captureClick, true); // cleanup
             }
 
@@ -791,7 +792,6 @@ class GameUX {
                             // just shrink the zoom
                         }
                         e.stopPropagation(); // Stop the click from being propagated.
-                        console.log('click captured');
                         window.removeEventListener('click', captureClick, true); // cleanup
                     }
 
@@ -812,14 +812,12 @@ class GameUX {
                     function captureClick(e) {
                         if (new Date() - clickTime < 150) {
                             // play the card if it's a quick click
-                            console.log(card)
                             card_on_click(card);
                             cancel = true;
                         } else {
                             // just shrink the zoom
                         }
                         e.stopPropagation(); // Stop the click from being propagated.
-                        console.log('click captured');
                         window.removeEventListener('click', captureClick, true); // cleanup
                     }
 
