@@ -1203,6 +1203,7 @@
 		"card_type": "Relic",
 		"cost": 1,
 		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
+		"original_description": "✦✦: Make this a 1 power weapon with 2 charges.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -1532,6 +1533,7 @@
 		"card_type": "Relic",
 		"cost": 1,
 		"description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
+		"original_description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -1834,6 +1836,7 @@
 		"card_type": "Relic",
 		"cost": 2,
 		"description": "Your entities get +1/+0 for each relic you control. ✦✦: equip this to get a 2/2 weapon. ✦✦: equip it to an entity to give it +2/+0.",
+		"original_description": "Your entities get +1/+0 for each relic you control. ✦✦: equip this to get a 2/2 weapon. ✦✦: equip it to an entity to give it +2/+0.",
 		"abilities": [
 			{
 				"name": "Weapon",

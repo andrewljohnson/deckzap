@@ -2342,6 +2342,7 @@ class Card:
         self.global_effect = info["global_effect"] if "global_effect" in info else None
         self.is_token = info["is_token"] if "is_token" in info else False
         self.name = info["name"]
+        self.original_description = info["original_description"] if "original_description" in info else None
         # probably bugs WRT Mind Manacles
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.power = info["power"] if "power" in info else None
@@ -2365,6 +2366,7 @@ class Card:
                  effects: {self.effects}\n \
                  id: {self.id}, turn played: {self.turn_played}\n \
                  is_token: {self.is_token} shielded: {self.shielded}\n \
+                 original_description: {self.original_description}\n \
                  owner_username: {self.owner_username}"
  
 
@@ -2385,6 +2387,7 @@ class Card:
             "id": self.id,
             "is_token": self.is_token,
             "name": self.name,
+            "original_description": self.original_description,
             "owner_username": self.owner_username,
             "power": self.power,
             "race": self.race,
@@ -2412,7 +2415,7 @@ class Card:
             if a.effect_type == "activated":
                 a.enabled = True
                 break
-        self.description = "✦✦: Make this a 1 power weapon with 2 charges."
+        self.description = self.original_description
         # self.can_activate_abilities = True        
 
     def deactivate_instrument(self):
@@ -2426,7 +2429,7 @@ class Card:
             if a.effect_type == "activated":
                 a.enabled = True
                 break
-        self.description = "✦✦: Make this an instrument with 2 charges that fetches Townies."
+        self.description = self.original_description
         # self.can_activate_abilities = True        
 
     def needs_activated_effect_targets(self):
