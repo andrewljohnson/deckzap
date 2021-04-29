@@ -1851,7 +1851,6 @@
 					"target_type": "any_enemy",
 					"description": "Remove a counter: Attack an enemy for 2 damage.",
 					"counters": 2,
-					"cost": 2,
 					"power": 2,
 					"was_added": true
 				}

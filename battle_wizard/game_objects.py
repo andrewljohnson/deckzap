@@ -328,9 +328,14 @@ class Game:
                 card.can_be_clicked = True                
             if card.needs_entity_target_for_activated_effect():
                 card.can_be_clicked = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
+                print("needs_entity_target_for_activated_effect")
             if len(card.enabled_activated_effects()) == 0 or card.enabled_activated_effects()[0].cost > cp.mana:
+                print(f"enabled_activated_effects {card.enabled_activated_effects()[0]}")
+                print(f"enabled_activated_effects len {len(card.enabled_activated_effects())}")
+                print(f"enabled_activated_effects cost {card.enabled_activated_effects()[0].cost} vs cp.mana {cp.mana}")
                 card.can_be_clicked = False
             if not card.can_activate_abilities:
+                print("can_activate_abilities")
                 card.can_be_clicked = False                
         for card in cp.in_play:
             if cp.can_select_for_attack(card.id):
@@ -1439,8 +1444,8 @@ class Player:
                 message["log_lines"].append(f"{self.username} attacks {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name} for {e.power} damage.")
                 self.do_attack_effect_on_entity(card, effect_targets[target_index]["id"], e.power)
 
-            #todo fix hardcoding
-            if e.counters == 0 and card.name == "Dagger":
+            #todo fix hardcoding, is every attack effect from a weapon?
+            if e.counters == 0:
                 card.deactivate_weapon()
         elif e.name == "double_power":
             self.do_double_power_effect_on_entity(card, effect_targets[target_index]["id"])
@@ -1808,6 +1813,7 @@ class Player:
         if e.target_type == "self_entities":
             for card in self.in_play:
                 for effect_effect in e.effects:
+                    effect_effect.enabled = False
                     self.do_add_effect_effect_on_entity(
                         effect_effect, 
                         card.id
@@ -2399,9 +2405,7 @@ class Card:
         # todo: don't hardcode for dagger
         ability_to_remove = None
         for a in self.effects:
-            print(a.as_dict())
             if a.effect_type == "activated" and a.id == self.id:
-                print("REMOVE")
                 ability_to_remove = a
         self.effects.remove(ability_to_remove)
         for a in self.effects:
@@ -2409,7 +2413,7 @@ class Card:
                 a.enabled = True
                 break
         self.description = "✦✦: Make this a 1 power weapon with 2 charges."
-        self.can_activate_abilities = True        
+        # self.can_activate_abilities = True        
 
     def deactivate_instrument(self):
         # todo: don't hardcode for Lute
@@ -2423,7 +2427,7 @@ class Card:
                 a.enabled = True
                 break
         self.description = "✦✦: Make this an instrument with 2 charges that fetches Townies."
-        self.can_activate_abilities = True        
+        # self.can_activate_abilities = True        
 
     def needs_activated_effect_targets(self):
         for e in self.enabled_activated_effects():
