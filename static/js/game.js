@@ -7,6 +7,8 @@ class GameUX {
         this.allCards = JSON.parse(document.getElementById("card_store").getAttribute("all_cards"));
         this.oldOpponentHP = 30;
         this.oldSelfHP = 30;        
+        this.oldOpponentArmor = 30;
+        this.oldSelfArmor = 30;        
     }
 
     usernameOrP1(game) {
@@ -51,7 +53,12 @@ class GameUX {
             this.oldSelfHP = this.thisPlayer(game).hit_points;
             this.showDamage(game, this.opponent(game));            
         }
+        if(this.thisPlayer(game).armor < this.oldSelfArmor) {
+            this.oldSelfArmor = this.thisPlayer(game).armor;
+            this.showDamage(game, this.opponent(game));            
+        }
         document.getElementById("hit_points").innerHTML = this.thisPlayer(game).hit_points + " hp";
+        document.getElementById("armor").innerHTML = this.thisPlayer(game).armor + " armor";
     }
 
     updateMana(game) {
@@ -95,14 +102,19 @@ class GameUX {
             this.oldOpponentHP = this.opponent(game).hit_points;
             this.showDamage(game, this.thisPlayer(game));            
         }
+        if(this.opponent(game).armor < this.oldOpponentArmor) {
+            this.oldOpponentArmor = this.opponent(game).armor;
+            this.showDamage(game, this.thisPlayer(game));            
+        }
         document.getElementById("opponent_hit_points").innerHTML = this.opponent(game).hit_points + " hp";
+        document.getElementById("opponent_armor").innerHTML = this.opponent(game).armor + " armor";
     }
 
     updateStartingEffectsForPlayer(player, divId) {
         let div = document.getElementById(divId);
-        if (player.starting_effects && player.starting_effects.length > 0) {
+        if (player.global_effects && player.global_effects.length > 0) {
             div.innerHTML = "Starting Effects: ";
-            for (let effects of player.starting_effects) {
+            for (let effects of player.global_effects) {
              div.innerHTML += effect.name + " | ";
             }
         } else {
@@ -111,18 +123,18 @@ class GameUX {
     }
 
     updateStartingEffects(game) {
-        this.updateStartingEffectsForPlayer(this.thisPlayer(game), "starting_effects");
+        this.updateStartingEffectsForPlayer(this.thisPlayer(game), "global_effects");
     }
 
     updateOpponentStartingEffects(game) {
-        this.updateStartingEffectsForPlayer(this.opponent(game), "opponent_starting_effects");
+        this.updateStartingEffectsForPlayer(this.opponent(game), "opponent_global_effects");
     }
 
     updateAddedAbilitiesForPlayer(player, divId) {
         let div = document.getElementById(divId);
-        if (player.added_abilities.length > 0) {
+        if (player.abilities.length > 0) {
             div.innerHTML = "Added Abilities: ";
-            for (let ability of player.added_abilities) {
+            for (let ability of player.abilities) {
              div.innerHTML += ability.name + " | "
             }
         } else {
@@ -228,11 +240,11 @@ class GameUX {
                 || game.turn % 2 == 1 && this.usernameOrP1(game) == game.players[1].username)
     }
 
-    cardSprite(game, card, username) {
+    cardSprite(game, card, username, dont_attach_listeners) {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
-        cardDiv.style = 'position:relative;margin-right:2px;cursor: pointer;height:114px;width:81px;border-radius:4px;padding:5px;font-size:12px';
+        cardDiv.style = 'position:relative;margin-right:2px;cursor: pointer;height:114px;width:81px;border-radius:4px;padding:5px;font-size:12px;overflow:hidden';
         if (card.attacked) {
             cardDiv.style.backgroundColor = "#C4A484";                
         } else if (card.selected) {
@@ -263,6 +275,19 @@ class GameUX {
             cardDiv.appendChild(div)
         }
 
+        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
+            var div = document.createElement("div");
+            div.style.backgroundColor = 'black';
+            div.style.opacity = ".6";
+            div.style.height = "100%";
+            div.style.width = "100%";
+            div.style.position = "absolute";
+            div.style.top = 0;
+            div.style.left = 0;
+            div.style.pointerEvents = "none";
+            cardDiv.appendChild(div)
+        }
+
         if (card.card_type != "Effect") {
             let costDiv = document.createElement("b");
             costDiv.innerHTML = card.cost;
@@ -279,34 +304,37 @@ class GameUX {
         nameDiv.innerHTML = card.name;
         cardDiv.appendChild(nameDiv)
 
+        let descriptionDiv = document.createElement("div");
+        descriptionDiv.style.maxHeight = "60px"
+        cardDiv.appendChild(descriptionDiv);
         if (card.description) {
-            let descriptionDiv = document.createElement("div");
-            descriptionDiv.innerHTML = card.description;
-            cardDiv.appendChild(descriptionDiv);
+            // todo don't hardcode hide description for Infernus
+            // todo don't hardcode hide description for Winding One
+            if (card.effects.length == 0 || (card.effects[0].target_type != "this") || card.turn_played == -1) {
+                descriptionDiv.innerHTML = card.description;
+            }
         }
 
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
+                console.log(d);
                 let descriptionDiv = document.createElement("div");
                 descriptionDiv.innerHTML = d;
-                cardDiv.appendChild(descriptionDiv);                
+                descriptionDiv.appendChild(descriptionDiv);                
             }
         }
 
         let abilitiesDiv = document.createElement("div");
+        abilitiesDiv.style.color = "gray"
         for (let a of card.abilities) {
-            abilitiesDiv.innerHTML += a.name;
-            if (a != card.abilities[card.abilities.length-1]) {                
-                abilitiesDiv.innerHTML += ", ";
+            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
+                abilitiesDiv.innerHTML += a.name;
+                if (a != card.abilities[card.abilities.length-1]) {                
+                    abilitiesDiv.innerHTML += ", ";
+                }                
             }
         }
-        cardDiv.appendChild(abilitiesDiv);
-
-        for (let a of card.added_abilities) {
-            let abilitiesDiv = document.createElement("div");
-            abilitiesDiv.innerHTML = a.name;
-            cardDiv.appendChild(abilitiesDiv);            
-        }
+        descriptionDiv.appendChild(abilitiesDiv);
 
         if (card.card_type == "Entity") {
             let cardPower = card.power;
@@ -323,26 +351,175 @@ class GameUX {
             powerToughnessDiv.innerHTML = cardPower + "/" + cardToughness;
             powerToughnessDiv.style.position = "absolute";
             powerToughnessDiv.style.bottom = "0px";
+            powerToughnessDiv.style.right = "0px";
+            powerToughnessDiv.style.backgroundColor = "black"
+            powerToughnessDiv.style.color = "white";
+            powerToughnessDiv.style.paddingLeft = "3px"
+            powerToughnessDiv.style.paddingRight = "3px"
+            powerToughnessDiv.style.borderRadius = "3px"
             cardDiv.appendChild(powerToughnessDiv);
         } else {
             let typeDiv = document.createElement("em");
             typeDiv.innerHTML = card.card_type;
             typeDiv.style.position = "absolute";
             typeDiv.style.bottom = "0px";
+            typeDiv.style.right = "0px";
+            typeDiv.style.backgroundColor = "black"
+            typeDiv.style.color = "white";
+            typeDiv.style.paddingLeft = "3px"
+            typeDiv.style.paddingRight = "3px"
+            typeDiv.style.borderRadius = "3px"
             cardDiv.appendChild(typeDiv);           
+        }
+        let attackEffect = null
+        for (let e of card.effects) {
+            if (e.name == "attack" || e.name == "make_random_townie") {
+                attackEffect = e;
+            }
+        }
+
+        if (attackEffect) {
+            let powerChargesDiv = document.createElement("em");
+            powerChargesDiv.innerHTML = attackEffect.power + "/" + attackEffect.counters;
+            powerChargesDiv.style.position = "absolute";
+            powerChargesDiv.style.bottom = "0px";
+            powerChargesDiv.style.left = "0px";
+            powerChargesDiv.style.backgroundColor = "black"
+            powerChargesDiv.style.color = "white";
+            powerChargesDiv.style.paddingLeft = "3px"
+            powerChargesDiv.style.paddingRight = "3px"
+            powerChargesDiv.style.borderRadius = "3px"
+            cardDiv.appendChild(powerChargesDiv);                       
+        }
+
+        // todo: don't hardcode for Infernus
+        if (card.effects.length > 0 && card.effects[0].target_type == "this" && card.turn_played > -1) {
+            var input = document.createElement("div");
+            input.className = "button"
+            input.style.width = "40px";
+            input.style.height = "15px";
+            input.style.fontSize = "10px";
+            input.style.padding = "5px";
+            input.style.marginTop = "10px";
+            input.innerHTML = "✦: +1/+0";
+            if (card.effects[0].cost <= this.thisPlayer(game).mana) {
+                input.disabled = false;                
+                input.style.backgroundColor = "blue"
+            } else {
+                input.disabled = true;
+                input.style.backgroundColor = "lightgray"
+            }
+            var self = this;
+            input.onclick = function(event) { 
+                if (card.effects[0].cost <= self.thisPlayer(game).mana) {
+                    self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id});
+                }
+                event.stopPropagation()
+            };
+            cardDiv.appendChild(input);
+        }
+
+        // todo: don't hardcode for Winding One
+        if (card.effects.length > 0 && card.effects[0].target_type == "entity" && card.turn_played > -1) {
+            var input = document.createElement("div");
+            input.className = "button"
+            input.style.width = "70px";
+            input.style.height = "25px";
+            input.style.fontSize = "10px";
+            input.style.padding = "5px";
+            input.style.marginTop = "10px";
+            input.style.textAlign = "left";
+            input.innerHTML = "✦✦✦: unwind an entity";
+            if (card.effects[0].cost <= this.thisPlayer(game).mana && card.can_activate_abilities) {
+                input.disabled = false;                
+                input.style.backgroundColor = "blue"
+            } else {
+                input.disabled = true;
+                input.style.backgroundColor = "lightgray"
+            }
+            var self = this;
+            input.onclick = function(event) { 
+                if (card.effects[0].cost <= self.thisPlayer(game).mana) {
+                    self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id});
+                }
+                event.stopPropagation()
+            };
+            cardDiv.appendChild(input);
+        }
+
+        cardDiv.addEventListener('mouseleave', function(){
+            if(document.getElementById("bigger_card")) {
+                cardDiv.style.height = "114px";
+                cardDiv.style.width = "81px";
+                document.getElementById("bigger_card").parentNode.removeChild(document.getElementById("bigger_card"));4            
+            }
+        }, false);   
+
+        if (dont_attach_listeners) {
+            var span = document.createElement("span");
+            span.appendChild(cardDiv)
+            return span;
         }
 
         var self = this;
-        cardDiv.onclick = function() { 
-            if (cardDiv.parentElement == document.getElementById("hand")) {  
-                self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-            } else if (cardDiv.parentElement == document.getElementById("in_play") || cardDiv.parentElement == document.getElementById("opponent_in_play")) {  
-                self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
-            } else { 
-                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
+        var cancel = false;
+        let clickTime;
+        cardDiv.addEventListener('mousedown', function(){
+            clickTime = new Date();
+            setTimeout(function() { 
+                if (!cancel) {
+                     var cln = cardDiv.cloneNode(true);
+                     cln.id = "bigger_card";
+                     cln.style.height = "171px";
+                     cln.style.width = "120px"; 
+                     cln.style.position = "absolute"; 
+                     cln.style.left = "400px"; 
+                     cln.style.top = document.getElementById("all_but_player_hand").innerHeight / 2;
+                     document.getElementById("all_but_player_hand").appendChild(cln)
+                }
+                cancel = false;
+            }, 150);
+        }, false);   
+
+        cardDiv.addEventListener('mouseup', function(event){
+            cardDiv.style.height = "114px";
+            cardDiv.style.width = "81px";
+            if(document.getElementById("bigger_card")) {
+                document.getElementById("bigger_card").parentNode.removeChild(document.getElementById("bigger_card"));
             }
-        }
-        return cardDiv;
+
+            event.stopPropagation();
+
+            function captureClick(e) {
+                if (new Date() - clickTime < 150) {
+                    // play the card if it's a quick click
+                    if (cardDiv.parentElement.parentElement == document.getElementById("hand")) {  
+                        self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+                    } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
+                        self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+                    } else { 
+                        self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
+                    }
+                    cancel = true;
+                } else {
+                    // just shrink the zoom
+                }
+                e.stopPropagation(); // Stop the click from being propagated.
+                window.removeEventListener('click', captureClick, true); // cleanup
+            }
+
+            window.addEventListener(
+                'click',
+                captureClick,
+                true // <-- This registeres this listener for the capture
+                     //     phase instead of the bubbling phase!
+            ); 
+
+        }, false);   
+
+        var span = document.createElement("span");
+        span.appendChild(cardDiv)
+        return span;
     }
 
     selfClick () {
@@ -415,13 +592,15 @@ class GameUX {
                 alert("GAME OVER");
             }
         }
-        if (game.decks_to_set && game.starting_effects.length < 2) {
-            this.showFXSelectionView(game);
-        } else if ((this.gameType == "choose_race" || this.gameType == "choose_race_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
+        if ((this.gameType == "choose_race" || this.gameType == "choose_race_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
             this.showChooseRace(game);
-        } else if (this.thisPlayer(game).make_to_resolve.length) {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
-        } else if (this.thisPlayer(game).cards_to_reveal.length) {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_hand") {
+            this.showChooseCardView(game, "FETCH_CARD");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_play") {
+            this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
             this.showRevealView(game);
         } else {
             this.showGame();
@@ -434,6 +613,8 @@ class GameUX {
             return;
         }
         raceSelector.style.display = "block";
+        raceSelector.style.maxWidth = "1024px";
+        raceSelector.style.padding = "10px";
         raceSelector.style.backgroundColor = "white";
         document.getElementById("race_selector").innerHTML = "";
 
@@ -442,7 +623,7 @@ class GameUX {
         raceSelector.appendChild(h1);
 
         var p = document.createElement("p");
-        p.innerHTML = "Your race affects what cards you have access to in the game."
+        p.innerHTML = "Your race affects what cards you have access to in the game. Choose 1:"
         raceSelector.appendChild(p);
 
         var options = [
@@ -450,198 +631,26 @@ class GameUX {
             {"id": "genie", "label": "Genie"},
         ];
 
-        var table = document.createElement("table");
-        table.style.width = "100%";
-        raceSelector.appendChild(table);
-        var th = document.createElement("th");
-        th.innerHTML = "Races";
-        table.appendChild(th);
-
-        var tr = document.createElement("tr");
-        table.appendChild(tr);
-        tr.appendChild(tdForTitle("Choose 1"));
-        tr.appendChild(tdForTitle("Race"));
+        var div = document.createElement("div");
+        div.style.width = "100%";
+        raceSelector.appendChild(div);
 
         var self = this
         for(var o of options) {
-            var input = document.createElement("input");
-            input.type = "radio";
+            var input = document.createElement("div");
             input.id = o.id;
-            input.name = "effect";
-            input.value = o.id;
+            input.className = "button"
+            input.innerHTML = o.label;
+            input.style.marginRight = "20px";
             input.onclick = function() { 
                 self.race = this.id;
-                document.getElementById("startGameButton").disabled = false;
-                document.getElementById("startGameButton").style.backgroundColor = "green";
+                this.onclick = null;
+                self.innerHTML = "Waiting for Opponent...";
+                self.chooseRace(game, self.race) 
             };
-
-            var label = document.createElement("label"); 
-            label.for = o.id;
-            label.innerHTML = o.label;
-            var tr = document.createElement("tr");
-            table.appendChild(tr);
-            var td = tdForTitle("");
-            td.appendChild(input);
-            tr.appendChild(td);
-            var td = tdForTitle("");
-            td.appendChild(label);
-            tr.appendChild(td);
+            div.appendChild(input);
         }  
 
-        var button = document.createElement("button");
-        button.id = "startGameButton";
-        button.innerHTML = "Start Game";
-        button.disabled = true;
-        button.classList = ["light-gray-button"];
-        var self = this;
-        button.onclick = function() {
-            this.disabled = true;
-            button.style.backgroundColor = "lightgray"
-            button.innerHTML = "Waiting for Opponent...";
-            self.chooseRace(game, self.race) 
-        };
-        raceSelector.appendChild(button);
-    }
-
-    showFXSelectionView(game) {
-        let decks = game.decks_to_set;
-        document.getElementById("fx_selector").innerHTML = "";
-        var fxSelector = document.getElementById("fx_selector");
-        fxSelector.style.display = "block";
-        fxSelector.style.backgroundColor = "white";
-
-        h1 = document.createElement("h1");
-        h1.innerHTML = "Change Your Deck"
-        fxSelector.appendChild(h1);
-
-        var table = document.createElement("table");
-        table.style.float = "left";
-        table.style.width = "45%";
-        table.id = "entity_table";
-        fxSelector.appendChild(table);
-
-        var th = document.createElement("th");
-        th.innerHTML = "Entities";
-        table.appendChild(th);
-
-        var tr = document.createElement("tr");
-        tr.appendChild(tdForTitle("Name"));
-        tr.appendChild(tdForTitle("Description"));
-        tr.appendChild(tdForTitle("Power"));
-        tr.appendChild(tdForTitle("Toughness"));
-        tr.appendChild(tdForTitle("Cost"));
-        var td = tdForTitle("# In Deck");
-        td.style.color = '000080';
-        td.style.border = "1px solid black";
-        tr.appendChild(td);
-        table.appendChild(tr);
-
-        for(var c of this.allCards) {
-            if (c.card_type == "Spell") {
-                continue;
-            }
-            this.addRowToTableForCard(game, c, decks, table);
-        }   
-
-        table = document.createElement("table");
-        table.style.width = "45%";
-        table.id = "spell_table";
-        fxSelector.appendChild(table);
-
-        th = document.createElement("th");
-        th.innerHTML = "Spells";
-        table.appendChild(th);
-
-        var tr = document.createElement("tr");
-        tr.appendChild(tdForTitle("Name"));
-        tr.appendChild(tdForTitle("Description"));
-        tr.appendChild(tdForTitle("Cost"));
-        var td = tdForTitle("# In Deck");
-        td.style.color = '000080';
-        td.style.border = "1px solid black";
-        tr.appendChild(td);
-        table.appendChild(tr);
-
-        for(var c of this.allCards) {
-            if (c.card_type != "Spell") {
-                continue;
-            }
-            this.addRowToTableForCard(game, c, decks, table);
-        }   
-
-        fxSelector.appendChild(document.createElement("br"));
-        fxSelector.appendChild(document.createElement("br"));
-
-        var h1 = document.createElement("h1");
-        h1.innerHTML = "Choose FX"
-        fxSelector.appendChild(h1);
-
-        var p = document.createElement("p");
-        p.innerHTML = "Each player chooses one effect that affects everyone's cards."
-        fxSelector.appendChild(p);
-
-        var options = [
-            {"id": "draw_extra_card", "label": "Players Draw an Extra Card Each Turn"},
-            {"id": "spells_cost_less", "label": "Spells Cost 1 Less"},
-            {"id": "spells_cost_more", "label": "Spells Cost 1 More"},
-            {"id": "entities_cost_less", "label": "Entities Cost 1 Less"},
-            {"id": "entities_cost_more", "label": "Entities Cost 1 More"},
-            {"id": "entities_get_more_toughness", "label": "Entities Get +0/+2"},
-            {"id": "entities_get_less_toughness", "label": "Entities Get +0/-2"},
-            {"id": "entities_get_more_power", "label": "Entities Get +2/+0"},
-            {"id": "entities_get_less_power", "label": "Entities Get -2/+0"},
-        ];
-
-        var table = document.createElement("table");
-        table.style.width = "100%";
-        fxSelector.appendChild(table);
-         var th = document.createElement("th");
-        th.innerHTML = "Effects";
-        table.appendChild(th);
-
-        var tr = document.createElement("tr");
-        table.appendChild(tr);
-        tr.appendChild(tdForTitle("Choose 1"));
-        tr.appendChild(tdForTitle("Effect"));
-
-        var self = this;
-        for(var o of options) {
-            var input = document.createElement("input");
-            input.type = "radio";
-            input.id = o.id;
-            input.name = "effect";
-            input.value = o.id;
-            input.onclick = function() { 
-                self.startingEffectId = this.id;
-                document.getElementById("startGameButton").disabled = false;
-                document.getElementById("startGameButton").style.backgroundColor = "green";
-            };
-
-            var label = document.createElement("label"); 
-            label.for = o.id;
-            label.innerHTML = o.label;
-            var tr = document.createElement("tr");
-            table.appendChild(tr);
-            var td = tdForTitle("");
-            td.appendChild(input);
-            tr.appendChild(td);
-            var td = tdForTitle("");
-            td.appendChild(label);
-            tr.appendChild(td);
-        }  
-
-        var button = document.createElement("button");
-        button.id = "startGameButton";
-        button.innerHTML = "Start Game";
-        button.disabled = true;
-        button.classList = ["light-gray-button"];
-        button.onclick = function() {
-            this.disabled = true;
-            button.style.backgroundColor = "lightgray"
-            button.innerHTML = "Waiting for Opponent...";
-            self.chooseEffect(game, self.startingEffectId) 
-        };
-        fxSelector.appendChild(button);
     }
 
     addRowToTableForCard(game, c, decks, table) {
@@ -683,66 +692,57 @@ class GameUX {
 
     showGame() {
         document.getElementById("room").style.display = "block";
-        document.getElementById("fx_selector").style.display = "none";
         document.getElementById("race_selector").style.display = "none";
         document.getElementById("make_selector").style.display = "none";
     }
 
     showMakeView(game) {
-        document.getElementById("make_selector").innerHTML = "";
-        var makeSelector = document.getElementById("make_selector");
-        makeSelector.style.display = "flex";
-        makeSelector.style.background = "rgba(0, 0, 0, .7)";
-
-        var container = document.createElement("div");
-        container.style.width = 80+ 80*3 + "px";
-        container.style.height = 130+50+100 + "px";
-        container.style.margin = "auto";
-        container.style.backgroundColor = "white";
-        makeSelector.appendChild(container);
-
-        var cards = this.thisPlayer(game).make_to_resolve;
-
-        var h1 = document.createElement("h1");
-        h1.innerHTML = "Make a Card"
-        container.appendChild(h1);
-        container.appendChild(document.createElement('br'));
-        container.appendChild(document.createElement('br'));
-
-        var cardContainerDiv = document.createElement('div');
-        cardContainerDiv.classList.add("card_container");
-        container.appendChild(cardContainerDiv);
-
         var self = this;
-        for (let card of cards) {
-            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
-            cardContainerDiv.appendChild(cardDiv);
-            cardDiv.onclick = function() {
-                if (card.starting_effect) {
+        this.showSelectCardView(game, "make_selector", "Make a Card", function(card) {
+                if (card.global_effect) {
                     self.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
                 } else {
-                    self.sendPlayMoveEvent("MAKE_CARD", {"card_name":card.name});
+                    self.sendPlayMoveEvent("MAKE_CARD", {"card":card});
                 }
-            };
+            });
+    }
+
+   showRevealView(game) {
+        this.showSelectCardView(game, "make_selector", "Opponent's Hand", null);
+        var self = this;
+        document.getElementById("make_selector").onclick = function() {
+            self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+            self.showGame();
+            this.onclick = null
         }
     }
 
-    showRevealView(game) {
-        document.getElementById("make_selector").innerHTML = "";
-        var makeSelector = document.getElementById("make_selector");
+    showChooseCardView(game, event_name) {
+        var self = this;
+        this.showSelectCardView(game, "make_selector", "Relics in Your Deck", function (card) {
+                self.sendPlayMoveEvent(event_name, {"card":card.id});                
+            });
+        
+    }
+
+    showSelectCardView(game, element_id, title, card_on_click) {
+        document.getElementById(element_id).innerHTML = "";
+        var makeSelector = document.getElementById(element_id);
         makeSelector.style.display = "flex";
         makeSelector.style.background = "rgba(0, 0, 0, .7)";
+        makeSelector.style.zIndex = "100";
 
         var container = document.createElement("div");
-        container.style.width = 90+ 80*10 + "px";
+        container.style.width = "100%";
         container.style.height = 130+50+100 + "px";
         container.style.margin = "auto";
         container.style.backgroundColor = "white";
         makeSelector.appendChild(container);
 
+        var cards = this.thisPlayer(game).card_choice_info["cards"];
 
         var h1 = document.createElement("h1");
-        h1.innerHTML = "Opponent's Hand"
+        h1.innerHTML = title
         container.appendChild(h1);
         container.appendChild(document.createElement('br'));
         container.appendChild(document.createElement('br'));
@@ -751,42 +751,81 @@ class GameUX {
         cardContainerDiv.classList.add("card_container");
         container.appendChild(cardContainerDiv);
 
-        var self = this;
-        container.onclick = function() {
-            self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
-            self.showGame();
-        }
-
-        var cards = this.thisPlayer(game).cards_to_reveal;
+        let clickTime;
+        let cancel = false;
         for (let card of cards) {
-            let cardDiv = self.cardSprite(game, card, this.usernameOrP1(game));
-            cardDiv.style.pointerEvents = "none";
-            delete cardDiv.onclick;
+            let cardDiv = this.cardSprite(game, card, this.usernameOrP1(game), true);
             cardContainerDiv.appendChild(cardDiv);
+            cardDiv.addEventListener('mousedown', function(){
+                clickTime = new Date();
+                setTimeout(function() { 
+                    if (!cancel) {
+                        cardDiv.children[0].style.height = "171px";
+                        cardDiv.children[0].style.width = "120px";                    
+                    }
+                    cancel = false;
+                }, 150);
+            }, false);   
+
+            if (card_on_click == null) {
+               cardDiv.style.pointerEvents = "none";
+                cardDiv.children[0].addEventListener('mouseup', function(event){
+                    cardDiv.children[0].style.height = "114px";
+                    cardDiv.children[0].style.width = "81px";
+                    event.stopPropagation();
+
+                    function captureClick(e) {
+                        if (new Date() - clickTime < 150) {
+                            // do nothing for a click
+                            cancel = true;
+                        } else {
+                            // just shrink the zoom
+                        }
+                        e.stopPropagation(); // Stop the click from being propagated.
+                        window.removeEventListener('click', captureClick, true); // cleanup
+                    }
+
+                    window.addEventListener(
+                        'click',
+                        captureClick,
+                        true // <-- This registeres this listener for the capture
+                             //     phase instead of the bubbling phase!
+                    ); 
+
+                }, false);   
+            } else {
+                cardDiv.children[0].addEventListener('mouseup', function(event){
+                    cardDiv.children[0].style.height = "114px";
+                    cardDiv.children[0].style.width = "81px";
+                    event.stopPropagation();
+
+                    function captureClick(e) {
+                        if (new Date() - clickTime < 150) {
+                            // play the card if it's a quick click
+                            card_on_click(card);
+                            cancel = true;
+                        } else {
+                            // just shrink the zoom
+                        }
+                        e.stopPropagation(); // Stop the click from being propagated.
+                        window.removeEventListener('click', captureClick, true); // cleanup
+                    }
+
+                    window.addEventListener(
+                        'click',
+                        captureClick,
+                        true // <-- This registeres this listener for the capture
+                             //     phase instead of the bubbling phase!
+                    ); 
+
+                }, false);   
+
+            }
         }
-    }
-
-    addLogLine() {
-        var line = document.createElement('div');
-        document.getElementById("game_log_inner").appendChild(line);
-        return line;
-    }
-
-    scrollLogToEnd() {
-        document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
     }
 
     endTurn() {
         this.sendPlayMoveEvent("END_TURN", {});
-    }
-
-    chooseEffect(game, effect_id) {
-        var info = {"id": effect_id, "card_counts":{}};
-        for(var c of this.allCards) {
-            var input = document.getElementById(c.name);
-            info["card_counts"][c.name] = input.value
-        }
-        this.sendPlayMoveEvent("CHOOSE_STARTING_EFFECT", info);
     }
 
     chooseRace(game, race) {
@@ -799,6 +838,16 @@ class GameUX {
             line.innerHTML = text
         }
         this.scrollLogToEnd()
+    }
+
+    addLogLine() {
+        var line = document.createElement('div');
+        document.getElementById("game_log_inner").appendChild(line);
+        return line;
+    }
+
+    scrollLogToEnd() {
+        document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
     }
 
     nextRoom() {

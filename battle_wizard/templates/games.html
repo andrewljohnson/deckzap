@@ -40,14 +40,7 @@
     </tr>
   </table> 
 
-    <!-- tr>
-      <td>Pre-game Deckbuilder with FX Choice</td>
-      <td><em>(In Queue: {{queue_database.pvp.pregame.open_games|length}})</em></td>
-      <td><a class=button href=/play/pvp/pregame{% if request.GET.username %}?username={{request.GET.username}}{% endif %}>Find Match</a></td>
-    </tr>
-  </table>
-
-  <h2>Player Built</h2>
+  <!-- h2>Player Built</h2>
   <ul>
     {% for g in custom_games %}
     <li><a href=/play/custom/{{g.id}}>{{g.username}}'s Game, Deckbuilder Type: {{g.game_type}} (In Queue: {{g.open_games|length}})</a></li>

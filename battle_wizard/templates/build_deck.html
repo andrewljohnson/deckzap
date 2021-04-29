@@ -4,9 +4,13 @@
 {% block javascript %}
 <script src = "{% static 'js/deckbuilder.js' %}"></script>
 <script type="text/javascript">
-	var deckBuilder = new DeckBuilder(document.getElementById("data_store").getAttribute("deck"));
+	  var deckBuilder = new DeckBuilder(document.getElementById("data_store").getAttribute("deck"));
     deckBuilder.loadAllCards();
     deckBuilder.redisplayDeck();
+    document.getElementById("deck_name").onkeyup = function() {
+      deckBuilder.deck.name = this.value;
+    } 
+
 </script>
 {% endblock javascript %}
 
@@ -25,7 +29,9 @@
 
   <div id=two_columns>
   	<div id=left_column class=column>
-  		<h2>Choose Cards (max 2 each)</h2>  		
+      <h2>Deck Name</h2>
+      <input id=deck_name name="deck_name" value="{% firstof deck.name 'My Deck' %}">
+  		<h2>Choose Cards (limit 1 of any Relic, 2 of any other card)</h2>  		
   		<div id=all_cards_container></div>
   	</div>
   	<div id=right_column class=column>
@@ -40,7 +46,7 @@
   </div>
 </div>
 
-<div id="data_store" csrf_token='{% csrf_token %}' username = {{request.user.username}} deck='{{deck}}' all_cards='{{all_cards}}'></div>
+<div id="data_store" csrf_token='{% csrf_token %}' username = {{request.user.username}} deck='{{json_deck}}' all_cards='{{all_cards}}'></div>
 
 <style>
 	#two_columns {

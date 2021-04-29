@@ -8,6 +8,7 @@ from django.contrib.auth import login, authenticate
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout as logout_django
+from django.contrib.auth.models import User
 
 def index(request):
     if request.user.is_authenticated:
@@ -50,12 +51,13 @@ def build_deck(request):
             if d["id"] == int(deck_id):
                 deck = d
     all_cards = JsonDB().all_cards()
-    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type']))
+    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     return render(request, "build_deck.html", 
         {
             "all_cards": json.dumps(all_cards),
             "deck_id": deck_id,
-            "deck": json.dumps(deck),
+            "json_deck": json.dumps(deck),
+            "deck": deck,
         }
     )
 
@@ -63,7 +65,8 @@ def profile(request, username):
     return render(request, "profile.html", 
         {
             "decks": JsonDB().decks_database()[username]["decks"] if username in JsonDB().decks_database() else [],
-            "username": username 
+            "username": username, 
+            "account_number": User.objects.get(username=username).id - 3
         }
     )
 

@@ -20,6 +20,14 @@ class DeckBuilder {
 		return count;
 	}
 
+	cardFCorName(cardName) {
+		for (var c of this.allCards) {
+			if (c.name == cardName) {
+				return c;
+			}
+		}
+	}
+
 	addCardToContainer(card, containerId) {
 		var cardRow = document.createElement("div");
 		cardRow.id = card.name;
@@ -42,6 +50,9 @@ class DeckBuilder {
 				}
 				if (!(card.name in self.deck["cards"])) {
 					self.deck["cards"][card.name] = 1
+				} else if (self.deck["cards"][card.name] == 1 && card.card_type == "Relic") {
+					console.log("can't add more than 1 relic")
+					return;
 				} else if (self.deck["cards"][card.name] == 1) {
 					self.deck["cards"][card.name] = 2				
 				} else {
@@ -77,16 +88,6 @@ class DeckBuilder {
 			cardRow.appendChild(descriptionDiv);
 		}
 		if (card.card_type != "Spell" && card.card_type != "Relic" ) {
-			if(card.abilities) {
-		        let abilitiesDiv = document.createElement("div");
-		        for (let a of card.abilities) {
-		            abilitiesDiv.innerHTML += a.name;
-		            if (a != card.abilities[card.abilities.length-1]) {                
-		                abilitiesDiv.innerHTML += ", ";
-		            }
-		        }
-        		cardRow.appendChild(abilitiesDiv);
-			}
 			let powerToughnessDiv = document.createElement("div");
 			powerToughnessDiv.innerHTML = card.power + "/" + card.toughness;
             powerToughnessDiv.style.position = "absolute";
@@ -101,7 +102,19 @@ class DeckBuilder {
 			
 		}
 
-		 if (this.deck["cards"][card.name] == 2 && containerId == "new_deck_container") {
+        if (card.abilities) {
+	        let abilitiesDiv = document.createElement("div");
+	        abilitiesDiv.style.color = "gray"
+	        for (let a of card.abilities) {
+	            abilitiesDiv.innerHTML += a.name;
+	            if (a != card.abilities[card.abilities.length-1]) {                
+	                abilitiesDiv.innerHTML += ", ";
+	            }                
+	        }
+	        cardRow.appendChild(abilitiesDiv);        	
+        }
+
+		if (this.deck["cards"][card.name] == 2 && containerId == "new_deck_container") {
 			var countBold = document.createElement("b"); 
 			countBold.innerHTML = this.deck["cards"][card.name];
 			cardRow.appendChild(countBold);

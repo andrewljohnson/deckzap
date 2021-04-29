@@ -69,7 +69,7 @@ class JsonDB:
             queue_database = {"pvai": {},
                               "pvp": {}
             }
-            game_types = "choose_race_prebuilt", "choose_race", "pregame", "ingame", "constructed"
+            game_types = "choose_race_prebuilt", "choose_race", "ingame", "constructed"
             for gt in game_types:
                 queue_database["pvai"][gt] = {"starting_id":0} 
                 queue_database["pvp"][gt] = {"open_games":[], "starting_id":0}

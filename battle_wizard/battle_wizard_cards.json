@@ -5,8 +5,9 @@
 		"card_type": "Relic",
 		"description": "0: View Opponent's hand once on your turn.",
 		"cost": 1,
-		"activated_effects": [{
+		"effects": [{
 			"name": "view_hand",
+			"effect_type": "activated",
 			"target_type": "opponent"
 		}]
 	},
@@ -14,24 +15,26 @@
 		"name": "Fountain of Youth",
 		"race": "elf",
 		"card_type": "Relic",
-		"description": "Gain 1 life per card in hand at beginning of your turn, to a maximum of 30 total life.",
+		"description": "Gain 1 hit point per card in hand at beginning of your turn, to a maximum of 30 total life.",
 		"cost": 1,
-		"triggered_effects": [{
+		"effects": [{
 			"name": "gain_hp_for_hand",
 			"target_type": "self",
+			"effect_type": "triggered",
 			"trigger": "start_turn"
 		}]
 	},
 	{
-		"name": "Voodo Doll",
+		"name": "Voodoo Doll",
 		"race": "genie",
 		"card_type": "Relic",
 		"description": "Opponent loses 1 life per card in hand at beginning of your turn.",
 		"cost": 3,
-		"triggered_effects": [{
+		"effects": [{
 			"name": "lose_hp_for_hand",
 			"target_type": "opponent",
-			"trigger": "start_turn"
+			"trigger": "start_turn",
+			"effect_type": "triggered"
 		}]
 	},
 	{
@@ -40,10 +43,24 @@
 		"card_type": "Relic",
 		"description": "Whenever you draw a spell, reduce it's cost by 1.",
 		"cost": 3,
-		"triggered_effects": [{
+		"effects": [{
 			"name": "reduce_cost",
 			"target_type": "Spell",
-			"trigger": "draw"
+			"trigger": "draw",
+			"effect_type": "triggered"
+		}]
+	},
+	{
+		"name": "Ice Prison",
+		"race": "genie",
+		"card_type": "Relic",
+		"description": "Each player may only untap one entity that attacked last turn.",
+		"cost": 5,
+		"effects": [{
+			"name": "stop_entity_renew",
+			"target_type": "all_players",
+			"trigger": "start_turn",
+			"effect_type": "triggered"
 		}]
 	},
 	{
@@ -52,10 +69,11 @@
 		"card_type": "Relic",
 		"description": "Whenever you draw an entity, reduce it's cost by 1.",
 		"cost": 2,
-		"triggered_effects": [{
+		"effects": [{
 			"name": "reduce_cost",
 			"target_type": "Entity",
-			"trigger": "draw"
+			"trigger": "draw",
+			"effect_type": "triggered"
 		}]
 	},
 	{
@@ -64,11 +82,26 @@
 		"card_type": "Relic",
 		"cost": 3,
 		"description": "✦: Draw a card once on your turn.",
-		"activated_effects": [{
+		"effects": [{
 			"name": "draw",
+			"effect_type": "activated",
 			"target_type": "self",
 			"cost": 1,
 			"amount": 1
+		}]
+	},
+	{
+		"name": "Mirror of Fate",
+		"race": "genie",
+		"card_type": "Relic",
+		"cost": 6,
+		"description": "✦✦✦✦✦✦: Switch hit points with your opponent. Sacrifice this.",
+		"effects": [{
+			"name": "switch_hit_points",
+			"effect_type": "activated",
+			"target_type": "self",
+			"cost": 5,
+			"sacrifice_on_activate": true
 		}]
 	},
 	{
@@ -77,8 +110,9 @@
 		"card_type": "Relic",
 		"cost": 4,
 		"description": "✦: Prevent an entity from attacking, once on your turn.",
-		"activated_effects": [{
+		"effects": [{
 				"name": "add_tokens",
+				"effect_type": "activated",
 				"target_type": "entity",
 				"cost": 1,
 				"tokens": [{
@@ -95,16 +129,20 @@
 		"toughness": 3,
 		"cost": 1,
 		"description": "You have an extra mana each turn.",
-		"effects": [{
-			"name": "increase_max_mana",
-			"target_type": "self",
-			"amount": 1
-		}],
-		"effects_leave_play": [{
-			"name": "decrease_max_mana",
-			"target_type": "self",
-			"amount": 1
-		}]
+		"effects": [
+			{
+				"name": "increase_max_mana",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "decrease_max_mana",
+				"effect_type": "leave_play",
+				"target_type": "self",
+				"amount": 1
+			}
+		]
 	},
 	{
 		"name": "Spouty Gas Ball",
@@ -114,11 +152,12 @@
 		"toughness": 2,
 		"cost": 2,
 		"description": "Whenever you play an entity, deal a damage to a random enemy entity.",
-		"triggered_effects": [{
+		"effects": [{
 			"name": "damage",
 			"target_type": "opponents_entity_random",
 			"amount": 1,
 			"trigger": "play_friendly_entity",
+			"effect_type": "triggered",
 			"toughness": 1
 		}]
 	},
@@ -129,13 +168,64 @@
 		"power": 2,
 		"toughness": 3,
 		"cost": 3,
-		"description": "You get a 2/1 dryad token when this leaves play.",
-		"effects_leave_play": [{
+		"description": "Get a 2/1 dryad token when this dies.",
+		"effects": [{
 			"name": "make_token",
 			"card_name": "Pine Dryad",
+			"effect_type": "leave_play",
 			"target_type": "self",
 			"power": 2,
-			"toughness": 1
+			"toughness": 1,
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Oak Treant",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 5,
+		"cost": 5,
+		"description": "Get a 1/2 dryad token with Guard when this dies.",
+		"abilities": [
+				{"name": "Guard", "descriptive_id": "Guard"}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Pine Dryad",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"power": 2,
+			"toughness": 1,
+			"abilities": [
+				{"name": "Guard", "descriptive_id": "Guard"}
+			],
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Summon-Happy Genie",
+		"race": "genie",
+		"card_type": "Entity",
+		"power": 6,
+		"toughness": 2,
+		"cost": 5,
+		"description": "Your opponent gets two 1/1 elemental tokens.",
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Elemental",
+			"target_type": "opponent",
+			"effect_type": "enter_play",
+			"power": 1,
+			"toughness": 1,
+			"amount": 2,
+			"cost": 1
 		}]
 	},
 	{
@@ -146,8 +236,9 @@
 		"toughness": 1,
 		"cost": 1,
 		"description": "Your opponent takes 2 damage when this leaves play.",
-		"effects_leave_play": [{
+		"effects": [{
 			"name": "damage",
+			"effect_type": "leave_play",
 			"target_type": "opponent",
 			"amount": 2
 		}]
@@ -157,11 +248,12 @@
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 2,
-		"toughness": 2,
-		"cost": 2,
+		"toughness": 3,
+		"cost": 3,
 		"description": "Draw a card.",
 		"effects": [{
 			"name": "draw",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
 		}]
@@ -176,6 +268,7 @@
 		"description": "Destroy an enemy entity with Guard.",
 		"effects": [{
 			"name": "kill",
+			"effect_type": "enter_play",
 			"target_type": "opponents_entity",
 			"target_restrictions": [{"needs_guard": null}]
 		}]
@@ -190,6 +283,7 @@
 		"description": "Destroy an entity power 6 or greater.",
 		"effects": [{
 			"name": "kill",
+			"effect_type": "enter_play",
 			"target_type": "entity",
 			"target_restrictions": [{"power": 6}]
 		}]
@@ -204,11 +298,12 @@
 		"description": "You have an extra mana each turn.",
 		"effects": [{
 			"name": "increase_max_mana",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
-		}],
-		"effects_leave_play": [{
-			"name": "decrease_max_mana",
+		},
+		{	"name": "decrease_max_mana",
+			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
 		}]
@@ -216,12 +311,13 @@
 	{
 		"name": "Think",
 		"race": "elf",
-		"cost": 3,
+		"cost": 6,
 		"card_type": "Spell",
 		"description": "Draw 3 cards.",
 		"effects": [{
 			"name": "draw",
 			"target_type": "self",
+			"effect_type": "spell",
 			"amount": 3
 		}]
 	},
@@ -235,6 +331,7 @@
 		"cost": 1,
 		"effects": [{
 			"name": "damage",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 3
 		}]
@@ -249,6 +346,7 @@
 		"cost": 1,
 		"effects": [{
 			"name": "add_tokens",
+			"effect_type": "enter_play",
 			"target_type": "entity",
 			"tokens": [{
 				"turns": 1,
@@ -267,6 +365,7 @@
 		"cost": 2,
 		"effects": [{
 			"name": "add_tokens",
+			"effect_type": "enter_play",
 			"target_type": "entity",
 			"tokens": [{
 				"turns": 1,
@@ -281,9 +380,37 @@
 		"card_type": "Entity",
 		"power": 1,
 		"toughness": 3,
-		"cost": 3,
+		"cost": 1,
 		"abilities": [
-			{"name": "Guard"}
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
+	},
+	{
+		"name": "Largest Gorilla in the Forest",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 8,
+		"toughness": 8,
+		"cost": 9,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{
+		"name": "Tame-ish Sabretooth",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 7,
+		"toughness": 7,
+		"cost": 8,
+		"abilities": [
+			{
+				"name": "Ambush",
+				"descriptive_id": "Ambush"
+			}
 		]
 	},
 	{
@@ -320,7 +447,7 @@
 		"toughness": 5,
 		"cost": 4,
 		"abilities": [
-			{"name": "Guard"}
+			{"name": "Guard", "descriptive_id": "Guard"}
 		]
 	},
 	{
@@ -331,7 +458,7 @@
 		"toughness": 3,
 		"cost": 2,
 		"abilities": [
-			{"name": "Guard"}
+			{"name": "Guard", "descriptive_id": "Guard"}
 		]
 	},
 	{
@@ -344,6 +471,7 @@
 		"description": "Double the power of another entity.",
 		"effects": [{
 			"name": "double_power",
+			"effect_type": "enter_play",
 			"target_type": "entity"
 		}]	
 	},
@@ -357,6 +485,7 @@
 		"description": "Draw a card.",
 		"effects": [{
 			"name": "draw",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
 		}]	
@@ -371,6 +500,7 @@
 		"description": "Make a spell.",
 		"effects": [{
 			"name": "make",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"make_type": "Spell",
 			"amount": 1
@@ -385,13 +515,51 @@
 		"cost": 6,
 		"description": "Draw 4 cards.",
 		"abilities": [
-			{"name": "Guard"}
+			{"name": "Guard", "descriptive_id": "Guard"}
 		],
 		"effects": [{
 			"name": "draw",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 4
 		}]	
+	},
+	{
+		"name": "Infernus",
+		"race": "genie",
+		"card_type": "Entity",
+		"description": "✦: +1/+0",
+		"power": 5,
+		"toughness": 5,
+		"cost": 5,
+		"abilities": [
+			{"name": "Evade Guard", "descriptive_id": "Evade Guard"}
+		],
+		"effects": [{
+				"name": "pump_power",
+				"effect_type": "triggered",
+				"target_type": "this",
+				"cost": 1,
+				"amount": 1		
+		}]
+	},
+	{
+		"name": "Winding One",
+		"race": "genie",
+		"card_type": "Entity",
+		"description": "✦✦✦: return an entity to it's owne'rs hand.",
+		"power": 0,
+		"toughness": 2,
+		"cost": 3,
+		"abilities": [
+			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
+		],
+		"effects": [{
+				"name": "unwind",
+				"effect_type": "triggered",
+				"target_type": "entity",
+				"cost": 3
+		}]
 	},
 	{
 		"name": "Nature's Guardian",
@@ -401,7 +569,7 @@
 		"toughness": 8,
 		"cost": 6,
 		"abilities": [
-			{"name": "Guard"}
+			{"name": "Guard", "descriptive_id": "Guard"}
 		]
 	},
 	{
@@ -412,6 +580,7 @@
 		"description": "Choose 1 of 3 entities to make and add to your deck. Draw a card.",
 		"effects": [{
 			"name": "make",
+			"effect_type": "spell",
 			"target_type": "self",
 			"make_type": "Entity",
 			"amount": 1
@@ -430,6 +599,7 @@
 		"description": "Get 2 mana this turn",
 		"effects": [{
 			"name": "mana",
+			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 2
 		}]
@@ -442,6 +612,7 @@
 		"description": "Give an entity gets +3/+3 this turn.",
 		"effects": [{
 			"name": "add_tokens",
+			"effect_type": "spell",
 			"target_type": "entity",
 			"tokens": [{
 				"turns": 1,
@@ -458,6 +629,7 @@
 		"description": "Give an entity gets +2/+2 permanently.",
 		"effects": [{
 			"name": "add_tokens",
+			"effect_type": "spell",
 			"target_type": "entity",
 			"tokens": [{
 				"power_modifier": 2,
@@ -476,6 +648,7 @@
 			"target_type": "self_entities",
 			"effects": [{
 				"name": "increase_max_mana",
+				"effect_type": "spell",
 				"description": "You have an extra mana each turn.",
 				"amount": 1,
 				"activate_on_add": true,
@@ -484,7 +657,7 @@
 			{
 				"name": "decrease_max_mana",
 				"amount": 1,
-				"effect_type": "effects_leave_play"
+				"effect_type": "leave_play"
 			}]
 		}]
 	},
@@ -496,6 +669,7 @@
 		"description": "All your entities get +4/+4 this turn.",
 		"effects": [{
 			"name": "add_tokens",
+			"effect_type": "spell",
 			"target_type": "self_entities",
 			"tokens": [{
 				"turns": 1,
@@ -511,6 +685,7 @@
 		"card_type": "Spell",
 		"description": "Summon a random entity from your deck.",
 		"effects": [{
+			"effect_type": "spell",
 			"target_type": "self",
 			"name": "summon_from_deck",
 			"amount": 1
@@ -523,8 +698,35 @@
 		"card_type": "Spell",
 		"description": "Take an extra turn right away.",
 		"effects": [{
+			"effect_type": "spell",
 			"target_type": "self",
 			"name": "take_extra_turn"
+		}]
+	},
+	{
+		"name": "Mana Storm",
+		"race": "genie",
+		"cost": 5,
+		"card_type": "Spell",
+		"description": "All players lose all mana.",
+		"effects": [{
+			"target_type": "all_players",
+			"effect_type": "spell",
+			"name": "set_max_mana",
+			"amount": 0
+		}]
+	},
+	{
+		"name": "Mana Shatter",
+		"race": "genie",
+		"cost": 3,
+		"card_type": "Spell",
+		"description": "Target player loses a mana.",
+		"effects": [{
+			"target_type": "any_player",
+			"effect_type": "spell",
+			"name": "reduce_mana",
+			"amount": 1
 		}]
 	},
 	{
@@ -545,6 +747,7 @@
 		"description": "Deal 2 damage.",
 		"effects": [{
 			"name": "damage",
+			"effect_type": "spell",
 			"target_type": "any",
 			"amount": 2
 		}]	
@@ -557,7 +760,7 @@
 		"toughness": 5,
 		"cost": 2,
 		"abilities": [
-			{"name": "Guard"}
+			{"name": "Guard", "descriptive_id": "Guard"}
 		]
 	},
 	{
@@ -570,6 +773,7 @@
 		"description": "Return an entity to its owner's hand.",
 		"effects": [{
 			"name": "unwind",
+			"effect_type": "enter_play",
 			"target_type": "entity"
 		}]	
 	},
@@ -581,6 +785,7 @@
 		"description": "Return an entity to its owner's hand.",
 		"effects": [{
 			"name": "unwind",
+			"effect_type": "spell",
 			"target_type": "entity"
 		}]
 	},
@@ -592,6 +797,7 @@
 		"description": "Return all entities to their owners' hands.",
 		"effects": [{
 			"name": "unwind",
+			"effect_type": "spell",
 			"target_type": "all_entities"
 		}]
 	},
@@ -603,6 +809,7 @@
 		"description": "Each player shuffles together hand/deck/discard and draws 3 cards.",
 		"effects": [{
 			"name": "entwine",
+			"effect_type": "spell",
 			"target_type": "all_players"
 		}]
 	},
@@ -614,7 +821,34 @@
 		"description": "Kill an entity.",
 		"effects": [{
 			"name": "kill",
+			"effect_type": "spell",
 			"target_type": "entity"
+		}]
+	},
+	{
+		"name": "Hide",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Target entity gains Lurker.",
+		"effects": [ 
+			{
+				"name": "add_entity_abilities",
+				"effect_type": "spell",
+				"target_type": "entity",
+				"abilities": [{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}]
+			}
+		]
+	},	{
+		"name": "Kill Relic",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Kill a relic.",
+		"effects": [{
+			"name": "kill",
+			"effect_type": "spell",
+			"target_type": "relic"
 		}]
 	},
 	{
@@ -625,8 +859,35 @@
 		"description": "Deal 3 damage.",
 		"effects": [{
 			"name": "damage",
+			"effect_type": "spell",
 			"target_type": "any",
 			"amount": 3
+		}]
+	},
+	{
+		"name": "Lightning Storm",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Deal 2 damage to all entities.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "all_entities",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Blast",
+		"race": "genie",
+		"cost": 4,
+		"card_type": "Spell",
+		"description": "Deal 6 damage.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "any",
+			"amount": 6
 		}]
 	},
 	{
@@ -637,11 +898,13 @@
 		"description": "Deal 4 damage. Discard a card at random",
 		"effects": [{
 			"name": "damage",
+			"effect_type": "spell",
 			"target_type": "any",
 			"amount": 4
 		},
 		{
 			"name": "discard_random",
+			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 1
 		}]
@@ -705,6 +968,7 @@
 		],
 		"effects": [{
 			"name": "unwind",
+			"effect_type": "enter_play",
 			"target_type": "all_entities"
 		}]	
 	},
@@ -716,6 +980,7 @@
 		"description": "Choose 1 of 3 spells to make and add to your deck. Draw a card.",
 		"effects": [{
 			"name": "make",
+			"effect_type": "spell",
 			"target_type": "self",
 			"make_type": "Spell",
 			"amount": 1
@@ -735,6 +1000,7 @@
 		"effects": [ 
 			{
 				"name": "add_tokens",
+				"effect_type": "spell",
 				"target_type": "entity",
 				"tokens": [{
 					"turns": 2,
@@ -744,6 +1010,7 @@
 			{
 				"name": "draw",
 				"target_type": "self",
+				"effect_type": "spell",
 				"amount": 1
 			}
 		]
@@ -756,11 +1023,13 @@
 		"description": "Deal 1 damage. Draw 1 card.",
 		"effects": [{
 			"name": "damage",
+			"effect_type": "spell",
 			"target_type": "any",
 			"amount": 1
 		}, 
 		{
 			"name": "draw",
+			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 1
 		}]
@@ -774,6 +1043,7 @@
 		"effects": [{
 			"name": "counter",
 			"amount": 2,
+			"effect_type": "spell",
 			"target_type": "card_being_cast"
 		}]
 	},
@@ -786,6 +1056,7 @@
 		"effects": [{
 			"name": "counter",
 			"amount": 3,
+			"effect_type": "spell",
 			"target_type": "card_being_cast"
 		}]
 	},
@@ -794,9 +1065,10 @@
 		"race": "genie",
 		"cost": 4,
 		"card_type": "Spell",
-		"description": "All your entities can attack the turn they come into play.",
+		"description": "All your entities get Fast (attack turn summoned).",
 		"effects": [{
 			"name": "add_player_abilities",
+			"effect_type": "spell",
 			"target_type": "new_self_entities",
 			"abilities": [
 				{
@@ -815,6 +1087,7 @@
 		"description": "Entities can't be summoned next turn.",
 		"effects": [{
 			"name": "add_player_abilities",
+			"effect_type": "spell",
 			"target_type": "opponent",
 			"abilities": [
 				{
@@ -834,6 +1107,7 @@
 		"description": "Fill each player's board with entities.",
 		"effects": [{
 			"name": "summon_from_deck",
+			"effect_type": "spell",
 			"target_type": "all_players",
 			"amount": -1
 		}]
@@ -846,6 +1120,7 @@
 		"description": "Take control of an entity.",
 		"effects": [{
 			"name": "take_control",
+			"effect_type": "spell",
 			"target_type": "opponents_entity"
 		}]
 	},
@@ -854,13 +1129,21 @@
 		"card_type": "Entity",
 		"power": 1,
 		"toughness": 2,
-		"cost": 1,
+		"cost": 2,
 		"description": "Draw a card.",
 		"effects": [{
 			"name": "draw",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Orc",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 4,
+		"cost": 3
 	},
 	{
 		"name": "Common Bunger",
@@ -871,11 +1154,12 @@
 	},
 	{
 		"name": "Make Entity",
-		"cost": 1,
+		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 entities to make and add to your deck.",
 		"effects": [{
 			"name": "make",
+			"effect_type": "spell",
 			"target_type": "self",
 			"make_type": "Entity",
 			"amount": 1
@@ -883,11 +1167,12 @@
 	},
 	{
 		"name": "Make Spell",
-		"cost": 1,
+		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 spells to make and add to your deck.",
 		"effects": [{
 			"name": "make",
+			"effect_type": "spell",
 			"target_type": "self",
 			"make_type": "Spell",
 			"amount": 1
@@ -895,14 +1180,712 @@
 	},
 	{
 		"name": "Make Global Effect",
-		"cost": 1,
+		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 global effects to affect all players",
 		"effects": [{
 			"name": "make",
+			"effect_type": "spell",
 			"target_type": "self",
 			"make_type": "Global",
 			"amount": 1
 		}]
+	},
+	{
+		"name": "The Biggest One",
+		"card_type": "Entity",
+		"power": 15,
+		"toughness": 15,
+		"cost": 10
+	},
+	{
+		"name": "Dagger",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			},
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
+			}
+		],
+		"effects": [{
+				"name": "enable_activated_effect",
+				"effect_type": "activated",
+				"target_type": "self",
+				"cost": 2,
+				"effect_to_activate": {
+					"name": "attack",
+					"effect_type": "activated",
+					"description": "Remove a counter: Attack an enemy for 1 damage.",
+					"target_type": "any_enemy",
+					"counters": 2,
+					"cost": 0,
+					"power": 1,
+					"was_added": true
+				}
+		}]
+	},
+	{
+		"name": "Bow",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Deal 2 damage to your opponent.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"effects": [{
+				"name": "damage",
+				"effect_type": "activated",
+				"target_type": "opponent",
+				"cost": 2,
+				"amount": 2
+		}]
+	},
+	{
+		"name": "Wand",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Deal 1 damage to anything.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"effects": [{
+				"name": "damage",
+				"effect_type": "activated",
+				"target_type": "any",
+				"cost": 2,
+				"amount": 1
+		}]
+	},
+	{
+		"name": "Prayer Beads",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Heal 2 hit points",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"effects": [{
+				"name": "heal",
+				"effect_type": "activated",
+				"target_type": "any",
+				"cost": 2,
+				"amount": 2
+		}]
+	},
+	{
+		"name": "Shield",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Gain 2 armor.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"effects": [{
+				"name": "gain_armor",
+				"effect_type": "activated",
+				"target_type": "self",
+				"cost": 2,
+				"amount": 2
+		}]
+	},
+	{
+		"name": "Shield Up",
+		"race": "genie",
+		"card_type": "Spell",
+		"cost": 3,
+		"description": "Gain 7 armor. Draw a card.",
+		"effects": [{
+				"name": "gain_armor",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 7
+		},
+		{
+				"name": "draw",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 1
+		}]
+	},
+	{
+		"name": "Abyssal Crystal",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: draw a card and lose 2 life.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"effects": [{
+				"name": "draw",
+				"effect_type": "activated",
+				"target_type": "self",
+				"cost": 2,
+				"cost_hp": 2,
+				"amount": 1
+		}]
+	},
+	{
+		"name": "Wish Stone",
+		"card_type": "Relic",
+		"cost": 4,
+		"description": "0: sacrifice this, put a relic from your deck into play.",
+		"effects": [{
+				"name": "fetch_card_into_play",
+				"effect_type": "activated",
+				"target_type": "Relic",
+				"cost": 0,
+				"sacrifice_on_activate": true
+		}]
+	},
+	{
+		"name": "Feral Shroom Dance",
+		"race": "elf",
+		"card_type": "Spell",
+		"cost": 7,
+		"description": "Fill your board with 1/1 mushrooms.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Mushroom",
+			"effect_type": "spell",
+			"target_type": "self",
+			"power": 1,
+			"toughness": 1,
+			"amount": 7,
+			"cost": 7
+		}]
+	},
+	{
+		"name": "Kano from Barias",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 0,
+		"toughness": 2,
+		"cost": 4,
+		"description": "You can't be reduced to less than 1 life.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"target_type": "self",
+			"abilities": [
+				{
+					"name": "Can't Die",
+					"description": "Can't Die",
+					"descriptive_id": "Can't Die"
+				}
+			]				
+		}],
+		"effects": [{
+			"name": "remove_player_abilities",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"abilities": [
+				{
+					"descriptive_id": "Can't Die"
+				}
+			]				
+		}]
+	},
+	{
+		"name": "Gnomish Minstrel",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "DamageTakeControl",
+				"descriptive_id": "DamageTakeControl",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Town Ranger",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 2,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			},
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Fighter",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Wizard",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Make a Spell.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "Spell",
+			"amount": 1
+		}],	
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Shaman",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Make an Entity.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "Entity",
+			"amount": 1
+		}],	
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Town Priest",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 2,
+		"cost": 1,
+		"description": "Heal for 2.",
+		"effects": [{
+			"name": "heal",
+			"effect_type": "enter_play",
+			"target_type": "any",
+			"amount": 2
+		}],	
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Lute",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			},
+			{
+				"name": "Instrument",
+				"descriptive_id": "Instrument"
+			}
+		],
+		"effects": [{
+				"name": "enable_activated_effect",
+				"effect_type": "activated",
+				"target_type": "self",
+				"cost": 2,
+				"effect_to_activate": {
+					"name": "make_random_townie",
+					"effect_type": "activated",
+					"description": "Remove a counter: Add a Townie to your hand",
+					"target_type": "self",
+					"amount": 2,
+					"counters": 2,
+					"cost": 0,
+					"power": 0,
+					"was_added": true
+				}
+		}]
+	},
+	{
+		"name": "Gnomish Mayor",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Summon a Townie.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Townie",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"power": 1,
+			"toughness": 1,
+			"amount": 1,
+			"cost": 1
+		}],
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Gnomish Press Gang",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 2,
+		"description": "Add a Townie to your hand.",
+		"effects": [{
+			"name": "make_random_townie",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Gnomish Soundsmith",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+		"description": "Select an instrument from your deck.",
+		"effects": [{
+			"name": "fetch_card",
+			"effect_type": "enter_play",
+			"target_type": "Relic",
+			"target_restrictions": [{"needs_instrument": null}],
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Bewitching Lights",
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+		"abilities": [
+				{
+					"name": "discard_random",
+					"descriptive_id": "discard_random",
+					"amount": 1
+				}
+		]
+	},
+	{
+		"name": "Befuddling Guitar",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Relic",
+		"cost": 1,
+		"description": "If this kills an entity, put it on top of it's owner's deck. If it attacks a player, they put a random card from their hand into their deck then draw a card.",
+		"abilities": [
+			{
+				"name": "Instrument",
+				"descriptive_id": "Instrument"
+			},
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
+			},
+			{
+				"name": "die_to_top_deck",
+				"descriptive_id": "die_to_top_deck"
+			},
+			{
+				"name": "discard_random_to_deck",
+				"descriptive_id": "discard_random_to_deck",
+				"amount": 1
+			},
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"target_type": "opponent",
+				"amount": 1
+			}
+		],
+		"effects": [{
+					"name": "attack",
+					"effect_type": "activated",
+					"target_type": "any_enemy",
+					"counters": 2,
+					"cost": 0,
+					"power": 3
+		}]
+	},
+	{
+		"name": "Town Council",
+		"race": "gnome",
+		"class": "bard",
+		"description": "Each entity you control gets +1/+1 for every 2 entities you control, rounded down.",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 4,
+		"cost": 3,
+		"effects": [{
+			"name": "add_tokens",
+			"effect_type": "enter_play",
+			"target_type": "entity",
+			"tokens": [{
+				"turns": 1,
+				"target_type": "self_entities",
+				"power_modifier": 1,
+				"toughness_modifier": 1,
+				"multiplier": "half_self_entities"
+			}]
+		}]
+	},
+	{
+		"name": "Totem Cat",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Get a 2/1 ghost token when this dies.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Ghost of the Cat",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"power": 2,
+			"toughness": 1,
+			"amount": 1
+		}]
+	},
+	{
+
+		"name": "Taunted Bear",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 2,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Fade",
+				"descriptive_id": "Fade"
+			},
+			{
+				"name": "Stomp",
+				"descriptive_id": "Stomp"
+			}
+		]
+	},
+	{
+
+		"name": "War Scorpion",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "Ambush",
+				"descriptive_id": "Ambush"
+			}
+		],
+		"effects": [
+			{
+				"name": "toggle_symbiotic_fast",
+				"effect_type": "triggered",
+				"target_type": "self",
+				"trigger": "entity_changes_zones"
+			}
+		]
+	},
+	{
+
+		"name": "Berserk Monkey",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"effects": [
+			{
+				"name": "add_tokens",
+				"effect_type": "triggered",
+				"target_type": "self",
+				"trigger": "friendly_card_played",
+				"tokens": [{
+					"power_modifier": 1,
+					"toughness_modifier": 1
+				}]
+			}
+		]
+	},
+	{
+		"name": "Frenzy",
+		"race": "human",
+		"class": "Fighter",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Draw a card this turn. Draw another card if you dealt damage to your opponent.",
+		"effects": [{
+			"name": "draw_if_damaged_opponent",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 1
+		}, 
+		{
+			"name": "draw",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Impale",
+		"race": "human",
+		"class": "Fighter",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Deal 3 damage to an entity and your opponent",
+		"effects": [
+			{
+				"name": "damage",
+				"effect_type": "spell",
+				"target_type": "any",
+				"amount": 3
+			},
+			{
+				"name": "damage",
+				"effect_type": "spell",
+				"target_type": "opponent",
+				"amount": 3
+			}]
+	},
+	{
+		"name": "Arsenal",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Relic",
+		"cost": 2,
+		"description": "Your entities get +1/+0 for each relic you control. ✦✦: equip this to get a 2/2 weapon. ✦✦: equip it to an entity to give it +2/+0.",
+		"abilities": [
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
+			}
+		],
+		"effects": [{
+				"name": "enable_activated_effect",
+				"effect_type": "activated",
+				"target_type": "self",
+				"description": "Remove a counter: Attack an enemy for 2 damage.",
+				"cost": 2,
+				"effect_to_activate": {
+					"name": "attack",
+					"effect_type": "activated",
+					"target_type": "any_enemy",
+					"counters": 2,
+					"cost": 2,
+					"power": 2,
+					"was_added": true
+				}
+		},
+			{
+				"name": "add_tokens",
+				"effect_type": "enter_play",
+				"target_type": "self_entities",
+				"tokens": [{
+					"power_modifier": 1,
+					"toughness_modifier": 0,
+					"multiplier": "self_relics"
+				}]
+			}
+		,
+			{
+				"name": "remove_tokens",
+				"effect_type": "leave_play",
+				"target_type": "self_entities"
+			}
+		,
+			{
+				"name": "set_token",
+				"effect_type": "triggered",
+				"target_type": "self_entities",
+				"trigger": "entity_changes_zones",
+				"tokens": [{
+					"power_modifier": 1,
+					"toughness_modifier": 0,
+					"multiplier": "self_relics"
+				}]
+			}
+		]
 	}
 ]
+
+
