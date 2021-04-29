@@ -1217,11 +1217,11 @@
 				"name": "enable_activated_effect",
 				"effect_type": "activated",
 				"target_type": "self",
-				"description": "Remove a counter: Attack an enemy for 1 damage.",
 				"cost": 2,
 				"effect_to_activate": {
 					"name": "attack",
 					"effect_type": "activated",
+					"description": "Remove a counter: Attack an enemy for 1 damage.",
 					"target_type": "any_enemy",
 					"counters": 2,
 					"cost": 0,
@@ -1546,15 +1546,16 @@
 				"name": "enable_activated_effect",
 				"effect_type": "activated",
 				"target_type": "self",
-				"description": "Remove a counter: Add a Townie to your hand",
 				"cost": 2,
 				"effect_to_activate": {
 					"name": "make_random_townie",
 					"effect_type": "activated",
+					"description": "Remove a counter: Add a Townie to your hand",
 					"target_type": "self",
 					"amount": 2,
 					"counters": 2,
 					"cost": 0,
+					"power": 0,
 					"was_added": true
 				}
 		}]

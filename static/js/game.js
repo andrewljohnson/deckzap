@@ -132,9 +132,9 @@ class GameUX {
 
     updateAddedAbilitiesForPlayer(player, divId) {
         let div = document.getElementById(divId);
-        if (player.added_abilities.length > 0) {
+        if (player.abilities.length > 0) {
             div.innerHTML = "Added Abilities: ";
-            for (let ability of player.added_abilities) {
+            for (let ability of player.abilities) {
              div.innerHTML += ability.name + " | "
             }
         } else {
@@ -275,9 +275,7 @@ class GameUX {
             cardDiv.appendChild(div)
         }
 
-        if (((card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled) ||
-        (card.added_abilities.length > 0 && card.added_abilities[0].descriptive_id == "Lurker" && card.added_abilities[0].enabled)) 
-            && card.turn_played > -1) {
+        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
             var div = document.createElement("div");
             div.style.backgroundColor = 'black';
             div.style.opacity = ".6";
@@ -319,16 +317,11 @@ class GameUX {
 
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
+                console.log(d);
                 let descriptionDiv = document.createElement("div");
                 descriptionDiv.innerHTML = d;
-                cardDiv.appendChild(descriptionDiv);                
+                descriptionDiv.appendChild(descriptionDiv);                
             }
-        }
-
-        for (let a of card.added_abilities) {
-            let abilitiesDiv = document.createElement("div");
-            abilitiesDiv.innerHTML = a.name;
-            descriptionDiv.appendChild(abilitiesDiv);            
         }
 
         let abilitiesDiv = document.createElement("div");
@@ -378,9 +371,16 @@ class GameUX {
             typeDiv.style.borderRadius = "3px"
             cardDiv.appendChild(typeDiv);           
         }
-        if (card.effects.length > 0 && card.effects[0].name == "attack") {
+        let attackEffect = null
+        for (let e of card.effects) {
+            if (e.name == "attack" || e.name == "make_random_townie") {
+                attackEffect = e;
+            }
+        }
+
+        if (attackEffect) {
             let powerChargesDiv = document.createElement("em");
-            powerChargesDiv.innerHTML = card.effects[0].power + "/" + card.effects[0].counters;
+            powerChargesDiv.innerHTML = attackEffect.power + "/" + attackEffect.counters;
             powerChargesDiv.style.position = "absolute";
             powerChargesDiv.style.bottom = "0px";
             powerChargesDiv.style.left = "0px";
@@ -389,16 +389,6 @@ class GameUX {
             powerChargesDiv.style.paddingLeft = "3px"
             powerChargesDiv.style.paddingRight = "3px"
             powerChargesDiv.style.borderRadius = "3px"
-            cardDiv.appendChild(powerChargesDiv);                       
-        }
-
-        // todo: does this even work?
-        if (card.effects.length > 0 && card.effects[0].name == "attack") {
-            let powerChargesDiv = document.createElement("em");
-            powerChargesDiv.innerHTML = card.effects[0].power + "/" + card.effects[0].counters;
-            powerChargesDiv.style.position = "absolute";
-            powerChargesDiv.style.bottom = "0px";
-            powerChargesDiv.style.left = "0px";
             cardDiv.appendChild(powerChargesDiv);                       
         }
 
