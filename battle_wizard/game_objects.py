@@ -2320,6 +2320,9 @@ class Player:
 class Card:
 
     def __init__(self, info):
+        self.id = info["id"] if "id" in info else -1
+
+        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
         self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
         self.attacked = info["attacked"] if "attacked" in info else False
         self.can_activate_abilities = info["can_activate_abilities"] if "can_activate_abilities" in info else True
@@ -2328,9 +2331,9 @@ class Card:
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
         self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
+        self.effects = [CardEffect(e, self.id) for _, e in enumerate(info["effects"])] if "effects" in info else []
         self.description = info["description"] if "description" in info else None
         self.global_effect = info["global_effect"] if "global_effect" in info else None
-        self.id = info["id"] if "id" in info else -1
         self.is_token = info["is_token"] if "is_token" in info else False
         self.name = info["name"]
         # probably bugs WRT Mind Manacles
@@ -2338,55 +2341,51 @@ class Card:
         self.power = info["power"] if "power" in info else None
         self.race = info["race"] if "race" in info else None
         self.shielded = info["shielded"] if "shielded" in info else False
+        self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.toughness = info["toughness"] if "toughness" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
-        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
-        self.effects = [CardEffect(e, self.id) for _, e in enumerate(info["effects"])] if "effects" in info else []
-
-        self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
-
     def __repr__(self):
         return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n \
-                 description: {self.description}\n \
+                 abilities: {self.abilities}, tokens: {self.tokens}\n \
                  added_descriptions: {self.added_descriptions}\n \
+                 attacked: {self.attacked}\n \
+                 can_activate_abilities: {self.can_activate_abilities})\n \
+                 can_be_clicked: {self.can_be_clicked}\n \
                  card_type: {self.card_type}\n \
-                 effects: {self.effects}\n \
                  damage: {self.damage}\n \
                  damage_this_turn: {self.damage_this_turn}\n \
-                 can_be_clicked: {self.can_be_clicked}\n \
+                 description: {self.description}\n \
+                 effects: {self.effects}\n \
                  id: {self.id}, turn played: {self.turn_played}\n \
-                 attacked: {self.attacked}\n \
-                 owner_username: {self.owner_username} \n \
-                 abilities: {self.abilities}, tokens: {self.tokens}\n \
-                 can_activate_abilities: {self.can_activate_abilities})\n \
-                 is_token: {self.is_token} shielded: {self.shielded}"
+                 is_token: {self.is_token} shielded: {self.shielded}\n \
+                 owner_username: {self.owner_username}"
  
 
     def as_dict(self):
         return {
-            "id": self.id,
-            "name": self.name,
-            "race": self.race,
-            "power": self.power,
-            "toughness": self.toughness,
-            "cost": self.cost,
-            "damage_this_turn": self.damage_this_turn,
-            "damage": self.damage,
-            "turn_played": self.turn_played,
-            "card_type": self.card_type,
-            "description": self.description,
+            "abilities": [a.as_dict() for a in self.abilities],
             "added_descriptions": self.added_descriptions,
+            "attacked": self.attacked,
+            "can_activate_abilities": self.can_activate_abilities,
+            "can_be_clicked": self.can_be_clicked,
+            "card_type": self.card_type,
+            "cost": self.cost,
+            "damage": self.damage,
+            "damage_this_turn": self.damage_this_turn,
+            "description": self.description,
             "effects": [e.as_dict() for e in self.effects],
             "global_effect": self.global_effect,
-            "attacked": self.attacked,
-            "can_be_clicked": self.can_be_clicked,
-            "can_activate_abilities": self.can_activate_abilities,
-            "owner_username": self.owner_username,
+            "id": self.id,
             "is_token": self.is_token,
+            "name": self.name,
+            "owner_username": self.owner_username,
+            "power": self.power,
+            "race": self.race,
             "shielded": self.shielded,
-            "abilities": [a.as_dict() for a in self.abilities],
-            "tokens": [t.as_dict() for t in self.tokens] if self.tokens else []
+            "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
+            "toughness": self.toughness,
+            "turn_played": self.turn_played,
         }
 
     def enabled_activated_effects(self):
