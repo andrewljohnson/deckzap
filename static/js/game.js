@@ -304,24 +304,39 @@ class GameUX {
         nameDiv.innerHTML = card.name;
         cardDiv.appendChild(nameDiv)
 
+
+        let activatedEffects = [];
+        let attackEffect = null;
+        for (let e of card.effects) {
+            if (e.effect_type == "activated" && e.enabled) {
+                activatedEffects.push(e)
+                if (e.name == "attack" || e.name == "make_random_townie") {
+                    attackEffect = e;
+                }
+            }
+        }
+
         let descriptionDiv = document.createElement("div");
         descriptionDiv.style.maxHeight = "60px"
         cardDiv.appendChild(descriptionDiv);
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
-            if ((card.effects.length == 0 || card.effects[0].target_type == "this" || card.turn_played == -1 || card.effects[0].name == "attack" || card.effects[0].name == "enable_activated_effect") ||
-                card.effects[0].effect_type != "activated") {
+            if (card.card_type == "Entity" && activatedEffects.length == 0) {
+                descriptionDiv.innerHTML = card.description;
+            } else if (card.card_type != "Entity" && activatedEffects.length < 2) {
+                descriptionDiv.innerHTML = card.description;
+            }
+            if (card.turn_played == -1) {
                 descriptionDiv.innerHTML = card.description;
             }
         }
 
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
-                console.log(d);
-                let descriptionDiv = document.createElement("div");
-                descriptionDiv.innerHTML = d;
-                descriptionDiv.appendChild(descriptionDiv);                
+                let addedDescriptionDiv = document.createElement("div");
+                addedDescriptionDiv.innerHTML = d;
+                descriptionDiv.appendChild(addedDescriptionDiv);                
             }
         }
 
@@ -359,7 +374,7 @@ class GameUX {
             powerToughnessDiv.style.paddingRight = "3px"
             powerToughnessDiv.style.borderRadius = "3px"
             cardDiv.appendChild(powerToughnessDiv);
-        } else {
+        } else if (card.turn_played == -1) {
             let typeDiv = document.createElement("em");
             typeDiv.innerHTML = card.card_type;
             typeDiv.style.position = "absolute";
@@ -371,12 +386,6 @@ class GameUX {
             typeDiv.style.paddingRight = "3px"
             typeDiv.style.borderRadius = "3px"
             cardDiv.appendChild(typeDiv);           
-        }
-        let attackEffect = null
-        for (let e of card.effects) {
-            if (e.name == "attack" || e.name == "make_random_townie") {
-                attackEffect = e;
-            }
         }
 
         if (attackEffect) {
@@ -393,35 +402,63 @@ class GameUX {
             cardDiv.appendChild(powerChargesDiv);                       
         }
 
-        // todo: don't hardcode for Infernus
-        if (card.effects.length > 0 && card.effects[0].target_type == "this" && card.turn_played > -1) {
-            var input = document.createElement("div");
-            input.className = "button"
-            input.style.width = "40px";
-            input.style.height = "15px";
-            input.style.fontSize = "10px";
-            input.style.padding = "5px";
-            input.style.marginTop = "10px";
-            input.innerHTML = "✦: +1/+0";
-            if (card.effects[0].cost <= this.thisPlayer(game).mana) {
-                input.disabled = false;                
-                input.style.backgroundColor = "blue"
-            } else {
-                input.disabled = true;
-                input.style.backgroundColor = "lightgray"
-            }
-            var self = this;
-            input.onclick = function(event) { 
-                if (card.effects[0].cost <= self.thisPlayer(game).mana) {
-                    self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id});
+        if ((card.card_type != "Entity" && activatedEffects.length > 1) || (card.card_type == "Entity" && activatedEffects.length > 0)) {
+            if (card.turn_played > -1) {
+                var index = 0;
+                for (let e of activatedEffects) {
+                    if (!e.enabled) {
+                        continue;
+                    }
+                    var input = document.createElement("div");
+                    input.effect_index = index;
+                    input.className = "button"
+                    input.style.width = "76px";
+                    input.style.height = "15px";
+                    input.style.fontSize = "10px";
+                    input.style.padding = "4px";
+                    input.style.marginTop = "10px";
+                    input.style.textAlign = "left";
+                    input.innerHTML = e.description;
+                    if (e.cost <= this.thisPlayer(game).mana && card.effects_can_be_clicked[index] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
+                        input.disabled = false;                
+                        input.style.backgroundColor = "blue"
+                    } else {
+                        input.disabled = true;
+                        input.style.backgroundColor = "lightgray"
+                    }
+                    var self = this;
+                    input.onclick = function(event) { 
+                        if (e.cost <= self.thisPlayer(game).mana) {
+                            if (card.card_type == "Relic" && e.target_type == "self_entity") {
+                                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": this.effect_index});
+                            } else if (card.card_type == "Relic" && e.target_type == "self") {
+                                self.sendPlayMoveEvent("ACTIVATE_RELIC", {"card":card.id, "effect_index": this.effect_index});
+                            } else if (true) {
+                                self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id, "effect_index": this.effect_index});
+                            }
+                        }
+                        event.stopPropagation()
+                    };
+                    cardDiv.appendChild(input);
+                    index += 1;
                 }
-                event.stopPropagation()
-            };
-            cardDiv.appendChild(input);
+            }
         }
 
+        cardDiv.onclick = function() {
+            if (cardDiv.parentElement.parentElement == document.getElementById("hand")) {  
+                self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+            } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
+                self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id, "effect_index": -1});
+            } else { 
+                console.log("FOOP");
+                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": -1});
+            }            
+        }
+
+
         // todo: don't hardcode for Winding One
-        if (card.effects.length > 0 && card.effects[0].effect_type == "activated" && card.effects[0].target_type == "entity" && card.turn_played > -1) {
+        /* f (card.effects.length > 0 && card.effects[0].effect_type == "activated" && card.effects[0].target_type == "entity" && card.turn_played > -1) {
             var input = document.createElement("div");
             input.className = "button"
             input.style.width = "70px";
@@ -455,14 +492,14 @@ class GameUX {
                 document.getElementById("bigger_card").parentNode.removeChild(document.getElementById("bigger_card"));4            
             }
         }, false);   
-
+         */
         if (dont_attach_listeners) {
             var span = document.createElement("span");
             span.appendChild(cardDiv)
             return span;
         }
-
         var self = this;
+       /* 
         var cancel = false;
         let clickTime;
         cardDiv.addEventListener('mousedown', function(){
@@ -489,7 +526,7 @@ class GameUX {
                 document.getElementById("bigger_card").parentNode.removeChild(document.getElementById("bigger_card"));
             }
 
-            event.stopPropagation();
+            // event.stopPropagation();
 
             function captureClick(e) {
                 if (new Date() - clickTime < 150) {
@@ -497,9 +534,10 @@ class GameUX {
                     if (cardDiv.parentElement.parentElement == document.getElementById("hand")) {  
                         self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
                     } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
-                        self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});
+                        self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id, "effect_index": 0});
                     } else { 
-                        self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id});
+                        console.log("foop")
+                        self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": 0});
                     }
                     cancel = true;
                 } else {
@@ -517,6 +555,7 @@ class GameUX {
             ); 
 
         }, false);   
+*/
 
         var span = document.createElement("span");
         span.appendChild(cardDiv)
@@ -524,11 +563,12 @@ class GameUX {
     }
 
     selfClick () {
-        this.sendPlayMoveEvent("SELECT_SELF", {});
+        this.sendPlayMoveEvent("SELECT_SELF");
     }
 
     opponentClick () {
-        this.sendPlayMoveEvent("SELECT_OPPONENT", {});
+        // this -1 and the one in selfClick should instead store the last effect being targetted in the. game state instead
+        this.sendPlayMoveEvent("SELECT_OPPONENT");
     }
 
     viewHelp() {

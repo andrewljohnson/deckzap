@@ -301,7 +301,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})        
         self.assertEqual(len(game.current_player().hand), 2)
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "effect_id":0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})        
         self.assertEqual(game.current_player().relics[0].enabled_activated_effects()[0].counters, 2)
         os.remove(f"database/games/{dbName}.json")
 
