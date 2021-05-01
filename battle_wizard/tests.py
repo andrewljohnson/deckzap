@@ -384,6 +384,11 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 27)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(len(game.current_player().relics), 0)
         os.remove(f"database/games/{dbName}.json")
 
     def test_befuddling_guitar_attack_entity(self):
@@ -594,4 +599,89 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 28)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_dragonslayer_elf_no_targets(self):
+        """
+            Test Befuddling Guitar.
+        """
+        dbName, game = self.game_for_decks([["Dragonslayer Elf", "Stone Elemental"], ["Stone Elemental"]])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.current_player().username, "b")
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_guard_lurker(self):
+        """
+            Test Befuddling Guitar.
+        """
+        dbName, game = self.game_for_decks([["Stone Elemental", "Hide"], ["Air Elemental"]])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 2, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, 28)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_ten_card_hand_limit(self):
+        """
+            Test Befuddling Guitar.
+        """
+
+        deck1 = ["Stone Elemental" for x in range(0,11)]
+        deck2 = ["Stone Elemental" for x in range(0,11)]
+        dbName, game = self.game_for_decks([deck1,deck2])
+        for x in range(0,10):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 10)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_mana_storm(self):
+        """
+            Test Mana Storm.
+        """
+
+        deck1 = ["Mana Storm"]
+        deck2 = []
+        dbName, game = self.game_for_decks([deck1,deck2])
+        for x in range(0,8):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.current_player().max_mana, 10)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        self.assertEqual(game.current_player().max_mana, 0)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_riftwalker_djinn_syphon(self):
+        """
+            Test Syphon ability of Riftwalker Djinn
+        """
+
+        deck1 = ["Town Fighter"]
+        deck2 = ["Riftwalker Djinn"]
+        dbName, game = self.game_for_decks([deck1,deck2])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})        
+        self.assertEqual(game.opponent().hit_points, 28)
+        for x in range(0,3):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})        
+        self.assertEqual(game.current_player().hit_points, 30)
+
         os.remove(f"database/games/{dbName}.json")
