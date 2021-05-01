@@ -349,11 +349,16 @@ class GameUX {
             let cardPower = card.power;
             let cardToughness = card.toughness - card.damage;
             if (card.tokens) {
+                // todo does this code need to be clientside
                 for (let c of card.tokens) {
-                    cardPower += c.power_modifier;
-                }
-                for (let c of card.tokens) {
-                    cardToughness += c.toughness_modifier;
+                    if (c.multiplier == "self_relics") {
+                        cardPower += c.power_modifier * this.thisPlayer(game).relics.length;                        
+                    } else {
+                        cardPower += c.power_modifier;                        
+                    }
+                    for (let c of card.tokens) {
+                        cardToughness += c.toughness_modifier;
+                    }
                 }
             }
             let powerToughnessDiv = document.createElement("em");
@@ -445,15 +450,16 @@ class GameUX {
                 }
             }
         }
-
-        cardDiv.onclick = function() {
-            if (cardDiv.parentElement.parentElement == document.getElementById("hand")) {  
-                self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
-            } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
-                self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id, "effect_index": -1});
-            } else { 
-                self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": -1});
-            }            
+        if (card.can_be_clicked) {
+            cardDiv.onclick = function() {
+                if (cardDiv.parentElement.parentElement == document.getElementById("hand")) {  
+                    self.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":card.id});
+                } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
+                    self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id, "effect_index": -1});
+                } else { 
+                    self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": -1});
+                }            
+            }
         }
 
 

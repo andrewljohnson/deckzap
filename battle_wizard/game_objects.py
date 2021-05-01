@@ -291,7 +291,6 @@ class Game:
         if cp.selected_entity() and cp.card_info_to_resolve["effect_type"] != "entity_at_ready":
             cp.set_targets_for_selected_entity()
         elif cp.selected_relic():
-            print("has selected relic")
             selected_relic = cp.selected_relic()
             if not selected_relic.needs_activated_effect_targets():
                 selected_relic.can_be_clicked = True 
@@ -324,7 +323,6 @@ class Game:
                     if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
         if cp.card_info_to_resolve["effect_type"]:
-            print("has card_info_to_resolve, so don't add relic/inplay/hand moves")
             return
 
         if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_entity_for_effect", "select_entity_for_ice_prison"]:
