@@ -538,7 +538,7 @@ class GameObjectTests(TestCase):
 
     def test_arsenal_manacles(self):
         """
-            Test Arsenal and Kill Relic.
+            Test Arsenal and Mind Manacles.
         """
         dbName, game = self.game_for_decks([["War Scorpion", "Arsenal"], ["Mind Manacles"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -557,6 +557,32 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 2)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_arsenal_equipped_manacles(self):
+        """
+            Test Arsenal equipped and Mind Manacles.
+        """
+        dbName, game = self.game_for_decks([["War Scorpion", "Arsenal"], ["Mind Manacles"]])
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "effect_index": 1, "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 5)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 2)
+        self.assertEqual(game.opponent().relics[0].enabled_activated_effects()[0].cost, 2)
+        os.remove(f"database/games/{dbName}.json")
+
 
     def test_arsenal_two_relics(self):
         """
@@ -587,7 +613,7 @@ class GameObjectTests(TestCase):
 
     def test_arsenal_attack_player(self):
         """
-            Test Befuddling Guitar.
+            Test Arsenal attacks a player as a weapon.
         """
         dbName, game = self.game_for_decks([["Arsenal"], []])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -603,7 +629,7 @@ class GameObjectTests(TestCase):
 
     def test_dragonslayer_elf_no_targets(self):
         """
-            Test Befuddling Guitar.
+            Test you can End Turn after playing DragonSlayer with no targets.
         """
         dbName, game = self.game_for_decks([["Dragonslayer Elf", "Stone Elemental"], ["Stone Elemental"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
@@ -617,7 +643,7 @@ class GameObjectTests(TestCase):
 
     def test_guard_lurker(self):
         """
-            Test Befuddling Guitar.
+            Test you can attack past an entity with Guard+Lurker.
         """
         dbName, game = self.game_for_decks([["Stone Elemental", "Hide"], ["Air Elemental"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -633,7 +659,7 @@ class GameObjectTests(TestCase):
 
     def test_ten_card_hand_limit(self):
         """
-            Test Befuddling Guitar.
+            Test you can't draw more than 10 cards.
         """
 
         deck1 = ["Stone Elemental" for x in range(0,11)]

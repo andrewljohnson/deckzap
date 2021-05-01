@@ -418,7 +418,7 @@ class GameUX {
                     input.style.textAlign = "left";
                     input.style.zIndex = 10;
                     input.innerHTML = e.description;
-                    if (e.cost <= this.thisPlayer(game).mana && card.effects_can_be_clicked[index] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
+                    if (e.cost <= this.thisPlayer(game).mana && card.effects_can_be_clicked[index] && !this.thisPlayer(game).card_info_to_resolve["card_id"] && card.can_activate_abilities) {
                         input.disabled = false;                
                         input.style.backgroundColor = "yellow"
                         input.style.color = "black"
@@ -452,7 +452,6 @@ class GameUX {
             } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
                 self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id, "effect_index": -1});
             } else { 
-                console.log("FOOP");
                 self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": -1});
             }            
         }
@@ -537,7 +536,6 @@ class GameUX {
                     } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
                         self.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id, "effect_index": 0});
                     } else { 
-                        console.log("foop")
                         self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": 0});
                     }
                     cancel = true;
