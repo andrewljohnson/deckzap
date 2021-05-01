@@ -92,6 +92,7 @@ class Game:
             if not player.selected_entity() and not player.selected_relic() and not player.selected_spell():
                 moves.append({"move_type": "END_TURN", "username": self.ai})
 
+        print(moves)
         return moves
 
     def add_effect_resolve_move(self, entity_to_target, effect_target, effect_type, moves):
@@ -99,6 +100,7 @@ class Game:
         moves.append({
                 "card":entity_to_target.id, 
                 "move_type": "RESOLVE_ENTITY_EFFECT", 
+                "effect_index": 0, 
                 "username": self.ai,
                 "effect_targets": {0: effect_target}})
         return moves
@@ -142,8 +144,9 @@ class Game:
 
     def add_attack_and_play_card_moves(self, moves):
         for relic in self.current_player().relics:
-            if relic.can_be_clicked:
-                moves.append({"card":relic.id , "move_type": "SELECT_RELIC", "username": self.ai})
+            for idx, e in enumerate(relic.enabled_activated_effects()):                
+                if len(relic.effects_can_be_clicked)> idx and relic.effects_can_be_clicked[idx]:
+                    moves.append({"card":relic.id , "move_type": "SELECT_RELIC", "username": self.ai, "effect_index": idx})
         for entity in self.current_player().in_play:
             if entity.can_be_clicked:
                 moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": self.ai})
@@ -151,11 +154,12 @@ class Game:
             if len(entity.effects_activated()) > 0 and \
                 entity.effects_activated()[0].target_type == "this" and \
                 entity.effects_activated()[0].cost <= self.current_player().mana:
-                moves.append({"card":entity.id, "move_type": "ACTIVATE_ENTITY", "username": self.ai})
+                # todo maybe entities will have multiple effects
+                moves.append({"card":entity.id, "move_type": "ACTIVATE_ENTITY", "username": self.ai, "effect_index": 0})
             elif len(entity.effects_activated()) > 0 and \
                 entity.effects_activated()[0].cost <= self.current_player().mana:
-                # todo: don't hardcode for Winding One
-                moves.append({"card":entity.id, "move_type": "ACTIVATE_ENTITY", "username": self.ai})
+                # todo maybe entities will have multiple effects, only have Winding One right now
+                moves.append({"card":entity.id, "move_type": "ACTIVATE_ENTITY", "username": self.ai, "effect_index": 0})
         for entity in self.opponent().in_play:
             if entity.can_be_clicked:
                 moves.append({"card":entity.id , "move_type": "SELECT_ENTITY", "username": self.ai})
@@ -195,7 +199,7 @@ class Game:
                     break
             if found_relic:
                 found_relic.turn_played = self.turn
-                self.current_player().relics.append(found_relic)
+                self.current_player().play_relic(found_relic)
                 self.current_player().deck.remove(found_relic)
             
             found_relic = None
@@ -205,7 +209,7 @@ class Game:
                     break
             if found_relic:
                 found_relic.turn_played = self.turn
-                self.opponent().relics.append(found_relic)
+                self.opponent().play_relic(found_relic)
                 self.opponent().deck.remove(found_relic)
 
 
@@ -264,10 +268,12 @@ class Game:
             card.can_be_clicked = False
         for card in self.current_player().in_play:
             card.can_be_clicked = False
+            card.effects_can_be_clicked = []
         for card in self.current_player().hand:
             card.can_be_clicked = False
         for card in self.current_player().relics:
             card.can_be_clicked = False
+            card.effects_can_be_clicked = []
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
 
@@ -285,6 +291,7 @@ class Game:
         if cp.selected_entity() and cp.card_info_to_resolve["effect_type"] != "entity_at_ready":
             cp.set_targets_for_selected_entity()
         elif cp.selected_relic():
+            print("has selected relic")
             selected_relic = cp.selected_relic()
             if not selected_relic.needs_activated_effect_targets():
                 selected_relic.can_be_clicked = True 
@@ -317,6 +324,7 @@ class Game:
                     if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
         if cp.card_info_to_resolve["effect_type"]:
+            print("has card_info_to_resolve, so don't add relic/inplay/hand moves")
             return
 
         if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_entity_for_effect", "select_entity_for_ice_prison"]:
@@ -406,7 +414,8 @@ class Game:
 
     def set_targets_for_enemy_damage_effect(self):
         for card in self.opponent().in_play:
-            card.can_be_clicked = True
+            if not card.has_ability("Lurker"):
+                card.can_be_clicked = True
         self.opponent().can_be_clicked = True
 
     def set_targets_for_player_effect(self):
@@ -634,7 +643,7 @@ class Game:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
 
-                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 2, "Thought Sprite": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 2, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Fire Elemental": 2, "Siz Pop": 2, "Counterspell": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
+                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 10, "Winding One": 10, "Think": 2, "LionKin": 2, "Faerie Queen": 5, "Lightning Elemental": 2, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Arsenal": 10, "Siz Pop": 2, "Befuddling Guitar": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
                 deck_to_use = deck_to_use if deck_to_use else default_deck
                 card_names = []
                 for key in deck_to_use["cards"]:
@@ -703,7 +712,8 @@ class Game:
                     else:
                         self.current_player().card_info_to_resolve["card_id"] = card.id
                         self.current_player().card_info_to_resolve["effect_type"] = "spell_cast"
-
+                        # todo this is hardcoded, cant support multiple effects per card?
+                        self.current_player().card_info_to_resolve["effect_index"] = 0
                 else:
                     print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")                        
                     return None
@@ -1021,7 +1031,7 @@ class Game:
                 card = c
         if card_type == "Relic":
             if into_play:
-                self.current_player().relics.append(card)
+                self.current_player().play_relic(card)
             else:
                 self.current_player().hand.append(card)
             self.current_player().deck.remove(card)
@@ -2134,8 +2144,7 @@ class Player:
             card.turn_played = self.game.turn
 
         elif card.card_type == "Relic":
-            self.relics.append(card)
-            card.turn_played = self.game.turn
+            self.play_relic(card)
         else:
             self.played_pile.append(card)            
 
@@ -2163,6 +2172,11 @@ class Player:
 
         return message
 
+    def play_relic(self, relic):
+        self.relics.append(relic)
+        relic.turn_played = self.game.turn
+        # self.game.update_for_entity_changes_zones(self)
+        # self.update_for_entity_changes_zones(self.game.opponent())        
 
     def fast_ability(self):
         for a in self.abilities:
@@ -2415,15 +2429,15 @@ class Player:
             equipped_entity.damage_this_turn = max(0, equipped_entity.damage_this_turn-toughness_change_from_tokens)
         # todo remove added_description
 
-        for a in card.effects:
-            if a.effect_type == "activated" and a.id == card.id:
-                ability_to_remove = a
-        card.effects.remove(ability_to_remove)
+        idx_to_replace = None
+        for idx, r in enumerate(self.relics):
+            if r.id == card.id:
+                idx_to_replace = idx
 
-        for a in card.effects:
-            if a.effect_type == "activated":
-                a.enabled = True
-        card.description = card.original_description
+        old_turn_played = card.turn_played
+        new_card = self.game.factory_reset_card(card, self)
+        new_card.turn_played = old_turn_played
+        self.relics[idx_to_replace] = new_card
 
 class Card:
 
