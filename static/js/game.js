@@ -276,16 +276,9 @@ class GameUX {
         }
 
         if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            var div = document.createElement("div");
-            div.style.backgroundColor = 'black';
-            div.style.opacity = ".6";
-            div.style.height = "100%";
-            div.style.width = "100%";
-            div.style.position = "absolute";
-            div.style.top = 0;
-            div.style.left = 0;
-            div.style.pointerEvents = "none";
-            cardDiv.appendChild(div)
+            cardDiv.style.backgroundColor = 'black';
+            cardDiv.style.color = 'white';
+            cardDiv.style.opacity = ".6";
         }
 
         if (card.card_type != "Effect") {
@@ -413,18 +406,26 @@ class GameUX {
                     input.effect_index = index;
                     input.className = "button"
                     input.style.width = "76px";
-                    input.style.height = "15px";
-                    input.style.fontSize = "10px";
+                    if (activatedEffects.length == 1) {
+                        input.style.height = "30px";                        
+                        input.style.fontSize = "12px";
+                    } else {
+                        input.style.fontSize = "10px";
+                        input.style.height = "15px";                        
+                    }
                     input.style.padding = "4px";
                     input.style.marginTop = "10px";
                     input.style.textAlign = "left";
+                    input.style.zIndex = 10;
                     input.innerHTML = e.description;
                     if (e.cost <= this.thisPlayer(game).mana && card.effects_can_be_clicked[index] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
                         input.disabled = false;                
-                        input.style.backgroundColor = "blue"
+                        input.style.backgroundColor = "yellow"
+                        input.style.color = "black"
                     } else {
                         input.disabled = true;
                         input.style.backgroundColor = "lightgray"
+                        input.style.color = "white"
                     }
                     var self = this;
                     input.onclick = function(event) { 
@@ -563,12 +564,12 @@ class GameUX {
     }
 
     selfClick () {
-        this.sendPlayMoveEvent("SELECT_SELF");
+        this.sendPlayMoveEvent("SELECT_SELF", {});
     }
 
     opponentClick () {
         // this -1 and the one in selfClick should instead store the last effect being targetted in the. game state instead
-        this.sendPlayMoveEvent("SELECT_OPPONENT");
+        this.sendPlayMoveEvent("SELECT_OPPONENT", {});
     }
 
     viewHelp() {
