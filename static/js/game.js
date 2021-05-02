@@ -212,7 +212,7 @@ class GameUX {
         var inPlayDiv = document.getElementById("in_play");
         inPlayDiv.innerHTML = '';
         for (let card of this.thisPlayer(game).in_play) {
-            inPlayDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+            inPlayDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game), false, "self"));
         }        
     }
 
@@ -220,7 +220,7 @@ class GameUX {
         let opponentInPlayDiv = document.getElementById("opponent_in_play");
         opponentInPlayDiv.innerHTML = '';
         for (let card of this.opponent(game).in_play) {
-            opponentInPlayDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+            opponentInPlayDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game), false, "opponent"));
         }
     }
 
@@ -240,7 +240,7 @@ class GameUX {
                 || game.turn % 2 == 1 && this.usernameOrP1(game) == game.players[1].username)
     }
 
-    cardSprite(game, card, username, dont_attach_listeners) {
+    cardSprite(game, card, username, dont_attach_listeners, opponent_or_self) {
         let cardDiv = document.createElement("div");
         cardDiv.id = "card_" + card.id;
         cardDiv.effects = card.effects;
@@ -349,10 +349,14 @@ class GameUX {
             let cardPower = card.power;
             let cardToughness = card.toughness - card.damage;
             if (card.tokens) {
-                // todo does this code need to be clientside
+                // todo does this code need to be clientside?
                 for (let c of card.tokens) {
                     if (c.multiplier == "self_relics") {
-                        cardPower += c.power_modifier * this.thisPlayer(game).relics.length;                        
+                        let user = this.thisPlayer(game);
+                        if (opponent_or_self == "opponent") {
+                            user = this.opponent(game);
+                        }
+                        cardPower += c.power_modifier * user.relics.length;                        
                     } else {
                         cardPower += c.power_modifier;                        
                     }

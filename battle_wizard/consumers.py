@@ -91,7 +91,6 @@ class BattleWizardConsumer(WebsocketConsumer):
                                 chosen_move = move
 
                     if move["move_type"] == "RESOLVE_ENTITY_EFFECT":
-                        print(move)
                         coming_into_play = self.game.get_in_play_for_id(move["card"])
                         target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
                         if target in self.game.current_player().in_play: 

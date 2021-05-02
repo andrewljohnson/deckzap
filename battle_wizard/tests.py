@@ -629,12 +629,37 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 6)
         os.remove(f"database/games/{dbName}.json")
 
+    def test_arsenal_3x(self):
+        """
+            Test Arsenal and Kill Relic.
+        """
+        dbName, game = self.game_for_decks([["Mana Shrub", "Arsenal", "Arsenal", "Arsenal"], []])
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 9)
+        os.remove(f"database/games/{dbName}.json")
+
     def test_arsenal_2x_reverse(self):
         """
             Test Arsenal and Kill Relic.
         """
         dbName, game = self.game_for_decks([["Arsenal", "Arsenal", "War Scorpion"], []])
         print(game.as_dict())
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
