@@ -1228,13 +1228,16 @@ class Game:
         if not selected_card:
             selected_card = self.opponent().in_play_card(message["defending_card"])
         effect_targets = {}
-        if activated_effect:
+        effect_targets[0] = {"id": selected_card.id, "target_type":"entity"}            
+        if not activated_effect:
             effect_targets[0] = {"id": selected_card.id, "target_type":"entity"}            
-        else:
-            effect_targets[0] = {"id": selected_card.id, "target_type":"entity"}            
-            # hack for siz pop and stiff wind
             if len(card_to_target.effects) == 2:
-                effect_targets[1] = {"id": message["username"], "target_type":"player"}
+                if card_to_target.effects[1].target_type == "entity":
+                    # hack for animal trainer
+                    effect_targets[1] = {"id": selected_card.id, "target_type":"entity"}            
+                else:
+                    # hack for siz pop and stiff wind
+                    effect_targets[1] = {"id": message["username"], "target_type":"player"}
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name
@@ -2119,6 +2122,8 @@ class Player:
 
         message["log_lines"].append(f"{self.username} plays {card.name}.")
         if card.card_type == "Entity":
+            if len(card.effects) > 0:
+                self.target_or_do_entity_effects(card, message, message["username"])
             for c in self.in_play:
                 if len(c.effects_triggered()) > 0:
                     if c.effects_triggered()[0].trigger == "play_friendly_entity":
@@ -2149,10 +2154,7 @@ class Player:
         if card.card_type == "Entity" and card.has_ability("Shield"):
             card.shielded = True
 
-        if len(card.effects) > 0:
-            if card.card_type == "Entity":
-                self.target_or_do_entity_effects(card, message, message["username"])
-            else:
+        if len(card.effects) > 0 and card.card_type != "Entity":
                 if not "effect_targets" in message:
                     message["effect_targets"]  = {}
                 for idx, e in enumerate(card.effects_spell() + card.effects_enter_play()):

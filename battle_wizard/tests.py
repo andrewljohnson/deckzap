@@ -47,6 +47,20 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
         return game
 
+    def test_ten_card_hand_limit(self):
+        """
+            Test you can't draw more than 10 cards.
+        """
+
+        deck1 = ["Stone Elemental" for x in range(0,11)]
+        deck2 = ["Stone Elemental" for x in range(0,11)]
+        dbName, game = self.game_for_decks([deck1,deck2])
+        for x in range(0,10):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 10)
+        os.remove(f"database/games/{dbName}.json")
+
     def test_new_ingame_game(self):
         game = self.game_with_two_players()
         self.assertEqual(game.turn, 0)
@@ -740,20 +754,6 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.opponent().hit_points, 28)
         os.remove(f"database/games/{dbName}.json")
 
-    def test_ten_card_hand_limit(self):
-        """
-            Test you can't draw more than 10 cards.
-        """
-
-        deck1 = ["Stone Elemental" for x in range(0,11)]
-        deck2 = ["Stone Elemental" for x in range(0,11)]
-        dbName, game = self.game_for_decks([deck1,deck2])
-        for x in range(0,10):
-            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        self.assertEqual(len(game.current_player().hand), 10)
-        os.remove(f"database/games/{dbName}.json")
-
     def test_mana_storm(self):
         """
             Test Mana Storm.
@@ -793,4 +793,20 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})        
         self.assertEqual(game.current_player().hit_points, 30)
 
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_animal_trainer(self):
+        """
+            Test Animal Trainer pumps and Fades an entity.
+        """
+        dbName, game = self.game_for_decks([["Stone Elemental", "Animal Trainer"], []])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 4)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 3)
         os.remove(f"database/games/{dbName}.json")

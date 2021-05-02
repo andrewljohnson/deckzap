@@ -1904,6 +1904,31 @@
 				}]
 			}
 		]
+	},
+	{
+		"name": "Animal Trainer",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 3,
+		"description": "Give a friendly entity +2/+2 and Fade.",
+		"toughness": 2,
+		"cost": 2,
+		"effects": [{
+			"name": "add_tokens",
+			"effect_type": "enter_play",
+			"target_type": "entity",
+			"tokens": [{
+				"power_modifier": 2,
+				"toughness_modifier": 2
+			}]
+		},
+		{
+			"name": "add_entity_abilities",
+			"effect_type": "enter_play",
+			"target_type": "entity",
+			"abilities": [{"name": "Fade", "descriptive_id": "Fade", "enabled": true}]
+		}]
 	}
 ]
 
