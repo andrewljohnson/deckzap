@@ -992,3 +992,27 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.opponent().relics), 0)
         self.assertEqual(len(game.current_player().relics), 0)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_phoenix(self):
+        """
+            Test Phoenix.
+        """
+
+        deck1 = ["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Phoenix"]
+        deck2 = []
+        dbName, game = self.game_for_decks([deck1,deck2])
+        for x in range(0,8):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 10, "log_lines":[]})   
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 9, "log_lines":[]})   
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 10, "log_lines":[]})   
+        self.assertEqual(len(game.current_player().in_play), 0)
+        self.assertEqual(len(game.current_player().played_pile), 2)
+        self.assertEqual(len(game.current_player().hand), 8)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 8)
+        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(len(game.current_player().played_pile), 1)
+        os.remove(f"database/games/{dbName}.json")

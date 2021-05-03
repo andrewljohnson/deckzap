@@ -2122,5 +2122,29 @@
 				"cost": 1,
 				"sacrifice_on_activate": true
 		}]
-	}
-]
+	},
+	{
+
+		"name": "Phoenix",
+		"race": "human",
+		"class": "Sorcerer",
+		"card_type": "Entity",
+		"description": "If this is in your played pile, return it to play at the beginning of your turn. Skip your draw. ",
+		"power": 2,
+		"toughness": 2,
+		"cost": 5,
+		"abilities": [
+			{
+				"name": "Unique",
+				"descriptive_id": "Unique"
+			}
+		],
+		"effects": [
+			{
+				"name": "rebirth",
+				"effect_type": "triggered",
+				"target_type": "this",
+				"trigger": "start_turn"
+			}
+		]
+	}]

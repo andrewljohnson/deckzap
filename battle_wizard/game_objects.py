@@ -2345,13 +2345,7 @@ class Player:
                                     if entity.damage >= entity.toughness_with_tokens():
                                         self.game.send_card_to_played_pile(entity, self.game.opponent())
                                 message["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {entity.name}.")
-
-            self.in_play.append(card)
-            self.game.update_for_entity_changes_zones(self)
-
-            if self.fast_ability():
-                card.abilities.append(self.fast_ability())          
-            card.turn_played = self.game.turn
+            self.play_entity(card)
 
         elif card.card_type == "Relic":
             self.play_relic(card)
@@ -2380,6 +2374,15 @@ class Player:
         message["was_countered"] = False
 
         return message
+
+
+    def play_entity(self, card):
+        self.in_play.append(card)
+        self.game.update_for_entity_changes_zones(self)
+
+        if self.fast_ability():
+            card.abilities.append(self.fast_ability())          
+        card.turn_played = self.game.turn
 
     def play_relic(self, relic):
         self.relics.append(relic)
@@ -2475,14 +2478,23 @@ class Player:
         return card
 
     def start_turn(self, message):
-        if self.game.turn != 0:
+
+        draw_blocked = False
+        phoenixes = []
+        for card in self.played_pile:
+            for effect in card.effects_triggered():
+                if effect.trigger == "start_turn":
+                    if effect.name == "rebirth":
+                        draw_blocked = True
+                        phoenixes.append(card)
+        for card in phoenixes:
+            self.played_pile.remove(card)
+            self.play_entity(card) 
+
+        if self.game.turn != 0 and not draw_blocked:
             self.draw(1 + self.game.global_effects.count("draw_extra_card"))
         self.max_mana += 1
         self.mana = self.max_mana
-
-        # todo this shouldn't be needed, commenting it out
-        # if self.card_info_to_resolve["card_id"]:
-        #    self.reset_card_info_to_resolve()
 
         for card in self.in_play:
             if card.has_ability("Fade"):
@@ -2502,6 +2514,9 @@ class Player:
                     if effect.name == "damage" and effect.target_type == "self":
                         self.game.current_player().damage(effect.amount)
                         message["log_lines"].append(f"{self.game.current_player().username} takes {effect.amount} damage from {card.name}.")
+                    elif effect.name == "rebirth":
+                        # this is handled at top of def
+                        pass
                     else:
                         print(f"unsupported start_turn triggered effect {effect}")
 
