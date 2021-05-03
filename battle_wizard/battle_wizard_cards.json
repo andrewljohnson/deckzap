@@ -1064,7 +1064,7 @@
 	{
 		"name": "Master Time",
 		"race": "genie",
-		"cost": 4,
+		"cost": 8,
 		"card_type": "Spell",
 		"description": "All your entities get Fast (attack turn summoned).",
 		"effects": [{
@@ -1103,7 +1103,7 @@
 	{
 		"name": "Storm Surge",
 		"race": "genie",
-		"cost": 6,
+		"cost": 10,
 		"card_type": "Spell",
 		"description": "Fill each player's board with entities.",
 		"effects": [{
@@ -2043,5 +2043,34 @@
 			"amount": 1
 		}		
 	]
+	},
+	{
+
+		"name": "Spirit of the Stampede",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 5,
+		"cost": 4,
+		"abilities": [
+			{
+				"name": "Stomp",
+				"descriptive_id": "Stomp"
+			}
+		],
+		"effects": [
+			{
+				"name": "set_token",
+				"effect_type": "triggered",
+				"target_type": "this",
+				"trigger": "entity_changes_zones",
+				"tokens": [{
+					"power_modifier": 1,
+					"toughness_modifier": 0,
+					"multiplier": "self_entities"
+				}]
+			}
+		]
 	}
 ]

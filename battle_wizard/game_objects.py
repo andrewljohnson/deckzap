@@ -1162,6 +1162,21 @@ class Game:
                 for ability in abilities_to_remove:
                     e.abilities.remove(ability)
 
+            # code for Spirit of the Stampede
+            if effect and effect.name == "set_token":
+                tokens_to_remove = []
+                for t in e.tokens:
+                    if t.id == e.id:
+                        tokens_to_remove.append(t)
+                for t in tokens_to_remove:
+                    e.tokens.remove(t)
+                token = copy.deepcopy(effect.tokens[0])
+                # todo: maybe support IDs for removal for more than Spirit of the Stampede
+                token.id = e.id
+                player.do_add_token_effect_on_entity(
+                    token, 
+                    e.id
+                )
 
         anything_friendly_has_fast = False
         for e in player.in_play:
@@ -1195,6 +1210,7 @@ class Game:
                             break
 
                 for e in player.in_play:
+                    # todo move this copy and id code into do_add_token_effect_on_entity
                     new_token = copy.deepcopy(effect.tokens[0])
                     new_token.id = r.id
                     player.do_add_token_effect_on_entity(
@@ -1657,6 +1673,8 @@ class Player:
             if e.target_type == 'self_entities':
                 message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to their own entities.")
             else:
+                print(target_index)
+                print(effect_targets)
                 message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
             self.do_add_tokens_effect(card, e, effect_targets, target_index)
         elif e.name == "add_effects":
@@ -1955,6 +1973,9 @@ class Player:
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         if token.multiplier and token.multiplier == "half_self_entities":
             for x in range(0, math.floor(len(self.in_play)/2)):
+                target_card.tokens.append(token)
+        elif token.multiplier and token.multiplier == "self_entities":
+            for x in range(0, len(self.in_play)):
                 target_card.tokens.append(token)
         else:
             target_card.tokens.append(token)
@@ -2327,6 +2348,8 @@ class Player:
                         effect_targets = {}
                         if e.target_type == "self" or e.name == "fetch_card":           
                             effect_targets[0] = {"id": username, "target_type":"player"};
+                        elif e.target_type == "this":           
+                            effect_targets[0] = {"id": card.id, "target_type":"entity"};
                         message["effect_targets"] = effect_targets
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
         return message
@@ -2919,6 +2942,8 @@ class CardToken:
     def __repr__(self):
         if self.set_can_act is not None:
             return "Can't Attack"
+        if self.id != None:
+            return f"id: {self.id} - +{self.power_modifier}/+{self.toughness_modifier}"
         return f"+{self.power_modifier}/+{self.toughness_modifier}"
 
     def as_dict(self):
