@@ -210,6 +210,8 @@ class Game:
             message = self.fetch_card(message, "Relic")        
         elif move_type == 'FETCH_CARD_INTO_PLAY':
             message = self.fetch_card(message, "Relic", into_play=True)        
+        elif move_type == 'FINISH_RIFFLE':
+            message = self.finish_riffle(message)        
         # moves that get triggered indirectly from game UX actions (e.g. SELECT_ENTITY twice could be an ATTACK)
         elif move_type == 'ATTACK':
             message = self.attack(message)            
@@ -1127,6 +1129,25 @@ class Game:
         self.current_player().reset_card_choice_info()
         return message
 
+    def finish_riffle(self, message):
+        """
+            Fetch the selected card from current_player's deck
+        """
+        chosen_card = None
+        for c in self.current_player().deck:
+            if c.id == message['card']:
+                chosen_card = c
+        for card in self.current_player().card_choice_info["cards"]:
+            self.current_player().deck.remove(card)
+            if card.id != chosen_card.id:
+                self.send_card_to_played_pile(card, self.current_player())
+                message["log_lines"].append(f"{message['username']} puts {card.name} into their played pile.")
+        self.current_player().deck.append(chosen_card)
+        self.current_player().draw(1)
+        self.current_player().reset_card_choice_info()
+        return message
+
+
     def get_in_play_for_id(self, card_id):
         """
             Returns a tuple of the entity and controlling player for a card_id of a card that is an in_play entity
@@ -1672,6 +1693,8 @@ class Player:
             self.do_gain_for_toughness_effect(effect_targets[target_index]["id"])
         elif e.name == "make":
             self.do_make_effect(card, effect_targets[target_index]["id"], e.make_type, e.amount)
+        elif e.name == "riffle":
+            self.do_riffle_effect(effect_targets[target_index]["id"], e.amount)
         elif e.name == "make_random_townie":
             self.do_make_random_townie_effect(e.amount)
             #todo fix hardcoding
@@ -1684,8 +1707,6 @@ class Player:
             if e.target_type == 'self_entities':
                 message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to their own entities.")
             else:
-                print(target_index)
-                print(effect_targets)
                 message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
             self.do_add_tokens_effect(card, e, effect_targets, target_index)
         elif e.name == "add_effects":
@@ -1975,6 +1996,12 @@ class Player:
             target_player = self.game.players[1]
         return target_player.make(1, make_type)
 
+    def do_riffle_effect(self, target_player_username, amount):
+        target_player = self.game.players[0]
+        if target_player.username != target_player_username:
+            target_player = self.game.players[1]
+        return target_player.riffle(amount)
+
     def do_fetch_card_effect_on_player(self, card, target_player_username, card_type, target_restrictions, choice_type=None):
         if card_type == "Relic":
             target_player = self.game.players[0]
@@ -2173,6 +2200,14 @@ class Player:
         while not card3 or card3.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
             card3 = random.choice(all_cards)
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
+
+    def riffle(self, amount):
+        all_cards = Game.all_cards()
+        top_cards = []
+        for card in self.deck:
+            if len(top_cards) < amount:
+                top_cards.append(card)
+        self.card_choice_info = {"cards": top_cards, "choice_type": "riffle"}
 
     def display_deck_relics(self, target_restrictions, choice_type):
         all_cards = Game.all_cards()

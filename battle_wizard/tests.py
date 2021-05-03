@@ -948,3 +948,19 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.opponent().hit_points, 29)
         self.assertEqual(len(game.opponent().in_play), 0)
         os.remove(f"database/games/{dbName}.json")
+
+
+    def test_riffle(self):
+        """
+            Test Riffle.
+        """
+
+        deck1 = ["Zap", "Zap", "Zap", "Riffle", "Riffle"]
+        deck2 = []
+        dbName, game = self.game_for_decks([deck1,deck2])
+        self.assertEqual(len(game.current_player().hand), 2)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 4, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "FINISH_RIFFLE", "card": game.current_player().card_choice_info["cards"][0].id, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 2)
+        self.assertEqual(len(game.current_player().played_pile), 3)
+        os.remove(f"database/games/{dbName}.json")

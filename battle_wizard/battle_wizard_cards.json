@@ -2090,5 +2090,21 @@
 				"target_type": "entity"
 			}
 		]
+	},
+	{
+		"name": "Riffle",
+		"race": "human",
+		"class": "Sorcerer",
+		"card_type": "Spell",
+		"cost": 1,
+		"description": "Put one of the top 3 cards of your deck in your hand and the others in your played pile.",
+		"effects": [
+			{
+				"name": "riffle",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 3
+			}
+		]
 	}
 ]
