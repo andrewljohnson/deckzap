@@ -2147,4 +2147,25 @@
 				"trigger": "start_turn"
 			}
 		]
-	}]
+	},
+	{
+		"name": "Premonition",
+		"race": "human",
+		"class": "Sorcerer",
+		"card_type": "Spell",
+		"cost": 1,
+		"description": "Search your deck for a card.",
+		"abilities": [
+			{
+				"name": "Unique",
+				"descriptive_id": "Unique"
+			}
+		],
+		"effects": [{
+			"name": "fetch_card",
+			"effect_type": "spell",
+			"target_type": "all_cards_in_deck",
+			"amount": 1
+		}]
+	}
+]

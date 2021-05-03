@@ -297,7 +297,6 @@ class GameUX {
         nameDiv.innerHTML = card.name;
         cardDiv.appendChild(nameDiv)
 
-
         let activatedEffects = [];
         let attackEffect = null;
         for (let e of card.effects) {
@@ -649,6 +648,8 @@ class GameUX {
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
             this.showRiffleView(game, "FINISH_RIFFLE");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_hand") {
+            this.showChooseCardView(game, "FETCH_CARD");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_play") {
             this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");

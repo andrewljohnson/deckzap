@@ -48,9 +48,23 @@ class DeckBuilder {
 					console.log("deck's can only have 30 cards");
 					return;
 				}
+				let isUnique = false;
+				if (card.abilities) {
+					for (let a of card.abilities) {
+						if (a.descriptive_id == "Unique") {
+							isUnique = true;
+						}
+					}					
+				}
 				if (!(card.name in self.deck["cards"])) {
 					self.deck["cards"][card.name] = 1
 				} else if (self.deck["cards"][card.name] == 1 && card.card_type == "Relic") {
+					console.log("can't add more than 1 relic")
+					return;
+				} else if (self.deck["cards"][card.name] == 1 && isUnique) {
+					console.log("can't add more than 1 of a unique card")
+					return;
+				} else if (self.deck["cards"][card.name] == 1) {
 					console.log("can't add more than 1 relic")
 					return;
 				} else if (self.deck["cards"][card.name] == 1) {

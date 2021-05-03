@@ -2031,6 +2031,11 @@ class Player:
             if target_player.username != target_player_username:
                 target_player = self.game.players[1]
             return target_player.display_deck_relics(target_restrictions, choice_type)
+        elif card_type == "all_cards_in_deck":
+            target_player = self.game.players[0]
+            if target_player.username != target_player_username:
+                target_player = self.game.players[1]
+            return target_player.display_deck_for_fetch()
         else:
             print("can't fetch unsupported type")
             return None
@@ -2243,6 +2248,10 @@ class Player:
                     relics.append(card)
         self.card_choice_info = {"cards": relics, "choice_type": choice_type}
 
+    def display_deck_for_fetch(self):
+        all_cards = Game.all_cards()
+        self.card_choice_info = {"cards": self.deck, "choice_type": "fetch_into_hand"}
+
     def relic_in_play(self, card_id):
         for card in self.relics:
             if card.id == card_id:
@@ -2365,8 +2374,9 @@ class Player:
                         message["effect_targets"][idx] = {"id": message["username"], "target_type":"player"}
                     elif e.target_type == "opponent":           
                         message["effect_targets"][idx] = {"id": self.game.opponent().username, "target_type":"player"}
-                    elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities":           
-                        message["effect_targets"][idx] = {"target_type": e.target_type};
+                    elif e.target_type == "all_cards_in_deck" or e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities":           
+                        message["effect_targets"][idx] = {"target_type": "player", "id": self.username};
+                    print(message["effect_targets"])
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
 
         message["card_name"] = card.name
