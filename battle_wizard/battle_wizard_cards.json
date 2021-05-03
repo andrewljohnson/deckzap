@@ -1929,6 +1929,56 @@
 			"target_type": "entity",
 			"abilities": [{"name": "Fade", "descriptive_id": "Fade", "enabled": true}]
 		}]
+	},
+	{
+
+		"name": "Viper",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 4,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Fade",
+				"descriptive_id": "Fade"
+			},
+			{
+				"name": "Stomp",
+				"descriptive_id": "Stomp"
+			}
+		]
+	},
+	{
+		"name": "Multishot Bow",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Relic",
+		"cost": 4,
+		"description": "Attack multiple times, only attacks each enemy once a turn.",
+		"abilities": [
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
+			},
+			{
+				"name": "multi_entity_attack",
+				"descriptive_id": "multi_entity_attack"
+			}
+		],
+		"effects": [{
+					"name": "attack",
+					"effect_type": "activated",
+					"target_type": "any_enemy",
+					"counters": 4,
+					"cost": 0,
+					"power": 3
+		}]
 	}
 ]
 

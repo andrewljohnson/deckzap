@@ -810,3 +810,58 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 3)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_multishot_bow(self):
+        """
+            Test Multishot Bow can attack multiple times, but not the same thing twice.
+        """
+        dbName, game = self.game_for_decks([["Multishot Bow"], ["Orc", "Orc"]])
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
+        self.assertEqual(game.current_player().hit_points, 27)
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 2, "log_lines":[]})
+        self.assertEqual(game.current_player().hit_points, 24)
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
+        self.assertEqual(game.current_player().hit_points, 24)
+        self.assertEqual(game.current_player().relics[0].effects[0].counters, 2)
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, 27)
+        self.assertEqual(game.current_player().relics[0].effects[0].counters, 1)
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(len(game.current_player().relics), 1)
+        self.assertEqual(game.opponent().hit_points, 27)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_multishot_guard(self):
+        """
+            Test Multishot Bow obeys Guard on entities
+        """
+        dbName, game = self.game_for_decks([["Multishot Bow"], ["Air Elemental", "Orc"]])
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 2, "log_lines":[]})
+        self.assertEqual(game.current_player().hit_points, 30)
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, 30)
+        game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
+        self.assertEqual(game.current_player().hit_points, 29)
+        os.remove(f"database/games/{dbName}.json")

@@ -296,7 +296,7 @@ class Game:
                 selected_relic.can_be_clicked = True 
             else:       
                 e = selected_relic.enabled_activated_effects()[cp.card_info_to_resolve["effect_index"]]
-                self.set_targets_for_target_type(e.target_type, e.target_restrictions)
+                self.set_targets_for_target_type(e.target_type, e.target_restrictions, e)
         elif cp.selected_spell():
             selected_spell = cp.selected_spell()
             if not selected_spell.needs_targets():
@@ -334,6 +334,8 @@ class Game:
             card.effects_can_be_clicked = []
             for x, effect in enumerate(card.enabled_activated_effects()):
                 effect_can_be_used = True
+                if card.needs_and_doesnt_have_legal_attack_targets(self):
+                    effect_can_be_used = False
                 if card.needs_entity_target_for_activated_effect(x):
                     effect_can_be_used = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
                 if card.needs_self_entity_target_for_activated_effect(x):
@@ -384,9 +386,11 @@ class Game:
                         if not e.has_ability("Lurker"):
                             card.can_be_clicked = True
 
-    def set_targets_for_target_type(self, target_type, target_restrictions):
+    def set_targets_for_target_type(self, target_type, target_restrictions, effect=None):
         if target_type == "any_player":
             self.set_targets_for_player_effect()
+        if target_type == "any_enemy" and effect and effect.name == "attack":
+            self.set_targets_for_attack_effect(effect)
         if target_type == "any_enemy":
             self.set_targets_for_enemy_damage_effect()
         if target_type == "any":
@@ -415,6 +419,56 @@ class Game:
             if not card.has_ability("Lurker"):
                 card.can_be_clicked = True
         self.opponent().can_be_clicked = True
+
+    def has_targets_for_attack_effect(self, effect):
+        # todo relics might eventually need evade guard
+        guard_entities_without_lurker = []
+        clickable_ids = []
+        for card in self.opponent().in_play:
+            if card.has_ability("Guard") and not card.has_ability("Lurker"):
+                guard_entities_without_lurker.append(card)
+        if len(guard_entities_without_lurker) == 0:
+            for card in self.opponent().in_play:
+                if not card.has_ability("Lurker"):
+                     clickable_ids.append(card.id)
+            # todo this assumes card ids never clash with usernames
+            clickable_ids.append(self.opponent().username)
+        else:
+            for card in guard_entities_without_lurker:
+                clickable_ids.append(card.id)
+
+        for info in effect.targetted_this_turn:
+            if info["target_type"] == "player" and info["id"] in clickable_ids:
+                clickable_ids.remove(info["id"])
+            else:
+                card, _ = self.get_in_play_for_id(info["id"])
+                if card and card.id in clickable_ids:
+                    clickable_ids.remove(card.id)
+        return len(clickable_ids) > 0
+
+    def set_targets_for_attack_effect(self, effect):
+        # todo relics might eventually need evade guard
+        guard_entities_without_lurker = []
+        for card in self.opponent().in_play:
+            if card.has_ability("Guard") and not card.has_ability("Lurker"):
+                guard_entities_without_lurker.append(card)
+        if len(guard_entities_without_lurker) == 0:
+            for card in self.opponent().in_play:
+                if not card.has_ability("Lurker"):
+                    card.can_be_clicked = True
+            self.opponent().can_be_clicked = True
+        else:
+            for card in guard_entities_without_lurker:
+                card.can_be_clicked = True
+
+        if effect:
+            for info in effect.targetted_this_turn:
+                if info["target_type"] == "player":
+                    self.opponent().can_be_clicked = False
+                else:
+                    card, _ = self.get_in_play_for_id(info["id"])
+                    if card:
+                        card.can_be_clicked = False
 
     def set_targets_for_player_effect(self):
         self.opponent().can_be_clicked = True
@@ -669,6 +723,8 @@ class Game:
         self.remove_temporary_tokens()
         self.remove_temporary_abilities()
         self.clear_damage_this_turn()
+        # for Multishot Bow
+        self.clear_relic_effects_targetted_this_turn()
         self.turn += 1
         message["log_lines"].append(f"{self.current_player().username}'s turn.")
         message = self.current_player().start_turn(message)
@@ -818,6 +874,18 @@ class Game:
         if defending_card.has_ability("Lurker"):
             print(f"can't target entity with Lurker")
             return None                
+        effect = self.current_player().selected_relic().effects[effect_index]
+        if effect.name == "attack":
+            if defending_player.has_guard() and not defending_card.has_ability("Guard"):
+                return None                
+
+            for info in effect.targetted_this_turn:
+                if info["target_type"] == "entity":
+                    card, _ = self.get_in_play_for_id(info["id"])
+                    if info["id"] == defending_card.id:
+                        print(f"alredy attacked {defending_card.name} with {self.current_player().selected_relic().name}")
+                        return None                
+
         message["move_type"] = "ACTIVATE_RELIC"
         message["effect_index"] = effect_index
         message["card"] = self.current_player().selected_relic().id
@@ -886,6 +954,16 @@ class Game:
             message = self.select_player_target_for_spell(target_player.username, self.current_player().selected_spell(), message)
         elif self.current_player().selected_relic():
             target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
+            # todo hardcoded 0 index
+            effect = self.current_player().selected_relic().effects[0]
+            for info in effect.targetted_this_turn:
+                if info["target_type"] == "player":
+                    print(f"already attacked {target_player.username} with {self.current_player().selected_relic().name}")
+                    return None                
+            if effect.name == "attack":
+                if target_player.has_guard():
+                    print(f"can't attack {target_player.username} because an Entity has Guard")
+                    return None                
             using_relic = True
             message = self.select_player_target_for_relic_effect(target_player.username, self.current_player().selected_relic(), message)
         else:
@@ -937,19 +1015,21 @@ class Game:
         card_id = message["card"]
         activated_effect_index = message["effect_index"] if "effect_index" in message else 0
         relic = self.current_player().relic_in_play(card_id)
-        relic.can_activate_abilities = False
-
-        # todo support multi-use abilities on relics
         e = relic.enabled_activated_effects()[activated_effect_index]
-        relic.effects_exhausted = {e.name: True}
+        if not relic.has_ability("multi_entity_attack"):
+            relic.can_activate_abilities = False
+            # todo support multi-use abilities on relics
+            relic.effects_exhausted = {e.name: True}
         
         if "defending_card" in message:
             defending_card, _  = self.get_in_play_for_id(message["defending_card"])
             message["log_lines"].append(f"{self.current_player().username} uses {relic.name} on {defending_card.name}")
             effect_targets = {}
-            effect_targets[0] = {"id": defending_card.id, "target_type":e.target_type};
+            effect_targets[0] = {"id": defending_card.id, "target_type": "entity"};
             message = self.current_player().do_card_effect(relic, e, message, effect_targets, 0)
             self.current_player().reset_card_info_to_resolve()
+            if relic.has_ability("multi_entity_attack"):
+                e.targetted_this_turn.append(effect_targets[0])
         else:
             if e.target_type == "self":
                 message = self.current_player().do_card_effect(relic, e, message, [{"id": message["username"], "target_type": "player"}], 0)
@@ -969,6 +1049,8 @@ class Game:
                 message["effect_targets"][0] = {"id": target_player.username, "target_type": "player"};
                 message = self.current_player().do_card_effect(relic, e, message, message["effect_targets"], 0)
                 self.current_player().reset_card_info_to_resolve()
+                if relic.has_ability("multi_entity_attack"):
+                    e.targetted_this_turn.append(message["effect_targets"][0])
 
         self.current_player().reset_card_info_to_resolve()
         # Wish Stone
@@ -1188,6 +1270,11 @@ class Game:
             else:
                 perm_abilities.append(a)
         self.current_player().abilities = perm_abilities
+
+    def clear_relic_effects_targetted_this_turn(self):
+        for r in self.current_player().relics:
+            for e in r.effects:
+                e.targetted_this_turn = []
 
     def clear_damage_this_turn(self):
         for c in self.current_player().in_play + self.opponent().in_play:
@@ -2589,6 +2676,11 @@ class Card:
             return True
         return False
 
+    def needs_and_doesnt_have_legal_attack_targets(self, game):
+        if not self.has_ability("multi_entity_attack"):  
+            return False                  
+        return game.has_targets_for_attack_effect(self.effects[0])
+
     def needs_self_entity_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]
         if e.target_type in ["self_entity"]:
@@ -2706,6 +2798,7 @@ class CardEffect:
         self.name = info["name"] if "name" in info else None 
         self.power = info["power"] if "power" in info else None
         self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
+        self.targetted_this_turn = info["targetted_this_turn"] if "targetted_this_turn" in info else []
         self.target_restrictions = info["target_restrictions"] if "target_restrictions" in info else []
         self.target_type = info["target_type"] if "target_type" in info else None
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
@@ -2717,7 +2810,7 @@ class CardEffect:
         return f"\
             id: {self.id} name: {self.name} power: {self.power} target_restrictions: \
             {self.target_restrictions} trigger: {self.trigger} toughness: {self.toughness} \
-            amount: {self.amount} cost: {self.cost}\n \
+            amount: {self.amount} cost: {self.cost} targetted_this_turn: {self.targetted_this_turn}\n \
             description: {self.description} cost_hp: {self.cost_hp} \
             target_type: {self.target_type} name: {self.card_name} \n \
             make_type: {self.make_type} tokens: {self.tokens} \
@@ -2744,6 +2837,7 @@ class CardEffect:
             "name": self.name,
             "power": self.power,
             "sacrifice_on_activate": self.sacrifice_on_activate,
+            "targetted_this_turn": self.targetted_this_turn,
             "target_restrictions": self.target_restrictions,
             "target_type": self.target_type,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
