@@ -125,8 +125,8 @@
 		"name": "Mana Shrub",
 		"race": "elf",
 		"card_type": "Entity",
-		"power": 0,
-		"toughness": 3,
+		"power": 1,
+		"toughness": 1,
 		"cost": 1,
 		"description": "You have an extra mana each turn.",
 		"effects": [
@@ -293,7 +293,7 @@
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 0,
-		"toughness": 7,
+		"toughness": 4,
 		"cost": 3,
 		"description": "You have an extra mana each turn.",
 		"effects": [{
@@ -2002,5 +2002,46 @@
 			"trigger": "start_turn",
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Gird for Battle",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Spell",
+		"cost": 5,
+		"description": "Get a random relic from your deck. Summon a 3/3 with Fast and Fade.",
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Mist Elephant",
+			"target_type": "self",
+			"effect_type": "spell",
+			"power": 3,
+			"cost": 3,
+			"toughness": 3,
+			"amount": 1,
+			"abilities": [
+				{
+					"name": "Fast",
+					"descriptive_id": "Fast"
+				},
+				{
+					"name": "Fade",
+					"descriptive_id": "Fade"
+				}
+			]
+		},
+		{
+			"name": "summon_from_deck_relic",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 1
+		}		
+	]
 	}
 ]

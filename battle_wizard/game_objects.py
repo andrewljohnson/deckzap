@@ -1542,6 +1542,12 @@ class Player:
             else:
                 message["log_lines"].append(f"Both players fill their boards.")
             self.do_summon_from_deck_effect_on_player(e, effect_targets, target_index)
+        elif e.name == "summon_from_deck_relic":
+            if e.target_type == "self":
+                message["log_lines"].append(f"{self.username} summons something from their deck.")
+                self.do_summon_from_deck_relic_effect_on_player(e, effect_targets, target_index)
+            else:
+                print(f"unsupported target_type {e.target_type} for summon_from_deck_relic effect for {card.name}")
         elif e.name == "discard_random":
                 self.do_discard_random_effect_on_player(card, effect_targets[target_index]["id"], e.amount)
         elif e.name == "damage":
@@ -1678,7 +1684,7 @@ class Player:
         if e.target_type == "self" and e.amount == 1:
             target_player = self.game.players[0]
             if target_player.username != effect_targets[target_index]["id"]:
-                target_player = self.gamdplayers[1]
+                target_player = self.game.players[1]
 
             entities = []
             for c in target_player.deck:
@@ -1712,6 +1718,24 @@ class Player:
                         entity_to_summon.abilities.append(p.fast_ability())                            
                     # todo: maybe support comes into play effects
                     # p.target_or_do_entity_effects(entity_to_summon, {}, p.username)     
+
+    def do_summon_from_deck_relic_effect_on_player(self, e, effect_targets, target_index):
+        if e.target_type == "self" and e.amount == 1:
+            target_player = self.game.players[0]
+            if target_player.username != effect_targets[target_index]["id"]:
+                target_player = self.game.players[1]
+
+            relics = []
+            for c in target_player.deck:
+                if c.card_type == "Relic":
+                    relics.append(c)
+
+            if len(relics) > 0:
+                relic_to_summon = random.choice(relics)
+                target_player.deck.remove(relic_to_summon)
+                target_player.play_relic(relic_to_summon)
+                self.game.update_for_entity_changes_zones(target_player)
+                # todo: maybe support comes into play effects for relics?
 
     def do_draw_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
