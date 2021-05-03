@@ -1058,6 +1058,8 @@ class Game:
                 message = self.current_player().do_card_effect(relic, e, message, [{"id": message["username"], "target_type": "player"}], 0)
             elif e.target_type == "opponent":
                 message = self.current_player().do_card_effect(relic, e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
+            elif e.target_type == "all":
+                message = self.current_player().do_card_effect(relic, e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
             # todo unhardcode for other fetch types if we can fetch more than Relics
             elif e.target_type == "Relic":
                 message = self.current_player().do_card_effect(relic, e, message, [{"id": message["username"], "target_type": e.target_type}], 0)
@@ -1664,8 +1666,15 @@ class Player:
             self.do_pump_power_effect_on_entity(card, effect_targets[target_index]["id"], e.amount, e.cost)
             message["log_lines"].append(f"{self.username} pumps the power of {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name} by {e.amount}.")
         elif e.name == "kill":
-            message["log_lines"].append(f"{self.username} kills {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
-            self.do_kill_effect_on_entity(effect_targets[target_index]["id"])
+            if e.target_type == "entity":
+                message["log_lines"].append(f"{self.username} kills {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
+                self.do_kill_effect_on_entity(effect_targets[target_index]["id"])
+            else:
+                card_ids_to_kill = []
+                for card in self.in_play+self.relics+self.game.opponent().in_play+self.game.opponent().relics:
+                    card_ids_to_kill.append(card.id)
+                for card_id in card_ids_to_kill: 
+                    self.do_kill_effect_on_entity(card_id)
         elif e.name == "take_control":
             message["log_lines"].append(f"{self.username} takes control of {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
             self.do_take_control_effect_on_entity(effect_targets[target_index]["id"])
@@ -2346,6 +2355,8 @@ class Player:
 
         elif card.card_type == "Relic":
             self.play_relic(card)
+            if card.has_ability("Slow Relic"):
+                card.effects_exhausted.append(card.effects[0].name)
         else:
             self.played_pile.append(card)            
 
@@ -2839,7 +2850,7 @@ class Card:
     def needs_target_for_activated_effect(self, effect_index):
         e = self.enabled_activated_effects()[effect_index]
         # todo: Relic target_type because of fetch_card, maybe refactor:
-        if e.target_type in ["self", "opponent", "Relic"]: 
+        if e.target_type in ["self", "opponent", "Relic", "all"]: 
             return False
         return True
 

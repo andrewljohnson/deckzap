@@ -964,3 +964,31 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.current_player().hand), 2)
         self.assertEqual(len(game.current_player().played_pile), 3)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_disk_of_death(self):
+        """
+            Test Disk of Death.
+        """
+
+        deck1 = ["Stone Elemental", "Lute"]
+        deck2 = ["Disk of Death"]
+        dbName, game = self.game_for_decks([deck1,deck2])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(len(game.current_player().relics), 1)
+        for x in range(0,3):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})   
+        game.play_move({"username": "b", "move_type": "SELECT_RELIC", "card": 2, "log_lines":[]})        
+        self.assertEqual(len(game.opponent().in_play), 1)
+        self.assertEqual(len(game.opponent().relics), 1)
+        self.assertEqual(len(game.current_player().relics), 1)
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_RELIC", "card": 2, "log_lines":[]})        
+        self.assertEqual(len(game.opponent().in_play), 0)
+        self.assertEqual(len(game.opponent().relics), 0)
+        self.assertEqual(len(game.current_player().relics), 0)
+        os.remove(f"database/games/{dbName}.json")

@@ -2106,5 +2106,21 @@
 				"amount": 3
 			}
 		]
+	},
+	{
+		"name": "Disk of Death",
+		"card_type": "Relic",
+		"cost": 4,
+		"description": "1: sacrifice this, kill all Relics and Entities.",
+		"abilities": [
+				{"name": "Slow Relic", "descriptive_id": "Slow Relic"}
+		],
+		"effects": [{
+				"name": "kill",
+				"effect_type": "activated",
+				"target_type": "all",
+				"cost": 1,
+				"sacrifice_on_activate": true
+		}]
 	}
 ]
