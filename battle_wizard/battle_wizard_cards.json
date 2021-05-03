@@ -1979,7 +1979,28 @@
 					"cost": 0,
 					"power": 3
 		}]
+	},
+	{
+
+		"name": "Enraged Stomper",
+		"race": "human",
+		"class": "Fighter",
+		"card_type": "Entity",
+		"power": 5,
+		"toughness": 5,
+		"cost": 4,
+		"abilities": [
+			{
+				"name": "Stomp",
+				"descriptive_id": "Stomp"
+			}
+		],
+		"effects": [{
+			"name": "damage",
+			"target_type": "self",
+			"effect_type": "triggered",
+			"trigger": "start_turn",
+			"amount": 1
+		}]
 	}
 ]
-
-

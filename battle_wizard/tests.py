@@ -865,3 +865,18 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 29)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_enraged_stomper(self):
+        """
+            Test Enraged Stomper damages its controller.
+        """
+        dbName, game = self.game_for_decks([["Enraged Stomper"], []])
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.current_player().hit_points, 29)
+        os.remove(f"database/games/{dbName}.json")

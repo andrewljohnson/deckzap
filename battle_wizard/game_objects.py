@@ -2370,21 +2370,31 @@ class Player:
             if not self.game.is_under_ice_prison():
                 card.attacked = False
             card.can_activate_abilities = True
+
+            for effect in card.effects_triggered():
+                if effect.trigger == "start_turn":
+                    if effect.name == "damage" and effect.target_type == "self":
+                        self.game.current_player().damage(effect.amount)
+                        message["log_lines"].append(f"{self.game.current_player().username} takes {effect.amount} damage from {card.name}.")
+                    else:
+                        print(f"unsupported start_turn triggered effect {effect}")
+
         for r in self.relics:
             r.can_activate_abilities = True
             r.effects_exhausted = {}
             for effect in r.effects_triggered():
-                if effect.name == "gain_hp_for_hand":
-                    gained = 0
-                    to_apply = len(self.hand)
-                    while self.hit_points < 30 and to_apply > 0:
-                        self.hit_points += 1
-                        to_apply -= 1
-                        gained += 1  
-                    message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
-                elif effect.name == "lose_hp_for_hand":
-                    self.game.opponent().damage(len(self.game.opponent().hand))
-                    message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
+                if effect.trigger == "start_turn":
+                    if effect.name == "gain_hp_for_hand":
+                        gained = 0
+                        to_apply = len(self.hand)
+                        while self.hit_points < 30 and to_apply > 0:
+                            self.hit_points += 1
+                            to_apply -= 1
+                            gained += 1  
+                        message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
+                    elif effect.name == "lose_hp_for_hand":
+                        self.game.opponent().damage(len(self.game.opponent().hand))
+                        message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
 
 
         if self.game.is_under_ice_prison():
