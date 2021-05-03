@@ -1822,7 +1822,7 @@
 			{
 				"name": "damage",
 				"effect_type": "spell",
-				"target_type": "any",
+				"target_type": "entity",
 				"amount": 3
 			},
 			{

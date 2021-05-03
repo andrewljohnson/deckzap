@@ -76,6 +76,8 @@ class Game:
             moves = self.add_resolve_make_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic":
             moves = self.add_resolve_fetch_relic_moves(player, moves)
+        elif player.card_choice_info["choice_type"] == "riffle":
+            moves = self.add_resolve_riffle_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic_into_play":
             moves = self.add_resolve_fetch_relic_into_play_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "select_entity_for_ice_prison":
@@ -135,6 +137,11 @@ class Game:
     def add_resolve_fetch_relic_moves(self, player, moves):
         for c in player.card_choice_info["cards"]:
             moves.append({"card":c.as_dict() , "move_type": "FETCH_CARD", "username": self.ai})              
+        return moves 
+
+    def add_resolve_riffle_moves(self, player, moves):
+        for c in player.card_choice_info["cards"]:
+            moves.append({"card":c.id, "move_type": "FINISH_RIFFLE", "username": self.ai})              
         return moves 
 
     def add_resolve_fetch_relic_into_play_moves(self, player, moves):
@@ -959,8 +966,15 @@ class Game:
                 message = self.select_player_target_for_entity_effect(self.current_player().username, self.current_player().selected_entity(), message)
         elif self.current_player().selected_spell():
             target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
-            casting_spell = True
-            message = self.select_player_target_for_spell(target_player.username, self.current_player().selected_spell(), message)
+            if move_type == 'SELECT_SELF' and not self.current_player().selected_spell().can_target_self():
+                print(f"can't target self because the target_type is {self.current_player().selected_spell().effects[0].target_type}")
+                return None                
+            elif move_type == 'SELECT_OPPONENT' and not self.current_player().selected_spell().can_target_opponent():
+                print(f"can't target opponent {target_player.username} because the target_type is {self.current_player().selected_spell().effects[0].target_type}")
+                return None                
+            else:
+                casting_spell = True
+                message = self.select_player_target_for_spell(target_player.username, self.current_player().selected_spell(), message)
         elif self.current_player().selected_relic():
             target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
             # todo hardcoded 0 index
@@ -2758,27 +2772,51 @@ class Card:
         return False 
 
     def needs_targets(self):
-        for e in self.effects:
-            if e.target_type in ["any", "any_enemy", "entity", "opponents_entity", "self_entity", "relic", "any_player"]:
-                return True
+        if len(self.effects) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type in ["any", "any_enemy", "entity", "opponents_entity", "self_entity", "relic", "any_player"]:
+            return True
         return False 
 
     def needs_entity_target(self):
-        for e in self.effects:
-            if e.target_type  in ["entity", "opponents_entity", "self_entity"]:
-                return True
+        if len(self.effects) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type  in ["entity", "opponents_entity", "self_entity"]:
+            return True
         return False
 
     def can_target_entities(self):
-        for e in self.effects:
-            if ["entity", "opponents_entity", "any_enemy", "any", "self_entity"]:
-                return True
+        if len(self.effects) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type  in ["entity", "opponents_entity", "any_enemy", "any", "self_entity"]:
+            return True
+        return False
+
+    def can_target_opponent(self):
+        if len(self.effects) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type in ["any_player", "any_enemy", "opponent", "any"]:
+            return True
+        return False
+
+    def can_target_self(self):
+        if len(self.effects) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type in ["any_player", "any_self", "self", "any"]:
+            return True
         return False
 
     def needs_relic_target(self):
-        for e in self.effects:
-            if e.target_type == "relic":
-                return True
+        if len(self.effects) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type == "relic":
+            return True
         return False
 
     def needs_entity_target_for_activated_effect(self, index=0):
