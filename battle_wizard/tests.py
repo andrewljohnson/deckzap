@@ -926,3 +926,25 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 5)
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[1], game.current_player()), 5)
         os.remove(f"database/games/{dbName}.json")
+
+
+    def test_push_soul(self):
+        """
+            Test Push Soul.
+        """
+
+        deck1 = ["Stone Elemental", "Zap"]
+        deck2 = ["Push Soul"]
+        dbName, game = self.game_for_decks([deck1,deck2])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_SELF", "log_lines":[]})        
+        self.assertEqual(game.current_player().hit_points, 27)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})        
+        self.assertEqual(game.opponent().hit_points, 29)
+        self.assertEqual(len(game.opponent().in_play), 0)
+        os.remove(f"database/games/{dbName}.json")

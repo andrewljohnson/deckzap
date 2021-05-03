@@ -1668,6 +1668,8 @@ class Player:
             self.deactivate_equipment(card, equipped_entity)
         elif e.name == "view_hand":
             self.do_view_hand_effect()
+        elif e.name == "gain_for_toughness":
+            self.do_gain_for_toughness_effect(effect_targets[target_index]["id"])
         elif e.name == "make":
             self.do_make_effect(card, effect_targets[target_index]["id"], e.make_type, e.amount)
         elif e.name == "make_random_townie":
@@ -1941,6 +1943,11 @@ class Player:
     def do_kill_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         self.game.send_card_to_played_pile(target_card, target_player)
+
+    def do_gain_for_toughness_effect(self, target_entity_id):
+        target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
+        target_player.hit_points += target_card.toughness_with_tokens()
+        target_player.hit_points = min (30, target_player.hit_points)
 
     def do_take_control_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)

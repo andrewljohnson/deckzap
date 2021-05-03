@@ -311,7 +311,7 @@
 	{
 		"name": "Think",
 		"race": "elf",
-		"cost": 6,
+		"cost": 4,
 		"card_type": "Spell",
 		"description": "Draw 3 cards.",
 		"effects": [{
@@ -868,7 +868,7 @@
 	{
 		"name": "Lightning Storm",
 		"race": "genie",
-		"cost": 2,
+		"cost": 4,
 		"card_type": "Spell",
 		"description": "Deal 2 damage to all entities.",
 		"effects": [{
@@ -2068,6 +2068,26 @@
 					"toughness_modifier": 0,
 					"multiplier": "self_entities_and_relics"
 				}]
+			}
+		]
+	},
+	{
+		"name": "Push Soul",
+		"race": "human",
+		"class": "Sorcerer",
+		"card_type": "Spell",
+		"cost": 1,
+		"description": "Kill an entity. It's controller gains life equal to its toughness.",
+		"effects": [
+			{
+				"name": "gain_for_toughness",
+				"effect_type": "spell",
+				"target_type": "entity"
+			},		
+			{
+				"name": "kill",
+				"effect_type": "spell",
+				"target_type": "entity"
 			}
 		]
 	}
