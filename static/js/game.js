@@ -360,9 +360,9 @@ class GameUX {
                     } else {
                         cardPower += c.power_modifier;                        
                     }
-                    for (let c of card.tokens) {
-                        cardToughness += c.toughness_modifier;
-                    }
+                }
+                for (let c of card.tokens) {
+                    cardToughness += c.toughness_modifier;
                 }
             }
             let powerToughnessDiv = document.createElement("em");

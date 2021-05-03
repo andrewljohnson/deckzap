@@ -190,29 +190,7 @@ class Game:
                 return None
         # move sent after initial game config
         if move_type == 'START_FIRST_TURN':
-            message = self.current_player().start_turn(message)
-            found_relic = None
-            
-            for c in self.current_player().deck:
-                if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
-                    found_relic = c
-                    break
-            if found_relic:
-                found_relic.turn_played = self.turn
-                self.current_player().play_relic(found_relic)
-                self.current_player().deck.remove(found_relic)
-            
-            found_relic = None
-            for c in self.opponent().deck:
-                if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
-                    found_relic = c
-                    break
-            if found_relic:
-                found_relic.turn_played = self.turn
-                self.opponent().play_relic(found_relic)
-                self.opponent().deck.remove(found_relic)
-
-
+            message = self.current_player().start_turn(message)            
         # moves sent by the game UX via buttons and card clicks
         elif move_type == 'END_TURN':
             message = self.end_turn(message)
@@ -650,6 +628,8 @@ class Game:
                     p.add_to_deck(card_name, 1)
             random.shuffle(p.deck)
             p.max_mana = 1
+        self.get_starting_relics()
+        for p in self.players:
             p.draw(2)
         self.send_start_first_turn(message)
 
@@ -672,6 +652,8 @@ class Game:
                     p.add_to_deck(card_name, 1)
             random.shuffle(p.deck)
             p.max_mana = 0
+        self.get_starting_relics()
+        for p in self.players:
             p.draw(6)
         self.send_start_first_turn(message)
 
@@ -681,6 +663,8 @@ class Game:
                 for card_name in self.player_decks[x]:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].max_mana = 1
+            self.get_starting_relics()
+            for x in range(0, 2):
                 self.players[x].draw(2)
 
             self.send_start_first_turn(message)
@@ -704,10 +688,33 @@ class Game:
                 for card_name in card_names:
                     self.players[x].add_to_deck(card_name, 1)
                 random.shuffle(self.players[x].deck)
-                self.players[x].max_mana = 1
+                self.players[x].max_mana = 0
+            self.get_starting_relics()
+            for x in range(0, 2):                
                 self.players[x].draw(5)
 
             self.send_start_first_turn(message)
+
+    def get_starting_relics(self):
+        found_relic = None
+        for c in self.current_player().deck:
+            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
+                found_relic = c
+                break
+        if found_relic:
+            found_relic.turn_played = self.turn
+            self.current_player().play_relic(found_relic)
+            self.current_player().deck.remove(found_relic)
+        
+        found_relic = None
+        for c in self.opponent().deck:
+            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
+                found_relic = c
+                break
+        if found_relic:
+            found_relic.turn_played = self.turn
+            self.opponent().play_relic(found_relic)
+            self.opponent().deck.remove(found_relic)
 
     def send_start_first_turn(self, message):
         new_message = copy.deepcopy(message)
@@ -1391,6 +1398,8 @@ class Game:
         for t in card.tokens:
             if t.multiplier == "self_relics":
                 power += t.power_modifier * len(player.relics)
+            elif t.multiplier == "self_entities_and_relics":
+                power += t.power_modifier * (len(player.relics) + len(player.in_play))
             else:
                 power += t.power_modifier
         return power
@@ -2235,7 +2244,7 @@ class Player:
 
         for e in self.in_play:
             for idx, effect in enumerate(e.effects_triggered()):
-                if effect.trigger == "friendly_card_played" and effect.target_type == "self":
+                if effect.trigger == "friendly_card_played" and effect.target_type == "this":
                     self.do_add_tokens_effect(e, effect, {idx: {"id": e.id, "target_type":"entity"}}, idx)
 
         # todo: wrap this into a counterspell method
@@ -2258,6 +2267,7 @@ class Player:
                 self.target_or_do_entity_effects(card, message, message["username"])
             for c in self.in_play:
                 if len(c.effects_triggered()) > 0:
+                    # Spouty Gas Ball code
                     if c.effects_triggered()[0].trigger == "play_friendly_entity":
                         if c.effects_triggered()[0].name == "damage" and c.effects_triggered()[0].target_type == "opponents_entity_random":
                             if len(self.game.opponent().in_play) > 0:
@@ -2347,9 +2357,11 @@ class Player:
                     if not "effect_targets" in message:
                         effect_targets = {}
                         if e.target_type == "self" or e.name == "fetch_card":           
-                            effect_targets[0] = {"id": username, "target_type":"player"};
+                            effect_targets[idx] = {"id": username, "target_type":"player"};
                         elif e.target_type == "this":           
-                            effect_targets[0] = {"id": card.id, "target_type":"entity"};
+                            effect_targets[idx] = {"id": card.id, "target_type":"entity"};
+                        elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities":           
+                            effect_targets[idx] = {"target_type": e.target_type};
                         message["effect_targets"] = effect_targets
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
         return message

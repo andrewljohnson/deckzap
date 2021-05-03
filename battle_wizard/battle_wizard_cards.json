@@ -1682,7 +1682,7 @@
 		"name": "Town Council",
 		"race": "gnome",
 		"class": "bard",
-		"description": "Each entity you control gets +1/+1 for every 2 entities you control, rounded down.",
+		"description": "Each other Entity you control gets +1/+1 for every 2 Entities you control, rounded down.",
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 4,
@@ -1690,7 +1690,7 @@
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "enter_play",
-			"target_type": "entity",
+			"target_type": "self_entities",
 			"tokens": [{
 				"turns": 1,
 				"target_type": "self_entities",
@@ -1749,6 +1749,7 @@
 		"race": "human",
 		"class": "Fighter",
 		"card_type": "Entity",
+		"description": "Has Fast if something else does.",
 		"power": 2,
 		"toughness": 2,
 		"cost": 1,
@@ -1773,6 +1774,7 @@
 		"race": "human",
 		"class": "Fighter",
 		"card_type": "Entity",
+		"description": "Gets +1/+1 whenever you play a card.",
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
@@ -1780,7 +1782,7 @@
 			{
 				"name": "add_tokens",
 				"effect_type": "triggered",
-				"target_type": "self",
+				"target_type": "this",
 				"trigger": "friendly_card_played",
 				"tokens": [{
 					"power_modifier": 1,
@@ -1815,7 +1817,7 @@
 		"class": "Fighter",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Deal 3 damage to an entity and your opponent",
+		"description": "Deal 3 damage to an Entity and your Opponent",
 		"effects": [
 			{
 				"name": "damage",
@@ -1986,6 +1988,7 @@
 		"race": "human",
 		"class": "Fighter",
 		"card_type": "Entity",
+		"description": "Deals you 1 damage at the start of your turn.",
 		"power": 5,
 		"toughness": 5,
 		"cost": 4,
@@ -2010,12 +2013,6 @@
 		"card_type": "Spell",
 		"cost": 5,
 		"description": "Get a random relic from your deck. Summon a 3/3 with Fast and Fade.",
-		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			}
-		],
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Mist Elephant",
@@ -2050,9 +2047,10 @@
 		"race": "human",
 		"class": "Fighter",
 		"card_type": "Entity",
+		"description": "+1/+0 for each other entity and relic you have.",
 		"power": 2,
 		"toughness": 5,
-		"cost": 4,
+		"cost": 5,
 		"abilities": [
 			{
 				"name": "Stomp",
@@ -2068,7 +2066,7 @@
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
-					"multiplier": "self_entities"
+					"multiplier": "self_entities_and_relics"
 				}]
 			}
 		]

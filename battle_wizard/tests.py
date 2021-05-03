@@ -906,7 +906,7 @@ class GameObjectTests(TestCase):
         """
             Spirit of the Stampede
         """
-        dbName, game = self.game_for_decks([["Spirit of the Stampede", "Spirit of the Stampede"], []])
+        dbName, game = self.game_for_decks([["Spirit of the Stampede", "Spirit of the Stampede", "Befuddling Guitar"], []])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
@@ -920,4 +920,9 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 4)
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[1], game.current_player()), 4)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 5)
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[1], game.current_player()), 5)
         os.remove(f"database/games/{dbName}.json")
