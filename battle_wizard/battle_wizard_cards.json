@@ -1387,6 +1387,7 @@
 		"description": "You can't be reduced to less than 1 life.",
 		"effects": [{
 			"name": "add_player_abilities",
+			"effect_type": "enter_play",
 			"target_type": "self",
 			"abilities": [
 				{
@@ -1394,9 +1395,9 @@
 					"description": "Can't Die",
 					"descriptive_id": "Can't Die"
 				}
-			]				
-		}],
-		"effects": [{
+			]
+		},				
+		{
 			"name": "remove_player_abilities",
 			"effect_type": "leave_play",
 			"target_type": "self",
@@ -2385,5 +2386,97 @@
 			"amount": 1,
 			"multiplier": "self_entities"
 		}]
-	}
-]
+	},
+	{
+		"name": "Avatar of Song",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"description": "Draw 2 cards. Draw an extra card each turn. As long as you control an instrument, you can't be reduced to less than 1 hit point.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			},
+			{
+				"name": "Instrument Required",
+				"descriptive_id": "Instrument Required"
+			}
+		],
+		"effects": [{
+				"name": "draw",
+				"trigger": "start_turn",
+				"effect_type": "triggered",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "draw",
+				"trigger": "enter_play",
+				"target_type": "self",
+				"amount": 2
+			},		
+			{
+				"name": "add_player_abilities",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"abilities": [
+					{
+						"name": "Can't Die",
+						"description": "Can't Die",
+						"descriptive_id": "Can't Die"
+					}
+				]
+			},				
+			{
+				"name": "remove_player_abilities",
+				"effect_type": "leave_play",
+				"target_type": "self",
+				"abilities": [
+					{
+						"descriptive_id": "Can't Die"
+					}
+				]				
+			}
+		]
+	},
+	{
+		"name": "Ilra, Lady of Wind and Music",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 6,
+		"toughness": 6,
+		"cost": 9,
+		"description": "All your other entities get +3/+3 and may attack again.",
+		"abilities": [			
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Instrument Required",
+				"descriptive_id": "Instrument Required"
+			}
+		],
+		"effects": [
+			{
+				"name": "add_tokens",
+				"effect_type": "enter_play",
+				"target_type": "self_entities",
+				"tokens": [{
+					"turns": 1,
+					"power_modifier": 3,
+					"toughness_modifier": 3
+				}]
+			},
+			{
+				"name": "set_can_attack",
+				"effect_type": "enter_play",
+				"target_type": "self_entities"
+			}
+		]
+	}]

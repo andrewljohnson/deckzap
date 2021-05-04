@@ -1798,12 +1798,18 @@ class Player:
             else:
                 message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
             self.do_add_tokens_effect(card, e, effect_targets, target_index)
-        elif e.name == "add_effects":
-            if e.target_type == "self_entities":
-                message["log_lines"].append(f"{self.username} adds effects to their entities.")
+        elif e.name == "add_tokens":
+            if e.target_type == 'self_entities':
+                message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to their own entities.")
             else:
-                message["log_lines"].append(f"{self.username} adds effects {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
-            self.do_add_effects_effect(e, card)           
+                message["log_lines"].append(f"{self.username} adds {str(e.tokens[0])} to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
+            self.do_add_tokens_effect(card, e, effect_targets, target_index)
+        elif e.name == "set_can_attack":
+            if e.target_type == "self_entities":
+                message["log_lines"].append(f"{self.username} kets their entities attack again this turn.")
+                self.do_set_can_attack_effect()           
+            else:
+                print(f"e.target_type {e.target_type} not supported for set_can_attack")
         elif e.name == "add_player_abilities":
             if e.target_type == "opponent":
                 message["log_lines"].append(f"{self.game.opponent().username} gets {card.description}.")
@@ -2124,6 +2130,10 @@ class Player:
         if target_card.toughness_with_tokens() <= 0:
             self.game.send_card_to_played_pile(target_card, target_player)
 
+    def do_set_can_attack_effect(self):
+        for e in self.in_play:
+            e.attacked = False
+
     def do_add_effect_effect_on_entity(self, effect, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)  
         target_card.effects.insert(0, effect)
@@ -2133,8 +2143,9 @@ class Player:
             if effect.name == "increase_max_mana":
                 self.do_increase_max_mana_effect_on_player(target_player.username, effect.amount)
 
-    def do_add_abilities_effect_on_player(self, effect, player):
+    def do_add_abilities_effect_on_player(self, effect, player, card_id):
         player.abilities.append(effect.abilities[0])
+        player.abilities[-1].id = card_id
 
     def do_add_abilities_effect_on_entity(self, effect, entity):
         a = copy.deepcopy(effect.abilities[0])
@@ -2168,6 +2179,14 @@ class Player:
                         tokens_to_keep.append(token)
                 entity.tokens = tokens_to_keep
 
+    def remove_abilities(self, card, e):
+        ability_to_remove = None
+        # todo this should  loop over the abilities in e, in the future there could be more than 1 ability to remove
+        for a in self.abilities:
+            if a.id == card.id:
+                ability_to_remove = a
+        self.abilities.remove(a)
+
     def do_add_effects_effect(self, e, card):
         if e.target_type == "self_entities":
             for card in self.in_play:
@@ -2186,7 +2205,8 @@ class Player:
                         card.abilities.append(a) 
             self.do_add_abilities_effect_on_player(
                 e, 
-                self
+                self,
+                card.id                
             )
         elif e.target_type in ["entity", "opponents_entity", "self_entity"]:
             self.do_add_abilities_effect_on_entity(
@@ -2196,12 +2216,14 @@ class Player:
         elif e.target_type == "opponent":
             self.do_add_abilities_effect_on_player(
                 e, 
-                self.game.opponent()
+                self.game.opponent(),
+                card.id
             )
         elif e.target_type == "self":
             self.do_add_abilities_effect_on_player(
                 e, 
-                self
+                self,
+                card.id
             )
 
     def do_make_token_effect(self, e):
@@ -3039,6 +3061,8 @@ class Card:
                 player.do_make_token_effect(e)
             if e.name == "remove_tokens":
                 player.do_remove_tokens_effect(self, e)
+            if e.name == "remove_player_abilities":
+                player.remove_abilities(self, e)
 
     def effects_leave_play(self):
         return [e for e in self.effects if e.effect_type == "leave_play"]
