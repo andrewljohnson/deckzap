@@ -81,7 +81,7 @@ class Game:
             moves = self.add_resolve_riffle_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic_into_play":
             moves = self.add_resolve_fetch_relic_into_play_moves(player, moves)
-        elif player.card_choice_info["choice_type"] == "fetch_card":
+        elif player.card_choice_info["choice_type"] == "fetch_into_hand":
             moves = self.add_resolve_fetch_card_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "select_entity_for_ice_prison":
             moves = self.add_select_entity_for_ice_prison_moves(moves)
@@ -161,6 +161,9 @@ class Game:
         return moves 
 
     def add_attack_and_play_card_moves(self, moves):
+        for relic in self.current_player().relics:
+            if relic.can_be_clicked:
+                moves.append({"card":relic.id, "move_type": "SELECT_RELIC", "username": self.ai, "effect_index": 0})
         for relic in self.opponent().relics:
             if relic.can_be_clicked:
                 moves.append({"card":relic.id, "move_type": "SELECT_RELIC", "username": self.ai, "effect_index": 0})
@@ -290,6 +293,11 @@ class Game:
 
         cp = self.current_player()
         opp = self.opponent()
+
+        # these are only clickable if certain spells are the selected_spell
+        for card in opp.relics:
+            card.can_be_clicked = False
+
         if cp.selected_entity() and cp.card_info_to_resolve["effect_type"] != "entity_at_ready":
             cp.set_targets_for_selected_entity()
         elif cp.selected_relic():
