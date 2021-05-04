@@ -65,8 +65,9 @@ class Game:
             return [{"move_type": "JOIN", "username": self.ai}]
         if not player.race and self.game_type in ["choose_race", "choose_race_prebuilt"]:
             return [
-                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "elf"},
-                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "genie"},
+                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "human_fighter"},
+                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "elf_sorcerer"},
+                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "gnome_bard"},
             ]
 
         moves = []
@@ -630,7 +631,26 @@ class Game:
     def start_choose_race_game(self, message):
         use_test = False
         test = ["Stiff Wind", "Stiff Wind", "Stone Elemental", "Stone Elemental"]
-        elf_deck = ["Make Spell", "Make Entity"]
+        elf_sorcerer_deck = {
+            "Push Soul": 2,
+            "Riffle": 2,
+            "Disk of Death": 1,
+            "Phoenix": 2,
+            "Premonition": 1,
+            "Life Guardian": 1,
+            "Great Guardian": 1,
+            "Prophecy of the Nine": 1,
+            "Prophecy of the Ten": 1,
+            "Stiff Wind": 2,
+            "Kill Relic": 2,
+            "Counterspell": 2,
+            "Big Counterspell": 2,
+            "Unwind": 2,
+            "Trickster": 2,
+            "Shield Up": 2,
+            "Think": 2,
+            "Lightning Storm": 2,
+        }
         genie_deck = ["Make Spell", "Make Entity"]
         for p in self.players:
             if use_test:
@@ -1671,7 +1691,7 @@ class Player:
             if effect_targets[target_index]["target_type"] == "player":
                 self.do_damage_effect_on_player(card, effect_targets[target_index]["id"], e.amount)
                 message["log_lines"].append(f"{self.username} deals {e.amount} damage to {effect_targets[target_index]['id']}.")
-            elif effect_targets[target_index]["target_type"] == "all_entities":
+            elif effect_targets[target_index]["target_type"] == "all_entities" or effect_targets[target_index]["target_type"] == "all":
                 dead_entities = []
                 for entity in self.in_play:
                     entity.damage += e.amount
@@ -1688,7 +1708,12 @@ class Player:
                         dead_entities.append(entity)
                 for entity in dead_entities:
                     self.game.send_card_to_played_pile(entity, self.game.opponent())
-                message["log_lines"].append(f"{self.username} deals {e.amount} damage to all entities.")
+                if effect_targets[target_index]["target_type"] == "all":
+                    self.damage(e.amount)
+                    self.game.opponent().damage(e.amount)
+                    message["log_lines"].append(f"{self.username} deals {e.amount} damage to all entities and players.")
+                else:
+                    message["log_lines"].append(f"{self.username} deals {e.amount} damage to all entities.")
             else:
                 message["log_lines"].append(f"{self.username} deals {e.amount} damage to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
                 self.do_damage_effect_on_entity(card, effect_targets[target_index]["id"], e.amount)
@@ -2499,7 +2524,7 @@ class Player:
                         message["effect_targets"][idx] = {"id": message["username"], "target_type":"player"}
                     elif e.target_type == "opponent":           
                         message["effect_targets"][idx] = {"id": self.game.opponent().username, "target_type":"player"}
-                    elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities":           
+                    elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities" or e.target_type == "all":          
                         message["effect_targets"][idx] = {"target_type": e.target_type};
                     elif e.target_type == "all_cards_in_deck":           
                         message["effect_targets"][idx] = {"target_type": "player", "id": self.username};

@@ -618,8 +618,9 @@ class GameUX {
         raceSelector.appendChild(p);
 
         var options = [
-            {"id": "elf", "label": "Elf"},
-            {"id": "genie", "label": "Genie"},
+            {"id": "human_fighter", "label": "Human Fighter"},
+            {"id": "elf_sorcerer", "label": "Elf Wizard"},
+            {"id": "gnome_bard", "label": "Gnomish Bard"},
         ];
 
         var div = document.createElement("div");

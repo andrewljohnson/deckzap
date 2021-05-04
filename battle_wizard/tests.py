@@ -1255,3 +1255,21 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 27)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_prophecy_of_the_nine(self):
+        """
+            Test Prophecy of the Nine
+        """
+        dbName, game = self.game_for_decks([["Prophecy of the Nine", "Stone Elemental"], []])
+        for x in range(0,8):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(game.opponent().hit_points, 30)
+        self.assertEqual(game.current_player().hit_points, 30)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, 21)
+        self.assertEqual(game.current_player().hit_points, 21)
+        self.assertEqual(len(game.current_player().in_play), 0)
+        os.remove(f"database/games/{dbName}.json")

@@ -2230,6 +2230,20 @@
 		}]
 	},
 	{
+		"name": "Prophecy of the Nine",
+		"race": "human",
+		"class": "Sorcerer",
+		"cost": 9,
+		"card_type": "Spell",
+		"description": "Deal 9 damage to everything.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "all",
+			"amount": 9
+		}]
+	},
+	{
 		"name": "Prophecy of the Ten",
 		"race": "human",
 		"class": "Sorcerer",

@@ -191,3 +191,7 @@
         text-align: center;
         padding-top:15px;
     }
+
+    #race_selector {
+        z-index:5;
+    }
