@@ -2479,4 +2479,26 @@
 				"target_type": "self_entities"
 			}
 		]
-	}]
+	},
+	{
+		"name": "Dazzling Solo",
+		"race": "gnome",
+		"class": "bard",
+		"cost": 10,
+		"card_type": "Spell",
+		"description": "Gain control of all relics and entities this turn. All of your Entities and Relics get Fast.",
+		"abilities": [
+				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
+		],
+		"effects": [{
+			"name": "take_control",
+			"effect_type": "spell",
+			"target_type": "all",
+			"abilities": [
+				{
+					"name": "Fast",
+					"descriptive_id": "Fast"
+				}]
+		}]
+	}
+]

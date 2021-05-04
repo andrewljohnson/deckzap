@@ -1742,8 +1742,19 @@ class Player:
                 for card_id in card_ids_to_kill: 
                     self.do_kill_effect_on_entity(card_id)
         elif e.name == "take_control":
-            message["log_lines"].append(f"{self.username} takes control of {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
-            self.do_take_control_effect_on_entity(effect_targets[target_index]["id"])
+            if e.target_type == "all":
+                while len(self.game.opponent().in_play) > 0 and len(self.in_play) < 7:
+                    if len(e.abilities) and e.abilities[0].descriptive_id == "Fast":
+                        self.game.opponent().in_play[0].abilities.append(copy.deepcopy(e.abilities[0]))
+                    self.do_take_control_effect_on_entity(self.game.opponent().in_play[0].id)
+                while len(self.game.opponent().relics) > 0 and len(self.in_play) < 3:
+                    if len(e.abilities) and e.abilities[0].descriptive_id == "Fast":
+                        self.game.opponent().relics[0].effects_exhausted = {}
+                    self.do_take_control_effect_on_relic(self.game.opponent().relics[0].id)
+                message["log_lines"].append(f"{self.username} takes control everything.")
+            else:
+                message["log_lines"].append(f"{self.username} takes control of {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
+                self.do_take_control_effect_on_entity(effect_targets[target_index]["id"])
         elif e.name == "unwind":
             if e.target_type == "all_entities":
                 message["log_lines"].append(f"{card.name} returns all entities to their owners' hands.")
@@ -2081,6 +2092,15 @@ class Player:
             target_card.abilities.append(self.fast_ability())       
         if target_card.has_ability("Fast") or target_card.has_ability("Ambush"):
             target_card.attacked = False
+        target_card.do_leaves_play_effects(target_player)
+
+    def do_take_control_effect_on_relic(self, target_relic_id):
+        target_card, target_player = self.game.get_in_play_for_id(target_relic_id)
+        target_player.relics.remove(target_card)
+        self.relics.append(target_card)
+        self.game.update_for_entity_changes_zones(target_player)
+        self.game.update_for_entity_changes_zones(self)
+        target_card.turn_played = self.game.turn
         target_card.do_leaves_play_effects(target_player)
     
     def do_unwind_effect_on_entity(self, target_entity_id):
