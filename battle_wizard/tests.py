@@ -4,20 +4,6 @@ from battle_wizard.jsonDB import JsonDB
 import os
 import time
 
-"""
-    10 tested cards out of about 50:
-
-    Stone Elemental
-    Unwind
-    Mana Shrub
-    Training Master
-    Stiff Wind
-    Siz Pop
-    Counterspell
-    Big Counterspell 
-    Mind Manacles
-    Master Time
-"""
 
 class GameObjectTests(TestCase):
 

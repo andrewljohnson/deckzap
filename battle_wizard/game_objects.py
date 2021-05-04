@@ -1817,7 +1817,7 @@ class Player:
                     if len(e.abilities) and e.abilities[0].descriptive_id == "Fast":
                         self.game.opponent().in_play[0].abilities.append(copy.deepcopy(e.abilities[0]))
                     self.do_take_control_effect_on_entity(self.game.opponent().in_play[0].id)
-                while len(self.game.opponent().relics) > 0 and len(self.in_play) < 3:
+                while len(self.game.opponent().relics) > 0 and len(self.relics) < 3:
                     if len(e.abilities) and e.abilities[0].descriptive_id == "Fast":
                         self.game.opponent().relics[0].effects_exhausted = {}
                     self.do_take_control_effect_on_relic(self.game.opponent().relics[0].id)
@@ -2161,7 +2161,7 @@ class Player:
             target_card.abilities.append(self.fast_ability())       
         if target_card.has_ability("Fast") or target_card.has_ability("Ambush"):
             target_card.attacked = False
-        target_card.do_leaves_play_effects(target_player)
+        target_card.do_leaves_play_effects(target_player, did_kill=False)
 
     def do_take_control_effect_on_relic(self, target_relic_id):
         target_card, target_player = self.game.get_in_play_for_id(target_relic_id)
@@ -2216,7 +2216,7 @@ class Player:
                 target_card.tokens.append(token)
         else:
             target_card.tokens.append(token)
-        if target_card.toughness_with_tokens() <= 0:
+        if target_card.toughness_with_tokens() - target_card.damage <= 0:
             self.game.send_card_to_played_pile(target_card, target_player)
 
     def do_set_can_attack_effect(self):
