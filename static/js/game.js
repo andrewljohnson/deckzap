@@ -579,7 +579,7 @@ class GameUX {
                 alert("GAME OVER");
             }
         }
-        if ((this.gameType == "choose_race" || this.gameType == "choose_race_prebuilt") && (!game.players[0].race || !game.players[1].race)) {
+        if ((this.gameType == "choose_race" || this.gameType == "choose_race_prebuilt") && (!game.players[0].race || !game.players[1] || !game.players[1].race)) {
             this.showChooseRace(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
@@ -599,10 +599,8 @@ class GameUX {
     }
     
     showChooseRace(game) {
+        console.log("showChooseRace");
         var raceSelector = document.getElementById("race_selector");
-        if (raceSelector.style.display == "block") {
-            return;
-        }
         raceSelector.style.display = "block";
         raceSelector.style.maxWidth = "1024px";
         raceSelector.style.padding = "10px";
@@ -634,14 +632,27 @@ class GameUX {
             input.className = "button"
             input.innerHTML = o.label;
             input.style.marginRight = "20px";
-            input.onclick = function() { 
-                self.race = this.id;
-                this.onclick = null;
-                self.innerHTML = "Waiting for Opponent...";
-                self.chooseRace(game, self.race) 
-            };
+            if (this.race) {
+                input.onclick = null;
+                if (input.id == this.race) {
+                    input.style.backgroundColor = "green";                
+                } else {
+                    input.style.backgroundColor = "lightgray";                
+                }
+            } else {
+                input.onclick = function() { 
+                    self.race = this.id;
+                    this.onclick = null;
+                    self.chooseRace(game, self.race) 
+                };                
+            }
             div.appendChild(input);
         }  
+        if (this.race) {
+            var h1 = document.createElement("h1");
+            h1.innerHTML = "Waiting for Opponent...";
+            div.appendChild(h1);
+        }        
 
     }
 
