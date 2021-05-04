@@ -610,11 +610,11 @@ class GameUX {
         document.getElementById("race_selector").innerHTML = "";
 
         var h1 = document.createElement("h1");
-        h1.innerHTML = "Choose Race"
+        h1.innerHTML = "Choose Character"
         raceSelector.appendChild(h1);
 
         var p = document.createElement("p");
-        p.innerHTML = "Your race affects what cards you have access to in the game. Choose 1:"
+        p.innerHTML = "Your class and race affects what cards you have access to in the game. Choose 1:"
         raceSelector.appendChild(p);
 
         var options = [
