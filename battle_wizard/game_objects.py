@@ -76,11 +76,13 @@ class Game:
         elif player.card_choice_info["choice_type"] == "make":
             moves = self.add_resolve_make_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic_into_hand":
-            moves = self.add_resolve_fetch_relic_moves(player, moves)
+            moves = self.add_resolve_fetch_card_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "riffle":
             moves = self.add_resolve_riffle_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_relic_into_play":
             moves = self.add_resolve_fetch_relic_into_play_moves(player, moves)
+        elif player.card_choice_info["choice_type"] == "fetch_card":
+            moves = self.add_resolve_fetch_card_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "select_entity_for_ice_prison":
             moves = self.add_select_entity_for_ice_prison_moves(moves)
             if len(moves) == 0:
@@ -143,7 +145,7 @@ class Game:
             moves.append({"card":player.card_choice_info["cards"][x].as_dict() , "move_type": move_type, "username": self.ai})              
         return moves 
 
-    def add_resolve_fetch_relic_moves(self, player, moves):
+    def add_resolve_fetch_card_moves(self, player, moves):
         for c in player.card_choice_info["cards"]:
             moves.append({"card":c.id , "move_type": "FETCH_CARD", "username": self.ai})              
         return moves 
@@ -391,6 +393,9 @@ class Game:
                     for e in opp.in_play:
                         if not e.has_ability("Lurker"):
                             card.can_be_clicked = True
+                if card.has_ability("Instrument Required") and not cp.has_instrument():
+                    card.can_be_clicked = False
+
 
     def set_targets_for_target_type(self, target_type, target_restrictions, effect=None):
         if target_type == "any_player":
@@ -2115,7 +2120,7 @@ class Player:
             target_card.damage += amount
             if target_card.damage >= target_card.toughness_with_tokens():
                 self.game.send_card_to_played_pile(target_card, target_player)
-                if card.has_ability("die_to_top_deck"):
+                if card.has_ability("die_to_top_deck") and not target_card.is_token:
                     card = None
                     for c in target_player.played_pile:
                         if c.id == target_card.id:
@@ -2176,8 +2181,9 @@ class Player:
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_player.in_play.remove(target_card)  
         target_card.do_leaves_play_effects(target_player, did_kill=False)
-        new_card = self.game.factory_reset_card(target_card, target_player)
-        target_player.hand.append(new_card)  
+        if not target_card.is_token:
+            new_card = self.game.factory_reset_card(target_card, target_player)
+            target_player.hand.append(new_card)  
 
     def do_make_effect(self, card, target_player_username, make_type, amount):
         target_player = self.game.players[0]
@@ -2440,7 +2446,10 @@ class Player:
                     (list(target_restrictions[0].keys())[0] == "needs_weapon" and card.has_ability("Weapon")) or \
                     (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
                     relics.append(card)
-        self.card_choice_info = {"cards": relics, "choice_type": choice_type}
+        if len(relics) > 0:
+            self.card_choice_info = {"cards": relics, "choice_type": choice_type}
+        else:
+            self.reset_card_choice_info()
 
     def display_deck_for_fetch(self):
         all_cards = Game.all_cards()
@@ -2620,8 +2629,15 @@ class Player:
                     self.card_info_to_resolve["effect_type"] = "entity_activated"
                 else:
                     self.card_info_to_resolve["effect_type"] = "entity_comes_into_play"
-            elif effects[0].target_type in ["entity", "opponents_entity"]:
+            elif effects[0].target_type in ["entity"]:
                 if self.game.has_targets_for_entity_effect(effects[0].target_restrictions):
+                    self.card_info_to_resolve["card_id"] = card.id
+                    if is_activated_effect:
+                        self.card_info_to_resolve["effect_type"] = "entity_activated"
+                    else:
+                        self.card_info_to_resolve["effect_type"] = "entity_comes_into_play"
+            elif effects[0].target_type in ["opponents_entity"]:
+                if self.game.has_targets_for_opponents_entity_effect(effects[0].target_restrictions):
                     self.card_info_to_resolve["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_resolve["effect_type"] = "entity_activated"
