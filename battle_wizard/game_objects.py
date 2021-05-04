@@ -748,6 +748,7 @@ class Game:
 
     def select_card_in_hand(self, message):
         # todo: what happens if you select a card then another card?
+        print("select_card_in_hand")
         for card in self.current_player().hand:
             if card.id == message["card"]:
                 message["card_name"] = card.name
@@ -758,6 +759,7 @@ class Game:
                     print(f"can't select relic targetting spell with no relics in play")
                     return None
                 elif card.cost <= self.current_player().mana:
+                    print("MANA:")
                     if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets():
                         self.current_player().reset_card_info_to_resolve()
                     elif self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id:
@@ -1154,7 +1156,11 @@ class Game:
             if c.id == message['card']:
                 chosen_card = c
         for card in self.current_player().card_choice_info["cards"]:
-            self.current_player().deck.remove(card)
+            card_to_remove = None
+            for deck_card in self.current_player().deck:
+                if card.id == deck_card.id:
+                   card_to_remove = deck_card 
+            self.current_player().deck.remove(deck_card)
             if card.id != chosen_card.id:
                 self.send_card_to_played_pile(card, self.current_player())
                 message["log_lines"].append(f"{message['username']} puts {card.name} into their played pile.")

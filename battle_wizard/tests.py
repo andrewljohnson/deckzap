@@ -1020,7 +1020,7 @@ class GameObjectTests(TestCase):
 
     def test_lightning_storm(self):
         """
-            Test Arsenal equipped and Mind Manacles.
+            Test Lightning Storm.
         """
         dbName, game = self.game_for_decks([["Stone Elemental", "Stone Elemental"], ["Lightning Storm"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -1031,4 +1031,17 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         self.assertEqual(len(game.opponent().in_play), 0)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_riffle(self):
+        """
+            Test Riffle.
+        """
+        dbName, game = self.game_for_decks([["Riffle", "Riffle", "Riffle", "Riffle", "Riffle", "Riffle"], []])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 5, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.current_player().username, "a")
+        game.play_move({"username": "a", "move_type": "FINISH_RIFFLE", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.current_player().username, "b")
         os.remove(f"database/games/{dbName}.json")
