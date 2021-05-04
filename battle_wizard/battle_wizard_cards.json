@@ -2276,5 +2276,29 @@
 				"abilities": [{"name": "Ambush", "descriptive_id": "Ambush", "enabled": true}],
 				"turns": 1
 		}]
+	},
+	{
+		"name": "Akbar's Pan Pipes",
+		"card_type": "Relic",
+		"cost": 4,
+		"description": "Remove a counter: Summon a 2/2 rat.",
+		"abilities": [
+			{
+				"name": "Instrument",
+				"descriptive_id": "Instrument"
+			}
+		],
+		"effects": [
+			{
+				"name": "make_token",
+				"effect_type": "activated",
+				"target_type": "self",
+				"amount": 1,
+				"counters": 5,
+				"power": 2,
+				"toughness": 2,
+				"cost": 0
+			}
+		]
 	}
 ]
