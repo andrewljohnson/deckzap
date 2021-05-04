@@ -1110,3 +1110,15 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 1)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_gnomish_militia(self):
+        """
+            Test Gnomish Militia
+        """
+        dbName, game = self.game_for_decks([["Gnomish Militia"], []])
+        for x in range(0,3):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 2)
+        os.remove(f"database/games/{dbName}.json")

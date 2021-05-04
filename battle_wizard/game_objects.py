@@ -1632,6 +1632,12 @@ class Player:
             else:
                 self.game.opponent().do_make_token_effect(e)
                 message["log_lines"].append(f"{card.name} makes {e.amount} tokens for {self.game.opponent().username}.")
+        elif e.name == "create_card":
+            if e.target_type == "self":
+                self.do_create_card_effect(e)
+                message["log_lines"].append(f"{card.name} creates {e.amount} {e.card_name}.")
+            else:
+                print(f"unsupported target_type {e.target_type} for create_card effect")
         elif e.name == "fetch_card":
             self.do_fetch_card_effect_on_player(card, effect_targets[target_index]["id"], e.target_type, e.target_restrictions, choice_type="fetch_relic_into_hand")
             message["log_lines"].append(f"{self.username} cracks {card.name} to fetch a relic.")
@@ -2195,6 +2201,18 @@ class Player:
             }
             self.in_play.append(Card(token_card))
             self.game.update_for_entity_changes_zones(self)
+            self.game.next_card_id += 1
+
+    def do_create_card_effect(self, e):
+        for x in range(0, e.amount):
+            if len(self.hand) == 10:
+                return
+            card_to_create = None
+            for card in Game.all_cards():
+                if card.name == e.card_name:
+                    card_to_create = card
+            self.hand.append(copy.deepcopy(card_to_create))
+            self.hand[-1].id = self.game.next_card_id
             self.game.next_card_id += 1
 
     def do_make_random_townie_effect(self, amount):

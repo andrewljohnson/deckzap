@@ -2300,5 +2300,28 @@
 				"cost": 0
 			}
 		]
+	},
+	{
+		"name": "Gnomish Militia",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 5,
+		"toughness": 5,
+		"cost": 5,
+		"description": "Add 2 Town Rangers to your hand.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		],
+		"effects": [{
+				"name": "create_card",
+				"card_name": "Town Ranger",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"amount": 2
+		}]
 	}
 ]
