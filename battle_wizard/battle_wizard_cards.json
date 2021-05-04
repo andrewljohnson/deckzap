@@ -2323,5 +2323,22 @@
 				"target_type": "self",
 				"amount": 2
 		}]
+	},
+	{
+		"name": "Resonant Frequency",
+		"race": "gnome",
+		"class": "bard",
+		"cost": 6,
+		"card_type": "Spell",
+		"description": "Destroy all entities and non-instrument relics that cost between 2 and 5 mana.",
+		"abilities": [
+				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
+		],
+		"effects": [{
+			"name": "kill",
+			"effect_type": "spell",
+			"target_type": "all",
+			"target_restrictions": [{"min_cost": 2}, {"max_cost": 5}, {"instruments": false}]
+		}]
 	}
 ]

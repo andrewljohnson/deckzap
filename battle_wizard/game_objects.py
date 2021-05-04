@@ -775,6 +775,9 @@ class Game:
                 elif card.card_type == "Spell" and card.needs_entity_target() and not has_entity_target:
                     print(f"can't select entity targetting spell with no entities without Lurker in play")
                     return None
+                elif card.has_ability("Instrument Required") and not self.current_player().has_instrument():
+                    print(f"can't cast {card.name} without having an Instument")
+                    return None
                 elif card.cost <= self.current_player().mana:
                     if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets():
                         self.current_player().reset_card_info_to_resolve()
@@ -1723,8 +1726,19 @@ class Player:
                 self.do_kill_effect_on_entity(effect_targets[target_index]["id"])
             else:
                 card_ids_to_kill = []
+                min_cost = -1
+                max_cost = 9999
+                instruments_ok = True
+                for r in e.target_restrictions:
+                    if list(r.keys())[0] == "min_cost":
+                        min_cost = list(r.values())[0]
+                    if list(r.keys())[0] == "max_cost":
+                        max_cost = list(r.values())[0]
+                    if list(r.keys())[0] == "instruments":
+                        instruments_ok = list(r.values())[0]
                 for card in self.in_play+self.relics+self.game.opponent().in_play+self.game.opponent().relics:
-                    card_ids_to_kill.append(card.id)
+                    if card.cost >= min_cost and card.cost <= max_cost and (instruments_ok or not card.has_ability("Instrument")):
+                        card_ids_to_kill.append(card.id)
                 for card_id in card_ids_to_kill: 
                     self.do_kill_effect_on_entity(card_id)
         elif e.name == "take_control":
@@ -2674,6 +2688,12 @@ class Player:
     def has_guard(self):
         for c in self.in_play:
             if c.has_ability("Guard") and not c.has_ability("Lurker"):
+                return True
+        return False
+
+    def has_instrument(self):
+        for c in self.relics:
+            if c.has_ability("Instrument"):
                 return True
         return False
 
