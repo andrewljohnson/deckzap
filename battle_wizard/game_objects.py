@@ -1622,7 +1622,7 @@ class Player:
             self.do_reduce_mana_effect_on_player(card, effect_targets[target_index]["id"], e.amount)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
         elif e.name == "draw":
-            self.do_draw_effect_on_player(card, effect_targets[target_index]["id"], e.amount)
+            self.do_draw_effect_on_player(card, effect_targets[target_index]["id"], e.amount, e.multiplier)
             message["log_lines"].append(f"{self.username} draws {e.amount} from {card.name}.")
         elif e.name == "draw_if_damaged_opponent":
             drawn_count = self.do_draw_if_damaged_opponent_effect_on_player(card, effect_targets[target_index]["id"], e.amount)
@@ -1876,11 +1876,15 @@ class Player:
                 self.game.update_for_entity_changes_zones(target_player)
                 # todo: maybe support comes into play effects for relics?
 
-    def do_draw_effect_on_player(self, card, target_player_username, amount):
+    def do_draw_effect_on_player(self, card, target_player_username, amount, multiplier):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
-        target_player.draw(amount)
+        print(multiplier)
+        if multiplier == "self_entities":
+            target_player.draw(amount *len(target_player.in_play))
+        else:
+            target_player.draw(amount)
 
     def do_draw_if_damaged_opponent_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -3077,6 +3081,7 @@ class CardEffect:
         self.effect_type = info["effect_type"] if "effect_type" in info else None
         self.enabled = info["enabled"] if "enabled" in info else True
         self.make_type = info["make_type"] if "make_type" in info else None
+        self.multiplier = info["multiplier"] if "multiplier" in info else None
         self.name = info["name"] if "name" in info else None 
         self.power = info["power"] if "power" in info else None
         self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
@@ -3091,12 +3096,12 @@ class CardEffect:
 
     def __repr__(self):
         return f"\
-            id: {self.id} name: {self.name} power: {self.power} target_restrictions: \
-            {self.target_restrictions} trigger: {self.trigger} toughness: {self.toughness} \
+            id: {self.id} name: {self.name} power: {self.power} target_restrictions: {self.target_restrictions}]n \
+            trigger: {self.trigger} toughness: {self.toughness} multiplier: {self.multiplier}\n \
             amount: {self.amount} cost: {self.cost} targetted_this_turn: {self.targetted_this_turn}\n \
-            description: {self.description} cost_hp: {self.cost_hp} \
-            target_type: {self.target_type} name: {self.card_name} \n \
-            make_type: {self.make_type} tokens: {self.tokens} turns: {self.turns} \
+            description: {self.description} cost_hp: {self.cost_hp}\n \
+            target_type: {self.target_type} name: {self.card_name}\n \
+            make_type: {self.make_type} tokens: {self.tokens} turns: {self.turns}\n \
             sacrifice_on_activate: {self.sacrifice_on_activate} abilities: {self.abilities}\n \
             effect_type: {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} \
             effect_to_activate: {self.effect_to_activate} enabled: {self.enabled} counters: {self.counters} was_added: {self.was_added}"
@@ -3117,6 +3122,7 @@ class CardEffect:
             "enabled": self.enabled,
             "id": self.id,
             "make_type": self.make_type,
+            "multiplier": self.multiplier,
             "name": self.name,
             "power": self.power,
             "sacrifice_on_activate": self.sacrifice_on_activate,

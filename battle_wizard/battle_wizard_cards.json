@@ -2367,5 +2367,23 @@
 				"target_type": "opponents_entity_random"
 			}
 		]
+	},
+	{
+		"name": "Jubilee",
+		"race": "gnome",
+		"class": "bard",
+		"cost": 7,
+		"card_type": "Spell",
+		"description": "Draw a card for each Entity you control.",
+		"abilities": [
+				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
+		],
+		"effects": [{
+			"name": "draw",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 1,
+			"multiplier": "self_entities"
+		}]
 	}
 ]

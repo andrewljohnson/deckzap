@@ -1161,3 +1161,28 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 2)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_jubilee(self):
+        """
+            Test Jubilee
+        """
+        deck1 = []
+        for x in range(0, 2):
+            deck1.append("Jubilee")
+        deck1.append("Stone Elemental")
+        deck1.append("Lute")
+        dbName, game = self.game_for_decks([deck1, []])
+        self.assertEqual(len(game.current_player().relics), 1)
+        for x in range(0,13):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 3)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 2)
+        self.assertEqual(len(game.current_player().played_pile), 1)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 1)
+        self.assertEqual(len(game.current_player().in_play), 1)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 1)
+        os.remove(f"database/games/{dbName}.json")
