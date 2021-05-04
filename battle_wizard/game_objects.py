@@ -930,7 +930,7 @@ class Game:
     def select_relic(self, message):
         cp = self.current_player()
         relic = cp.relic_in_play(message["card"])
-        if not relic:
+        if not relic and not cp.selected_spell() and not cp.selected_entity():
             print("can't activate opponent's relics")
             return None
         effect_index = message["effect_index"] if "effect_index" in message else 0
