@@ -209,6 +209,7 @@ class Game:
             message = self.select_entity(message)
         elif move_type == 'SELECT_OPPONENT' or move_type == 'SELECT_SELF':
             message = self.select_player(move_type, message)
+        # moves where players choose from a list of cards
         elif move_type == 'MAKE_CARD':
             self.make_card(message)
         elif move_type == 'MAKE_EFFECT':
@@ -344,7 +345,11 @@ class Game:
                 if card.needs_entity_target_for_activated_effect(x):
                     effect_can_be_used = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
                 if card.needs_self_entity_target_for_activated_effect(x):
-                    effect_can_be_used = False if len(cp.in_play) == 0 else True
+                    effect_can_be_used = False
+                    if len(cp.in_play) > 0:
+                        for entity in cp.in_play:
+                            if not card.has_ability("Lurker"):
+                                card.effect_can_be_used = True
                 if effect.cost > cp.mana:
                     effect_can_be_used = False
                 if effect.name in card.effects_exhausted:
@@ -360,14 +365,16 @@ class Game:
                 if card.card_type == "Relic":
                     card.can_be_clicked = len(cp.relics) != 3
                 if card.card_type == "Spell" and card.needs_entity_target():
-                    card.can_be_clicked = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
+                    card.can_be_clicked = False
+                    if len(cp.in_play + opp.in_play) > 0:
+                        for entity in cp.in_play + opp.in_play:
+                            if not card.has_ability("Lurker"):
+                                card.can_be_clicked = True
                 if card.card_type == "Spell" and card.needs_relic_target():
                     card.can_be_clicked = False if len(cp.relics) == 0 and len(opp.relics) == 0 else True
                 if card.card_type == "Entity" and not cp.can_summon():
                     card.can_be_clicked = False
                 if card.name == "Mind Manacles":
-                    if len(opp.in_play) == 0:
-                        card.can_be_clicked = False
                     card.can_be_clicked = False
                     for e in opp.in_play:
                         if not e.has_ability("Lurker"):
@@ -748,18 +755,26 @@ class Game:
 
     def select_card_in_hand(self, message):
         # todo: what happens if you select a card then another card?
-        print("select_card_in_hand")
         for card in self.current_player().hand:
             if card.id == message["card"]:
                 message["card_name"] = card.name
+
+                has_entity_target = False
+                if len(self.current_player().in_play + self.opponent().in_play) > 0:
+                    for entity in self.current_player().in_play + self.opponent().in_play:
+                        if not entity.has_ability("Lurker"):
+                            has_entity_target = True
+
                 if card.needs_card_being_cast_target():
                     print(f"can't select counterspell on own turn")
                     return None
                 elif card.needs_relic_target() and len(self.current_player().relics) == 0 and len(self.opponent().relics) == 0 :
                     print(f"can't select relic targetting spell with no relics in play")
                     return None
+                elif card.card_type == "Spell" and card.needs_entity_target() and not has_entity_target:
+                    print(f"can't select entity targetting spell with no entities without Lurker in play")
+                    return None
                 elif card.cost <= self.current_player().mana:
-                    print("MANA:")
                     if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets():
                         self.current_player().reset_card_info_to_resolve()
                     elif self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id:
