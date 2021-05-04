@@ -2514,6 +2514,9 @@ class Player:
                         self.card_info_to_resolve["effect_type"] = "entity_comes_into_play"
             else:
                 for idx, e in enumerate(effects):
+                    if e.target_type == "opponents_entity_random" and len(self.game.opponent().in_play) == 0:
+                        continue
+                    # todo think about this weird rpeated setting of effect_targets in message
                     if not "effect_targets" in message:
                         effect_targets = {}
                         if e.target_type == "self" or e.name == "fetch_card":           
@@ -2522,6 +2525,8 @@ class Player:
                             effect_targets[idx] = {"id": card.id, "target_type":"entity"};
                         elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities":           
                             effect_targets[idx] = {"target_type": e.target_type};
+                        elif e.target_type == "opponents_entity_random":           
+                            effect_targets[idx] = {"id": random.choice(self.game.opponent().in_play).id, "target_type":"entity"};
                         message["effect_targets"] = effect_targets
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
         return message
@@ -2605,6 +2610,11 @@ class Player:
                     if effect.name == "damage" and effect.target_type == "self":
                         self.game.current_player().damage(effect.amount)
                         message["log_lines"].append(f"{self.game.current_player().username} takes {effect.amount} damage from {card.name}.")
+                    elif effect.name == "take_control" and effect.target_type == "opponents_entity_random":
+                        if len(self.game.opponent().in_play) > 0:
+                            entity_to_target = random.choice(self.game.opponent().in_play)
+                            self.game.current_player().do_take_control_effect_on_entity(entity_to_target.id)
+                            message["log_lines"].append(f"{self.game.current_player().username} takes control of {entity_to_target.name}.")
                     elif effect.name == "rebirth":
                         # this is handled at top of def
                         pass

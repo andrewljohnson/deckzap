@@ -1125,7 +1125,7 @@ class GameObjectTests(TestCase):
 
     def test_resonant_frequency(self):
         """
-            Test Gnomish Militia
+            Test Resonant Frequency
         """
         dbName, game = self.game_for_decks([["Stone Elemental", "LionKin", "Mirror of Fate", "Leyline Amulet", "Resonant Frequency", "Akbar's Pan Pipes"], []])
         for x in range(0,20):
@@ -1143,4 +1143,21 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 4, "log_lines":[]})
         self.assertEqual(len(game.current_player().relics), 2)
         self.assertEqual(len(game.current_player().in_play), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_song_dragon(self):
+        """
+            Test Song Dragon
+        """
+        dbName, game = self.game_for_decks([["Stone Elemental"], ["Lute", "Song Dragon"]])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        for x in range(0,7):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 1)
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 2)
         os.remove(f"database/games/{dbName}.json")

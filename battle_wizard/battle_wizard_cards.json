@@ -2340,5 +2340,32 @@
 			"target_type": "all",
 			"target_restrictions": [{"min_cost": 2}, {"max_cost": 5}, {"instruments": false}]
 		}]
+	},
+	{
+		"name": "Song Dragon",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 4,
+		"toughness": 9,
+		"cost": 7,
+		"description": "Gain control of a random entity at the beginning of your turn.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			},
+			{
+				"name": "Instrument Required",
+				"descriptive_id": "Instrument Required"
+			}
+		],
+		"effects": [{
+				"name": "take_control",
+				"trigger": "start_turn",
+				"effect_type": "triggered",
+				"target_type": "opponents_entity_random"
+			}
+		]
 	}
 ]
