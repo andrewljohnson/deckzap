@@ -2195,6 +2195,11 @@ class Player:
         target_player.in_play.remove(target_card)  
         target_card.do_leaves_play_effects(target_player, did_kill=False)
         if not target_card.is_token:
+            if target_player.username != target_card.owner_username:
+                if target_player == self:
+                    target_player = self.game.opponent()
+                else:
+                    target_player = self
             new_card = self.game.factory_reset_card(target_card, target_player)
             target_player.hand.append(new_card)  
 
