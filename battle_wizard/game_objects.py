@@ -929,6 +929,10 @@ class Game:
 
     def select_relic(self, message):
         cp = self.current_player()
+        relic = cp.relic_in_play(message["card"])
+        if not relic:
+            print("can't activate opponent's relics")
+            return None
         effect_index = message["effect_index"] if "effect_index" in message else 0
         message["effect_index"] = effect_index
         if cp.card_info_to_resolve["effect_type"] in ["entity_comes_into_play"]:
@@ -1054,7 +1058,10 @@ class Game:
     def activate_relic(self, message):
         card_id = message["card"]
         activated_effect_index = message["effect_index"] if "effect_index" in message else 0
-        relic = self.current_player().relic_in_play(card_id)
+        relic = self.current_player().relic_in_play(card_id)            
+        if not relic:
+            print("can't activate opponent's relics")
+            return None
         e = relic.enabled_activated_effects()[activated_effect_index]
         if not relic.has_ability("multi_entity_attack"):
             relic.can_activate_abilities = False
