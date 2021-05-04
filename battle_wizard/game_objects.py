@@ -75,7 +75,7 @@ class Game:
             moves = self.add_resolve_entity_effects_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "make":
             moves = self.add_resolve_make_moves(player, moves)
-        elif player.card_choice_info["choice_type"] == "fetch_relic":
+        elif player.card_choice_info["choice_type"] == "fetch_relic_into_hand":
             moves = self.add_resolve_fetch_relic_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "riffle":
             moves = self.add_resolve_riffle_moves(player, moves)
@@ -106,6 +106,14 @@ class Game:
                 "effect_index": 0, 
                 "username": self.ai,
                 "effect_targets": {0: effect_target}})
+
+        if len(entity_to_target.effects) == 2:
+            if entity_to_target.effects[1].target_type == "entity" or entity_to_target.effects[1].target_type == "opponents_entity":
+                # hack for animal trainer
+                moves[-1]["effect_targets"][1] = {"id": effect_target["id"], "target_type":"entity"}            
+            else:
+                # hack for siz pop and stiff wind
+                moves[-1]["effect_targets"][1] = {"id": self.ai, "target_type":"player"}
         return moves
 
     def add_select_entity_for_ice_prison_moves(self, moves):
@@ -137,7 +145,7 @@ class Game:
 
     def add_resolve_fetch_relic_moves(self, player, moves):
         for c in player.card_choice_info["cards"]:
-            moves.append({"card":c.as_dict() , "move_type": "FETCH_CARD", "username": self.ai})              
+            moves.append({"card":c.id , "move_type": "FETCH_CARD", "username": self.ai})              
         return moves 
 
     def add_resolve_riffle_moves(self, player, moves):
@@ -147,13 +155,16 @@ class Game:
 
     def add_resolve_fetch_relic_into_play_moves(self, player, moves):
         for c in player.card_choice_info["cards"]:
-            moves.append({"card":c.as_dict() , "move_type": "FETCH_CARD_INTO_PLAY", "username": self.ai})              
+            moves.append({"card":c.id , "move_type": "FETCH_CARD_INTO_PLAY", "username": self.ai})              
         return moves 
 
     def add_attack_and_play_card_moves(self, moves):
+        for relic in self.opponent().relics:
+            if relic.can_be_clicked:
+                moves.append({"card":relic.id, "move_type": "SELECT_RELIC", "username": self.ai, "effect_index": 0})
         for relic in self.current_player().relics:
             for idx, e in enumerate(relic.enabled_activated_effects()):                
-                if len(relic.effects_can_be_clicked)> idx and relic.effects_can_be_clicked[idx]:
+                if len(relic.effects_can_be_clicked) > idx and relic.effects_can_be_clicked[idx]:
                     moves.append({"card":relic.id , "move_type": "SELECT_RELIC", "username": self.ai, "effect_index": idx})
         for entity in self.current_player().in_play:
             if entity.can_be_clicked:
@@ -384,11 +395,11 @@ class Game:
     def set_targets_for_target_type(self, target_type, target_restrictions, effect=None):
         if target_type == "any_player":
             self.set_targets_for_player_effect()
-        if target_type == "any_enemy" and effect and effect.name == "attack":
+        elif target_type == "any_enemy" and effect and effect.name == "attack":
             self.set_targets_for_attack_effect(effect)
-        if target_type == "any_enemy":
+        elif target_type == "any_enemy":
             self.set_targets_for_enemy_damage_effect()
-        if target_type == "any":
+        elif target_type == "any":
             self.set_targets_for_damage_effect()
         elif target_type == "entity":
             self.set_targets_for_entity_effect(target_restrictions)
@@ -631,6 +642,24 @@ class Game:
     def start_choose_race_game(self, message):
         use_test = False
         test = ["Stiff Wind", "Stiff Wind", "Stone Elemental", "Stone Elemental"]
+        elf_deck = ["Make Spell", "Make Entity"]
+        genie_deck = ["Make Spell", "Make Entity"]
+        for p in self.players:
+            if use_test:
+                for card_name in test:
+                    p.add_to_deck(card_name, 1)
+            elif p.race == "elf":
+                for card_name in elf_deck:
+                    p.add_to_deck(card_name, 1)
+            else:
+                for card_name in genie_deck:
+                    p.add_to_deck(card_name, 1)
+            random.shuffle(p.deck)
+            p.max_mana = 1
+            p.draw(2)
+        self.send_start_first_turn(message)
+
+    def start_choose_race_prebuilt_game(self, message):
         elf_sorcerer_deck = {
             "Push Soul": 2,
             "Riffle": 2,
@@ -651,46 +680,62 @@ class Game:
             "Think": 2,
             "Lightning Storm": 2,
         }
-        genie_deck = ["Make Spell", "Make Entity"]
+        human_fighter_deck = {
+            "Bow": 1,
+            "Totem Cat": 2,
+            "Taunted Bear": 2,
+            "War Scorpion": 2,
+            "Berserk Monkey": 2,
+            "Spouty Gas Ball": 2,
+            "Siz Pop": 2,
+            "Frenzy": 2,
+            "Impale": 2,
+            "Arsenal": 1,
+            "Animal Trainer": 2,
+            "Viper": 2,
+            "Training Master": 2,
+            "Multishot Bow": 1,
+            "Enraged Stomper": 2,
+            "Gird for Battle": 2,
+            "Spirit of the Stampede": 1
+        }
+        gnome_bard_deck = {
+            "Gnomish Minstrel": 2,
+            "Lute": 1,
+            "Familiar": 1,
+            "Air Elemental": 2,
+            "Gnomish Mayor": 2,
+            "Gnomish Press Gang": 2,
+            "Gnomish Soundsmith": 2,
+            "Befuddling Guitar": 1,
+            "Town Council": 2,
+            "Gnomish Piper": 2,
+            "Mind Manacles": 2,
+            "Akbar's Pan Pipes": 1,
+            "Gnomish Militia": 2,
+            "Resonant Frequency": 2,
+            "Song Dragon": 1,
+            "Jubilee": 1,
+            "Avatar of Song": 1,
+            "Ilra, Lady of Wind and Music": 2,
+            "Dazzling Solo": 1,
+        }
         for p in self.players:
-            if use_test:
-                for card_name in test:
-                    p.add_to_deck(card_name, 1)
-            elif p.race == "elf":
-                for card_name in elf_deck:
-                    p.add_to_deck(card_name, 1)
+            if p.race == "elf_sorcerer":
+                for card_name, count in elf_sorcerer_deck.items():
+                    p.add_to_deck(card_name, count)
+            elif p.race == "human_fighter":
+                for card_name, count in human_fighter_deck.items():
+                    p.add_to_deck(card_name, count)
             else:
-                for card_name in genie_deck:
-                    p.add_to_deck(card_name, 1)
-            random.shuffle(p.deck)
-            p.max_mana = 1
-        self.get_starting_relics()
-        for p in self.players:
-            p.draw(2)
-        self.send_start_first_turn(message)
-
-    def start_choose_race_prebuilt_game(self, message):
-        elf_deck = []
-        for card in Game.all_cards():
-            if card.race == "elf" or not card.race:
-                elf_deck.append(card.name)
-        genie_deck = []
-        for card in Game.all_cards():
-            if card.race == "genie" or not card.race:
-                genie_deck.append(card.name)
-
-        for p in self.players:
-            if p.race == "elf":
-                for card_name in elf_deck:
-                    p.add_to_deck(card_name, 1)
-            else:
-                for card_name in genie_deck:
-                    p.add_to_deck(card_name, 1)
+                for card_name, count in gnome_bard_deck.items():
+                    p.add_to_deck(card_name, count)
             random.shuffle(p.deck)
             p.max_mana = 0
+
         self.get_starting_relics()
         for p in self.players:
-            p.draw(6)
+            p.draw(5)
         self.send_start_first_turn(message)
 
     def start_test_stacked_deck_game(self, message):
@@ -1922,7 +1967,6 @@ class Player:
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
-        print(multiplier)
         if multiplier == "self_entities":
             target_player.draw(amount *len(target_player.in_play))
         else:
@@ -2126,12 +2170,12 @@ class Player:
         self.game.update_for_entity_changes_zones(target_player)
         self.game.update_for_entity_changes_zones(self)
         target_card.turn_played = self.game.turn
-        target_card.do_leaves_play_effects(target_player)
+        target_card.do_leaves_play_effects(target_player, did_kill=False)
     
     def do_unwind_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_player.in_play.remove(target_card)  
-        target_card.do_leaves_play_effects(target_player)
+        target_card.do_leaves_play_effects(target_player, did_kill=False)
         new_card = self.game.factory_reset_card(target_card, target_player)
         target_player.hand.append(new_card)  
 
@@ -2369,13 +2413,13 @@ class Player:
         all_cards = Game.all_cards()
         banned_cards = ["Make Spell", "Make Spell+", "Make Entity", "Make Entity+"]
         card1 = None 
-        while not card1 or card1.name in banned_cards or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race != card1.race):
+        while not card1 or card1.name in banned_cards or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
             card1 = random.choice(all_cards)
         card2 = None
-        while not card2 or card2.name in banned_cards or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race != card2.race):
+        while not card2 or card2.name in banned_cards or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race not in [card2.race, f"{card2.race}_{card2.card_class}"]):
             card2 = random.choice(all_cards)
         card3 = None
-        while not card3 or card3.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race != card3.race):
+        while not card3 or card3.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race not in [card3.race, f"{card3.race}_{card3.card_class}"]):
             card3 = random.choice(all_cards)
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
 
@@ -2866,6 +2910,7 @@ class Card:
         self.can_activate_abilities = info["can_activate_abilities"] if "can_activate_abilities" in info else True
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
         self.card_type = info["card_type"] if "card_type" in info else "Entity"
+        self.card_class = info["class"] if "class" in info else None
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
         self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
@@ -2890,7 +2935,7 @@ class Card:
         return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n \
                  abilities: {self.abilities}, tokens: {self.tokens}\n \
                  added_descriptions: {self.added_descriptions}\n \
-                 attacked: {self.attacked}\n \
+                 attacked: {self.attacked} card_class: {self.card_class}\n \
                  can_activate_abilities: {self.can_activate_abilities})\n \
                  can_be_clicked: {self.can_be_clicked}\n \
                  card_type: {self.card_type}\n \
@@ -2913,6 +2958,7 @@ class Card:
             "attacked": self.attacked,
             "can_activate_abilities": self.can_activate_abilities,
             "can_be_clicked": self.can_be_clicked,
+            "card_class": self.card_class,
             "card_type": self.card_type,
             "cost": self.cost,
             "damage": self.damage,
@@ -3085,7 +3131,7 @@ class Card:
                 player.max_mana -= e.amount
                 player.mana = min(player.max_mana, player.mana)
 
-    def do_leaves_play_effects(self, player):
+    def do_leaves_play_effects(self, player, did_kill=True):
         equip_effect_id = None
         relic_ids = [r.id for r in player.relics]
         for token in self.tokens:
@@ -3102,7 +3148,7 @@ class Card:
                 player.game.opponent().damage(e.amount)                                
             if e.name == "damage" and e.target_type == "self":
                 player.damage(e.amount)                
-            if e.name == "make_token":
+            if e.name == "make_token" and did_kill:
                 player.do_make_token_effect(e)
             if e.name == "remove_tokens":
                 player.do_remove_tokens_effect(self, e)

@@ -1415,7 +1415,7 @@
 		"card_type": "Entity",
 		"power": 2,
 		"toughness": 1,
-		"cost": 3,
+		"cost": 1,
 		"abilities": [
 			{
 				"name": "DamageTakeControl",
@@ -2190,6 +2190,7 @@
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"power": 7,
+			"amount": 1,
 			"toughness": 7,
 			"abilities": [			
 				{
@@ -2221,6 +2222,7 @@
 			"target_type": "self",
 			"power": 8,
 			"toughness": 8,
+			"amount": 1,
 			"abilities": [			
 				{
 					"name": "Guard",
@@ -2257,7 +2259,7 @@
 			"amount": 10
 		}, 
 		{
-			"name": "gain_hp",
+			"name": "heal",
 			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 10
