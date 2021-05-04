@@ -2153,7 +2153,7 @@
 		"race": "human",
 		"class": "Sorcerer",
 		"card_type": "Spell",
-		"cost": 1,
+		"cost": 5,
 		"description": "Search your deck for a card.",
 		"abilities": [
 			{
@@ -2166,6 +2166,86 @@
 			"effect_type": "spell",
 			"target_type": "all_cards_in_deck",
 			"amount": 1
+		}]
+	},
+	{
+		"name": "Life Guardian",
+		"race": "human",
+		"class": "Sorcerer",
+		"card_type": "Entity",
+		"power": 7,
+		"toughness": 7,
+		"cost": 7,
+		"description": "Get a 7/7 entity with Syphon when this dies.",
+		"abilities": [			
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Life Guardian Reborn",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"power": 7,
+			"toughness": 7,
+			"abilities": [			
+				{
+					"name": "Syphon",
+					"descriptive_id": "Syphon"
+				}
+			]
+		}]
+	},
+	{
+		"name": "Great Guardian",
+		"race": "human",
+		"class": "Sorcerer",
+		"card_type": "Entity",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"description": "Get an 8/8 entity with Guard when this dies.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Great Guardian Reborn",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"power": 8,
+			"toughness": 8,
+			"abilities": [			
+				{
+					"name": "Guard",
+					"descriptive_id": "Guard"
+				}
+			]
+		}]
+	},
+	{
+		"name": "Prophecy of the Ten",
+		"race": "human",
+		"class": "Sorcerer",
+		"cost": 10,
+		"card_type": "Spell",
+		"description": "Gain 10 hit points. Draw until you have 10 cards.",
+		"effects": [{
+			"name": "draw",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 10
+		}, 
+		{
+			"name": "gain_hp",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 10
 		}]
 	}
 ]

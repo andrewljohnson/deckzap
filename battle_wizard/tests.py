@@ -1016,3 +1016,19 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.current_player().in_play), 1)
         self.assertEqual(len(game.current_player().played_pile), 1)
         os.remove(f"database/games/{dbName}.json")
+
+
+    def test_lightning_storm(self):
+        """
+            Test Arsenal equipped and Mind Manacles.
+        """
+        dbName, game = self.game_for_decks([["Stone Elemental", "Stone Elemental"], ["Lightning Storm"]])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        for x in range(0,3):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        self.assertEqual(len(game.opponent().in_play), 0)
+        os.remove(f"database/games/{dbName}.json")

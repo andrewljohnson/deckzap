@@ -65,9 +65,6 @@ class DeckBuilder {
 					console.log("can't add more than 1 of a unique card")
 					return;
 				} else if (self.deck["cards"][card.name] == 1) {
-					console.log("can't add more than 1 relic")
-					return;
-				} else if (self.deck["cards"][card.name] == 1) {
 					self.deck["cards"][card.name] = 2				
 				} else {
 					console.log("can't add more than 2 cards")

@@ -1666,7 +1666,7 @@ class Player:
             self.do_pump_power_effect_on_entity(card, effect_targets[target_index]["id"], e.amount, e.cost)
             message["log_lines"].append(f"{self.username} pumps the power of {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name} by {e.amount}.")
         elif e.name == "kill":
-            if e.target_type == "entity":
+            if e.target_type == "entity" or e.target_type == "relic":
                 message["log_lines"].append(f"{self.username} kills {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
                 self.do_kill_effect_on_entity(effect_targets[target_index]["id"])
             else:
@@ -2374,7 +2374,9 @@ class Player:
                         message["effect_targets"][idx] = {"id": message["username"], "target_type":"player"}
                     elif e.target_type == "opponent":           
                         message["effect_targets"][idx] = {"id": self.game.opponent().username, "target_type":"player"}
-                    elif e.target_type == "all_cards_in_deck" or e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities":           
+                    elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities":           
+                        message["effect_targets"][idx] = {"target_type": e.target_type};
+                    elif e.target_type == "all_cards_in_deck":           
                         message["effect_targets"][idx] = {"target_type": "player", "id": self.username};
                     print(message["effect_targets"])
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
@@ -2497,6 +2499,7 @@ class Player:
                     if effect.name == "rebirth":
                         draw_blocked = True
                         phoenixes.append(card)
+                        break
         for card in phoenixes:
             self.played_pile.remove(card)
             self.play_entity(card) 
