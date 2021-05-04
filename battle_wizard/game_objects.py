@@ -1178,7 +1178,7 @@ class Game:
         self.current_player().reset_card_info_to_resolve()
         # Wish Stone
         if len(relic.enabled_activated_effects()) and relic.enabled_activated_effects()[0].sacrifice_on_activate:
-            self.send_card_to_played_pile(relic, self.current_player())
+            self.send_card_to_played_pile(relic, self.current_player(), did_kill=True)
         return message
 
     def activate_entity(self, message):
@@ -1258,7 +1258,7 @@ class Game:
                    card_to_remove = deck_card 
             self.current_player().deck.remove(deck_card)
             if card.id != chosen_card.id:
-                self.send_card_to_played_pile(card, self.current_player())
+                self.send_card_to_played_pile(card, self.current_player(), did_kill=False)
                 message["log_lines"].append(f"{message['username']} puts {card.name} into their played pile.")
         self.current_player().deck.append(chosen_card)
         self.current_player().draw(1)
@@ -1276,7 +1276,7 @@ class Game:
                     return card, p
         return None, None
 
-    def send_card_to_played_pile(self, card, player):
+    def send_card_to_played_pile(self, card, player, did_kill=True):
         """
             Send the card to the player's played_pile and reset any temporary effects on the card
         """
@@ -1284,7 +1284,7 @@ class Game:
             player.relics.remove(card)
         if card in player.in_play:
             player.in_play.remove(card)
-        card.do_leaves_play_effects(player)
+        card.do_leaves_play_effects(player, did_kill=did_kill)
 
         if card.id == player.card_info_to_resolve["card_id"]:
             player.reset_card_info_to_resolve()
@@ -1384,7 +1384,7 @@ class Game:
             attacking_card.damage += self.power_with_tokens(defending_card, self.opponent())
             attacking_card.damage_this_turn += self.power_with_tokens(defending_card, self.opponent())
             if attacking_card.damage >= attacking_card.toughness_with_tokens():
-                self.send_card_to_played_pile(attacking_card, self.current_player())
+                self.send_card_to_played_pile(attacking_card, self.current_player(), did_kill=True)
             elif defending_card.has_ability("DamageTakeControl"):
                 self.current_player().in_play.remove(attacking_card)
                 self.opponent().in_play.append(attacking_card)
@@ -1400,7 +1400,7 @@ class Game:
             defending_card.damage += self.power_with_tokens(attacking_card, self.current_player())
             defending_card.damage_this_turn += self.power_with_tokens(attacking_card, self.current_player())
             if defending_card.damage >= defending_card.toughness_with_tokens():
-                self.send_card_to_played_pile(defending_card, self.opponent())
+                self.send_card_to_played_pile(defending_card, self.opponent(), did_kill=True)
             elif attacking_card.has_ability("DamageTakeControl"):
                 self.opponent().in_play.remove(defending_card)
                 self.current_player().in_play.append(defending_card)
@@ -1749,7 +1749,7 @@ class Player:
                     if entity.damage >= entity.toughness_with_tokens():
                         dead_entities.append(entity)
                 for entity in dead_entities:
-                    self.game.send_card_to_played_pile(entity, self)
+                    self.game.send_card_to_played_pile(entity, self, did_kill=True)
                 dead_entities = []
                 for entity in self.game.opponent().in_play:
                     entity.damage += e.amount
@@ -1757,7 +1757,7 @@ class Player:
                     if entity.damage >= entity.toughness_with_tokens():
                         dead_entities.append(entity)
                 for entity in dead_entities:
-                    self.game.send_card_to_played_pile(entity, self.game.opponent())
+                    self.game.send_card_to_played_pile(entity, self.game.opponent(), did_kill=True)
                 if effect_targets[target_index]["target_type"] == "all":
                     self.damage(e.amount)
                     self.game.opponent().damage(e.amount)
@@ -1788,7 +1788,7 @@ class Player:
                 if e.was_added:
                     card.deactivate_weapon()
                 else:
-                    self.game.send_card_to_played_pile(card, self)
+                    self.game.send_card_to_played_pile(card, self, did_kill=True)
         elif e.name == "double_power":
             self.do_double_power_effect_on_entity(card, effect_targets[target_index]["id"])
             message["log_lines"].append(f"{self.username} doubles the power of {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
@@ -2103,7 +2103,7 @@ class Player:
             amount -= 1
             card = random.choice(target_player.hand)
             target_player.hand.remove(card)
-            self.game.send_card_to_played_pile(card, target_player)
+            self.game.send_card_to_played_pile(card, target_player, did_kill=False)
             if to_deck:
                 for c in target_player.played_pile:
                     if c.id == card.id:
@@ -2119,7 +2119,7 @@ class Player:
         else:
             target_card.damage += amount
             if target_card.damage >= target_card.toughness_with_tokens():
-                self.game.send_card_to_played_pile(target_card, target_player)
+                self.game.send_card_to_played_pile(target_card, target_player, did_kill=True)
                 if card.has_ability("die_to_top_deck") and not target_card.is_token:
                     card = None
                     for c in target_player.played_pile:
@@ -2148,7 +2148,7 @@ class Player:
 
     def do_kill_effect_on_entity(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
-        self.game.send_card_to_played_pile(target_card, target_player)
+        self.game.send_card_to_played_pile(target_card, target_player, did_kill=True)
 
     def do_gain_for_toughness_effect(self, target_entity_id):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -2223,7 +2223,7 @@ class Player:
         else:
             target_card.tokens.append(token)
         if target_card.toughness_with_tokens() - target_card.damage <= 0:
-            self.game.send_card_to_played_pile(target_card, target_player)
+            self.game.send_card_to_played_pile(target_card, target_player, did_kill=True)
 
     def do_set_can_attack_effect(self):
         for e in self.in_play:
@@ -2528,7 +2528,7 @@ class Player:
         for o_card in self.game.opponent().hand:
             for effect in o_card.effects:
                 if effect.target_type == "card_being_cast" and card.cost >= effect.amount and self.game.opponent().mana >= o_card.cost:
-                    self.game.send_card_to_played_pile(card, self.game.current_player())
+                    self.game.send_card_to_played_pile(card, self.game.current_player(), did_kill=False)
                     self.game.opponent().hand.remove(o_card)
                     self.game.opponent().played_pile.append(o_card)
                     self.game.opponent().mana -= o_card.cost
@@ -2555,7 +2555,7 @@ class Player:
                                     entity.damage += c.effects_triggered()[0].amount
                                     entity.damage_this_turn += c.effects_triggered()[0].amount
                                     if entity.damage >= entity.toughness_with_tokens():
-                                        self.game.send_card_to_played_pile(entity, self.game.opponent())
+                                        self.game.send_card_to_played_pile(entity, self.game.opponent(), did_kill=True)
                                 message["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {entity.name}.")
             self.play_entity(card)
 
