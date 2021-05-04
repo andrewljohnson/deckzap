@@ -744,6 +744,7 @@ class Game:
             print(f"can't end turn when there is an effect left to resolve {self.current_player().card_info_to_resolve['effect_type']} {self.current_player().card_choice_info}")
             return message
         self.remove_temporary_tokens()
+        self.remove_temporary_effects()
         self.remove_temporary_abilities()
         self.clear_damage_this_turn()
         # for Multishot Bow
@@ -916,7 +917,7 @@ class Game:
                 if info["target_type"] == "entity":
                     card, _ = self.get_in_play_for_id(info["id"])
                     if info["id"] == defending_card.id:
-                        print(f"alredy attacked {defending_card.name} with {self.current_player().selected_relic().name}")
+                        print(f"already attacked {defending_card.name} with {self.current_player().selected_relic().name}")
                         return None                
 
         message["move_type"] = "ACTIVATE_RELIC"
@@ -1348,6 +1349,23 @@ class Game:
             if toughness_change_from_tokens > 0:
                 c.damage -= min(toughness_change_from_tokens, c.damage_this_turn)  
 
+    def remove_temporary_effects(self):
+        for p in [[self.current_player(), self.opponent()], [self.opponent(), self.current_player()]]:
+            entities_to_switch_sides = []
+            for c in p[0].in_play:
+                perm_effects = []
+                for e in c.effects:
+                    e.turns -= 1
+                    if e.turns == 0:
+                        if e.name == "take_control":
+                            entities_to_switch_sides.append(c)                        
+                    else:
+                        perm_effects.append(e)
+                c.effects = perm_effects
+            for c in entities_to_switch_sides:
+                p[0].in_play.remove(c)
+                p[1].in_play.append(c)
+
     def remove_temporary_abilities(self):
         perm_abilities = []
         for a in self.current_player().abilities:
@@ -1407,7 +1425,7 @@ class Game:
         if not activated_effect:
             effect_targets[0] = {"id": selected_card.id, "target_type":"entity"}            
             if len(card_to_target.effects) == 2:
-                if card_to_target.effects[1].target_type == "entity":
+                if card_to_target.effects[1].target_type == "entity" or card_to_target.effects[1].target_type == "opponents_entity":
                     # hack for animal trainer
                     effect_targets[1] = {"id": selected_card.id, "target_type":"entity"}            
                 else:
@@ -1876,6 +1894,7 @@ class Player:
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
         self.game.remove_temporary_tokens()
+        self.game.remove_temporary_effects()
         self.game.remove_temporary_abilities()
         self.game.clear_damage_this_turn()
         self.game.turn += 2
@@ -2145,7 +2164,7 @@ class Player:
                 e, 
                 self
             )
-        elif e.target_type == "entity":
+        elif e.target_type in ["entity", "opponents_entity", "self_entity"]:
             self.do_add_abilities_effect_on_entity(
                 e, 
                 card
@@ -2406,7 +2425,6 @@ class Player:
                         message["effect_targets"][idx] = {"target_type": e.target_type};
                     elif e.target_type == "all_cards_in_deck":           
                         message["effect_targets"][idx] = {"target_type": "player", "id": self.username};
-                    print(message["effect_targets"])
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
 
         message["card_name"] = card.name
@@ -3020,6 +3038,7 @@ class CardEffect:
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.toughness = info["toughness"] if "toughness" in info else None
         self.trigger = info["trigger"] if "trigger" in info else None
+        self.turns = info["turns"] if "turns" in info else 0
         self.was_added = info["was_added"] if "was_added" in info else False
 
     def __repr__(self):
@@ -3029,7 +3048,7 @@ class CardEffect:
             amount: {self.amount} cost: {self.cost} targetted_this_turn: {self.targetted_this_turn}\n \
             description: {self.description} cost_hp: {self.cost_hp} \
             target_type: {self.target_type} name: {self.card_name} \n \
-            make_type: {self.make_type} tokens: {self.tokens} \
+            make_type: {self.make_type} tokens: {self.tokens} turns: {self.turns} \
             sacrifice_on_activate: {self.sacrifice_on_activate} abilities: {self.abilities}\n \
             effect_type: {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} \
             effect_to_activate: {self.effect_to_activate} enabled: {self.enabled} counters: {self.counters} was_added: {self.was_added}"
@@ -3059,6 +3078,7 @@ class CardEffect:
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "toughness": self.toughness,
             "trigger": self.trigger,
+            "turns": self.turns,
             "was_added": self.was_added
         }
 

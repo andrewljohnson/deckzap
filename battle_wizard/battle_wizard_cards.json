@@ -2247,5 +2247,34 @@
 			"target_type": "self",
 			"amount": 10
 		}]
+	},
+	{
+		"name": "Gnomish Piper",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 4,
+		"toughness": 4,
+		"cost": 4,
+		"description": "Gain control of an entity this turn. It gets Ambush.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		],
+		"effects": [{
+				"name": "take_control",
+				"effect_type": "enter_play",
+				"target_type": "opponents_entity",
+				"turns": 1
+			},
+			{
+				"name": "add_entity_abilities",
+				"effect_type": "enter_play",
+				"target_type": "opponents_entity",
+				"abilities": [{"name": "Ambush", "descriptive_id": "Ambush", "enabled": true}],
+				"turns": 1
+		}]
 	}
 ]
