@@ -1298,6 +1298,11 @@ class Game:
             player.reset_card_info_to_resolve()
 
         if not card.is_token:
+            if player.username != card.owner_username:
+                if player == self.current_player():
+                    player = self.opponent()
+                else:
+                    player = self.current_player()
             new_card = self.factory_reset_card(card, player)
             player.played_pile.append(new_card)
 
@@ -3279,6 +3284,7 @@ class CardEffect:
 class CardAbility:
     def __init__(self, info, ability_id):
         self.amount = info["amount"] if "amount" in info else None
+        self.description = info["description"] if "description" in info else None
         self.descriptive_id = info["descriptive_id"] if "descriptive_id" in info else None
         self.enabled = info["enabled"] if "enabled" in info else True
         self.id = ability_id
@@ -3288,11 +3294,12 @@ class CardAbility:
 
     def __repr__(self):
         return f"self.id: {self.id} self.name: {self.name} self.amount: {self.amount} self.target_type: {self.target_type}\n\
-                self.descriptive_id: {self.descriptive_id} self.turns: {self.turns} self.enabled: {self.enabled}"
+                self.description: {self.description} self.descriptive_id: {self.descriptive_id} self.turns: {self.turns} self.enabled: {self.enabled}"
 
     def as_dict(self):
         return {
             "amount": self.amount,
+            "description": self.description,
             "descriptive_id": self.descriptive_id,
             "enabled": self.enabled,
             "id": self.id,

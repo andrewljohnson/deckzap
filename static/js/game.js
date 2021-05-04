@@ -336,7 +336,12 @@ class GameUX {
         abilitiesDiv.style.color = "gray"
         for (let a of card.abilities) {
             if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
-                abilitiesDiv.innerHTML += a.name;
+                if (a.description) {
+                    abilitiesDiv.innerHTML += a.description;
+                    abilitiesDiv.style.color = "black";
+                } else {
+                    abilitiesDiv.innerHTML += a.name;
+                }
                 if (a != card.abilities[card.abilities.length-1]) {                
                     abilitiesDiv.innerHTML += ", ";
                 }                

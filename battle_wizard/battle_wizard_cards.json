@@ -920,6 +920,7 @@
 		"abilities": [
 			{
 				"name": "DamageDraw",
+				"description": "Draw a card when this deals damage to your opponent.",
 				"descriptive_id": "DamageDraw",
 				"amount": 1
 			}
@@ -1419,6 +1420,7 @@
 		"abilities": [
 			{
 				"name": "DamageTakeControl",
+				"description": "Take control of anything this damages.",
 				"descriptive_id": "DamageTakeControl",
 				"amount": 1
 			}
@@ -2078,7 +2080,7 @@
 		"class": "Sorcerer",
 		"card_type": "Spell",
 		"cost": 1,
-		"description": "Kill an entity. It's controller gains life equal to its toughness.",
+		"description": "Kill an entity. Its controller gains life equal to its toughness.",
 		"effects": [
 			{
 				"name": "gain_for_toughness",
@@ -2114,7 +2116,9 @@
 		"cost": 4,
 		"description": "1: sacrifice this, kill all Relics and Entities.",
 		"abilities": [
-				{"name": "Slow Relic", "descriptive_id": "Slow Relic"}
+				{"name": "Slow Relic", 
+				"description": "Can't be used the turn this comes into play.",
+				"descriptive_id": "Slow Relic"}
 		],
 		"effects": [{
 				"name": "kill",
@@ -2130,7 +2134,7 @@
 		"race": "human",
 		"class": "Sorcerer",
 		"card_type": "Entity",
-		"description": "If this is in your played pile, return it to play at the beginning of your turn. Skip your draw. ",
+		"description": "If this is in your played pile at the start of your turn, skip your draw this turn, and return it to play. ",
 		"power": 2,
 		"toughness": 2,
 		"cost": 5,
