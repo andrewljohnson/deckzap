@@ -1404,9 +1404,7 @@ class Game:
         else:
             attacking_card.damage += self.power_with_tokens(defending_card, self.opponent())
             attacking_card.damage_this_turn += self.power_with_tokens(defending_card, self.opponent())
-            if attacking_card.damage >= attacking_card.toughness_with_tokens():
-                self.send_card_to_played_pile(attacking_card, self.current_player(), did_kill=True)
-            elif defending_card.has_ability("DamageTakeControl"):
+            if attacking_card.damage < attacking_card.toughness_with_tokens() and defending_card.has_ability("DamageTakeControl"):
                 self.current_player().in_play.remove(attacking_card)
                 self.opponent().in_play.append(attacking_card)
                 self.update_for_entity_changes_zones(self.current_player())
@@ -1420,13 +1418,16 @@ class Game:
                     self.opponent().damage(stomp_damage)
             defending_card.damage += self.power_with_tokens(attacking_card, self.current_player())
             defending_card.damage_this_turn += self.power_with_tokens(attacking_card, self.current_player())
-            if defending_card.damage >= defending_card.toughness_with_tokens():
-                self.send_card_to_played_pile(defending_card, self.opponent(), did_kill=True)
-            elif attacking_card.has_ability("DamageTakeControl"):
+            if defending_card.damage < defending_card.toughness_with_tokens() and attacking_card.has_ability("DamageTakeControl"):
                 self.opponent().in_play.remove(defending_card)
                 self.current_player().in_play.append(defending_card)
                 self.update_for_entity_changes_zones(self.current_player())
                 self.update_for_entity_changes_zones(self.opponent())
+        
+        if defending_card.damage >= defending_card.toughness_with_tokens():
+            self.send_card_to_played_pile(defending_card, self.opponent(), did_kill=True)
+        if attacking_card.damage >= attacking_card.toughness_with_tokens():
+            self.send_card_to_played_pile(attacking_card, self.current_player(), did_kill=True)
 
 
     def remove_temporary_tokens(self):
@@ -2162,6 +2163,8 @@ class Player:
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_card.damage -= amount
         target_card.damage = max(target_card.damage, 0)
+        target_card.damage_this_turn -= amount
+        target_card.damage_this_turn = max(target_card.damage_this_turn, 0)
 
     def do_attack_effect_on_entity(self, card, target_entity_id, amount):
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
@@ -2953,7 +2956,6 @@ class Player:
             toughness_change_from_tokens = oldToughness - newToughness
             equipped_entity.damage -= toughness_change_from_tokens
             equipped_entity.damage_this_turn = max(0, equipped_entity.damage_this_turn-toughness_change_from_tokens)
-        # todo remove added_description
 
         idx_to_replace = None
         for idx, r in enumerate(self.relics):
