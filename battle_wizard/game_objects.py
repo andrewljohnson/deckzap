@@ -2447,12 +2447,15 @@ class Player:
         card1 = None 
         while not card1 or card1.name in banned_cards or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
             card1 = random.choice(all_cards)
+            print(f"1 {self.race} vs {card1.race} vs {card1.race}_{card1.card_class}")
         card2 = None
         while not card2 or card2.name in banned_cards or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race not in [card2.race, f"{card2.race}_{card2.card_class}"]):
             card2 = random.choice(all_cards)
+            print(f"2 {self.race} vs {card2.race} vs {card2.race}_{card2.card_class}")
         card3 = None
         while not card3 or card3.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race not in [card3.race, f"{card3.race}_{card3.card_class}"]):
             card3 = random.choice(all_cards)
+            print(f"3 {self.race} vs {card3.race} vs {card3.race}_{card3.card_class}")
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
 
     def riffle(self, amount):

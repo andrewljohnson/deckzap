@@ -605,7 +605,6 @@ class GameUX {
     }
     
     showChooseRace(game) {
-        console.log("showChooseRace");
         var raceSelector = document.getElementById("race_selector");
         raceSelector.style.display = "block";
         raceSelector.style.maxWidth = "1024px";

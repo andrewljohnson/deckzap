@@ -1706,7 +1706,7 @@
 	{
 		"name": "Totem Cat",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"power": 2,
 		"toughness": 1,
@@ -1726,7 +1726,7 @@
 
 		"name": "Taunted Bear",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 2,
@@ -1750,7 +1750,7 @@
 
 		"name": "War Scorpion",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"description": "Has Fast if something else does.",
 		"power": 2,
@@ -1775,7 +1775,7 @@
 
 		"name": "Berserk Monkey",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"description": "Gets +1/+1 whenever you play a card.",
 		"power": 1,
@@ -1797,7 +1797,7 @@
 	{
 		"name": "Frenzy",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"cost": 1,
 		"card_type": "Spell",
 		"description": "Draw a card this turn. Draw another card if you dealt damage to your opponent.",
@@ -1817,7 +1817,7 @@
 	{
 		"name": "Impale",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Deal 3 damage to an Entity and your Opponent",
@@ -1838,7 +1838,7 @@
 	{
 		"name": "Arsenal",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Relic",
 		"cost": 2,
 		"description": "✦✦: equip this to get a 2/2 weapon.<BR/>✦✦: equip it to an entity to give it +2/+0.<BR/>Your entities get +1/+0 for each relic you control.",
@@ -1913,7 +1913,7 @@
 	{
 		"name": "Animal Trainer",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"power": 3,
 		"description": "Give a friendly entity +2/+2 and Fade.",
@@ -1939,7 +1939,7 @@
 
 		"name": "Viper",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"power": 4,
 		"toughness": 3,
@@ -1962,7 +1962,7 @@
 	{
 		"name": "Multishot Bow",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Relic",
 		"cost": 4,
 		"description": "Attack multiple times, only attacks each enemy once a turn.",
@@ -1989,7 +1989,7 @@
 
 		"name": "Enraged Stomper",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"description": "Deals you 1 damage at the start of your turn.",
 		"power": 5,
@@ -2012,7 +2012,7 @@
 	{
 		"name": "Gird for Battle",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Spell",
 		"cost": 5,
 		"description": "Get a random relic from your deck. Summon a 3/3 with Fast and Fade.",
@@ -2048,7 +2048,7 @@
 
 		"name": "Spirit of the Stampede",
 		"race": "human",
-		"class": "Fighter",
+		"class": "fighter",
 		"card_type": "Entity",
 		"description": "+1/+0 for each other entity and relic you have.",
 		"power": 2,
