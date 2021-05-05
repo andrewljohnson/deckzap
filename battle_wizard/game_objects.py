@@ -1865,7 +1865,7 @@ class Player:
                     self.do_unwind_effect_on_entity(eid)
             else:
                 target_card, target_player = self.game.get_in_play_for_id(effect_targets[target_index]['id'])
-                message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {target_player.username}'s hand.")
+                message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {card.owner_username}'s hand.")
                 self.do_unwind_effect_on_entity(effect_targets[target_index]["id"])
         elif e.name == "entwine":
             self.do_entwine_effect()
