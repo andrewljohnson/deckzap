@@ -2809,7 +2809,7 @@ class Player:
                 if effect.trigger == "start_turn":
                     if effect.name == "gain_hp_for_hand":
                         gained = 0
-                        to_apply = len(self.hand)
+                        to_apply = max(len(self.hand) - 5, 0)
                         while self.hit_points < 30 and to_apply > 0:
                             self.hit_points += 1
                             to_apply -= 1

@@ -15,8 +15,8 @@
 		"name": "Fountain of Youth",
 		"race": "elf",
 		"card_type": "Relic",
-		"description": "Gain 1 hit point per card in hand at beginning of your turn, to a maximum of 30 total life.",
-		"cost": 1,
+		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30 total life.",
+		"cost": 3,
 		"effects": [{
 			"name": "gain_hp_for_hand",
 			"target_type": "self",
