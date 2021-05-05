@@ -1779,7 +1779,7 @@
 		"class": "fighter",
 		"card_type": "Entity",
 		"description": "Gets +1/+1 whenever you play a card.",
-		"power": 1,
+		"power": 0,
 		"toughness": 1,
 		"cost": 1,
 		"effects": [
