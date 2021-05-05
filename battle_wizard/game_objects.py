@@ -1726,7 +1726,7 @@ class Player:
                 print(f"unsupported target_type {e.target_type} for create_card effect")
         elif e.name == "fetch_card":
             self.do_fetch_card_effect_on_player(card, effect_targets[target_index]["id"], e.target_type, e.target_restrictions, choice_type="fetch_relic_into_hand")
-            message["log_lines"].append(f"{self.username} cracks {card.name} to fetch a relic.")
+            message["log_lines"].append(f"{self.username} fetches a card with {card.name}.")
         elif e.name == "fetch_card_into_play":
             self.do_fetch_card_effect_on_player(card, effect_targets[target_index]["id"], e.target_type, e.target_restrictions, choice_type="fetch_relic_into_play")
             message["log_lines"].append(f"{self.username} cracks {card.name} to fetch a relic.")

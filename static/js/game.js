@@ -429,7 +429,7 @@ class GameUX {
                     input.style.padding = "4px";
                     input.style.marginTop = "10px";
                     input.style.textAlign = "left";
-                    input.style.zIndex = 10;
+                    input.style.zIndex = 1;
                     input.innerHTML = e.description;
                     if (e.cost <= this.thisPlayer(game).mana && card.effects_can_be_clicked[index] && !this.thisPlayer(game).card_info_to_resolve["card_id"] && card.can_activate_abilities) {
                         input.disabled = false;                
@@ -460,7 +460,7 @@ class GameUX {
         }
         var zoomButton = document.createElement("span");
         zoomButton.innerHTML = " 🔍";
-        zoomButton.style.zIndex = 10;
+        zoomButton.style.zIndex = 1;
              zoomButton.style.position = "absolute"; 
              zoomButton.style.left = "1px"; 
              zoomButton.style.bottom = "0px"; 
@@ -476,6 +476,7 @@ class GameUX {
              cln.style.width = "120px"; 
              cln.style.position = "absolute"; 
              cln.style.left = "400px"; 
+             cln.style.zIndex = 2; 
              cln.style.top = document.getElementById("all_but_player_hand").innerHeight / 2;
              cln.onclick = function(event) { 
                 var oldZoom = document.getElementById("bigger_card");
