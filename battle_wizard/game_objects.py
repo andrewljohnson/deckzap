@@ -1704,7 +1704,7 @@ class Player:
 
         print(f"Do card effect: {e.name}");
         if e.name == "increase_max_mana":
-            self.do_increase_max_mana_effect_on_player(effect_targets[target_index]["id"], e.amount)
+            self.do_increase_max_mana_effect_on_player(effect_targets[target_index]["id"], e.amount, card)
             message["log_lines"].append(f"{self.username} increases max mana by {e.amount}.")
         elif e.name == "set_max_mana":
             self.do_set_max_mana_effect(e.amount)
@@ -2019,6 +2019,7 @@ class Player:
     def do_set_max_mana_effect(self, amount):
         for p in self.game.players:
             p.max_mana = amount
+            p.max_mana = min(10, p.max_mana)
             p.mana = min(p.mana, p.max_mana)
 
     def do_gain_armor_effect_on_player(self, card, target_player_username, amount):
@@ -2099,11 +2100,17 @@ class Player:
             target_player = self.game.players[1]
         target_player.mana += amount
 
-    def do_increase_max_mana_effect_on_player(self, target_player_username, amount):
+    def do_increase_max_mana_effect_on_player(self, target_player_username, amount, card):
         target_player = self.game.players[0]
         if target_player.username != target_player_username:
             target_player = self.game.players[1]
+        old_max_mana = target_player.max_mana
         target_player.max_mana += 1
+        target_player.max_mana = min(10, target_player.max_mana)
+        # in case something like Mana Shrub doesn't increase the mana
+        if old_max_mana == target_player.max_mana:
+            if len(card.effects) == 2 and card.effects[1].name == "decrease_max_mana":
+                card.effects[1].enabled = False
 
     def do_damage_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -2763,6 +2770,7 @@ class Player:
         if self.game.turn != 0 and not draw_blocked:
             self.draw(1 + self.game.global_effects.count("draw_extra_card"))
         self.max_mana += 1
+        self.max_mana = min(10, self.max_mana)
         self.mana = self.max_mana
 
         for card in self.in_play:
@@ -3185,7 +3193,7 @@ class Card:
                         player.deactivate_equipment(r, self)
 
         for e in self.effects_leave_play():
-            if e.name == "decrease_max_mana":
+            if e.name == "decrease_max_mana" and e.enabled:
                 player.max_mana -= e.amount
                 player.mana = min(player.max_mana, player.mana)
 
@@ -3199,7 +3207,7 @@ class Card:
                         player.deactivate_equipment(r, self)
 
         for e in self.effects_leave_play():
-            if e.name == "decrease_max_mana":
+            if e.name == "decrease_max_mana" and e.enabled:
                 player.max_mana -= e.amount
                 player.mana = min(player.max_mana, player.mana)
             if e.name == "damage" and e.target_type == "opponent":

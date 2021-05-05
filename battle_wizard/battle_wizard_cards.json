@@ -653,8 +653,7 @@
 				"effect_type": "spell",
 				"description": "You have an extra mana each turn.",
 				"amount": 1,
-				"activate_on_add": true,
-				"effect_type": "effects"
+				"activate_on_add": true
 			},
 			{
 				"name": "decrease_max_mana",
