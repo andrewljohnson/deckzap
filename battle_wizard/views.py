@@ -62,9 +62,11 @@ def build_deck(request):
     )
 
 def profile(request, username):
+    decks = JsonDB().decks_database()[username]["decks"] if username in JsonDB().decks_database() else []
+    decks.reverse()
     return render(request, "profile.html", 
         {
-            "decks": JsonDB().decks_database()[username]["decks"] if username in JsonDB().decks_database() else [],
+            "decks": decks,
             "username": username, 
             "account_number": User.objects.get(username=username).id - 3
         }
