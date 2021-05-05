@@ -748,7 +748,7 @@
 		"description": "Deal 2 damage.",
 		"effects": [{
 			"name": "damage",
-			"effect_type": "spell",
+			"effect_type": "enter_play",
 			"target_type": "any",
 			"amount": 2
 		}]	
@@ -2257,7 +2257,7 @@
 				"effect_type": "enter_play",
 				"effects": [{
 					"name": "take_control",
-					"effect_type": "spell",
+					"effect_type": "enter_play",
 					"effect_type": "effects",
 					"turns": 1
 				}]
