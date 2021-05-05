@@ -622,7 +622,7 @@ class GameUX {
 
         var options = [
             {"id": "human_fighter", "label": "Human Fighter"},
-            {"id": "elf_sorcerer", "label": "Elf Wizard"},
+            {"id": "elf_sorcerer", "label": "Elf Sorcerer"},
             {"id": "gnome_bard", "label": "Gnomish Bard"},
         ];
 

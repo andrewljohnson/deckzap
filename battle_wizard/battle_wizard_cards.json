@@ -124,6 +124,7 @@
 	{
 		"name": "Mana Shrub",
 		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Entity",
 		"power": 1,
 		"toughness": 1,
@@ -912,7 +913,8 @@
 	},
 	{
 		"name": "Trickster",
-		"race": "genie",
+		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Entity",
 		"power": 1,
 		"toughness": 3,
@@ -2076,8 +2078,8 @@
 	},
 	{
 		"name": "Push Soul",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Spell",
 		"cost": 1,
 		"description": "Kill an entity. Its controller gains life equal to its toughness.",
@@ -2096,8 +2098,8 @@
 	},
 	{
 		"name": "Riffle",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Spell",
 		"cost": 1,
 		"description": "Put one of the top 3 cards of your deck in your hand and the others in your played pile.",
@@ -2131,8 +2133,8 @@
 	{
 
 		"name": "Phoenix",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Entity",
 		"description": "If this is in your played pile at the start of your turn, skip your draw this turn, and return it to play. ",
 		"power": 2,
@@ -2155,8 +2157,8 @@
 	},
 	{
 		"name": "Premonition",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Spell",
 		"cost": 5,
 		"description": "Search your deck for a card.",
@@ -2175,8 +2177,8 @@
 	},
 	{
 		"name": "Life Guardian",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Entity",
 		"power": 7,
 		"toughness": 7,
@@ -2207,8 +2209,8 @@
 	},
 	{
 		"name": "Great Guardian",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"card_type": "Entity",
 		"power": 8,
 		"toughness": 8,
@@ -2239,8 +2241,8 @@
 	},
 	{
 		"name": "Prophecy of the Nine",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"cost": 9,
 		"card_type": "Spell",
 		"description": "Deal 9 damage to everything.",
@@ -2253,8 +2255,8 @@
 	},
 	{
 		"name": "Prophecy of the Ten",
-		"race": "human",
-		"class": "Sorcerer",
+		"race": "elf",
+		"class": "sorcerer",
 		"cost": 10,
 		"card_type": "Spell",
 		"description": "Gain 10 hit points. Draw until you have 10 cards.",
