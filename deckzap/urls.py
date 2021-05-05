@@ -5,6 +5,7 @@ from battle_wizard.views import build_deck
 from battle_wizard.views import create
 from battle_wizard.views import find_custom_game
 from battle_wizard.views import find_game
+from battle_wizard.views import game_new
 from battle_wizard.views import games
 from battle_wizard.views import index
 from battle_wizard.views import logout
@@ -21,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
   	path('', index),
     path('manifesto', manifesto),
+    path('game_new', game_new),
     path('games', games),
     path('create', create),
     path('signup', signup),
