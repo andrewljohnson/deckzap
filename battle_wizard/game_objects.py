@@ -341,21 +341,28 @@ class Game:
             return
 
         for card in cp.relics:
+            print(card.name)
             card.effects_can_be_clicked = []
             for x, effect in enumerate(card.enabled_activated_effects()):
                 effect_can_be_used = True
                 if card.needs_and_doesnt_have_legal_attack_targets(self):
+                    print("needs_and_doesnt_have_legal_attack_targets")
                     effect_can_be_used = False
                 if card.needs_entity_target_for_activated_effect(x):
+                    print("needs_entity_target_for_activated_effect")
                     effect_can_be_used = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
                 if card.needs_self_entity_target_for_activated_effect(x):
+                    print("needs_self_entity_target_for_activated_effect")
                     effect_can_be_used = False if len(cp.in_play) == 0 else True
                 if effect.cost > cp.mana:
+                    print("effect.cost > cp.mana")
                     effect_can_be_used = False
                 if effect.name in card.effects_exhausted:
+                    print("effects_exhausted")
                     effect_can_be_used = False
                 card.effects_can_be_clicked.append(effect_can_be_used)      
             if len(card.effects_can_be_clicked) and card.effects_can_be_clicked[0] and len(card.effects_can_be_clicked) == 1 and card.enabled_activated_effects()[0].name not in card.effects_exhausted:
+                print("NONSENSE")
                 card.can_be_clicked = True               
             else: 
                 card.can_be_clicked = False               
@@ -463,6 +470,7 @@ class Game:
                 card, _ = self.get_in_play_for_id(info["id"])
                 if card and card.id in clickable_ids:
                     clickable_ids.remove(card.id)
+        print(f"clickable_ids {clickable_ids} {len(clickable_ids) > 0}")
         return len(clickable_ids) > 0
 
     def set_targets_for_attack_effect(self, effect):
@@ -3112,7 +3120,7 @@ class Card:
     def needs_and_doesnt_have_legal_attack_targets(self, game):
         if not self.has_ability("multi_entity_attack"):  
             return False                  
-        return game.has_targets_for_attack_effect(self.effects[0])
+        return not game.has_targets_for_attack_effect(self.effects[0])
 
     def needs_self_entity_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]
