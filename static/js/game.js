@@ -316,7 +316,7 @@ class GameUX {
             // todo don't hardcode hide description for Winding One
             if (card.card_type == "Entity" && activatedEffects.length == 0) {
                 descriptionDiv.innerHTML = card.description;
-            } else if (card.card_type != "Entity" && activatedEffects.length < 2) {
+            } else if (card.card_type != "Entity") {
                 descriptionDiv.innerHTML = card.description;
             }
             if (card.turn_played == -1) {

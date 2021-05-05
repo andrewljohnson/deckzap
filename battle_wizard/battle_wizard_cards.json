@@ -1842,46 +1842,9 @@
 		"class": "fighter",
 		"card_type": "Relic",
 		"cost": 2,
-		"description": "✦✦: equip this to get a 2/2 weapon.<BR/>✦✦: equip it to an entity to give it +2/+0.<BR/>Your entities get +1/+0 for each relic you control.",
-		"original_description": "✦✦: equip this to get a 2/2 weapon<BR/>✦✦: equip it to an entity to give it +2/+0.<BR/>Your entities get +1/+0 for each relic you control.",
-		"abilities": [
-			{
-				"name": "Weapon",
-				"descriptive_id": "Weapon"
-			}
-		],
+		"description": "Your entities get +1/+0 for each relic you control.",
+		"original_description": "Your entities get +1/+0 for each relic you control.",
 		"effects": [
-			{
-				"name": "enable_activated_effect",
-				"effect_type": "activated",
-				"target_type": "self",
-				"cost": 2,
-				"description": "✦✦: 2/2 weapon",
-				"effect_to_activate": {
-					"name": "attack",
-					"effect_type": "activated",
-					"target_type": "any_enemy",
-					"description": "Remove a counter: Attack an enemy for 2 damage.",
-					"counters": 2,
-					"power": 2,
-					"was_added": true
-				}
-			},
-			{
-				"name": "equip_to_entity",
-				"effect_type": "activated",
-				"target_type": "self_entity",
-				"cost": 2,
-				"description": "✦✦: equip +2/+2.",
-				"effect_to_activate": {
-					"description": "0: unequip.",
-					"was_added": true,
-					"tokens": [{
-						"power_modifier": 2,
-						"toughness_modifier": 2
-					}]
-				}
-			},
 			{
 				"name": "add_tokens",
 				"effect_type": "enter_play",
