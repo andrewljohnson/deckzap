@@ -1081,7 +1081,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.opponent().in_play), 0)
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(game.current_player().in_play[0].name, "Stone Elemental")
         os.remove(f"database/games/{dbName}.json")
 
     def test_akbars_pan_pipes(self):

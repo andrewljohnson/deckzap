@@ -1926,6 +1926,8 @@ class Player:
         elif e.name == "add_entity_abilities":
             message["log_lines"].append(f"{self.username} adds {e.abilities[0].name} to {effect_targets[target_index]['id']} with {card.name}.")
             self.do_add_abilities_effect(e, self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0])           
+        elif e.name == "add_effects":
+            message = self.do_add_effects_effect(card, e, effect_targets, message)           
 
         self.mana -= e.cost
         self.hit_points -= e.cost_hp
@@ -2308,15 +2310,26 @@ class Player:
                 ability_to_remove = a
         self.abilities.remove(a)
 
-    def do_add_effects_effect(self, e, card):
+    def do_add_effects_effect(self, card, e, effect_targets, message):
         if e.target_type == "self_entities":
-            for card in self.in_play:
+            for c in self.in_play:
                 for effect_effect in e.effects:
                     effect_effect.enabled = False
                     self.do_add_effect_effect_on_entity(
                         effect_effect, 
-                        card.id
+                        c.id
                     )
+        elif e.target_type == "opponents_entity":
+                for idx, effect_effect in enumerate(e.effects):
+                    target_card = self.game.get_in_play_for_id(effect_targets[idx]['id'])[0]            
+                    if effect_effect.name == "take_control":
+                        message["log_lines"].append(f"{self.username} takes control of {target_card.name} with {card.name}.")
+                        self.do_add_effect_effect_on_entity(
+                            effect_effect, 
+                            target_card.id
+                        )
+                        self.do_take_control_effect_on_entity(target_card.id)
+        return message
 
     def do_add_abilities_effect(self, e, card):
         if e.target_type == "new_self_entities":
@@ -2447,15 +2460,15 @@ class Player:
         card1 = None 
         while not card1 or card1.name in banned_cards or card1.card_type != make_type or (requiredEntityCost and make_type == "Entity" and card1.cost != requiredEntityCost) or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
             card1 = random.choice(all_cards)
-            print(f"1 {self.race} vs {card1.race} vs {card1.race}_{card1.card_class}")
+            print(f"{self.race} vs {card1.race} vs {card1.race}_{card1.card_class}")
         card2 = None
         while not card2 or card2.name in banned_cards or card2.card_type != make_type or card2 == card1 or (self.race != None and card2.race != None and self.race not in [card2.race, f"{card2.race}_{card2.card_class}"]):
             card2 = random.choice(all_cards)
-            print(f"2 {self.race} vs {card2.race} vs {card2.race}_{card2.card_class}")
+            print(f"{self.race} vs {card2.race} vs {card2.race}_{card2.card_class}")
         card3 = None
         while not card3 or card3.name in banned_cards or card3.card_type != make_type or card3 in [card1, card2] or (self.race != None and card3.race != None and self.race not in [card3.race, f"{card3.race}_{card3.card_class}"]):
             card3 = random.choice(all_cards)
-            print(f"3 {self.race} vs {card3.race} vs {card3.race}_{card3.card_class}")
+            print(f"{self.race} vs {card3.race} vs {card3.race}_{card3.card_class}")
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
 
     def riffle(self, amount):
