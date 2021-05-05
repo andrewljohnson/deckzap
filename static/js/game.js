@@ -186,25 +186,25 @@ class GameUX {
         }
     }
 
-    updateRelics(game) {
-        var relicsDiv = document.getElementById("relics");
-        if (this.thisPlayer(game).relics.length == 0 &&
-            relicsDiv.innerHTML.startsWith("Play")) {
-            relicsDiv.style.color = "white";
+    updateArtifacts(game) {
+        var artifactsDiv = document.getElementById("artifacts");
+        if (this.thisPlayer(game).artifacts.length == 0 &&
+            artifactsDiv.innerHTML.startsWith("Play")) {
+            artifactsDiv.style.color = "white";
             return;
         }
-        relicsDiv.style.color = "black";
-        relicsDiv.innerHTML = '';
-        for (let card of this.thisPlayer(game).relics) {
-            relicsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+        artifactsDiv.style.color = "black";
+        artifactsDiv.innerHTML = '';
+        for (let card of this.thisPlayer(game).artifacts) {
+            artifactsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
         }        
     }
 
-    updateOpponentRelics(game) {
-        var relicsDiv = document.getElementById("opponent_relics");
-        relicsDiv.innerHTML = '';
-        for (let card of this.opponent(game).relics) {
-            relicsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
+    updateOpponentArtifacts(game) {
+        var artifactsDiv = document.getElementById("opponent_artifacts");
+        artifactsDiv.innerHTML = '';
+        for (let card of this.opponent(game).artifacts) {
+            artifactsDiv.appendChild(this.cardSprite(game, card, this.usernameOrP1(game)));
         }        
     }
 
@@ -355,12 +355,12 @@ class GameUX {
             if (card.tokens) {
                 // todo does this code need to be clientside?
                 for (let c of card.tokens) {
-                    if (c.multiplier == "self_relics") {
+                    if (c.multiplier == "self_artifacts") {
                         let user = this.thisPlayer(game);
                         if (opponent_or_self == "opponent") {
                             user = this.opponent(game);
                         }
-                        cardPower += c.power_modifier * user.relics.length;                        
+                        cardPower += c.power_modifier * user.artifacts.length;                        
                     } else {
                         cardPower += c.power_modifier;                        
                     }
@@ -443,9 +443,9 @@ class GameUX {
                     var self = this;
                     input.onclick = function(event) { 
                         if (e.cost <= self.thisPlayer(game).mana) {
-                            if (card.card_type == "Relic" && e.target_type == "self_entity") {
+                            if (card.card_type == "Artifact" && e.target_type == "self_entity") {
                                 self.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": this.effect_index});
-                            } else if (card.card_type == "Relic" && e.target_type == "self") {
+                            } else if (card.card_type == "Artifact" && e.target_type == "self") {
                                 self.sendPlayMoveEvent("ACTIVATE_RELIC", {"card":card.id, "effect_index": this.effect_index});
                             } else if (true) {
                                 self.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id, "effect_index": this.effect_index});
@@ -557,7 +557,7 @@ class GameUX {
             this.updateOpponentMana(game);
             this.updateOpponentHitPoints(game);
             this.updateOpponentInPlay(game);
-            this.updateOpponentRelics(game);
+            this.updateOpponentArtifacts(game);
             this.updateOpponentDeckCount(game);
             this.updateOpponentPlayedPileCount(game);
             this.updateOpponentBorder(game);
@@ -570,7 +570,7 @@ class GameUX {
             this.updateMana(game);
             this.updateHitPoints(game);
             this.updateInPlay(game);
-            this.updateRelics(game);
+            this.updateArtifacts(game);
             this.updateHand(game);
             this.updateDeckCount(game);
             this.updatePlayedPileCount(game);
@@ -591,11 +591,11 @@ class GameUX {
             this.showMakeView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
             this.showRiffleView(game, "FINISH_RIFFLE");
-        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_hand") {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
-        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_play") {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_play") {
             this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
             this.showRevealView(game);
@@ -727,7 +727,7 @@ class GameUX {
 
     showChooseCardView(game, event_name) {
         var self = this;
-        this.showSelectCardView(game, "make_selector", "Relics in Your Deck", function (card) {
+        this.showSelectCardView(game, "make_selector", "Artifacts in Your Deck", function (card) {
                 self.sendPlayMoveEvent(event_name, {"card":card.id});                
             });
         

@@ -16,6 +16,9 @@ def index(request):
 
     return render(request, "index.html", {})
 
+def game_new(request):
+    return render(request, "game_new.html", {})
+
 def signup(request):
     if request.user.is_authenticated:
         return redirect(f'/u/{request.user.username}')

@@ -2,7 +2,7 @@
 	{
 		"name": "Crystal Spyglass",
 		"race": "elf",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"description": "0: View Opponent's hand once on your turn.",
 		"cost": 1,
 		"effects": [{
@@ -14,7 +14,7 @@
 	{
 		"name": "Fountain of Youth",
 		"race": "elf",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30 total life.",
 		"cost": 3,
 		"effects": [{
@@ -27,7 +27,7 @@
 	{
 		"name": "Voodoo Doll",
 		"race": "genie",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"description": "Opponent loses 1 life per card in hand at beginning of your turn.",
 		"cost": 3,
 		"effects": [{
@@ -40,7 +40,7 @@
 	{
 		"name": "Leyline Amulet",
 		"race": "elf",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"description": "Whenever you draw a spell, reduce its cost by 1.",
 		"cost": 3,
 		"effects": [{
@@ -53,7 +53,7 @@
 	{
 		"name": "Ice Prison",
 		"race": "genie",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"description": "Each player may only untap one entity that attacked last turn.",
 		"cost": 5,
 		"effects": [{
@@ -66,7 +66,7 @@
 	{
 		"name": "Leyline Portal",
 		"race": "genie",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"description": "Whenever you draw an entity, reduce its cost by 1.",
 		"cost": 2,
 		"effects": [{
@@ -79,7 +79,7 @@
 	{
 		"name": "Book of Knowledge",
 		"race": "genie",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 3,
 		"description": "✦: Draw a card once on your turn.",
 		"effects": [{
@@ -93,7 +93,7 @@
 	{
 		"name": "Mirror of Fate",
 		"race": "genie",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 6,
 		"description": "✦✦✦✦✦✦: Switch hit points with your opponent. Sacrifice this.",
 		"effects": [{
@@ -107,7 +107,7 @@
 	{
 		"name": "Scepter of Manipulation",
 		"race": "genie",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 4,
 		"description": "✦: Prevent an entity from attacking, once on your turn.",
 		"effects": [{
@@ -841,15 +841,15 @@
 			}
 		]
 	},	{
-		"name": "Kill Relic",
+		"name": "Kill Artifact",
 		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Kill a relic.",
+		"description": "Kill a artifact.",
 		"effects": [{
 			"name": "kill",
 			"effect_type": "spell",
-			"target_type": "relic"
+			"target_type": "artifact"
 		}]
 	},
 	{
@@ -1203,7 +1203,7 @@
 	},
 	{
 		"name": "Dagger",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
 		"original_description": "✦✦: Make this a 1 power weapon with 2 charges.",
@@ -1236,7 +1236,7 @@
 	},
 	{
 		"name": "Bow",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Deal 2 damage to your opponent.",
 		"abilities": [
@@ -1255,7 +1255,7 @@
 	},
 	{
 		"name": "Wand",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Deal 1 damage to anything.",
 		"abilities": [
@@ -1274,7 +1274,7 @@
 	},
 	{
 		"name": "Prayer Beads",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Heal 2 hit points",
 		"abilities": [
@@ -1293,7 +1293,7 @@
 	},
 	{
 		"name": "Shield",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Gain 2 armor.",
 		"abilities": [
@@ -1331,7 +1331,7 @@
 	},
 	{
 		"name": "Abyssal Crystal",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: draw a card and lose 2 life.",
 		"abilities": [
@@ -1351,13 +1351,13 @@
 	},
 	{
 		"name": "Wish Stone",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 4,
-		"description": "0: sacrifice this, put a relic from your deck into play.",
+		"description": "0: sacrifice this, put a artifact from your deck into play.",
 		"effects": [{
 				"name": "fetch_card_into_play",
 				"effect_type": "activated",
-				"target_type": "Relic",
+				"target_type": "Artifact",
 				"cost": 0,
 				"sacrifice_on_activate": true
 		}]
@@ -1535,7 +1535,7 @@
 	},
 	{
 		"name": "Lute",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
 		"original_description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
@@ -1621,7 +1621,7 @@
 		"effects": [{
 			"name": "fetch_card",
 			"effect_type": "enter_play",
-			"target_type": "Relic",
+			"target_type": "Artifact",
 			"target_restrictions": [{"needs_instrument": null}],
 			"amount": 1
 		}]
@@ -1645,7 +1645,7 @@
 		"name": "Befuddling Guitar",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 3,
 		"description": "If this kills an entity, put it on top of its owner's deck. If it attacks a player, they put a random card from their hand into their deck then draw a card.",
 		"abilities": [
@@ -1840,10 +1840,10 @@
 		"name": "Arsenal",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 2,
-		"description": "Your entities get +1/+0 for each relic you control.",
-		"original_description": "Your entities get +1/+0 for each relic you control.",
+		"description": "Your entities get +1/+0 for each artifact you control.",
+		"original_description": "Your entities get +1/+0 for each artifact you control.",
 		"effects": [
 			{
 				"name": "add_tokens",
@@ -1852,7 +1852,7 @@
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
-					"multiplier": "self_relics"
+					"multiplier": "self_artifacts"
 				}]
 			},
 			{
@@ -1869,7 +1869,7 @@
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
-					"multiplier": "self_relics"
+					"multiplier": "self_artifacts"
 				}]
 			}
 		]
@@ -1927,7 +1927,7 @@
 		"name": "Multishot Bow",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 4,
 		"description": "Attack multiple times, only attacks each enemy once a turn.",
 		"abilities": [
@@ -1979,7 +1979,7 @@
 		"class": "fighter",
 		"card_type": "Spell",
 		"cost": 5,
-		"description": "Get a random relic from your deck. Summon a 3/3 with Fast and Fade.",
+		"description": "Get a random artifact from your deck. Summon a 3/3 with Fast and Fade.",
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Mist Elephant",
@@ -2001,7 +2001,7 @@
 			]
 		},
 		{
-			"name": "summon_from_deck_relic",
+			"name": "summon_from_deck_artifact",
 			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 1
@@ -2014,7 +2014,7 @@
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
-		"description": "+1/+0 for each other entity and relic you have.",
+		"description": "+1/+0 for each other entity and artifact you have.",
 		"power": 2,
 		"toughness": 5,
 		"cost": 5,
@@ -2033,7 +2033,7 @@
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
-					"multiplier": "self_entities_and_relics"
+					"multiplier": "self_entities_and_artifacts"
 				}]
 			}
 		]
@@ -2076,13 +2076,13 @@
 	},
 	{
 		"name": "Disk of Death",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 4,
-		"description": "1: sacrifice this, kill all Relics and Entities.",
+		"description": "1: sacrifice this, kill all Artifacts and Entities.",
 		"abilities": [
-				{"name": "Slow Relic", 
+				{"name": "Slow Artifact", 
 				"description": "Can't be used the turn this comes into play.",
-				"descriptive_id": "Slow Relic"}
+				"descriptive_id": "Slow Artifact"}
 		],
 		"effects": [{
 				"name": "kill",
@@ -2273,7 +2273,7 @@
 	},
 	{
 		"name": "Akbar's Pan Pipes",
-		"card_type": "Relic",
+		"card_type": "Artifact",
 		"cost": 4,
 		"description": "Remove a counter: Summon a 2/2 rat.",
 		"abilities": [
@@ -2325,7 +2325,7 @@
 		"class": "bard",
 		"cost": 6,
 		"card_type": "Spell",
-		"description": "Destroy all entities and non-instrument relics that cost between 2 and 5 mana.",
+		"description": "Destroy all entities and non-instrument artifacts that cost between 2 and 5 mana.",
 		"abilities": [
 				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
 		],
@@ -2480,7 +2480,7 @@
 		"class": "bard",
 		"cost": 10,
 		"card_type": "Spell",
-		"description": "Gain control of all relics and entities this turn. All of your Entities and Relics get Fast.",
+		"description": "Gain control of all artifacts and entities this turn. All of your Entities and Artifacts get Fast.",
 		"abilities": [
 				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
 		],
