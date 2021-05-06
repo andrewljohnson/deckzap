@@ -3,12 +3,17 @@ const appHeight = 800;
 const cardHeight = 114;
 const cardWidth = 81;
 const padding = 10;
-const avatarWidth = 200;
-const avatarHeight = cardHeight;
+const avatarHeight = 128;
+const avatarWidth = 245;
 const brownColor = 0x765C48;
+const lightBrownColor = 0xDFBF9F;
+const cardContainerWidth = cardWidth * 7 + 12;
 
 const bump = new Bump(PIXI);
 var texture = PIXI.Texture.from('static/images/card.png');
+var inPlayTexture = PIXI.Texture.from('static/images/in_play.png');
+var relicsTexture = PIXI.Texture.from('static/images/relics.png');
+var avatarTexture = PIXI.Texture.from('static/images/avatar.png');
 
 
 class GameUX {
@@ -22,10 +27,24 @@ class GameUX {
 
     renderStaticElements() {
         this.app.stage.addChild(this.background());
-        this.app.stage.addChild(this.avatar(appWidth/2 - avatarWidth/2, padding));
-        this.app.stage.addChild(this.relics(700, padding));
-        this.app.stage.addChild(this.inPlayContainer(padding, avatarHeight + padding * 2));
-        this.app.stage.addChild(this.inPlayContainer(padding, avatarHeight + cardHeight + padding * 3));
+
+        let opponentRow = new PIXI.Container();
+        this.app.stage.addChild(opponentRow);
+        opponentRow.addChild(this.avatar(cardContainerWidth/2 - avatarWidth/2, padding));
+        opponentRow.addChild(this.relics(cardContainerWidth/2 + avatarWidth/2 + padding, padding+6));
+        let inPlayAndMenuRow = new PIXI.Container();
+        inPlayAndMenuRow.position.x = padding;
+        console.log(opponentRow.children[0].height);
+        inPlayAndMenuRow.position.y = avatarHeight + padding * 2;
+        this.app.stage.addChild(inPlayAndMenuRow);
+        inPlayAndMenuRow.addChild(this.inPlayContainer(padding, 0));
+        inPlayAndMenuRow.addChild(this.inPlayContainer(padding, padding + cardHeight));
+        inPlayAndMenuRow.addChild(this.menu(cardContainerWidth + padding * 2, 0));
+        let playerRow = new PIXI.Container();
+        playerRow.position.y = inPlayAndMenuRow.position.y + inPlayAndMenuRow.height;
+        this.app.stage.addChild(playerRow);
+        playerRow.addChild(this.avatar(cardContainerWidth/2 - avatarWidth/2, padding));
+        playerRow.addChild(this.relics(cardContainerWidth/2 + avatarWidth/2 + padding, padding+6));
 
     }
 
@@ -38,35 +57,38 @@ class GameUX {
     }
 
     avatar(x, y) {
-        const avatar = PIXI.Sprite.from(PIXI.Texture.WHITE);
-        avatar.width = avatarWidth;
-        avatar.height = avatarHeight;
-        avatar.tint = brownColor;
+        const avatar = new PIXI.Sprite.from(avatarTexture);
+        avatar.scale.set(0.5);
         avatar.position.x = x;
         avatar.position.y = y;
         return avatar;
     }
 
     relics(x, y) {
-        const relics = PIXI.Sprite.from(PIXI.Texture.WHITE);
-        relics.width = cardWidth * 3;
-        relics.height = cardHeight;
-        relics.tint = brownColor;
+        const relics = new PIXI.Sprite.from(relicsTexture);
+        relics.scale.set(0.5);
         relics.position.x = x;
         relics.position.y = y;
         return relics;
     }
 
     inPlayContainer(x, y) {
-        const inPlayContainer = PIXI.Sprite.from(PIXI.Texture.WHITE);
-        inPlayContainer.width = cardWidth * 7;
-        inPlayContainer.height = cardHeight;
-        inPlayContainer.tint = brownColor;
+        const inPlayContainer = new PIXI.Sprite.from(inPlayTexture);
+        inPlayContainer.scale.set(0.5);
         inPlayContainer.position.x = x;
         inPlayContainer.position.y = y;
         return inPlayContainer;
     }
 
+    menu(x, y) {
+        const menu = PIXI.Sprite.from(PIXI.Texture.WHITE);
+        menu.width = 120;
+        menu.height = cardHeight * 2 + padding;
+        menu.tint = 0x00FF00;
+        menu.position.x = x;
+        menu.position.y = y;
+        return menu;
+    }
 }
 
 let gameUX = new GameUX();
@@ -102,7 +124,7 @@ function createCard(x, y) {
     card.interactive = true;
     // hand cursor appears
     card.buttonMode = true;
-    card.scale.set(0.25);
+    card.scale.set(0.5);
     card.anchor.set(0.5);
     card
         .on('mousedown', onDragStart)

@@ -665,7 +665,7 @@ class GameUX {
         var input = document.createElement("input");
         input.id = c.name;
         input.name = "card";
-        input.style.color = '000080';
+        input.style.color = '#000080';
         input.value = 1;
         if (this.usernameOrP1(game) in decks) {
             if (c.name in decks[this.usernameOrP1(game)]) {
