@@ -473,7 +473,7 @@
 		"effects": [{
 			"name": "double_power",
 			"effect_type": "enter_play",
-			"target_type": "entity"
+			"target_type": "self_entity"
 		}]	
 	},
 	{
@@ -1886,7 +1886,7 @@
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "enter_play",
-			"target_type": "entity",
+			"target_type": "self_entity",
 			"tokens": [{
 				"power_modifier": 2,
 				"toughness_modifier": 2

@@ -104,9 +104,6 @@ def games(request):
 def find_game(request, ai_type, game_type):
     return find_game_with_ux_type(request, ai_type, game_type, "play")
 
-def find_game_new(request, ai_type, game_type):
-    return find_game_with_ux_type(request, ai_type, game_type, "play_new")
-
 def find_game_with_ux_type(request, ai_type, game_type, ux_type):
     room_code, is_new_room = JsonDB().join_game_in_queue_database(ai_type, game_type, JsonDB().queue_database())
     url = f"/{ux_type}/{ai_type}/{game_type}/{room_code}"
@@ -124,12 +121,6 @@ def find_game_with_ux_type(request, ai_type, game_type, ux_type):
     return redirect(url)
 
 def play_game(request, ai_type, game_type, room_code):
-    return play_game_with_ux_type(request, ai_type, game_type, room_code, "play")
-
-def play_game_new(request, ai_type, game_type, room_code):
-    return play_game_with_ux_type(request, ai_type, game_type, room_code, "play_new")
-
-def play_game_with_ux_type(request, ai_type, game_type, room_code, ux_type):
     room_code_int = int(room_code)
     queue_database = JsonDB().queue_database()
     last_room = request.GET.get("new_game_from_button")
@@ -150,7 +141,7 @@ def play_game_with_ux_type(request, ai_type, game_type, room_code, ux_type):
             added_one = True
 
     if last_room and ai:
-        return redirect(f"/{ux_type}/{ai_type}/{game_type}{get_params}")    
+        return redirect(f"/play/{ai_type}/{game_type}{get_params}")    
 
     context = {
         "ai": request.GET.get("ai"), 
@@ -162,10 +153,7 @@ def play_game_with_ux_type(request, ai_type, game_type, room_code, ux_type):
         "all_cards": json.dumps(JsonDB().all_cards())
     }
 
-    if ux_type == "play":
-        return render(request, "game.html", context)
-    else:
-        return render(request, "game_new.html", context)
+    return render(request, "game_new.html", context)
 
 
 '''

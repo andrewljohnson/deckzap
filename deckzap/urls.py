@@ -4,13 +4,13 @@ from django.urls import path
 from battle_wizard.views import build_deck
 # from battle_wizard.views import create
 # from battle_wizard.views import find_custom_game
-from battle_wizard.views import find_game, find_game_new
+from battle_wizard.views import find_game
 from battle_wizard.views import games
 from battle_wizard.views import index
 from battle_wizard.views import logout
 # from battle_wizard.views import manifesto
 # from battle_wizard.views import play_custom_game
-from battle_wizard.views import play_game, play_game_new
+from battle_wizard.views import play_game
 from battle_wizard.views import profile
 from battle_wizard.views import save_deck
 from battle_wizard.views import signup
@@ -37,8 +37,6 @@ urlpatterns = [
     # path('play/custom/<game_id>', find_custom_game),
   	path('play/<ai_type>/<game_type>/<room_code>', play_game),
     path('play/<ai_type>/<game_type>', find_game),
-    path('play_new/<ai_type>/<game_type>/<room_code>', play_game_new),
-    path('play_new/<ai_type>/<game_type>', find_game_new),
     path('ss/hangman', hangman),
     path('ss/dnd', dnd),
     path('u/<username>', profile),

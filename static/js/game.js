@@ -445,9 +445,9 @@ class GameUX {
                     input.onclick = function(event) { 
                         if (e.cost <= self.thisPlayer(game).mana) {
                             if (card.card_type == "Artifact" && e.target_type == "self_entity") {
-                                self.gameRoom.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": this.effect_index});
+                                self.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card":card.id, "effect_index": this.effect_index});
                             } else if (card.card_type == "Artifact" && e.target_type == "self") {
-                                self.gameRoom.sendPlayMoveEvent("ACTIVATE_RELIC", {"card":card.id, "effect_index": this.effect_index});
+                                self.gameRoom.sendPlayMoveEvent("ACTIVATE_ARTIFACT", {"card":card.id, "effect_index": this.effect_index});
                             } else if (true) {
                                 self.gameRoom.sendPlayMoveEvent("ACTIVATE_ENTITY", {"card":card.id, "effect_index": this.effect_index});
                             }
@@ -504,7 +504,7 @@ class GameUX {
                 } else if (cardDiv.parentElement.parentElement == document.getElementById("in_play") || cardDiv.parentElement.parentElement == document.getElementById("opponent_in_play")) {  
                     self.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id, "effect_index": -1});
                 } else { 
-                    self.gameRoom.sendPlayMoveEvent("SELECT_RELIC", {"card":card.id, "effect_index": -1});
+                    self.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card":card.id, "effect_index": -1});
                 }            
             }
         }
