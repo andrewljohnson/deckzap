@@ -16,9 +16,6 @@ def index(request):
 
     return render(request, "index.html", {})
 
-def game_new(request):
-    return render(request, "game_new.html", {})
-
 def signup(request):
     if request.user.is_authenticated:
         return redirect(f'/u/{request.user.username}')
@@ -104,28 +101,15 @@ def games(request):
             g["open_games"] = queue_database[g["ai_type"]][custom_game_id]["open_games"]
     return render(request, "games.html", {"queue_database": queue_database, "custom_games": custom_game_database["games"]})
 
-def create(request):
-    if not request.user.is_authenticated:
-        return redirect('/signup')
-    context = {
-    }
-    if request.method == "POST":
-        ai_type = request.POST.get("ai_type")
-        game_type = request.POST.get("game_type")
-        custom_game_database = JsonDB().custom_game_database()
-        game_info = {
-            "username": request.user.username,
-            "ai_type": ai_type,
-            "game_type": game_type
-        }
-        JsonDB().save_to_custom_game_database(game_info, custom_game_database)
-        return redirect("/games")
-    else:
-        return render(request, "create.html", context)
-
 def find_game(request, ai_type, game_type):
+    return find_game_with_ux_type(request, ai_type, game_type, "play")
+
+def find_game_new(request, ai_type, game_type):
+    return find_game_with_ux_type(request, ai_type, game_type, "play_new")
+
+def find_game_with_ux_type(request, ai_type, game_type, ux_type):
     room_code, is_new_room = JsonDB().join_game_in_queue_database(ai_type, game_type, JsonDB().queue_database())
-    url = f"/play/{ai_type}/{game_type}/{room_code}"
+    url = f"/{ux_type}/{ai_type}/{game_type}/{room_code}"
     deck_id = request.GET.get("deck_id", None)
     ai = request.GET.get("ai")
     added_one = False
@@ -139,14 +123,13 @@ def find_game(request, ai_type, game_type):
             url+= f"?ai={ai}"
     return redirect(url)
 
-def find_custom_game(request, game_id):
-    room_code, is_new_room = JsonDB().join_custom_game_in_queue_database(game_id, JsonDB().queue_database())
-    return redirect(
-            '/play/custom/%s/%s' 
-            %(game_id, room_code)
-    )
-
 def play_game(request, ai_type, game_type, room_code):
+    return play_game_with_ux_type(request, ai_type, game_type, room_code, "play")
+
+def play_game_new(request, ai_type, game_type, room_code):
+    return play_game_with_ux_type(request, ai_type, game_type, room_code, "play_new")
+
+def play_game_with_ux_type(request, ai_type, game_type, room_code, ux_type):
     room_code_int = int(room_code)
     queue_database = JsonDB().queue_database()
     last_room = request.GET.get("new_game_from_button")
@@ -167,7 +150,7 @@ def play_game(request, ai_type, game_type, room_code):
             added_one = True
 
     if last_room and ai:
-        return redirect(f"/play/{ai_type}/{game_type}{get_params}")    
+        return redirect(f"/{ux_type}/{ai_type}/{game_type}{get_params}")    
 
     context = {
         "ai": request.GET.get("ai"), 
@@ -179,9 +162,43 @@ def play_game(request, ai_type, game_type, room_code):
         "all_cards": json.dumps(JsonDB().all_cards())
     }
 
-    return render(request, "game.html", context)
+    if ux_type == "play":
+        return render(request, "game.html", context)
+    else:
+        return render(request, "game_new.html", context)
 
 
+'''
+
+def create(request):
+    if not request.user.is_authenticated:
+        return redirect('/signup')
+    context = {
+    }
+    if request.method == "POST":
+        ai_type = request.POST.get("ai_type")
+        game_type = request.POST.get("game_type")
+        custom_game_database = JsonDB().custom_game_database()
+        game_info = {
+            "username": request.user.username,
+            "ai_type": ai_type,
+            "game_type": game_type
+        }
+        JsonDB().save_to_custom_game_database(game_info, custom_game_database)
+        return redirect("/games")
+    else:
+        return render(request, "create.html", context)
+
+def find_custom_game(request, game_id):
+    room_code, is_new_room = JsonDB().join_custom_game_in_queue_database(game_id, JsonDB().queue_database())
+    return redirect(
+            '/play/custom/%s/%s' 
+            %(game_id, room_code)
+    )
+'''
+
+
+'''
 def play_custom_game(request, game_id, room_code):
     cgd = JsonDB().custom_game_database()
     game_type = None
@@ -203,3 +220,4 @@ def play_custom_game(request, game_id, room_code):
         "all_cards": json.dumps(JsonDB().all_cards())
     }
     return render(request, "game.html", context)
+'''

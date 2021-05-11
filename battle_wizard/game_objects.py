@@ -250,6 +250,8 @@ class Game:
             message = self.current_player().play_card(message["card"], message)
         elif move_type == 'RESOLVE_ENTITY_EFFECT':
             message = self.current_player().resolve_entity_effect(message["card"], message)
+        elif move_type == 'UNSELECT':
+             self.current_player().reset_card_info_to_resolve()
     
         if message:
             JsonDB().save_game_database(self.as_dict(), self.db_name)
@@ -257,7 +259,7 @@ class Game:
             # if message is None, the move was a no-op, like SELECT_CARD_IN_HAND on an uncastable card
             pass
 
-        if move_type != 'JOIN':
+        if move_type != 'JOIN' or len(self.players) == 2:
             self.set_clickables()
 
         return message
@@ -276,6 +278,7 @@ class Game:
             card.effects_can_be_clicked = []
         for card in self.current_player().hand:
             card.can_be_clicked = False
+            card.needs_targets = False
         for card in self.current_player().artifacts:
             card.can_be_clicked = False
             card.effects_can_be_clicked = []
@@ -290,7 +293,7 @@ class Game:
 
         if len(self.players) != 2:
             return
-
+        print("set_clic")
         cp = self.current_player()
         opp = self.opponent()
 
@@ -308,8 +311,9 @@ class Game:
                 e = selected_artifact.enabled_activated_effects()[cp.card_info_to_resolve["effect_index"]]
                 self.set_targets_for_target_type(e.target_type, e.target_restrictions, e)
         elif cp.selected_spell():
+            print("selected SPELL")
             selected_spell = cp.selected_spell()
-            if not selected_spell.needs_targets():
+            if not selected_spell.needs_targets_for_spell():
                 selected_spell.can_be_clicked = True 
             else:           
                 for e in selected_spell.effects:
@@ -319,6 +323,7 @@ class Game:
                         # without this break, this code breaks on Siz Pop
                         break
         elif cp.card_info_to_resolve["effect_type"] in ["entity_at_ready"]:
+            print("entity_at_ready")
             selected_entity = cp.selected_entity()
             only_has_ambush_attack = False
             if not selected_entity.has_ability("Fast"):
@@ -331,6 +336,7 @@ class Game:
             for card in opp.in_play:
                 if card.has_ability("Guard") or not opp.has_guard() or selected_entity.has_ability("Evade Guard"):
                     if not card.has_ability("Lurker"):
+                        print(card.name)
                         card.can_be_clicked = True
         if cp.card_info_to_resolve["effect_type"]:
             return
@@ -341,7 +347,6 @@ class Game:
             return
 
         for card in cp.artifacts:
-            print(card.name)
             card.effects_can_be_clicked = []
             for x, effect in enumerate(card.enabled_activated_effects()):
                 effect_can_be_used = True
@@ -362,7 +367,6 @@ class Game:
                     effect_can_be_used = False
                 card.effects_can_be_clicked.append(effect_can_be_used)      
             if len(card.effects_can_be_clicked) and card.effects_can_be_clicked[0] and len(card.effects_can_be_clicked) == 1 and card.enabled_activated_effects()[0].name not in card.effects_exhausted:
-                print("NONSENSE")
                 card.can_be_clicked = True               
             else: 
                 card.can_be_clicked = False               
@@ -387,6 +391,7 @@ class Game:
             if cp.can_select_for_attack(card.id):
                 card.can_be_clicked = True
         for card in cp.hand:               
+            card.needs_targets = card.needs_targets_for_spell()
             if cp.mana >= card.cost:
                 card.can_be_clicked = True
                 if card.needs_card_being_cast_target():
@@ -865,13 +870,13 @@ class Game:
                     print(f"can't cast {card.name} without having an Instument")
                     return None
                 elif card.cost <= self.current_player().mana:
-                    if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets():
+                    if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets_for_spell():
                         self.current_player().reset_card_info_to_resolve()
                     elif self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id:
                         message["move_type"] = "PLAY_CARD"
                         message = self.play_move(message)
                         # play card
-                    elif card.card_type == "Spell" and not card.needs_targets():
+                    elif card.card_type == "Spell" and not card.needs_targets_for_spell():
                             message["move_type"] = "PLAY_CARD"
                             message = self.play_move(message)
                     elif card.card_type == "Entity":
@@ -2622,22 +2627,23 @@ class Player:
             card.shielded = True
 
         if len(card.effects) > 0 and card.card_type != "Entity":
-                if not "effect_targets" in message:
-                    message["effect_targets"]  = {}
-                for idx, e in enumerate(card.effects_spell() + card.effects_enter_play()):
-                    if e.target_type == "self":           
-                        message["effect_targets"][idx] = {"id": message["username"], "target_type":"player"}
-                    elif e.target_type == "opponent":           
-                        message["effect_targets"][idx] = {"id": self.game.opponent().username, "target_type":"player"}
-                    elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities" or e.target_type == "all":          
-                        message["effect_targets"][idx] = {"target_type": e.target_type};
-                    elif e.target_type == "all_cards_in_deck":           
-                        message["effect_targets"][idx] = {"target_type": "player", "id": self.username};
-                    message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
+            if not "effect_targets" in message:
+                message["effect_targets"]  = {}
+            for idx, e in enumerate(card.effects_spell() + card.effects_enter_play()):
+                if e.target_type == "self":           
+                    message["effect_targets"][idx] = {"id": message["username"], "target_type":"player"}
+                elif e.target_type == "opponent":           
+                    message["effect_targets"][idx] = {"id": self.game.opponent().username, "target_type":"player"}
+                elif e.target_type == "all_players" or e.target_type == "all_entities" or e.target_type == "self_entities" or e.target_type == "all":          
+                    message["effect_targets"][idx] = {"target_type": e.target_type};
+                elif e.target_type == "all_cards_in_deck":           
+                    message["effect_targets"][idx] = {"target_type": "player", "id": self.username};
+                message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
 
         message["card_name"] = card.name
         message["played_card"] = True
         message["was_countered"] = False
+        message["show_spell"] = card.as_dict()
 
         return message
 
@@ -2989,6 +2995,7 @@ class Card:
         self.global_effect = info["global_effect"] if "global_effect" in info else None
         self.is_token = info["is_token"] if "is_token" in info else False
         self.name = info["name"]
+        self.needs_targets = info["needs_targets"] if "needs_targets" in info else False
         self.original_description = info["original_description"] if "original_description" in info else None
         # probably bugs WRT Mind Manacles
         self.owner_username = info["owner_username"] if "owner_username" in info else None
@@ -3014,7 +3021,7 @@ class Card:
                  effects_can_be_clicked: {self.effects_can_be_clicked}\n \
                  effects_exhausted: {self.effects_exhausted}\n \
                  id: {self.id}, turn played: {self.turn_played}\n \
-                 is_token: {self.is_token} shielded: {self.shielded}\n \
+                 needs_targets: {self.needs_targets} is_token: {self.is_token} shielded: {self.shielded}\n \
                  original_description: {self.original_description}\n \
                  owner_username: {self.owner_username}"
  
@@ -3039,6 +3046,7 @@ class Card:
             "id": self.id,
             "is_token": self.is_token,
             "name": self.name,
+            "needs_targets": self.needs_targets,
             "original_description": self.original_description,
             "owner_username": self.owner_username,
             "power": self.power,
@@ -3089,7 +3097,7 @@ class Card:
                 return True
         return False 
 
-    def needs_targets(self):
+    def needs_targets_for_spell(self):
         if len(self.effects) == 0:
             return False
         e = self.effects[0]

@@ -1821,7 +1821,7 @@
 		"class": "fighter",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Deal 3 damage to an Entity and your Opponent",
+		"description": "Deal 3 damage to an Entity and your Opponent.",
 		"effects": [
 			{
 				"name": "damage",
