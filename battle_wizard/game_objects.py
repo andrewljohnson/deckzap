@@ -9,8 +9,7 @@ from battle_wizard.jsonDB import JsonDB
 class Game:
     def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None):
 
-        # can be ingame or choose_race
-        # there is also a test_stacked_deck variant for tests
+        # constructed or test_stacked_deck
         self.game_type = game_type
 
         self.ai = ai
@@ -63,13 +62,6 @@ class Game:
         """
         if len(self.players) < 2:
             return [{"move_type": "JOIN", "username": self.ai}]
-        if not player.race and self.game_type in ["choose_race", "choose_race_prebuilt"]:
-            return [
-                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "human_fighter"},
-                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "elf_sorcerer"},
-                {"move_type": "CHOOSE_RACE", "username": self.ai, "race": "gnome_bard"},
-            ]
-
         moves = []
         if player.card_info_to_resolve["effect_type"] in ["entity_activated", "entity_comes_into_play"]:
             moves = self.add_resolve_entity_effects_moves(player, moves)
@@ -640,7 +632,7 @@ class Game:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
 
-        if len(self.players) == 2 and join_occured and self.game_type in ["ingame", "test_stacked_deck", "constructed"]:
+        if len(self.players) == 2 and join_occured:
             self.start_game(message, self.game_type)
         return message
 
@@ -657,127 +649,12 @@ class Game:
 
     def start_game(self, message, game_type):
         print(f"START GAME FOR {game_type}")
-        if game_type == "ingame":
-            self.start_ingame_deckbuilder_game(message)
-        elif game_type == "choose_race":
-            self.start_choose_race_game(message)
-        elif game_type == "choose_race_prebuilt":
-            self.start_choose_race_prebuilt_game(message)
-        elif game_type == "test_stacked_deck":
+        if game_type == "test_stacked_deck":
             self.start_test_stacked_deck_game(message)
         elif game_type == "constructed":
             self.start_constructed_game(message)
         else:
             print(f"unknown game type: {game_type}")
-
-    def start_ingame_deckbuilder_game(self, message):
-        for p in self.players:
-            for card_name in ["Make Entity", "Make Spell"]:
-                p.add_to_deck(card_name, 1)
-            random.shuffle(p.deck)
-            p.max_mana = 1
-            p.draw(2)
-        if self.players[0].max_mana == 1: 
-           self.send_start_first_turn(message)
-        
-    def start_choose_race_game(self, message):
-        use_test = False
-        test = ["Stiff Wind", "Stiff Wind", "Stone Elemental", "Stone Elemental"]
-        elf_deck = ["Make Spell", "Make Entity"]
-        genie_deck = ["Make Spell", "Make Entity"]
-        for p in self.players:
-            if use_test:
-                for card_name in test:
-                    p.add_to_deck(card_name, 1)
-            elif p.race == "elf":
-                for card_name in elf_deck:
-                    p.add_to_deck(card_name, 1)
-            else:
-                for card_name in genie_deck:
-                    p.add_to_deck(card_name, 1)
-            random.shuffle(p.deck)
-            p.max_mana = 1
-            p.draw(2)
-        self.send_start_first_turn(message)
-
-    def start_choose_race_prebuilt_game(self, message):
-        elf_sorcerer_deck = {
-            "Push Soul": 2,
-            "Riffle": 2,
-            "Disk of Death": 1,
-            "Phoenix": 2,
-            "Premonition": 1,
-            "Life Guardian": 1,
-            "Great Guardian": 1,
-            "Prophecy of the Nine": 1,
-            "Prophecy of the Ten": 1,
-            "Stiff Wind": 2,
-            "Kill Artifact": 2,
-            "Counterspell": 2,
-            "Big Counterspell": 2,
-            "Unwind": 2,
-            "Trickster": 2,
-            "Shield Up": 2,
-            "Think": 2,
-            "Lightning Storm": 2,
-        }
-        human_fighter_deck = {
-            "Bow": 1,
-            "Totem Cat": 2,
-            "Taunted Bear": 2,
-            "War Scorpion": 2,
-            "Berserk Monkey": 2,
-            "Spouty Gas Ball": 2,
-            "Siz Pop": 2,
-            "Frenzy": 2,
-            "Impale": 2,
-            "Arsenal": 1,
-            "Animal Trainer": 2,
-            "Viper": 2,
-            "Training Master": 2,
-            "Multishot Bow": 1,
-            "Enraged Stomper": 2,
-            "Gird for Battle": 2,
-            "Spirit of the Stampede": 1
-        }
-        gnome_bard_deck = {
-            "Gnomish Minstrel": 2,
-            "Lute": 1,
-            "Familiar": 1,
-            "Air Elemental": 2,
-            "Gnomish Mayor": 2,
-            "Gnomish Press Gang": 2,
-            "Gnomish Soundsmith": 2,
-            "Befuddling Guitar": 1,
-            "Town Council": 2,
-            "Gnomish Piper": 2,
-            "Mind Manacles": 2,
-            "Akbar's Pan Pipes": 1,
-            "Gnomish Militia": 2,
-            "Resonant Frequency": 2,
-            "Song Dragon": 1,
-            "Jubilee": 1,
-            "Avatar of Song": 1,
-            "Ilra, Lady of Wind and Music": 2,
-            "Dazzling Solo": 1,
-        }
-        for p in self.players:
-            if p.race == "elf_sorcerer":
-                for card_name, count in elf_sorcerer_deck.items():
-                    p.add_to_deck(card_name, count)
-            elif p.race == "human_fighter":
-                for card_name, count in human_fighter_deck.items():
-                    p.add_to_deck(card_name, count)
-            else:
-                for card_name, count in gnome_bard_deck.items():
-                    p.add_to_deck(card_name, count)
-            random.shuffle(p.deck)
-            p.max_mana = 0
-
-        self.get_starting_artifacts()
-        for p in self.players:
-            p.draw(5)
-        self.send_start_first_turn(message)
 
     def start_test_stacked_deck_game(self, message):
         if self.players[0].max_mana == 0: 

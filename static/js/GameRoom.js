@@ -85,7 +85,7 @@ class GameRoom {
         var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
         var usernameParameter = getSearchParameters()["username"];
         var nextRoomUrl = `/${basePath}/` + this.gameUX.aiType + "/" + this.gameUX.gameType + '/' + roomNumber;
-        var getParams =  "?username=" + usernameParameter + "&new_game_from_button=true";
+        var getParams =  "?new_game_from_button=true";
         const ai = document.getElementById("data_store").getAttribute("ai");
         if (ai && ai != "None") {
             getParams += '&ai=' + ai;
