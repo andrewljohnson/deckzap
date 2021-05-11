@@ -165,12 +165,12 @@
         flex-wrap: wrap;
     }
 
-    #relics {
+    #artifacts {
         height:130px;width:300px;background-color:#765C48;margin-left:10px;
         z-index:1; /* for card zooming */
     }
 
-    #opponent_relics {
+    #opponent_artifacts {
         height:130px;width:300px;background-color:#765C48;margin-left:10px;
         z-index:4; /* for card zooming */
     }

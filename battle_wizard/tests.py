@@ -4,20 +4,6 @@ from battle_wizard.jsonDB import JsonDB
 import os
 import time
 
-"""
-    10 tested cards out of about 50:
-
-    Stone Elemental
-    Unwind
-    Mana Shrub
-    Training Master
-    Stiff Wind
-    Siz Pop
-    Counterspell
-    Big Counterspell 
-    Mind Manacles
-    Master Time
-"""
 
 class GameObjectTests(TestCase):
 
@@ -60,6 +46,40 @@ class GameObjectTests(TestCase):
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 10)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_ten_mana_limit(self):
+        """
+            Test you can't have more than 10 mana
+        """
+
+        deck1 = []
+        deck2 = []
+        dbName, game = self.game_for_decks([deck1,deck2])
+        for x in range(0,10):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.current_player().max_mana, 10)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_ten_mana_mana_shrub(self):
+        """
+            Test you can't have more than 10 mana
+        """
+
+        deck1 = ["Mana Shrub", "Kill"]
+        deck2 = []
+        dbName, game = self.game_for_decks([deck1,deck2])
+        for x in range(0,10):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.current_player().max_mana, 10)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(game.current_player().max_mana, 10)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(game.current_player().max_mana, 10)
+        os.remove(f"database/games/{dbName}.json")
+
 
     def test_new_ingame_game(self):
         game = self.game_with_two_players()
@@ -221,11 +241,13 @@ class GameObjectTests(TestCase):
         dbName, game = self.game_for_decks([["Stone Elemental"], ["Mind Manacles", "Master Time"]])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        for x in range(0, 12):
+        for x in range(0, 9):
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})        
         self.assertEqual(game.opponent().hit_points, 30)
         game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
@@ -307,16 +329,16 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(game.current_player().mana, 3)
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})        
         self.assertEqual(game.current_player().mana, 1)
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})        
         self.assertEqual(len(game.current_player().hand), 1)
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})        
         self.assertEqual(len(game.current_player().hand), 2)
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})        
-        self.assertEqual(game.current_player().relics[0].enabled_activated_effects()[0].counters, 2)
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})        
+        self.assertEqual(game.current_player().artifacts[0].enabled_activated_effects()[0].counters, 2)
         os.remove(f"database/games/{dbName}.json")
 
     def test_gnomish_mayor_summons(self):
@@ -354,7 +376,7 @@ class GameObjectTests(TestCase):
 
     def test_wishstone_makes(self):
         """
-            Test Wishstone makes a Relic from deck into in play.
+            Test Wishstone makes a Artifact from deck into in play.
         """
         deck = ["Wish Stone", "LionKin", "LionKin", "LionKin", "Scepter of Manipulation"]
         deck.reverse()
@@ -365,14 +387,14 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 4, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 4, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 4, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "FETCH_CARD_INTO_PLAY", "card": game.current_player().card_choice_info["cards"][0].id, "log_lines":[]})
-        self.assertEqual(game.current_player().relics[-1].name, "Scepter of Manipulation")
+        self.assertEqual(game.current_player().artifacts[-1].name, "Scepter of Manipulation")
         os.remove(f"database/games/{dbName}.json")
 
     def test_bewitching_lights(self):
         """
-            Test Bewitching Lights makes a Relic from deck into in play.
+            Test Bewitching Lights makes a Artifact from deck into in play.
         """
         dbName, game = self.game_for_decks([["Bewitching Lights"], ["LionKin"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -395,14 +417,14 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 27)
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
-        self.assertEqual(len(game.current_player().relics), 0)
+        self.assertEqual(len(game.current_player().artifacts), 0)
         os.remove(f"database/games/{dbName}.json")
 
     def test_befuddling_guitar_attack_entity(self):
@@ -414,7 +436,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 27)
         self.assertEqual(game.opponent().deck[-1].name, "LionKin")
@@ -532,11 +554,13 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.opponent().hit_points, 27)
         os.remove(f"database/games/{dbName}.json")
 
+
+
     def test_arsenal(self):
         """
-            Test Arsenal and Kill Relic.
+            Test Arsenal and Kill Artifact.
         """
-        dbName, game = self.game_for_decks([["War Scorpion", "Arsenal", "Kill Relic"], []])
+        dbName, game = self.game_for_decks([["War Scorpion", "Arsenal", "Kill Artifact"], []])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -545,7 +569,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 3)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 1, "log_lines":[]})
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 2)
         os.remove(f"database/games/{dbName}.json")
 
@@ -572,6 +596,9 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 2)
         os.remove(f"database/games/{dbName}.json")
 
+    '''
+    probably delete this card
+
     def test_arsenal_equipped_manacles(self):
         """
             Test Arsenal equipped and Mind Manacles.
@@ -583,7 +610,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "effect_index": 1, "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "effect_index": 1, "card": 1, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
@@ -594,12 +621,13 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 2)
-        self.assertEqual(game.opponent().relics[0].enabled_activated_effects()[0].cost, 2)
+        self.assertEqual(game.opponent().artifacts[0].enabled_activated_effects()[0].cost, 2)
         os.remove(f"database/games/{dbName}.json")
+    '''
 
-    def test_arsenal_two_relics(self):
+    def test_arsenal_two_artifacts(self):
         """
-            Test Arsenal and Kill Relic.
+            Test Arsenal and Kill Artifact.
         """
         dbName, game = self.game_for_decks([["War Scorpion", "Befuddling Guitar", "Arsenal", "War Scorpion"], ["Mind Manacles"]])
         print(game.as_dict())
@@ -626,7 +654,7 @@ class GameObjectTests(TestCase):
 
     def test_arsenal_2x(self):
         """
-            Test Arsenal and Kill Relic.
+            Test Arsenal and Kill Artifact.
         """
         dbName, game = self.game_for_decks([["War Scorpion", "Arsenal", "Arsenal"], []])
         print(game.as_dict())
@@ -645,7 +673,7 @@ class GameObjectTests(TestCase):
 
     def test_arsenal_3x(self):
         """
-            Test Arsenal and Kill Relic.
+            Test Arsenal and Kill Artifact.
         """
         dbName, game = self.game_for_decks([["Mana Shrub", "Arsenal", "Arsenal", "Arsenal"], []])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -668,7 +696,7 @@ class GameObjectTests(TestCase):
 
     def test_arsenal_2x_reverse(self):
         """
-            Test Arsenal and Kill Relic.
+            Test Arsenal and Kill Artifact.
         """
         dbName, game = self.game_for_decks([["Arsenal", "Arsenal", "War Scorpion"], []])
         print(game.as_dict())
@@ -689,7 +717,7 @@ class GameObjectTests(TestCase):
 
     def test_arsenal_2x_middle(self):
         """
-            Test Arsenal and Kill Relic.
+            Test Arsenal and Kill Artifact.
         """
         dbName, game = self.game_for_decks([["Arsenal", "Arsenal", "War Scorpion"], []])
         print(game.as_dict())
@@ -707,6 +735,8 @@ class GameObjectTests(TestCase):
         os.remove(f"database/games/{dbName}.json")
 
 
+    '''
+    probably delete this card
 
     def test_arsenal_attack_player(self):
         """
@@ -718,11 +748,12 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 28)
         os.remove(f"database/games/{dbName}.json")
+    '''
 
     def test_dragonslayer_elf_no_targets(self):
         """
@@ -826,22 +857,22 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 27)
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 2, "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 24)
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 24)
-        self.assertEqual(game.current_player().relics[0].effects[0].counters, 2)
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 2)
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 27)
-        self.assertEqual(game.current_player().relics[0].effects[0].counters, 1)
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 1)
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
-        self.assertEqual(len(game.current_player().relics), 1)
+        self.assertEqual(len(game.current_player().artifacts), 1)
         self.assertEqual(game.opponent().hit_points, 27)
         os.remove(f"database/games/{dbName}.json")
 
@@ -857,7 +888,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 2, "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 30)
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
@@ -894,7 +925,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 7, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 1)
-        self.assertEqual(len(game.current_player().relics), 1)
+        self.assertEqual(len(game.current_player().artifacts), 1)
         self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 4)
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
@@ -975,22 +1006,22 @@ class GameObjectTests(TestCase):
         dbName, game = self.game_for_decks([deck1,deck2])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})        
         self.assertEqual(len(game.current_player().in_play), 1)
-        self.assertEqual(len(game.current_player().relics), 1)
+        self.assertEqual(len(game.current_player().artifacts), 1)
         for x in range(0,3):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})   
-        game.play_move({"username": "b", "move_type": "SELECT_RELIC", "card": 2, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_ARTIFACT", "card": 2, "log_lines":[]})        
         self.assertEqual(len(game.opponent().in_play), 1)
-        self.assertEqual(len(game.opponent().relics), 1)
-        self.assertEqual(len(game.current_player().relics), 1)
+        self.assertEqual(len(game.opponent().artifacts), 1)
+        self.assertEqual(len(game.current_player().artifacts), 1)
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_RELIC", "card": 2, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_ARTIFACT", "card": 2, "log_lines":[]})        
         self.assertEqual(len(game.opponent().in_play), 0)
-        self.assertEqual(len(game.opponent().relics), 0)
-        self.assertEqual(len(game.current_player().relics), 0)
+        self.assertEqual(len(game.opponent().artifacts), 0)
+        self.assertEqual(len(game.current_player().artifacts), 0)
         os.remove(f"database/games/{dbName}.json")
 
     def test_phoenix(self):
@@ -1095,7 +1126,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.opponent().in_play), 0)
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(game.current_player().in_play[0].name, "Stone Elemental")
         os.remove(f"database/games/{dbName}.json")
 
     def test_akbars_pan_pipes(self):
@@ -1107,7 +1138,7 @@ class GameObjectTests(TestCase):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 1)
         os.remove(f"database/games/{dbName}.json")
 
@@ -1128,20 +1159,24 @@ class GameObjectTests(TestCase):
             Test Resonant Frequency
         """
         dbName, game = self.game_for_decks([["Stone Elemental", "LionKin", "Mirror of Fate", "Leyline Amulet", "Resonant Frequency", "Akbar's Pan Pipes"], []])
-        for x in range(0,20):
+        for x in range(0,9):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 2)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 4, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 2)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 5, "log_lines":[]})
-        self.assertEqual(len(game.current_player().relics), 3)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().artifacts), 3)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 4, "log_lines":[]})
-        self.assertEqual(len(game.current_player().relics), 2)
+        self.assertEqual(len(game.current_player().artifacts), 2)
         self.assertEqual(len(game.current_player().in_play), 1)
         os.remove(f"database/games/{dbName}.json")
 
@@ -1172,7 +1207,7 @@ class GameObjectTests(TestCase):
         deck1.append("Stone Elemental")
         deck1.append("Lute")
         dbName, game = self.game_for_decks([deck1, []])
-        self.assertEqual(len(game.current_player().relics), 1)
+        self.assertEqual(len(game.current_player().artifacts), 1)
         for x in range(0,13):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
@@ -1193,11 +1228,13 @@ class GameObjectTests(TestCase):
         """
         dbName, game = self.game_for_decks([["Avatar of Song", "Zap", "Kill", "Zap", "Lute"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        for x in range(0,14):
+        for x in range(0,9):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.current_player().hit_points = 3
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_SELF", "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 1)
@@ -1239,19 +1276,19 @@ class GameObjectTests(TestCase):
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_RELIC", "card": 3, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_RELIC", "card": 3, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ARTIFACT", "card": 3, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ARTIFACT", "card": 3, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 29)
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(len(game.opponent().in_play), 1)
-        self.assertEqual(len(game.opponent().relics), 1)
+        self.assertEqual(len(game.opponent().artifacts), 1)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.opponent().in_play), 0)
-        self.assertEqual(len(game.opponent().relics), 0)
+        self.assertEqual(len(game.opponent().artifacts), 0)
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 2, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ENTITY", "card": 2, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_RELIC", "card": 3, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 3, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 27)
         os.remove(f"database/games/{dbName}.json")
@@ -1272,4 +1309,52 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.opponent().hit_points, 21)
         self.assertEqual(game.current_player().hit_points, 21)
         self.assertEqual(len(game.current_player().in_play), 0)
+        os.remove(f"database/games/{dbName}.json")
+
+    def manacles_phoenix(self):
+        """
+            Test Prophecy of the Nine
+        """
+        dbName, game = self.game_for_decks([["Phoenix"], ["Mind Manacles", "Zap"]])
+        for x in range(0,6):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.opponent().played_pile), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def unwind_phoenix(self):
+        """
+            Test Prophecy of the Nine
+        """
+        dbName, game = self.game_for_decks([["Phoenix"], ["Mind Manacles", "Unwind"]])
+        for x in range(0,6):
+            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.opponent().hand), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+    def test_lightning_elemental(self):
+        """
+            Test Lightning Elemental.
+        """
+        dbName, game = self.game_for_decks([["Stone Elemental"], ["Lightning Elemental"]])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_ENTITY", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.opponent().in_play), 0)
         os.remove(f"database/games/{dbName}.json")

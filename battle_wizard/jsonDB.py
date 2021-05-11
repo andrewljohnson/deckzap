@@ -69,7 +69,7 @@ class JsonDB:
             queue_database = {"pvai": {},
                               "pvp": {}
             }
-            game_types = "choose_race_prebuilt", "choose_race", "ingame", "constructed"
+            game_types = ["constructed"]
             for gt in game_types:
                 queue_database["pvai"][gt] = {"starting_id":0} 
                 queue_database["pvp"][gt] = {"open_games":[], "starting_id":0}
@@ -78,17 +78,6 @@ class JsonDB:
     
     def join_game_in_queue_database(self, ai_type, game_type, queue_database):
         return self.room_code_for_type(ai_type, game_type, queue_database)
-
-    def join_custom_game_in_queue_database(self, custom_game_id, queue_database):
-        cgd = JsonDB().custom_game_database()
-        cg = None
-        for game in cgd["games"]:
-            if game["id"] == int(custom_game_id):
-                cg = game
-        game_type = f"custom-{custom_game_id}"
-        if not game_type in queue_database:
-            queue_database[cg["ai_type"]][game_type] = {"open_games":[], "starting_id":0}
-        return self.room_code_for_type(cg["ai_type"], game_type, queue_database)
 
     def room_code_for_type(self, ai_type, game_type, queue_database):
         is_new_room = True
@@ -110,13 +99,6 @@ class JsonDB:
     def remove_from_queue_database(self, game_type, room_code, queue_database):
         if room_code in queue_database["pvp"][game_type]["open_games"]:
             queue_database["pvp"][game_type]["open_games"].remove(room_code)
-        with open("database/queue_database.json", 'w') as outfile:
-            json.dump(queue_database, outfile)
-
-    def remove_custom_from_queue_database(self, custom_game_id, room_code, queue_database):
-        db_id = f"custom-{custom_game_id}"
-        if room_code in queue_database["pvp"][db_id]["open_games"]:
-            queue_database["pvp"][db_id]["open_games"].remove(room_code)
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
 

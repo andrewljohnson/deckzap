@@ -58,8 +58,8 @@ class DeckBuilder {
 				}
 				if (!(card.name in self.deck["cards"])) {
 					self.deck["cards"][card.name] = 1
-				} else if (self.deck["cards"][card.name] == 1 && card.card_type == "Relic") {
-					console.log("can't add more than 1 relic")
+				} else if (self.deck["cards"][card.name] == 1 && card.card_type == "Artifact") {
+					console.log("can't add more than 1 artifact")
 					return;
 				} else if (self.deck["cards"][card.name] == 1 && isUnique) {
 					console.log("can't add more than 1 of a unique card")
@@ -98,7 +98,7 @@ class DeckBuilder {
 			descriptionDiv.innerHTML = card.description;
 			cardRow.appendChild(descriptionDiv);
 		}
-		if (card.card_type != "Spell" && card.card_type != "Relic" ) {
+		if (card.card_type != "Spell" && card.card_type != "Artifact" ) {
 			let powerToughnessDiv = document.createElement("div");
 			powerToughnessDiv.innerHTML = card.power + "/" + card.toughness;
             powerToughnessDiv.style.position = "absolute";
