@@ -377,6 +377,16 @@ class GameUX {
                 }                
             }
         }
+
+        for (let c of card.tokens) {
+           if (c.set_can_act == false) {
+            if (abilitiesText.length) {
+                abilitiesText += ", ";
+            }
+            abilitiesText += "Can't Attack";
+           }
+        }
+
         if (abilitiesText) {
             options.fill = color;
             let abilities = new PIXI.Text(abilitiesText, options);
