@@ -807,6 +807,9 @@ function onDragEnd(cardSprite, gameUX) {
         if(bump.hit(cardSprite, gameUX.opponentAvatar)) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_OPPONENT", {});
             playedMove = true;
+        } else if(!bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == "Artifact" && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
+            gameUX.gameRoom.sendPlayMoveEvent("ACTIVATE_ARTIFACT", {"card":cardSprite.card.id});
+            playedMove = true;
         } else {
             // todo: this shouldn't bump any non opponent non clickable cards, but that depends on pefect game state 
             for (let opponentEntity of gameUX.app.stage.children) {
@@ -869,6 +872,11 @@ function onDragMove(cardSprite, gameUX) {
             if (!cardSprite.card.can_be_clicked) {
                 cardSprite.filters.append(new PIXI.filters.AdjustmentFilter({ brightness: .8,}));                        
             }
+        } else if(!bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == "Artifact" && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
+            cardSprite.filters = [
+              new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
+              new PIXI.filters.DropShadowFilter({ distance: 15, outerStrength: 2 }),
+            ];
         } else if((cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact") && opponentCollision && gameUX.opponent(gameUX.game).can_be_clicked) {
             gameUX.opponentAvatar.filters = [
               new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
