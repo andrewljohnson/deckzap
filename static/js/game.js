@@ -146,6 +146,7 @@ class GameUX {
     refresh(game, message) {
         if (this.selectCardContainer) {
             this.selectCardContainer.parent.removeChild(this.selectCardContainer);
+            this.selectCardContainer = null;
         }
 
         this.removeCardsFromStage(game)
@@ -563,6 +564,7 @@ class GameUX {
         turnText.position.x = this.buttonMenu.width/2;
         turnText.position.y = b.position.y + 60 + padding;
         turnText.anchor.set(0.5, 0.5);
+        this.turnLabel = turnText;
         this.buttonMenu.addChild(turnText);
 
     }
@@ -818,7 +820,13 @@ function onDragEnd(cardSprite, gameUX) {
         } else {
             for (let sprite of gameUX.app.stage.children) {
                 if(sprite.card && sprite.card.turn_played != -1  && sprite.card.id != cardSprite.card.id && sprite.card.can_be_clicked && bump.hit(cardSprite, sprite)) {
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card": sprite.card.id});
+                    if (sprite.card.card_type == "Entity") {
+                        gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card": sprite.card.id});
+                    } else if (sprite.card.card_type == "Artifact") {
+                        gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card": sprite.card.id});
+                    } else {
+                        console.log("tried to select unknown card type: " + sprite.card.card_type);
+                    }
                     playedMove = true;
                 }
             }
