@@ -578,7 +578,7 @@ class GameUX {
         hp.position.y = username.height + username.position.y
         avatarSprite.addChild(hp);
 
-        let armor = new PIXI.Text(player.hit_points + " armor", props);
+        let armor = new PIXI.Text(player.armor + " armor", props);
         armor.position.x = padding/2 + avatar.position.x + avatar.width;
         armor.position.y = hp.height + hp.position.y;
         avatarSprite.addChild(armor);
