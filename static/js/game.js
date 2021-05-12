@@ -509,6 +509,9 @@ class GameUX {
     }
 
     renderEndTurnButton(game) {
+        if (this.turnLabel) {
+            this.buttonMenu.removeChild(this.turnLabel)
+        }
         if (this.endTurnButton) {
             this.buttonMenu.removeChild(this.endTurnButton)
         }
@@ -544,6 +547,13 @@ class GameUX {
 
         this.endTurnButton = b;
         this.buttonMenu.addChild(this.endTurnButton)
+
+
+        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : 'Helvetica', fontSize: 12, fill : textFillColor, align: "center"});
+        turnText.position.x = this.buttonMenu.width/2;
+        turnText.position.y = b.position.y + 60 + padding;
+        turnText.anchor.set(0.5, 0.5);
+        this.buttonMenu.addChild(turnText);
 
     }
 
