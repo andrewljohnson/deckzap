@@ -45,8 +45,263 @@ class GameUX {
         document.getElementById("new_game").appendChild(this.app.view);
         this.renderStaticElements();
     }
+ 
+    renderStaticElements() {
+        this.app.stage.addChild(this.background());
 
-    cardSprite(game, card, username, index, parent, dont_attach_listeners) {
+        this.opponentAvatar = this.avatar(cardContainerWidth/2 - avatarWidth/2, padding);
+        this.app.stage.addChild(this.opponentAvatar);
+
+        this.artifactsOpponent = this.artifacts(cardContainerWidth/2 + avatarWidth/2 + padding, padding+6);
+        this.app.stage.addChild(this.artifactsOpponent);
+
+        let topOfMiddle = this.opponentAvatar.position.y + avatarHeight + padding
+        this.inPlayOpponent = this.inPlayContainer(padding, topOfMiddle);
+        this.app.stage.addChild(this.inPlayOpponent);
+
+        let middleOfMiddle = this.inPlayOpponent.position.y + cardHeight + padding
+        this.inPlay = this.inPlayContainer(padding, middleOfMiddle);
+        this.app.stage.addChild(this.inPlay);
+
+        this.buttonMenu = this.menu(cardContainerWidth + padding * 2, topOfMiddle);
+        this.app.stage.addChild(this.buttonMenu);
+        this.buttonMenu.addChild(this.newGameButton(22, 230 - 40 - padding - 8, this));
+
+        let playerOneY = middleOfMiddle + cardHeight + padding;
+        this.playerAvatar = this.avatar(cardContainerWidth/2 - avatarWidth/2, playerOneY);
+        this.app.stage.addChild(this.playerAvatar);
+        
+        this.artifacts = this.artifacts(cardContainerWidth/2 + avatarWidth/2 + padding, playerOneY+6);
+        this.app.stage.addChild(this.artifacts);
+
+        this.handContainer = this.hand(padding, playerOneY + avatarHeight + padding);
+        this.app.stage.addChild(this.handContainer);
+    }
+
+    background() {
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        background.width = appWidth;
+        background.height = appHeight;
+        background.tint = 0xEEEEEE;
+        return background;
+    }
+
+    newGameButton(x, y, gameUX) {
+        const b = new PIXI.Sprite.from(newGameButtonTexture);
+        b.buttonMode = true;
+        b.position.x = x;
+        b.position.y = y;
+        // b.anchor.set(0.5);
+        b.interactive = true;
+        var clickFunction = function() {
+            gameUX,gameRoom.nextRoom()
+        };
+        b
+            .on('click', clickFunction)
+            .on('tap', clickFunction)
+
+        let text = new PIXI.Text("New Game", {fontFamily : 'Helvetica', fontSize: 12, fill : 0x00000});
+        text.position.x = 23;
+        text.position.y = 13;
+        b.addChild(text);
+
+        return b;
+    }
+
+    avatar(x, y) {
+        const avatar = new PIXI.Sprite.from(avatarTexture);
+        avatar.position.x = x;
+        avatar.position.y = y;
+        return avatar;
+    }
+
+    artifacts(x, y) {
+        const artifacts = new PIXI.Sprite.from(artifactsTexture);
+        artifacts.position.x = x;
+        artifacts.position.y = y;
+        return artifacts;
+    }
+
+    inPlayContainer(x, y) {
+        const inPlayContainer = new PIXI.Sprite.from(inPlayTexture);
+        inPlayContainer.position.x = x;
+        inPlayContainer.position.y = y;
+        return inPlayContainer;
+    }
+
+    hand(x, y) {
+        const handContainer = new PIXI.Sprite.from(handTexture);
+        handContainer.position.x = x;
+        handContainer.position.y = y;
+        return handContainer;
+    }
+
+    menu(x, y) {
+        const menu = new PIXI.Sprite.from(menuTexture);
+        menu.position.x = x;
+        menu.position.y = y;
+        return menu;
+    }
+
+    refresh(game, message) {
+        if (this.selectCardContainer) {
+            this.selectCardContainer.parent.removeChild(this.selectCardContainer);
+        }
+
+        this.removeCardsFromStage(game)
+
+        if (this.thisPlayer(game)) {
+            this.updateHand(game);
+            if (message["show_spell"] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
+                this.showCardThatWasCast(message["show_spell"], game)
+            }
+            this.updatePlayer(game, this.thisPlayer(game), this.playerAvatar);
+            this.updateThisPlayerArtifacts(game);
+            this.updateThisPlayerInPlay(game);
+        }
+
+        if (this.opponent(game)) {
+            this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
+            this.updateOpponentArtifacts(game);
+            this.updateOpponentInPlay(game);
+        }
+
+        this.renderEndTurnButton(game);
+
+        if (this.thisPlayer(game).card_info_to_resolve["card_id"]) {
+            for (let sprite of this.app.stage.children) {
+                if (sprite.card && sprite.card.can_be_clicked) {
+                    sprite.filters = [
+                      new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
+                    ]
+                }
+            }
+            if (this.thisPlayer(game).can_be_clicked) {
+                this.playerAvatar.filters = [
+                  new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
+                ]                
+            }
+            if (this.opponent(game).can_be_clicked) {
+                this.opponentAvatar.filters = [
+                  new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
+                ]                
+            }
+        }
+
+
+        this.game = game;
+
+        if (this.opponent(game) && this.thisPlayer(game)) {
+            if (this.opponent(game).hit_points <= 0 || this.thisPlayer(game).hit_points <= 0) {
+                alert("GAME OVER");
+            }
+        }
+
+        if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
+            this.showMakeView(game);
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
+            this.showRiffleView(game, "FINISH_RIFFLE");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_hand") {
+            this.showChooseCardView(game, "FETCH_CARD");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_into_hand") {
+            this.showChooseCardView(game, "FETCH_CARD");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_play") {
+            this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
+            this.showRevealView(game);
+        } else {
+            // not a choose cards view
+        }                           
+
+    }
+
+    showMakeView(game) {
+        var self = this;
+        this.showSelectCardView(game, "Make a Card", function(card) {
+                if (card.global_effect) {
+                    self.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
+                } else {
+                    self.sendPlayMoveEvent("MAKE_CARD", {"card":card});
+                }
+            });
+    }
+
+   showRevealView(game) {
+        this.showSelectCardView(game, "Opponent's Hand", null);
+        var self = this;
+
+        document.getElementById("make_selector").onclick = function() {
+            self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+            self.showGame();
+            this.onclick = null
+        }
+
+        this.selectCardContainer
+                .on('click',        function (e) {
+                    self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+                })        
+    }
+
+    showChooseCardView(game, event_name) {
+        var self = this;
+        this.showSelectCardView(game, "Relics in Your Deck", function (card) {
+                self.sendPlayMoveEvent(event_name, {"card":card.id});                
+            });
+        
+    }
+
+    showRiffleView(game, event_name) {
+        var self = this;
+        this.showSelectCardView(game, "Top 3 Cards", function (card) {
+                self.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
+            });
+        
+    }
+
+    showSelectCardView(game, title, card_on_click) {
+        const container = new PIXI.Container();
+        this.selectCardContainer = container;
+        this.app.stage.addChild(container);
+
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        background.width = appWidth;
+        background.height = appHeight;
+        background.tint = 0x000000;
+        background.alpha = .7;
+        container.addChild(background);
+
+
+        let options = {fontFamily : 'Helvetica', fontSize: 24, fill : 0xFFFFFF, align: "middle"};
+        let name = new PIXI.Text(title, options);
+        name.position.x = appWidth/2 - name.width/2;
+        name.position.y = 80
+        container.addChild(name);
+
+
+        const cardContainer = new PIXI.Container();
+        cardContainer.tint = 0xFF00FF;
+        cardContainer.position.x = appWidth/2 - cardWidth*1.5;
+        cardContainer.position.y = 140;
+        container.addChild(cardContainer);
+
+        var cards = this.thisPlayer(game).card_choice_info["cards"];
+
+        var index = 0;
+        for (let card of cards) {
+            console.log(card)
+            let cardSprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
+            cardContainer.addChild(cardSprite);
+
+            var self = this;
+            cardSprite
+                .on('click',        function (e) {
+                    card_on_click(card);
+                })
+            index += 1;
+        }
+    }
+
+    cardSprite(game, card, username, index, dont_attach_listeners) {
         let cardSprite = new PIXI.Sprite.from(cardTexture);
         cardSprite.interactive = true;
         cardSprite.anchor.set(.5);
@@ -215,162 +470,6 @@ class GameUX {
         return cardSprite;
     }
 
-    usernameOrP1(game) {
-        if (this.username == game.players[0].username || this.username == game.players[1].username) {
-            return this.username;
-        }
-        return game.players[0].username;
-    }
-
-    renderStaticElements() {
-        this.app.stage.addChild(this.background());
-
-        this.opponentAvatar = this.avatar(cardContainerWidth/2 - avatarWidth/2, padding);
-        this.app.stage.addChild(this.opponentAvatar);
-
-        this.artifactsOpponent = this.artifacts(cardContainerWidth/2 + avatarWidth/2 + padding, padding+6);
-        this.app.stage.addChild(this.artifactsOpponent);
-
-        let topOfMiddle = this.opponentAvatar.position.y + avatarHeight + padding
-        this.inPlayOpponent = this.inPlayContainer(padding, topOfMiddle);
-        this.app.stage.addChild(this.inPlayOpponent);
-
-        let middleOfMiddle = this.inPlayOpponent.position.y + cardHeight + padding
-        this.inPlay = this.inPlayContainer(padding, middleOfMiddle);
-        this.app.stage.addChild(this.inPlay);
-
-        this.buttonMenu = this.menu(cardContainerWidth + padding * 2, topOfMiddle);
-        this.app.stage.addChild(this.buttonMenu);
-        this.buttonMenu.addChild(this.newGameButton(22, 230 - 40 - padding - 8, this));
-
-        let playerOneY = middleOfMiddle + cardHeight + padding;
-        this.playerAvatar = this.avatar(cardContainerWidth/2 - avatarWidth/2, playerOneY);
-        this.app.stage.addChild(this.playerAvatar);
-        
-        this.artifacts = this.artifacts(cardContainerWidth/2 + avatarWidth/2 + padding, playerOneY+6);
-        this.app.stage.addChild(this.artifacts);
-
-        this.handContainer = this.hand(padding, playerOneY + avatarHeight + padding);
-        this.app.stage.addChild(this.handContainer);
-    }
-
-    background() {
-        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        background.width = appWidth;
-        background.height = appHeight;
-        background.tint = 0xEEEEEE;
-        return background;
-    }
-
-    newGameButton(x, y, gameUX) {
-        const b = new PIXI.Sprite.from(newGameButtonTexture);
-        b.buttonMode = true;
-        b.position.x = x;
-        b.position.y = y;
-        // b.anchor.set(0.5);
-        b.interactive = true;
-        var clickFunction = function() {
-            gameUX,gameRoom.nextRoom()
-        };
-        b
-            .on('click', clickFunction)
-            .on('tap', clickFunction)
-
-        let text = new PIXI.Text("New Game", {fontFamily : 'Helvetica', fontSize: 12, fill : 0x00000});
-        text.position.x = 23;
-        text.position.y = 13;
-        b.addChild(text);
-
-        return b;
-    }
-
-    avatar(x, y) {
-        const avatar = new PIXI.Sprite.from(avatarTexture);
-        avatar.position.x = x;
-        avatar.position.y = y;
-        return avatar;
-    }
-
-    artifacts(x, y) {
-        const artifacts = new PIXI.Sprite.from(artifactsTexture);
-        artifacts.position.x = x;
-        artifacts.position.y = y;
-        return artifacts;
-    }
-
-    inPlayContainer(x, y) {
-        const inPlayContainer = new PIXI.Sprite.from(inPlayTexture);
-        inPlayContainer.position.x = x;
-        inPlayContainer.position.y = y;
-        return inPlayContainer;
-    }
-
-    hand(x, y) {
-        const handContainer = new PIXI.Sprite.from(handTexture);
-        handContainer.position.x = x;
-        handContainer.position.y = y;
-        return handContainer;
-    }
-
-    menu(x, y) {
-        const menu = new PIXI.Sprite.from(menuTexture);
-        menu.position.x = x;
-        menu.position.y = y;
-        return menu;
-    }
-
-    refresh(game, message) {
-        this.removeCardsFromStage(game)
-
-        if (this.thisPlayer(game)) {
-            this.updateHand(game);
-            if (message["show_spell"] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
-                this.showCardThatWasCast(message["show_spell"], game)
-            }
-            this.updatePlayer(game, this.thisPlayer(game), this.playerAvatar);
-            this.updateThisPlayerArtifacts(game);
-            this.updateThisPlayerInPlay(game);
-        }
-
-        if (this.opponent(game)) {
-            this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
-            this.updateOpponentArtifacts(game);
-            this.updateOpponentInPlay(game);
-        }
-
-        this.renderEndTurnButton(game);
-
-        if (this.thisPlayer(game).card_info_to_resolve["card_id"]) {
-            for (let sprite of this.app.stage.children) {
-                if (sprite.card && sprite.card.can_be_clicked) {
-                    sprite.filters = [
-                      new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
-                    ]
-                }
-            }
-            if (this.thisPlayer(game).can_be_clicked) {
-                this.playerAvatar.filters = [
-                  new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
-                ]                
-            }
-            if (this.opponent(game).can_be_clicked) {
-                this.opponentAvatar.filters = [
-                  new PIXI.filters.GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
-                ]                
-            }
-        }
-
-
-        this.game = game;
-
-        if (this.opponent(game) && this.thisPlayer(game)) {
-            if (this.opponent(game).hit_points <= 0 || this.thisPlayer(game).hit_points <= 0) {
-                alert("GAME OVER");
-            }
-        }
-
-    }
-
     removeCardsFromStage(game) {
         if (this.thisPlayer(game) && this.opponent(game)) {
             let spritesToRemove = [];
@@ -394,7 +493,7 @@ class GameUX {
       var incrementGodrayTime = () => {
         godray.time += this.app.ticker.elapsedMS / 1000;
       }
-      let sprite = this.cardSprite(game, card, this.usernameOrP1(game), 0, null);
+      let sprite = this.cardSprite(game, card, this.usernameOrP1(game), null);
       sprite.position.x = 100;
       sprite.position.y = this.inPlay.position.y + padding;
       sprite.scale.set(1.5);
@@ -530,7 +629,7 @@ class GameUX {
     updateHand(game) {
         var index = 0;
         for (let card of this.thisPlayer(game).hand) {
-            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index, this.handContainer);
+            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
             sprite.position.y = this.handContainer.position.y + cardHeight/2;
             sprite.position.x += padding;
             this.app.stage.addChild(sprite);
@@ -573,7 +672,7 @@ class GameUX {
             if (cardIdToHide && card.id == cardIdToHide) {
                 continue;
             }
-            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index, inPlaySprite);
+            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
             sprite.position.y = inPlaySprite.position.y + cardHeight/2;
             sprite.position.x += padding;
             this.app.stage.addChild(sprite);
@@ -594,7 +693,7 @@ class GameUX {
         artifactsSprite.children = []
         var index = 0;
         for (let card of player.artifacts) {
-            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index, artifactsSprite);
+            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
             this.app.stage.addChild(sprite);
             sprite.position.y = artifactsSprite.position.y + cardHeight/2;
             sprite.position.x = artifactsSprite.position.x + cardWidth*index + cardWidth/2;
@@ -617,6 +716,13 @@ class GameUX {
             return game.players[0];
         }
         return game.players[1];
+    }
+
+    usernameOrP1(game) {
+        if (this.username == game.players[0].username || this.username == game.players[1].username) {
+            return this.username;
+        }
+        return game.players[0].username;
     }
 
     logMessage(log_lines) {
