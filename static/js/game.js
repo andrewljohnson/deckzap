@@ -1,5 +1,5 @@
 const appWidth = 840;
-const appHeight = 800;
+const appHeight = 803;
 const cardHeight = 114;
 const cardWidth = 80;
 const padding = 10;
@@ -8,18 +8,6 @@ const avatarWidth = 300;
 const brownColor = 0x765C48;
 const lightBrownColor = 0xDFBF9F;
 const cardContainerWidth = cardWidth * 7 + 12;
-
-const bump = new Bump(PIXI);
-var cardTexture = PIXI.Texture.from('/static/images/card.png');
-var inPlayTexture = PIXI.Texture.from('/static/images/in_play.png');
-var handTexture = PIXI.Texture.from('/static/images/hand.png');
-var artifactsTexture = PIXI.Texture.from('/static/images/relics.png');
-var avatarTexture = PIXI.Texture.from('/static/images/avatar.png');
-var menuTexture = PIXI.Texture.from('/static/images/menu.png');
-var newGameButtonTexture = PIXI.Texture.from('/static/images/menu-button.png');
- 
-var bearTexture = PIXI.Texture.from('/static/images/bear.png');
-var tigerTexture = PIXI.Texture.from('/static/images/tiger.png');
 
 class GameUX {
 
@@ -32,6 +20,18 @@ class GameUX {
         this.oldOpponentHP = 30;
         this.oldSelfArmor = 0;        
         this.oldSelfHP = 30;        
+
+
+        this.bump = new Bump(PIXI);
+        this.cardTexture = PIXI.Texture.from('/static/images/card.png');
+        this.inPlayTexture = PIXI.Texture.from('/static/images/in_play.png');
+        this.handTexture = PIXI.Texture.from('/static/images/hand.png');
+        this.artifactsTexture = PIXI.Texture.from('/static/images/relics.png');
+        this.avatarTexture = PIXI.Texture.from('/static/images/avatar.png');
+        this.menuTexture = PIXI.Texture.from('/static/images/menu.png');
+        this.newGameButtonTexture = PIXI.Texture.from('/static/images/menu-button.png');
+        this.bearTexture = PIXI.Texture.from('/static/images/bear.png');
+        this.tigerTexture = PIXI.Texture.from('/static/images/tiger.png');
 
         PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
         this.app = new PIXI.Application({
@@ -76,6 +76,42 @@ class GameUX {
 
         this.handContainer = this.hand(padding, playerOneY + avatarHeight + padding);
         this.app.stage.addChild(this.handContainer);
+
+        /*
+        const mockScroll = new PUXI.ScrollWidget({
+            scrollY: true,
+            scrollX: true,
+            scrollBars: true,
+        }).setLayoutOptions(
+            new PUXI.FastLayoutOptions({
+                width: 0.5,
+                height: 0.25,
+                x: 0.5,
+                y: 0.7,
+                anchor: PUXI.FastLayoutOptions.CENTER_ANCHOR,
+            }),
+        ).setBackground(0xffaabb)
+            .setBackgroundAlpha(0.5)
+            .addChild(new PUXI.Button({ text: 'Button 1' }).setBackground(0xff))
+            .addChild(new PUXI.Button({ text: 'Button 2' })
+                .setLayoutOptions(new PUXI.FastLayoutOptions({ x: 0, y: 50 }))
+                .setBackground(0xff));
+
+        this.app.stage.addChild(mockScroll);
+        */
+        return
+
+        const gameLog = PIXI.Sprite.from(PIXI.Texture.WHITE);
+        gameLog.width = appWidth-4;
+        gameLog.height = cardHeight *1.25;
+        gameLog.tint = 0xFFFFFF;
+        gameLog.position.x = 2;
+        gameLog.position.y = this.handContainer.position.y + cardHeight + padding;
+        gameLog.filters = [
+          new PIXI.filters.OutlineFilter(1, 0x000000),
+        ]
+        this.app.stage.addChild(gameLog);
+
     }
 
     background() {
@@ -87,7 +123,7 @@ class GameUX {
     }
 
     newGameButton(x, y, gameUX) {
-        const b = new PIXI.Sprite.from(newGameButtonTexture);
+        const b = new PIXI.Sprite.from(this.newGameButtonTexture);
         b.buttonMode = true;
         b.position.x = x;
         b.position.y = y;
@@ -109,35 +145,35 @@ class GameUX {
     }
 
     avatar(x, y) {
-        const avatar = new PIXI.Sprite.from(avatarTexture);
+        const avatar = new PIXI.Sprite.from(this.avatarTexture);
         avatar.position.x = x;
         avatar.position.y = y;
         return avatar;
     }
 
     artifacts(x, y) {
-        const artifacts = new PIXI.Sprite.from(artifactsTexture);
+        const artifacts = new PIXI.Sprite.from(this.artifactsTexture);
         artifacts.position.x = x;
         artifacts.position.y = y;
         return artifacts;
     }
 
     inPlayContainer(x, y) {
-        const inPlayContainer = new PIXI.Sprite.from(inPlayTexture);
+        const inPlayContainer = new PIXI.Sprite.from(this.inPlayTexture);
         inPlayContainer.position.x = x;
         inPlayContainer.position.y = y;
         return inPlayContainer;
     }
 
     hand(x, y) {
-        const handContainer = new PIXI.Sprite.from(handTexture);
+        const handContainer = new PIXI.Sprite.from(this.handTexture);
         handContainer.position.x = x;
         handContainer.position.y = y;
         return handContainer;
     }
 
     menu(x, y) {
-        const menu = new PIXI.Sprite.from(menuTexture);
+        const menu = new PIXI.Sprite.from(this.menuTexture);
         menu.position.x = x;
         menu.position.y = y;
         return menu;
@@ -303,7 +339,7 @@ class GameUX {
     }
 
     cardSprite(game, card, username, index, dont_attach_listeners) {
-        let cardSprite = new PIXI.Sprite.from(cardTexture);
+        let cardSprite = new PIXI.Sprite.from(this.cardTexture);
         cardSprite.interactive = true;
         cardSprite.anchor.set(.5);
         cardSprite.card = card;
@@ -472,8 +508,8 @@ class GameUX {
                     .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
                     .on('touchend',         function ()  {onDragEnd(this, self)})
                     .on('touchendoutside',  function ()  {onDragEnd(this, self)})
-                    .on('mousemove',        function ()  {onDragMove(this, self)})
-                    .on('touchmove',        function ()  {onDragMove(this, self)})
+                    .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
+                    .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
 
                 }        
         }
@@ -527,7 +563,7 @@ class GameUX {
             this.buttonMenu.removeChild(this.endTurnButton)
         }
 
-        const b = new PIXI.Sprite.from(newGameButtonTexture);
+        const b = new PIXI.Sprite.from(this.newGameButtonTexture);
         b.buttonMode = true;
         b.position.x = 23;
         b.position.y = 17;
@@ -581,9 +617,9 @@ class GameUX {
         let usernameText = player.username;
         if (player == this.opponent(game)) {
             usernameText += " (opponent)"
-            avatar = new PIXI.Sprite.from(bearTexture);
+            avatar = new PIXI.Sprite.from(this.bearTexture);
         } else {
-            avatar = new PIXI.Sprite.from(tigerTexture);
+            avatar = new PIXI.Sprite.from(this.tigerTexture);
         }
         avatar.scale.set(.5);
         avatar.position.x = padding/2;
@@ -801,6 +837,7 @@ function onDragStart(event, card, gameUX) {
 
 function onDragEnd(cardSprite, gameUX) {
     var playedMove = false;
+    var bump = gameUX.bump;
     if (cardSprite.card.turn_played == -1) {
         if(!bump.hit(cardSprite, gameUX.handContainer) && cardSprite.card.card_type == "Spell" && !cardSprite.card.needs_targets) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
@@ -861,7 +898,7 @@ function onDragEnd(cardSprite, gameUX) {
     gameUX.opponentAvatar.filters = [];
 }
 
-function onDragMove(cardSprite, gameUX) {
+function onDragMove(cardSprite, gameUX, bump) {
     if (cardSprite.dragging) {
         var newPosition = cardSprite.data.getLocalPosition(cardSprite.parent);
         cardSprite.position.x = newPosition.x;
@@ -984,15 +1021,3 @@ function onDragMove(cardSprite, gameUX) {
 
 
 
-/*
-
-const gameLog = PIXI.Sprite.from(PIXI.Texture.WHITE);
-gameLog.width = appWidth;
-gameLog.height = cardHeight *1.25;
-gameLog.tint = 0xAAAAAA;
-gameLog.position.x = padding;
-gameLog.position.y = handContainer.position.y + handContainer.height - padding;
-stage.addChild(gameLog);
-
-
-*/
