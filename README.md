@@ -7,8 +7,10 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 
 ## Running locally
 
-* Install Python3, Postgres, and virtualenv.
+* Install Python3, Postgres, virtualenv, parcel, and yarn.
 * Make a DB in postgres. Update settings.ini to match whatever values you use for DB name, user, and password
+
+`yarn install`
 
 `pip install -r requirements.txt`
 
@@ -22,7 +24,7 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 
 The deckzap.com setup is based on: https://github.com/mitchtabian/HOWTO-django-channels-daphne/blob/master/README.md
 
-I had to tweak the nginx config recommended to get it to work for me:
+I had to change the nginx config recommended to this code to get it to work for me:
 
     upstream channels-backend {
         server 0.0.0.0:8001;
