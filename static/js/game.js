@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js'
-import { Bump } from '../js/lib/bump';
 import { AdjustmentFilter, DropShadowFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 
 const appWidth = 840;
