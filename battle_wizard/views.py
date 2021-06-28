@@ -113,9 +113,6 @@ def logout(request):
     logout_django(request)
     return redirect('/')
 
-def manifesto(request):
-    return render(request, "manifesto.html", {})
-
 def build_deck(request):
     if not request.user.is_authenticated:
         return redirect('/signup')
