@@ -2275,6 +2275,7 @@ class Player:
             token_card = {
                 "id": self.game.next_card_id,
                 "power": e.power,
+                "cost": e.cost,
                 "toughness": e.toughness,
                 "name": e.card_name,
                 "abilities": [a.as_dict() for a in e.abilities],

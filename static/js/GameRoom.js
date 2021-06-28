@@ -1,4 +1,4 @@
-class GameRoom {
+export class GameRoom {
 
     gameSocket = null;
 

@@ -2,16 +2,14 @@
 {% load static %}
 
 {% block javascript %}
-<script src="https://pixijs.download/v6.0.2/pixi.js"></script>
-<script src = "{% static 'js/GameRoom.js' %}"></script>
-<script src="{% static 'js/bump.js' %}"></script>
-<script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script>
-<script src="{% static 'js/game.js' %}"></script>
-<script type="text/javascript">
-	const gameUX = new GameUX();
-    const gameRoom = new GameRoom(gameUX);
-    gameRoom.connect();
-</script>
+<script src="{% static 'js/lib/bump.js' %}"></script>
+
+    {% if request.META.HTTP_HOST == "127.0.0.1:8000" %}
+      <script src="http://localhost:1234/main.js"></script>
+    {% else %}
+      <script src="{% static 'dist/main.js' %}"></script>
+    {% endif %}
+
 {% endblock javascript %}
 
 {% block css %}
