@@ -14,7 +14,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
   	path('', index),
     path('signup', signup),
-     path('login', 
+    path('login', 
         LoginView.as_view(
             template_name='login.html'
         ), 

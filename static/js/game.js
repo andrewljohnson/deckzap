@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js'
+import { Bump } from './lib/bump.js';
 import { AdjustmentFilter, DropShadowFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 
 const appWidth = 840;
@@ -23,7 +24,6 @@ export class GameUX {
         this.oldOpponentHP = 30;
         this.oldSelfArmor = 0;        
         this.oldSelfHP = 30;        
-
 
         this.bump = new Bump(PIXI);
         this.cardTexture = PIXI.Texture.from('/static/images/card.png');
@@ -133,7 +133,7 @@ export class GameUX {
         // b.anchor.set(0.5);
         b.interactive = true;
         var clickFunction = function() {
-            gameUX,gameRoom.nextRoom()
+            gameUX.gameRoom.nextRoom()
         };
         b
             .on('click', clickFunction)

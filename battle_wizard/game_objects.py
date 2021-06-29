@@ -939,9 +939,8 @@ class Game:
                 cp.reset_card_info_to_resolve()
             elif not effect.name in artifact.effects_exhausted and effect.cost <= cp.mana:
                 if not artifact.needs_target_for_activated_effect(effect_index):
-                    # message["move_type"] = "ACTIVATE_ARTIFACT"
-                    # message = self.play_move(message)
-                    cp.select_artifact(message["card"], effect_index)
+                    message["move_type"] = "ACTIVATE_ARTIFACT"
+                    message = self.play_move(message)
                 elif artifact.needs_entity_target_for_activated_effect() and (len(cp.in_play) > 0 or len(self.opponent().in_play) > 0):
                     cp.select_artifact(message["card"], effect_index)
                 elif not artifact.needs_entity_target_for_activated_effect(): # player targets
