@@ -2569,10 +2569,12 @@ class Player:
         return None 
 
     def target_or_do_entity_effects(self, card, message, username, is_activated_effect=False):
+        print("target_or_do_entity_effects")
         effects = card.effects_enter_play()
         if is_activated_effect:
             effects = card.effects_activated()
-
+        print(message)
+        print(effects)
         if len(effects) > 0:
             if effects[0].target_type == "any":
                 self.card_info_to_resolve["card_id"] = card.id
@@ -2608,7 +2610,8 @@ class Player:
                     # todo think about this weird rpeated setting of effect_targets in message
                     if not "effect_targets" in message:
                         effect_targets = {}
-                        if e.target_type == "self" or e.name == "fetch_card":           
+                        if e.target_type == "self" or e.name == "fetch_card":  
+                            print('self and fetch_card')         
                             effect_targets[idx] = {"id": username, "target_type":"player"};
                         elif e.target_type == "this":           
                             effect_targets[idx] = {"id": card.id, "target_type":"entity"};
@@ -2616,6 +2619,7 @@ class Player:
                             effect_targets[idx] = {"target_type": e.target_type};
                         elif e.target_type == "opponents_entity_random":           
                             effect_targets[idx] = {"id": random.choice(self.game.opponent().in_play).id, "target_type":"entity"};
+                        print(effect_targets)
                         message["effect_targets"] = effect_targets
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
         return message

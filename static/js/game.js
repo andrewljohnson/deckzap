@@ -241,11 +241,11 @@ export class GameUX {
             this.showMakeView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
             this.showRiffleView(game, "FINISH_RIFFLE");
-        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_hand") {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
-        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_relic_into_play") {
+       } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_play") {
             this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
             this.showRevealView(game);
@@ -259,9 +259,9 @@ export class GameUX {
         var self = this;
         this.showSelectCardView(game, "Make a Card", function(card) {
                 if (card.global_effect) {
-                    self.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
+                    self.gameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
                 } else {
-                    self.sendPlayMoveEvent("MAKE_CARD", {"card":card});
+                    self.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
                 }
             });
     }
@@ -271,21 +271,21 @@ export class GameUX {
         var self = this;
 
         document.getElementById("make_selector").onclick = function() {
-            self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+            self.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
             self.showGame();
             this.onclick = null
         }
 
         this.selectCardContainer
                 .on('click',        function (e) {
-                    self.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+                    self.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
                 })        
     }
 
     showChooseCardView(game, event_name) {
         var self = this;
-        this.showSelectCardView(game, "Relics in Your Deck", function (card) {
-                self.sendPlayMoveEvent(event_name, {"card":card.id});                
+        this.showSelectCardView(game, "Artifacts in Your Deck", function (card) {
+                self.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
             });
         
     }
@@ -328,7 +328,6 @@ export class GameUX {
 
         var index = 0;
         for (let card of cards) {
-            console.log(card)
             let cardSprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
             cardContainer.addChild(cardSprite);
 
