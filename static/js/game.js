@@ -193,7 +193,9 @@ export class GameUX {
         if (this.thisPlayer(game)) {
             this.updateHand(game);
             if (message["show_spell"] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
-                this.showCardThatWasCast(message["show_spell"], game)
+              // using this.thisPlayer(game) will break with a counterspell effect 
+              // but we dont shjow counterspells being cast yet
+                this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game))
             }
             this.updatePlayer(game, this.thisPlayer(game), this.playerAvatar);
             this.updateThisPlayerArtifacts(game);
@@ -328,7 +330,7 @@ export class GameUX {
 
         var index = 0;
         for (let card of cards) {
-            let cardSprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
+            let cardSprite = this.cardSprite(game, card, this.userOrP1(game), index);
             cardContainer.addChild(cardSprite);
 
             var self = this;
@@ -340,7 +342,7 @@ export class GameUX {
         }
     }
 
-    cardSprite(game, card, username, index, dont_attach_listeners) {
+    cardSprite(game, card, player, index, dont_attach_listeners) {
         let cardSprite = new PIXI.Sprite.from(this.cardTexture);
         cardSprite.interactive = true;
         cardSprite.anchor.set(.5);
@@ -446,10 +448,16 @@ export class GameUX {
             let cardToughness = card.toughness - card.damage;
             if (card.tokens) {
                 // todo does this code need to be clientside?
-                let user = this.usernameOrP1(game);
                 for (let c of card.tokens) {
-                    if (c.multiplier == "self_artifacts" && user.artifacts) {
-                        cardPower += c.power_modifier * user.artifacts.length;                        
+                    if (c.multiplier == "self_artifacts" && player.artifacts) {
+                        cardPower += c.power_modifier * player.artifacts.length;                        
+                    } else if (c.multiplier == "self_entities_and_artifacts") {
+                        if (player.artifacts) {
+                            cardPower += c.power_modifier * player.artifacts.length;                        
+                        }
+                        if (player.in_play) {
+                            cardPower += c.power_modifier * (player.in_play.length - 1);                        
+                        }
                     } else {
                         cardPower += c.power_modifier;                        
                     }
@@ -537,12 +545,12 @@ export class GameUX {
         }
     }
 
-    showCardThatWasCast(card, game) {
+    showCardThatWasCast(card, game, player) {
       var godray = new GodrayFilter();
       var incrementGodrayTime = () => {
         godray.time += this.app.ticker.elapsedMS / 1000;
       }
-      let sprite = this.cardSprite(game, card, this.usernameOrP1(game), null);
+      let sprite = this.cardSprite(game, card, player, null);
       sprite.position.x = 100;
       sprite.position.y = this.inPlay.position.y + padding;
       sprite.scale.set(1.5);
@@ -607,8 +615,8 @@ export class GameUX {
     }
 
     isActivePlayer(game) {
-        return (game.turn % 2 == 0 && this.usernameOrP1(game) == game.players[0].username
-                || game.turn % 2 == 1 && this.usernameOrP1(game) == game.players[1].username)
+        return (game.turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
+                || game.turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
     }
 
     updatePlayer(game, player, avatarSprite) {
@@ -706,7 +714,7 @@ export class GameUX {
     updateHand(game) {
         var index = 0;
         for (let card of this.thisPlayer(game).hand) {
-            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
+            let sprite = this.cardSprite(game, card, this.userOrP1(game), index);
             sprite.position.y = this.handContainer.position.y + cardHeight/2;
             sprite.position.x += padding;
             this.app.stage.addChild(sprite);
@@ -749,7 +757,7 @@ export class GameUX {
             if (cardIdToHide && card.id == cardIdToHide) {
                 continue;
             }
-            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
+            let sprite = this.cardSprite(game, card, player, index);
             sprite.position.y = inPlaySprite.position.y + cardHeight/2;
             sprite.position.x += padding;
             this.app.stage.addChild(sprite);
@@ -770,7 +778,7 @@ export class GameUX {
         artifactsSprite.children = []
         var index = 0;
         for (let card of player.artifacts) {
-            let sprite = this.cardSprite(game, card, this.usernameOrP1(game), index);
+            let sprite = this.cardSprite(game, card, player, index);
             this.app.stage.addChild(sprite);
             sprite.position.y = artifactsSprite.position.y + cardHeight/2;
             sprite.position.x = artifactsSprite.position.x + cardWidth*index + cardWidth/2;
@@ -795,11 +803,18 @@ export class GameUX {
         return game.players[1];
     }
 
-    usernameOrP1(game) {
-        if (this.username == game.players[0].username || this.username == game.players[1].username) {
-            return this.username;
+    // Returns the currently player, or it returns the first player,
+    // if it's an observer and not a player calling this function
+    userOrP1(game) {
+
+        if (this.username == game.players[0].username) {
+            return game.players[0];
         }
-        return game.players[0].username;
+        if (this.username == game.players[1].username) {
+            return game.players[1];
+        }
+        // if the this.username isn't one of the players, return the first player
+        return game.players[0];
     }
 
     logMessage(log_lines) {
@@ -823,13 +838,6 @@ export class GameUX {
         document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
     }
 
-    // used for observer mode code
-    usernameOrP1(game) {
-        if (this.username == game.players[0].username || this.username == game.players[1].username) {
-            return this.username;
-        }
-        return game.players[0].username;
-    }
 }
 
 
