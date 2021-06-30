@@ -1006,7 +1006,7 @@ function onDragMove(cardSprite, gameUX, bump) {
             if (!cardSprite.card.can_be_clicked) {
                 cardSprite.filters.append(new AdjustmentFilter({ brightness: .8,}));                        
             }
-        } else if (collidedEntity && collidedEntity.card.can_be_clicked) {
+        } else if (collidedEntity && collidedEntity.card.can_be_clicked && cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets) {
             collidedEntity.filters = [
               new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
             ];
