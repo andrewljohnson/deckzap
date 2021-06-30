@@ -597,7 +597,6 @@ export class GameUX {
         this.endTurnButton = b;
         this.buttonMenu.addChild(this.endTurnButton)
 
-
         let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : 'Helvetica', fontSize: 12, fill : textFillColor, align: "center"});
         turnText.position.x = this.buttonMenu.width/2;
         turnText.position.y = b.position.y + 60 + padding;
@@ -668,9 +667,27 @@ export class GameUX {
 
         if (!player.can_be_clicked) {
             avatarSprite.filters = [new AdjustmentFilter({ brightness: .8,})];                        
-        } else {
+            avatarSprite.on('click', function (e) {})
+            avatarSprite.interactive = false;
+            avatarSprite.buttonMode = true;
+       } else {
+            console.log("player can be clicked")
+            avatarSprite.interactive = true;
+            avatarSprite.buttonMode = true;
             avatarSprite.filters = [];                                   
+            if (player.card_info_to_resolve["card_id"]) {
+                console.log("card_info_to_resolve")
+                var eventString = "SELECT_OPPONENT";
+                if (player == this.thisPlayer(game)) {
+                    eventString = "SELECT_SELF";
+                }
+                var self = this;
+                avatarSprite
+                    .on('click', function (e) {console.log("click player"); self.gameRoom.sendPlayMoveEvent(eventString, {});})
+            }
         }
+
+
 
     }
 
