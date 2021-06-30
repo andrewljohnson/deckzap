@@ -479,7 +479,11 @@ export class GameUX {
         }
 
         if (attackEffect) {
+            console.log(attackEffect);
             let powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
+            if (attackEffect.name == "make_random_townie") {
+                powerCharges = new PIXI.Text(attackEffect.counters + "/" + attackEffect.amount, options);
+            }
             powerCharges.position.x = aFX + cardWidth - 22;
             powerCharges.position.y = aFY + cardHeight - 20;
             cardSprite.addChild(powerCharges);
