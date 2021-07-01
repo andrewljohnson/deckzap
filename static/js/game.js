@@ -882,9 +882,28 @@ function onDragStart(event, card, gameUX) {
         gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.card.id});
     } else if (card.card.card_type == "Artifact") {
         gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card":card.card.id});
+        let enabled_effects = [];
+        for (let e of card.card.effects) {
+            if (e.effect_type == "activated" && e.enabled == true) {
+                enabled_effects.push(e);
+            }
+        }
+        console.log(enabled_effects);
+        var dragging = true;
+        for (let e of enabled_effects) {
+            if (!["any", "any_enemy", "entity", "opponents_entity", "self_entity", "artifact", "any_player"].includes(e.target_type)) {
+                // e.target_type is in ["self", "opponent", "Artifact", "all"]
+                dragging = false;
+            }
+        }
+        if (!dragging) {
+            card.filters = [];
+            card.dragging = false; 
+        }
     }
 
 }
+
 
 function onDragEnd(cardSprite, gameUX) {
     var playedMove = false;
