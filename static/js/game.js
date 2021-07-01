@@ -352,11 +352,11 @@ export class GameUX {
         cardSprite.position.y = cardHeight/2;
         cardSprite.index = index;
 
-        let options = {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 49};
+        let options = {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 60};
         let name = new PIXI.Text(card.name, options);
         cardSprite.addChild(name);
 
-        let aFX = -38;
+        let aFX = -42;
         let aFY = -55;
         name.position.x = aFX + 7;
         name.position.y = aFY + padding/2;
@@ -364,7 +364,7 @@ export class GameUX {
         if (card.card_type != "Effect") {
             let cost = new PIXI.Text(card.cost, options);
             cardSprite.addChild(cost);
-            cost.position.x = aFX + cardWidth - 18;
+            cost.position.x = aFX + cardWidth - 10;
             cost.position.y = aFY + 11;
         }
 
@@ -379,7 +379,10 @@ export class GameUX {
             }
         }
 
-        options.wordWrapWidth = 62;
+        options.wordWrapWidth = 72;
+        if (card.description.length > 120) {
+           options.fontSize = 6; 
+        }
         let description = new PIXI.Text(card.description, options);
         if (card.description) {
             // todo don't hardcode hide description for Infernus
@@ -468,13 +471,13 @@ export class GameUX {
             }
             options.fill = 0x000000;
             let powerToughness = new PIXI.Text(cardPower + "/" + cardToughness, options);
-            powerToughness.position.x = aFX + cardWidth - 22;
-            powerToughness.position.y = aFY + cardHeight - 20;
+            powerToughness.position.x = aFX + cardWidth - 14;
+            powerToughness.position.y = aFY + cardHeight - 18;
             cardSprite.addChild(powerToughness);
         } else if (card.turn_played == -1 && !attackEffect) {
             let type = new PIXI.Text(card.card_type, options);
-            type.position.x = aFX + cardWidth - 22;
-            type.position.y = aFY + cardHeight - 20;
+            type.position.x = aFX + cardWidth - 28;
+            type.position.y = aFY + cardHeight - 18;
             cardSprite.addChild(type);
         }
 
@@ -483,8 +486,8 @@ export class GameUX {
             if (attackEffect.name == "make_random_townie") {
                 powerCharges = new PIXI.Text(attackEffect.counters + "/" + attackEffect.amount, options);
             }
-            powerCharges.position.x = aFX + cardWidth - 22;
-            powerCharges.position.y = aFY + cardHeight - 20;
+            powerCharges.position.x = aFX + cardWidth - 14;
+            powerCharges.position.y = aFY + cardHeight - 18;
             cardSprite.addChild(powerCharges);
         }
 
