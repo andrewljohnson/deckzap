@@ -1,4 +1,5 @@
 import copy
+import datetime
 import math
 import random
 import time
@@ -33,6 +34,9 @@ class Game:
         # use for test_stacked_deck game_type (for unit testing)
         self.player_decks = player_decks
 
+        self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if info else None
+        self.show_rope = info["show_rope"] if info else False
+
     def as_dict(self):
         return {
             "players": [p.as_dict() for p in self.players], 
@@ -41,6 +45,8 @@ class Game:
             "global_effects": self.global_effects, 
             "db_name": self.db_name, 
             "ai_type": self.ai_type, 
+            "turn_start_time": self.turn_start_time.__str__(), 
+            "show_rope": self.show_rope, 
         }
 
     @staticmethod
@@ -192,6 +198,16 @@ class Game:
         move_type = message["move_type"]
         print(f"MOVE: {move_type}")
         
+        if move_type == 'GET_TIME':
+            max_turn_time = 20
+            turn_time = datetime.datetime.now() - self.turn_start_time
+            if turn_time.seconds >= max_turn_time:
+                print(turn_time)
+            
+            message["turn_time"] = turn_time.seconds
+            message["max_turn_time"] = max_turn_time
+            return message
+
         if move_type != 'JOIN':
             self.unset_clickables(move_type)
 
@@ -2681,6 +2697,8 @@ class Player:
         return card
 
     def start_turn(self, message):
+        self.game.turn_start_time = datetime.datetime.now()
+        self.game.show_rope = False
 
         draw_blocked = False
         phoenixes = []

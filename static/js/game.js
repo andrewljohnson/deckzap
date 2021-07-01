@@ -254,7 +254,9 @@ export class GameUX {
         } else {
             // not a choose cards view
         }                           
-
+        if (game.show_rope) {
+            this.showRope();
+        }
     }
 
     showMakeView(game) {
@@ -380,7 +382,7 @@ export class GameUX {
         }
 
         options.wordWrapWidth = 72;
-        if (card.description.length > 120) {
+        if (card.description && card.description.length > 120) {
            options.fontSize = 6; 
         }
         let description = new PIXI.Text(card.description, options);
@@ -576,6 +578,48 @@ export class GameUX {
 
     }
 
+    showRope() {
+    if (this.showingRope) {
+        return;
+    }
+      var godray = new GodrayFilter();
+      let sprite = new PIXI.Sprite.from(this.inPlayTexture);
+      this.ropeSprite = sprite;
+      sprite.tint = 0xff0000;
+      var lastElapsed = 0
+      var totalElapsed = 0
+      let ropeLength = 570;
+      let tickMS = 50;
+      let ropeTime = tickMS*4;
+      this.incrementGodrayTime = () => {
+        if (sprite.position.x >= ropeLength) {
+            console.log(totalElapsed);
+            this.gameRoom.endTurn()
+            this.showingRope = false;
+            sprite.filters = []; 
+            this.app.ticker.remove(this.incrementGodrayTime)            
+            this.app.stage.removeChild(sprite)
+            this.ropeSprite = null;
+        }
+        godray.time += this.app.ticker.elapsedMS / tickMS;
+        if ((totalElapsed - lastElapsed) <= tickMS) {
+            totalElapsed += this.app.ticker.elapsedMS;
+            return;
+        }
+        lastElapsed = totalElapsed;
+        sprite.width -= ropeLength/ropeTime;
+        sprite.position.x += ropeLength/ropeTime;
+      }
+      sprite.position.x = 10;
+      sprite.position.y = this.inPlay.position.y - padding + 1;
+      sprite.height = 8; 
+      this.app.stage.addChild(sprite)
+      this.app.ticker.add(this.incrementGodrayTime)
+      this.showingRope = true;
+      sprite.filters = [godray];
+
+    }
+
     renderEndTurnButton(game) {
         if (this.turnLabel) {
             this.buttonMenu.removeChild(this.turnLabel)
@@ -592,6 +636,14 @@ export class GameUX {
         b.interactive = true;
         var clickFunction = () => {
             this.gameRoom.endTurn()
+            if (this.ropeSprite) {
+                this.showingRope = false;
+                this.ropeSprite.filters = []; 
+                this.app.ticker.remove(this.incrementGodrayTime)            
+                this.app.stage.removeChild(this.ropeSprite)
+                this.ropeSprite = null;
+
+            }
         };
         b
             .on('click', clickFunction)
