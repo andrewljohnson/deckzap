@@ -265,13 +265,9 @@ class Game:
             return
         for card in self.opponent().in_play:
             card.can_be_clicked = False
-            if move_type != "UNSELECT":
-                card.damage_to_show = 0
         for card in self.current_player().in_play:
             card.can_be_clicked = False
             card.effects_can_be_clicked = []
-            if move_type != "UNSELECT":
-                card.damage_to_show = 0
         for card in self.current_player().hand:
             card.can_be_clicked = False
             card.needs_targets = False
@@ -283,6 +279,8 @@ class Game:
         if move_type != "UNSELECT":
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
+            for card in self.opponent().in_play + self.current_player().in_play:
+                card.damage_to_show = 0
 
 
     def set_clickables(self):
@@ -2061,6 +2059,7 @@ class Player:
             target_card.shielded = False
         else:
             target_card.damage += amount
+            target_card.damage_to_show += amount
             if target_card.damage >= target_card.toughness_with_tokens():
                 self.game.send_card_to_played_pile(target_card, target_player, did_kill=True)
                 if card.has_ability("die_to_top_deck") and not target_card.is_token:
