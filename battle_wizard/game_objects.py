@@ -193,7 +193,7 @@ class Game:
         print(f"MOVE: {move_type}")
         
         if move_type != 'JOIN':
-            self.unset_clickables()
+            self.unset_clickables(move_type)
 
         # moves to join/configure/start a game
         if move_type == 'JOIN':
@@ -256,7 +256,7 @@ class Game:
 
         return message
 
-    def unset_clickables(self):
+    def unset_clickables(self, move_type):
         """
             unhighlight everything before highlighting possible attacks/spells
         """
@@ -265,9 +265,13 @@ class Game:
             return
         for card in self.opponent().in_play:
             card.can_be_clicked = False
+            if move_type != "UNSELECT":
+                card.damage_to_show = 0
         for card in self.current_player().in_play:
             card.can_be_clicked = False
             card.effects_can_be_clicked = []
+            if move_type != "UNSELECT":
+                card.damage_to_show = 0
         for card in self.current_player().hand:
             card.can_be_clicked = False
             card.needs_targets = False
@@ -276,6 +280,9 @@ class Game:
             card.effects_can_be_clicked = []
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
+        if move_type != "UNSELECT":
+            self.opponent().damage_to_show = 0
+            self.current_player().damage_to_show = 0
 
 
     def set_clickables(self):
@@ -1301,6 +1308,7 @@ class Game:
         else:
             attacking_card.damage += self.power_with_tokens(defending_card, self.opponent())
             attacking_card.damage_this_turn += self.power_with_tokens(defending_card, self.opponent())
+            attacking_card.damage_to_show += self.power_with_tokens(defending_card, self.opponent())
             if attacking_card.damage < attacking_card.toughness_with_tokens() and defending_card.has_ability("DamageTakeControl"):
                 self.current_player().in_play.remove(attacking_card)
                 self.opponent().in_play.append(attacking_card)
@@ -1315,6 +1323,7 @@ class Game:
                     self.opponent().damage(stomp_damage)
             defending_card.damage += self.power_with_tokens(attacking_card, self.current_player())
             defending_card.damage_this_turn += self.power_with_tokens(attacking_card, self.current_player())
+            defending_card.damage_to_show += self.power_with_tokens(attacking_card, self.opponent())
             if defending_card.damage < defending_card.toughness_with_tokens() and attacking_card.has_ability("DamageTakeControl"):
                 self.opponent().in_play.remove(defending_card)
                 self.current_player().in_play.append(defending_card)
@@ -1493,6 +1502,7 @@ class Player:
         if new:
             self.hit_points = 30
             self.damage_this_turn = 0
+            self.damage_to_show = 0
             self.armor = 0
             self.mana = 0
             self.max_mana = 0
@@ -1511,6 +1521,7 @@ class Player:
             self.artifacts = [Card(c_info) for c_info in info["artifacts"]]
             self.hit_points = info["hit_points"]
             self.damage_this_turn = info["damage_this_turn"]
+            self.damage_to_show = info["damage_to_show"]
             self.armor = info["armor"]
             self.mana = info["mana"]
             self.max_mana = info["max_mana"]
@@ -1523,7 +1534,7 @@ class Player:
 
     def __repr__(self):
         return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - \
-                {self.hit_points} hp - {self.damage_this_turn} damage_this_turn - {self.armor} armor, {self.mana} mana, self.card_info_to_resolve {self.card_info_to_resolve} \
+                {self.hit_points} hp - {self.damage_this_turn} damage_this_turn- {self.damage_to_show} damage_to_show - {self.armor} armor, {self.mana} mana, self.card_info_to_resolve {self.card_info_to_resolve} \
                 {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
                 {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
                 self.can_be_clicked {self.can_be_clicked}, \
@@ -1536,6 +1547,7 @@ class Player:
             "race": self.race,
             "hit_points": self.hit_points,
             "damage_this_turn": self.damage_this_turn,
+            "damage_to_show": self.damage_to_show,
             "armor": self.armor,
             "mana": self.mana,
             "max_mana": self.max_mana,
@@ -1578,6 +1590,7 @@ class Player:
                 continue
             self.hit_points -= 1
             self.damage_this_turn += 1
+            self.damage_to_show += 1
 
     def draw(self, number_of_cards):
         for i in range(0,number_of_cards):
@@ -1665,6 +1678,7 @@ class Player:
                 for entity in self.in_play:
                     entity.damage += e.amount
                     entity.damage_this_turn += e.amount
+                    entity.damage_to_show += e.amount
                     if entity.damage >= entity.toughness_with_tokens():
                         dead_entities.append(entity)
                 for entity in dead_entities:
@@ -1673,6 +1687,7 @@ class Player:
                 for entity in self.game.opponent().in_play:
                     entity.damage += e.amount
                     entity.damage_this_turn += e.amount
+                    entity.damage_to_show += e.amount
                     if entity.damage >= entity.toughness_with_tokens():
                         dead_entities.append(entity)
                 for entity in dead_entities:
@@ -2504,6 +2519,7 @@ class Player:
                                 else:
                                     entity.damage += c.effects_triggered()[0].amount
                                     entity.damage_this_turn += c.effects_triggered()[0].amount
+                                    entity.damage_to_show += c.effects_triggered()[0].amount
                                     if entity.damage >= entity.toughness_with_tokens():
                                         self.game.send_card_to_played_pile(entity, self.game.opponent(), did_kill=True)
                                 message["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {entity.name}.")
@@ -2892,6 +2908,7 @@ class Card:
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
         self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
+        self.damage_to_show = info["damage_to_show"] if "damage_to_show" in info else 0
         self.effects = [CardEffect(e, self.id) for _, e in enumerate(info["effects"])] if "effects" in info else []
         self.effects_can_be_clicked = info["effects_can_be_clicked"] if "effects_can_be_clicked" in info else []
         self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
@@ -2920,6 +2937,7 @@ class Card:
                  card_type: {self.card_type}\n \
                  damage: {self.damage}\n \
                  damage_this_turn: {self.damage_this_turn}\n \
+                 damage_to_show: {self.damage_to_show}\n \
                  description: {self.description}\n \
                  effects: {self.effects}\n \
                  effects_can_be_clicked: {self.effects_can_be_clicked}\n \
@@ -2942,6 +2960,7 @@ class Card:
             "cost": self.cost,
             "damage": self.damage,
             "damage_this_turn": self.damage_this_turn,
+            "damage_to_show": self.damage_to_show,
             "description": self.description,
             "effects": [e.as_dict() for e in self.effects],
             "effects_can_be_clicked": self.effects_can_be_clicked,

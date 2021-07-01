@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { Bump } from './lib/bump.js';
-import { AdjustmentFilter, DropShadowFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
+import { AdjustmentFilter, DropShadowFilter, ShockwaveFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 
 const appWidth = 840;
 const appHeight = 803;
@@ -479,7 +479,6 @@ export class GameUX {
         }
 
         if (attackEffect) {
-            console.log(attackEffect);
             let powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
             if (attackEffect.name == "make_random_townie") {
                 powerCharges = new PIXI.Text(attackEffect.counters + "/" + attackEffect.amount, options);
@@ -526,6 +525,11 @@ export class GameUX {
                     .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
 
                 }        
+        }
+
+
+         if (cardSprite.card.damage_to_show > 0) {
+           this.damageSprite(cardSprite);
         }
 
         return cardSprite;
@@ -699,8 +703,24 @@ export class GameUX {
             }
         }
 
+        if (player.damage_to_show > 0) {
+           this.damageSprite(avatarSprite);
+        }
+    }
 
-
+    damageSprite(spriteToDamage) {
+        spriteToDamage.tint = 0xFF00000;
+        var godray = new GodrayFilter();
+        var incrementGodrayTime = () => {
+            godray.time += this.app.ticker.elapsedMS / 1000;
+        }
+        this.app.ticker.add(incrementGodrayTime)
+        spriteToDamage.filters = [godray];
+          setTimeout(() => { 
+                spriteToDamage.tint = 0xFFFFFF;
+                spriteToDamage.filters = []; 
+                this.app.ticker.remove(incrementGodrayTime)
+            }, 1000);   
     }
 
     manaString(maxMana, currentMana) {
