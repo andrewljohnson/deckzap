@@ -88,15 +88,16 @@ export class GameUX {
         scrollbox.position.y = this.handContainer.position.y + cardHeight + padding;
 
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        background.tint = 0xffff00
+        background.tint = 0xffffff
         background.width = appWidth-4;
         background.height = cardHeight *1.25;
+        this.scrollboxBackground = background;
         scrollbox.content.addChild(background);
         this.gameLogScrollbox = scrollbox;
         this.app.stage.addChild(scrollbox)
-        //scrollbox.filters = [
-        //  new OutlineFilter(1, 0x000000),
-        //]
+        scrollbox.content.filters = [
+          new OutlineFilter(1, 0x000000),
+        ]
 
     }
 
@@ -880,13 +881,14 @@ export class GameUX {
 
     logMessage(log_lines) {
         if (!this.messageNumber) {
-            this.messageNumber = 0;
+            this.messageNumber = -1;
         }
         for (let text of log_lines) {
             this.messageNumber += 1
             var textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 10});
-            textSprite.position.x = 0;
-            textSprite.position.y = this.messageNumber * 16;
+            textSprite.position.x = 5;
+            textSprite.position.y = this.messageNumber * 16 + 5;
+            this.scrollboxBackground.height = Math.max(cardHeight*1.25, (this.messageNumber + 1) * 16);
             this.gameLogScrollbox.content.addChild(textSprite);
         }
         this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
