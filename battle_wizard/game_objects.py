@@ -196,7 +196,8 @@ class Game:
 
     def play_move(self, message):
         move_type = message["move_type"]
-        print(f"MOVE: {move_type}")
+        if message["move_type"] != "GET_TIME":
+            print(f"MOVE: {move_type}")
         
         if move_type == 'GET_TIME':
             max_turn_time = 2000
@@ -306,7 +307,6 @@ class Game:
 
         if len(self.players) != 2:
             return
-        print("set_clic")
         cp = self.current_player()
         opp = self.opponent()
 
@@ -324,7 +324,6 @@ class Game:
             e = selected_artifact.enabled_activated_effects()[cp.card_info_to_resolve["effect_index"]]
             self.set_targets_for_target_type(e.target_type, e.target_restrictions, e)
         elif cp.selected_spell():
-            print("selected SPELL")
             selected_spell = cp.selected_spell()
             if not selected_spell.needs_targets_for_spell():
                 selected_spell.can_be_clicked = True 
@@ -350,7 +349,6 @@ class Game:
             for card in opp.in_play:
                 if card.has_ability("Guard") or not opp.has_guard() or selected_entity.has_ability("Evade Guard"):
                     if not card.has_ability("Lurker"):
-                        print(card.name)
                         card.can_be_clicked = True
         if cp.card_info_to_resolve["effect_type"]:
             return
