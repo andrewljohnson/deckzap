@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { Bump } from './lib/bump.js';
 import { AdjustmentFilter, DropShadowFilter, ShockwaveFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
+import { Scrollbox } from 'pixi-scrollbox'
 
 const appWidth = 840;
 const appHeight = 803;
@@ -80,40 +81,22 @@ export class GameUX {
         this.handContainer = this.hand(padding, playerOneY + avatarHeight + padding);
         this.app.stage.addChild(this.handContainer);
 
-        /*
-        const mockScroll = new PUXI.ScrollWidget({
-            scrollY: true,
-            scrollX: true,
-            scrollBars: true,
-        }).setLayoutOptions(
-            new PUXI.FastLayoutOptions({
-                width: 0.5,
-                height: 0.25,
-                x: 0.5,
-                y: 0.7,
-                anchor: PUXI.FastLayoutOptions.CENTER_ANCHOR,
-            }),
-        ).setBackground(0xffaabb)
-            .setBackgroundAlpha(0.5)
-            .addChild(new PUXI.Button({ text: 'Button 1' }).setBackground(0xff))
-            .addChild(new PUXI.Button({ text: 'Button 2' })
-                .setLayoutOptions(new PUXI.FastLayoutOptions({ x: 0, y: 50 }))
-                .setBackground(0xff));
+        // create the scrollbox
+        const scrollbox = new Scrollbox({ boxWidth: appWidth-4, boxHeight: cardHeight *1.25, clampWheel: false, passiveWheel: false})
 
-        this.app.stage.addChild(mockScroll);
-        */
-        return
+        scrollbox.position.x = 2;
+        scrollbox.position.y = this.handContainer.position.y + cardHeight + padding;
 
-        const gameLog = PIXI.Sprite.from(PIXI.Texture.WHITE);
-        gameLog.width = appWidth-4;
-        gameLog.height = cardHeight *1.25;
-        gameLog.tint = 0xFFFFFF;
-        gameLog.position.x = 2;
-        gameLog.position.y = this.handContainer.position.y + cardHeight + padding;
-        gameLog.filters = [
-          new OutlineFilter(1, 0x000000),
-        ]
-        this.app.stage.addChild(gameLog);
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        background.tint = 0xffff00
+        background.width = appWidth-4;
+        background.height = cardHeight *1.25;
+        scrollbox.content.addChild(background);
+        this.gameLogScrollbox = scrollbox;
+        this.app.stage.addChild(scrollbox)
+        //scrollbox.filters = [
+        //  new OutlineFilter(1, 0x000000),
+        //]
 
     }
 
@@ -591,13 +574,13 @@ export class GameUX {
       let ropeLength = 570;
       let tickMS = 50;
       let ropeTime = tickMS*4;
-      this.incrementGodrayTime = () => {
+      this.ropeGodrayTimeTicker = () => {
         if (sprite.position.x >= ropeLength) {
             console.log(totalElapsed);
             this.gameRoom.endTurn()
             this.showingRope = false;
             sprite.filters = []; 
-            this.app.ticker.remove(this.incrementGodrayTime)            
+            this.app.ticker.remove(this.ropeGodrayTimeTicker)            
             this.app.stage.removeChild(sprite)
             this.ropeSprite = null;
         }
@@ -614,7 +597,7 @@ export class GameUX {
       sprite.position.y = this.inPlay.position.y - padding + 1;
       sprite.height = 8; 
       this.app.stage.addChild(sprite)
-      this.app.ticker.add(this.incrementGodrayTime)
+      this.app.ticker.add(this.ropeGodrayTimeTicker)
       this.showingRope = true;
       sprite.filters = [godray];
 
@@ -639,10 +622,9 @@ export class GameUX {
             if (this.ropeSprite) {
                 this.showingRope = false;
                 this.ropeSprite.filters = []; 
-                this.app.ticker.remove(this.incrementGodrayTime)            
+                this.app.ticker.remove(this.ropeGodrayTimeTicker)            
                 this.app.stage.removeChild(this.ropeSprite)
                 this.ropeSprite = null;
-
             }
         };
         b
@@ -897,24 +879,18 @@ export class GameUX {
     }
 
     logMessage(log_lines) {
-        return;
-        for (let text of log_lines) {
-            var line = this.addLogLine();
-            line.innerHTML = text
+        if (!this.messageNumber) {
+            this.messageNumber = 0;
         }
-        this.scrollLogToEnd()
-    }
-
-    addLogLine() {
-        return;
-        var line = document.createElement('div');
-        document.getElementById("game_log_inner").appendChild(line);
-        return line;
-    }
-
-    scrollLogToEnd() {
-        return;
-        document.getElementById("game_log_inner").scrollTop = document.getElementById("game_log_inner").scrollHeight;
+        for (let text of log_lines) {
+            this.messageNumber += 1
+            var textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 10});
+            textSprite.position.x = 0;
+            textSprite.position.y = this.messageNumber * 16;
+            this.gameLogScrollbox.content.addChild(textSprite);
+        }
+        this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
+        this.gameLogScrollbox.update();
     }
 
 }

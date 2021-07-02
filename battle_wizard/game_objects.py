@@ -199,7 +199,7 @@ class Game:
         print(f"MOVE: {move_type}")
         
         if move_type == 'GET_TIME':
-            max_turn_time = 20
+            max_turn_time = 2000
             turn_time = datetime.datetime.now() - self.turn_start_time
             if turn_time.seconds >= max_turn_time:
                 print(turn_time)
