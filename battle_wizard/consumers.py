@@ -114,6 +114,11 @@ class BattleWizardConsumer(WebsocketConsumer):
             for move in moves:
                 if move["move_type"] == "SELECT_OPPONENT":
                     chosen_move = move
+                    print ("CHOOSE OPPONENT")
+            for move in moves:
+                if move["move_type"] == "RESOLVE_ENTITY_EFFECT" and move["effect_targets"][0]["id"] == self.game.opponent().username :
+                    chosen_move = move
+                    print ("CHOOSE OPPONENT")
         else:
             print(f"Unknown AI bot: {self.ai}")
         chosen_move["log_lines"] = []
