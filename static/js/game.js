@@ -725,12 +725,10 @@ export class GameUX {
             avatarSprite.interactive = false;
             avatarSprite.buttonMode = true;
        } else {
-            console.log("player can be clicked")
             avatarSprite.interactive = true;
             avatarSprite.buttonMode = true;
             avatarSprite.filters = [];                                   
             if (player.card_info_to_resolve["card_id"]) {
-                console.log("card_info_to_resolve")
                 var eventString = "SELECT_OPPONENT";
                 if (player == this.thisPlayer(game)) {
                     eventString = "SELECT_SELF";
@@ -802,7 +800,7 @@ export class GameUX {
         }
 
         var inPlayLength = player.in_play.length;
-        if (cardIdToHide) {
+        if (cardIdToHide && player == this.thisPlayer(game)) {
             inPlayLength -= 1;
         }
 
@@ -816,12 +814,20 @@ export class GameUX {
             index = 1
         }
         for (let card of player.in_play) {
-            if (cardIdToHide && card.id == cardIdToHide) {
+            if (cardIdToHide && card.id == cardIdToHide && player == this.thisPlayer(game)) {
                 continue;
             }
+
             let sprite = this.cardSprite(game, card, player, index);
             sprite.position.y = inPlaySprite.position.y + cardHeight/2;
             sprite.position.x += padding;
+            if (cardIdToHide && card.id == cardIdToHide && player == this.opponent(game)) {
+                console.log("highlighting cardIdToHide ");
+                sprite.filters = [
+                  new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
+                ];
+            }
+
             this.app.stage.addChild(sprite);
             index++;
         }
@@ -880,7 +886,7 @@ export class GameUX {
     }
 
     logMessage(log_lines) {
-        if (!this.messageNumber) {
+        if (this.messageNumber == null) {
             this.messageNumber = -1;
         }
         for (let text of log_lines) {
@@ -958,17 +964,21 @@ function onDragEnd(cardSprite, gameUX) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_SELF", {});
             playedMove = true;
         } else {
+            var collidedSprite;
             for (let sprite of gameUX.app.stage.children) {
-                if(sprite.card && sprite.card.turn_played != -1  && sprite.card.id != cardSprite.card.id && sprite.card.can_be_clicked && bump.hit(cardSprite, sprite)) {
-                    if (sprite.card.card_type == "Entity") {
-                        gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card": sprite.card.id});
-                    } else if (sprite.card.card_type == "Artifact") {
-                        gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card": sprite.card.id});
-                    } else {
-                        console.log("tried to select unknown card type: " + sprite.card.card_type);
-                    }
-                    playedMove = true;
+                if (bump.hit(cardSprite, sprite) && cardSprite.card && sprite.card && cardSprite.card.id != sprite.card.id) {
+                    collidedSprite = sprite;
                 }
+            }
+            if(collidedSprite.card && collidedSprite.card.can_be_clicked) {
+                if (collidedSprite.card.card_type == "Entity") {
+                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card": collidedSprite.card.id});
+                } else if (collidedSprite.card.card_type == "Artifact") {
+                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card": collidedSprite.card.id});
+                } else {
+                    console.log("tried to select unknown card type: " + collidedSprite.card.card_type);
+                }
+                playedMove = true;
             }
         }
     } else {  // it's an entity or artifact already in play
@@ -1078,7 +1088,7 @@ function onDragMove(cardSprite, gameUX, bump) {
             if (!cardSprite.card.can_be_clicked) {
                 cardSprite.filters.append(new AdjustmentFilter({ brightness: .8,}));                        
             }
-        } else if (collidedEntity && collidedEntity.card.can_be_clicked && cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets) {
+        } else if (collidedEntity && collidedEntity.card.can_be_clicked && ((cardSprite.card.card_type == "Entity" && collidedEntity.card.card_type == "Entity") || (cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets))) {
             collidedEntity.filters = [
               new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
             ];

@@ -87,20 +87,14 @@ class BattleWizardConsumer(WebsocketConsumer):
                 if move["move_type"] == "PLAY_CARD":
                     being_cast = self.game.get_in_play_for_id(move["card"])
                     target = self.game.get_in_play_for_id(move["effect_targets"][0].id)
-                    if target in self.game.current_player().in_play: 
-                        if being_cast.name in ["Faerie War Chant", "Faerie's Blessing", "Kill", "Zap", "Stiff Wind", "Siz Pop"]:
+                    if target in self.game.opponent().in_play: 
+                        if being_cast.name in ["Kill", "Zap", "Stiff Wind", "Siz Pop", "Unwind"]:
                             chosen_move = move
-                    elif target in self.game.opponent().in_play:
-                        if being_cast.name in ["Unwind"]:
-                            chosen_move = move
-                    else:
-                        print("should never happen") 
-
                 if move["move_type"] == "PLAY_CARD":
                     being_cast = self.game.get_in_play_for_id(move["card"])
                     target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
                     if target in self.game.current_player().in_play: 
-                        if being_cast.name in ["Faerie War Chant", "Faerie's Blessing", "Kill", "Zap", "Stiff Wind", "Siz Pop"] and target.name not in ["Familiar", "Thought Sprite"]:
+                        if being_cast.name in ["Faerie War Chant", "Faerie's Blessing"]:
                             chosen_move = move
 
                 if move["move_type"] == "RESOLVE_ENTITY_EFFECT":

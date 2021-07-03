@@ -68,6 +68,7 @@ def add_initial_decks(username):
             "Taunted Bear": 2,
             "War Scorpion": 2,
             "Berserk Monkey": 2,
+            "Lightning Elemental": 2,
             "Spouty Gas Ball": 2,
             "Siz Pop": 2,
             "Frenzy": 2,

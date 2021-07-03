@@ -548,20 +548,9 @@
 		"name": "Winding One",
 		"race": "genie",
 		"card_type": "Entity",
-		"description": "✦✦✦: return an entity to its owner's hand.",
-		"power": 0,
-		"toughness": 2,
-		"cost": 3,
-		"abilities": [
-			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
-		],
-		"effects": [{
-				"name": "unwind",
-				"description": "✦✦✦: unwind an entity.",
-				"effect_type": "activated",
-				"target_type": "entity",
-				"cost": 3
-		}]
+		"power": 3,
+		"toughness": 4,
+		"cost": 3
 	},
 	{
 		"name": "Nature's Guardian",

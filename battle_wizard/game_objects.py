@@ -126,7 +126,7 @@ class Game:
         entity_to_target = self.current_player().selected_entity()
         effect_type = self.current_player().card_info_to_resolve["effect_type"]
         for card in self.opponent().in_play + self.current_player().in_play:
-            if card.can_be_clicked:
+            if card.can_be_clicked and entity_to_target.id != card.id:
                 effect_target = {"id": card.id, "target_type":"entity"}
                 moves = self.add_effect_resolve_move(entity_to_target, effect_target, effect_type, moves)
         for p in self.players:
@@ -200,7 +200,7 @@ class Game:
             print(f"MOVE: {move_type}")
         
         if move_type == 'GET_TIME':
-            max_turn_time = 2000
+            max_turn_time = 60
             turn_time = datetime.datetime.now() - self.turn_start_time
             if turn_time.seconds >= max_turn_time:
                 print(turn_time)
@@ -697,7 +697,7 @@ class Game:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
 
-                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 10, "Winding One": 10, "Think": 2, "LionKin": 2, "Faerie Queen": 5, "Lightning Elemental": 2, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Arsenal": 10, "Siz Pop": 2, "Befuddling Guitar": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
+                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 2, "Winding One": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 20, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Arsenal": 10, "Siz Pop": 2, "Befuddling Guitar": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
                 deck_to_use = deck_to_use if deck_to_use else default_deck
                 card_names = []
                 for key in deck_to_use["cards"]:
@@ -2602,8 +2602,6 @@ class Player:
         effects = card.effects_enter_play()
         if is_activated_effect:
             effects = card.effects_activated()
-        print(message)
-        print(effects)
         if len(effects) > 0:
             if effects[0].target_type == "any":
                 self.card_info_to_resolve["card_id"] = card.id
@@ -2704,10 +2702,12 @@ class Player:
             for effect in card.effects_triggered():
                 if effect.trigger == "start_turn":
                     if effect.name == "rebirth":
+                        print("REBIRTH PHOENIX")
                         draw_blocked = True
                         phoenixes.append(card)
                         break
         for card in phoenixes:
+            print("PLAY PHOENIX")
             self.played_pile.remove(card)
             self.play_entity(card) 
 
