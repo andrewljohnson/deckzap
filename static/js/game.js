@@ -482,7 +482,7 @@ export class GameUX {
             filters.push(new AdjustmentFilter({ brightness: .8}));                        
         }
         if (card.shielded && card.turn_played > -1) {
-            filters.push(new GlowFilter({color: 0xffff00}));                        
+            filters.push(new GlowFilter({color: 0xff00ff}));                        
         }
 
         if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
@@ -842,15 +842,40 @@ export class GameUX {
         this.updateArtifacts(game, this.opponent(game), this.artifactsOpponent);
     }
 
+
     updateArtifacts(game, player, artifactsSprite) {
-        artifactsSprite.children = []
-        var index = 0;
+        // artifactsSprite.children = []
+        var cardIdToHide = null
         for (let card of player.artifacts) {
+            if (player.card_info_to_resolve["card_id"] && card.id == player.card_info_to_resolve["card_id"]) {
+                cardIdToHide = card.id;
+                break;
+            }
+        }
+
+        var index = 0;
+
+        for (let card of player.artifacts) {
+            if (cardIdToHide && card.id == cardIdToHide && player == this.thisPlayer(game)) {
+                continue;
+            }
+
             let sprite = this.cardSprite(game, card, player, index);
             this.app.stage.addChild(sprite);
             sprite.position.y = artifactsSprite.position.y + cardHeight/2;
             sprite.position.x = artifactsSprite.position.x + cardWidth*index + cardWidth/2;
             index++;
+            if (cardIdToHide && card.id == cardIdToHide) {
+                sprite.filters = [
+                  new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
+                ];
+            }
+            /*
+            if (game.players[1].card_info_to_resolve["card_id"] && card.id == game.players[1].card_info_to_resolve["card_id"]) {
+                sprite.filters = [
+                  new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
+                ];
+            }*/
         }
     }
 
@@ -970,7 +995,7 @@ function onDragEnd(cardSprite, gameUX) {
                     collidedSprite = sprite;
                 }
             }
-            if(collidedSprite.card && collidedSprite.card.can_be_clicked) {
+            if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
                 if (collidedSprite.card.card_type == "Entity") {
                     gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card": collidedSprite.card.id});
                 } else if (collidedSprite.card.card_type == "Artifact") {
@@ -1088,7 +1113,7 @@ function onDragMove(cardSprite, gameUX, bump) {
             if (!cardSprite.card.can_be_clicked) {
                 cardSprite.filters.append(new AdjustmentFilter({ brightness: .8,}));                        
             }
-        } else if (collidedEntity && collidedEntity.card.can_be_clicked && ((cardSprite.card.card_type == "Entity" && collidedEntity.card.card_type == "Entity") || (cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets))) {
+        } else if (collidedEntity && collidedEntity.card.can_be_clicked && ((cardSprite.card.card_type == "Artifact" && collidedEntity.card.card_type == "Entity") || (cardSprite.card.card_type == "Entity" && collidedEntity.card.card_type == "Entity") || (cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets))) {
             collidedEntity.filters = [
               new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
             ];

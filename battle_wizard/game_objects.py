@@ -697,7 +697,7 @@ class Game:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
 
-                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 2, "Winding One": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 20, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Arsenal": 10, "Siz Pop": 2, "Befuddling Guitar": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
+                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 2, "Winding One": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 20, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Arsenal": 1, "Siz Pop": 2, "Befuddling Guitar": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
                 deck_to_use = deck_to_use if deck_to_use else default_deck
                 card_names = []
                 for key in deck_to_use["cards"]:
