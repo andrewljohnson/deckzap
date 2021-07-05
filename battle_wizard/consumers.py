@@ -85,40 +85,43 @@ class BattleWizardConsumer(WebsocketConsumer):
                 chosen_move = random.choice(moves) 
             for move in moves:
                 if move["move_type"] == "PLAY_CARD":
-                    being_cast = self.game.get_in_play_for_id(move["card"])
-                    target = self.game.get_in_play_for_id(move["effect_targets"][0].id)
+                    being_cast, _ = self.game.get_in_play_for_id(move["card"])
+                    target, _ = self.game.get_in_play_for_id(move["effect_targets"][0].id)
                     if target in self.game.opponent().in_play: 
                         if being_cast.name in ["Kill", "Zap", "Stiff Wind", "Siz Pop", "Unwind"]:
                             chosen_move = move
                 if move["move_type"] == "PLAY_CARD":
-                    being_cast = self.game.get_in_play_for_id(move["card"])
-                    target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
+                    being_cast, _ = self.game.get_in_play_for_id(move["card"])
+                    target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
                     if target in self.game.current_player().in_play: 
                         if being_cast.name in ["Faerie War Chant", "Faerie's Blessing"]:
                             chosen_move = move
 
                 if move["move_type"] == "RESOLVE_ENTITY_EFFECT":
-                    coming_into_play = self.game.get_in_play_for_id(move["card"])
-                    target = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
-                    if target in self.game.current_player().in_play: 
+                    coming_into_play, _ = self.game.get_in_play_for_id(move["card"])
+                    print(f"{coming_into_play.name} is resolving on {move['effect_targets'][0]['id']}")
+                    target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
+                    if target and target.id in [card.id for card in self.game.current_player().in_play]: 
                         if coming_into_play.name in ["Training Master"]:
                             chosen_move = move
-                    elif target in self.game.opponent().in_play:
-                        if coming_into_play.name in ["Lightning Elemental", "Tempest Elemental"]:
+                    elif target and target.id in [card.id for card in self.game.opponent().in_play]:
+                        if coming_into_play.name in ["Lightning Elemental", "Tempest Elemental", "Tame Tempest"]:
                             chosen_move = move
                     else:
-                        print("should never happen") 
+                        print("this move is targetting a player, maybe this code isnt so great") 
+                        print(move) 
+                        print(f"{target.id}") 
+                        print(f"ids for curr: {[card.id for card in game.current_player().in_play]}")
+                        print(f"ids for opp: {[card.id for card in game.opponent().in_play]}")
                     chosen_move = move
                 if move["move_type"] == "SELECT_ENTITY":
                     chosen_move = move
             for move in moves:
                 if move["move_type"] == "SELECT_OPPONENT":
                     chosen_move = move
-                    print ("CHOOSE OPPONENT")
             for move in moves:
                 if move["move_type"] == "RESOLVE_ENTITY_EFFECT" and move["effect_targets"][0]["id"] == self.game.opponent().username :
                     chosen_move = move
-                    print ("CHOOSE OPPONENT")
         else:
             print(f"Unknown AI bot: {self.ai}")
         chosen_move["log_lines"] = []

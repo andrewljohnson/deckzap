@@ -127,6 +127,7 @@ class Game:
         effect_type = self.current_player().card_info_to_resolve["effect_type"]
         for card in self.opponent().in_play + self.current_player().in_play:
             if card.can_be_clicked and entity_to_target.id != card.id:
+                print(f"comparing {entity_to_target.id} != {card.id}")
                 effect_target = {"id": card.id, "target_type":"entity"}
                 moves = self.add_effect_resolve_move(entity_to_target, effect_target, effect_type, moves)
         for p in self.players:
@@ -697,7 +698,7 @@ class Game:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
 
-                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 2, "Winding One": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 20, "Tame Tempest": 2, "Kill": 2, "Zap": 2, "Arsenal": 1, "Siz Pop": 2, "Befuddling Guitar": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
+                default_deck = {"cards": {"Riftwalker Djinn": 2, "Mana Shrub": 2, "Winding One": 2, "Think": 2, "LionKin": 2, "Faerie Queen": 2, "Lightning Elemental": 20, "Tame Tempest": 20, "Kill": 2, "Zap": 2, "Arsenal": 1, "Siz Pop": 2, "Befuddling Guitar": 2, "Familiar": 2, "Mind Manacles": 2, "Inferno Elemental": 2}, "id": 0}
                 deck_to_use = deck_to_use if deck_to_use else default_deck
                 card_names = []
                 for key in deck_to_use["cards"]:
@@ -902,8 +903,11 @@ class Game:
                 else:
                     print(f"that artifact effect can't target {defending_card.name}")
                     return None
-            else:
+            elif defending_card:
                 print(f"nothing selected to target {defending_card.name}")
+                return None
+            else:
+                print(f"taking back an entity?")
                 return None
         else:
             print("Should never get here")                                
@@ -1790,7 +1794,7 @@ class Player:
                     self.do_unwind_effect_on_entity(eid)
             else:
                 target_card, target_player = self.game.get_in_play_for_id(effect_targets[target_index]['id'])
-                message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {card.owner_username}'s hand.")
+                message["log_lines"].append(f"{self.username} uses {card.name} to return {target_card.name} to {target_card.owner_username}'s hand.")
                 self.do_unwind_effect_on_entity(effect_targets[target_index]["id"])
         elif e.name == "entwine":
             self.do_entwine_effect()
