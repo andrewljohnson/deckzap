@@ -17,6 +17,7 @@ export class GameRoom {
             if (deck_id) {
                 this.sendPlayMoveEvent("JOIN", { deck_id });                
             }
+            this.sendHeartbeatRequest()
             console.log('WebSockets connection created.');
         } else {
             var self = this;
@@ -24,6 +25,14 @@ export class GameRoom {
                 self.connect();
             }, 100);
         }
+    }
+
+    sendHeartbeatRequest() {
+        var self = this;
+        setTimeout(function () {
+            self.sendPlayMoveEvent( "GET_TIME", {});
+            self.sendHeartbeatRequest();
+        }, 500);
     }
 
     setupSocket() {
@@ -48,6 +57,11 @@ export class GameRoom {
                         window.location.href = self.nextRoomUrl();
                     }, 100); 
                 }
+            } else if (data["move_type"] == "GET_TIME") {
+                if (data["turn_time"] >= data["max_turn_time"]) {
+                    self.gameUX.showRope();   
+                }
+                // console.log(data);
             } else {
                 let game = data["game"];
                 if (!data["game"]) {
@@ -57,6 +71,8 @@ export class GameRoom {
                 self.gameUX.logMessage(data["log_lines"]);
             }
         };
+
+
     }
 
     roomSocketUrl() {

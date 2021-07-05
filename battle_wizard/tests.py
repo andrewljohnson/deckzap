@@ -25,14 +25,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
         return dbName, game
 
-    def game_with_two_players(self):
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
-        game = Game(None, "pvp", dbName, "ingame", info=game_dict)        
-        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
-        return game
-
     def test_ten_card_hand_limit(self):
         """
             Test you can't draw more than 10 cards.
@@ -80,23 +72,15 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.current_player().max_mana, 10)
         os.remove(f"database/games/{dbName}.json")
 
-
-    def test_new_ingame_game(self):
-        game = self.game_with_two_players()
-        self.assertEqual(game.turn, 0)
-        os.remove(f"database/games/{game.db_name}.json")
-
-    def test_two_players_join_ingame_game(self):
-        game = self.game_with_two_players()
-        self.assertEqual(len(game.players), 2)
-        self.assertEqual(len(game.players[0].hand), 2)
-        self.assertEqual(len(game.players[1].hand), 2)
-        os.remove(f"database/games/{game.db_name}.json")
-
     def test_illegal_opponent_start_turn(self):
-        game = self.game_with_two_players()
+        dbName = self.TEST_DB_NAME()
+        game_dict = JsonDB().game_database(dbName)
+        game = Game(None, "pvp", dbName, "constructed", info=game_dict)        
+        game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
+        self.assertEqual(len(game.opponent().hand), 5)
         game.play_move({"username": "b", "move_type": "START_TURN", "log_lines":[]})
-        self.assertEqual(len(game.opponent().hand), 2)
+        self.assertEqual(len(game.opponent().hand), 5)
         os.remove(f"database/games/{game.db_name}.json")
 
     def test_play_stone_elemental(self):
@@ -511,12 +495,12 @@ class GameObjectTests(TestCase):
         dbName, game = self.game_for_decks([["Berserk Monkey", "Berserk Monkey", "Berserk Monkey"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 2)
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 1)
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 3)
-        self.assertEqual(game.power_with_tokens(game.current_player().in_play[1], game.current_player()), 2)
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[0], game.current_player()), 2)
+        self.assertEqual(game.power_with_tokens(game.current_player().in_play[1], game.current_player()), 1)
         os.remove(f"database/games/{dbName}.json")
 
     def test_frenzy_one_card(self):
