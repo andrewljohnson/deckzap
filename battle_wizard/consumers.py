@@ -110,9 +110,9 @@ class BattleWizardConsumer(WebsocketConsumer):
                     else:
                         print("this move is targetting a player, maybe this code isnt so great") 
                         print(move) 
-                        print(f"{target.id}") 
-                        print(f"ids for curr: {[card.id for card in game.current_player().in_play]}")
-                        print(f"ids for opp: {[card.id for card in game.opponent().in_play]}")
+                        # target is none for people targets print(f"{target.name} {target.id}") 
+                        print(f"ids for curr: {[card.id for card in self.game.current_player().in_play]}")
+                        print(f"ids for opp: {[card.id for card in self.game.opponent().in_play]}")
                     chosen_move = move
                 if move["move_type"] == "SELECT_ENTITY":
                     chosen_move = move
