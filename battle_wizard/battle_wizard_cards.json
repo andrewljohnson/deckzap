@@ -2006,7 +2006,7 @@
 		"description": "+1/+0 for each other entity and artifact you have.",
 		"power": 2,
 		"toughness": 5,
-		"cost": 1,
+		"cost": 5,
 		"abilities": [
 			{
 				"name": "Stomp",
