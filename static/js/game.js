@@ -665,7 +665,16 @@ export class GameUX {
                 || game.turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
     }
 
+    activePlayer(game) {
+        if (game.turn % 2 == 0) {
+            return game.players[0];
+        }
+        return game.players[1];
+    }
+
+
     updatePlayer(game, player, avatarSprite) {
+        console.log("update player ")
         var props = {fontFamily : 'Helvetica', fontSize: 12, fill : 0x00000};
         avatarSprite.children = []
         let avatar;
@@ -720,6 +729,7 @@ export class GameUX {
         avatarSprite.addChild(playedPile);
 
         if (!player.can_be_clicked) {
+            console.log(player.username + " can't be clicked")
             avatarSprite.filters = [new AdjustmentFilter({ brightness: .8,})];                        
             avatarSprite.on('click', function (e) {})
             avatarSprite.interactive = false;
@@ -728,7 +738,7 @@ export class GameUX {
             avatarSprite.interactive = true;
             avatarSprite.buttonMode = true;
             avatarSprite.filters = [];                                   
-            if (player.card_info_to_resolve["card_id"]) {
+            if (this.activePlayer(game).card_info_to_resolve["card_id"]) {
                 var eventString = "SELECT_OPPONENT";
                 if (player == this.thisPlayer(game)) {
                     eventString = "SELECT_SELF";
@@ -870,12 +880,6 @@ export class GameUX {
                   new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
                 ];
             }
-            /*
-            if (game.players[1].card_info_to_resolve["card_id"] && card.id == game.players[1].card_info_to_resolve["card_id"]) {
-                sprite.filters = [
-                  new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00}),
-                ];
-            }*/
         }
     }
 
