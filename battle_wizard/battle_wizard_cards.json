@@ -909,6 +909,10 @@
 		"cost": 3,
 		"abilities": [
 			{
+				"name": "Shield",
+				"descriptive_id": "Shield"
+			},
+			{
 				"name": "DamageDraw",
 				"description": "Draw a card when this deals damage to your opponent.",
 				"descriptive_id": "DamageDraw",
