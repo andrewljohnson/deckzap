@@ -432,32 +432,44 @@ export class GameUX {
                         continue;
                     }
                     if (useLargeSize) {
+                        if (a.name == "Shield") {
+                            abilitiesText += "Shiled - Shielded entities don't take damage the first time they get damaged.";
+                            hasSpecialLargeText = true;
+                        }                    
                         if (a.name == "Guard") {
-                            abilitiesText += "Guard entities must be attacked before anything else.";
+                            abilitiesText += "Guard - Guard entities must be attacked before anything else.";
+                            hasSpecialLargeText = true;
+                        }                    
+                        if (a.name == "Syphon") {
+                            abilitiesText += "Syphon - Gain hp when this deals damage.";
                             hasSpecialLargeText = true;
                         }                    
                         if (a.name == "Fast") {
-                            abilitiesText += "Fast entities may attack the turn they come into play.";
+                            abilitiesText += "Fast - Fast entities may attack the turn they come into play.";
                             hasSpecialLargeText = true;
                         }                    
                         if (a.name == "Ambush") {
-                            abilitiesText += "Ambush entities may attack other entities the turn they come into play.";
+                            abilitiesText += "Ambush - Ambush entities may attack other entities the turn they come into play.";
                             hasSpecialLargeText = true;
                         }                    
                         if (a.name == "Instrument Required") {
-                            abilitiesText += "You must have an Instrument in play to play this.";
+                            abilitiesText += "Instrument Required - You must have an Instrument in play to play this.";
                             hasSpecialLargeText = true;
                         }                    
                         if (a.name == "Townie") {
-                            abilitiesText += "Townies have a little ability.";
+                            abilitiesText += "Townie - Townies have a little ability.";
+                            hasSpecialLargeText = true;
+                        }                    
+                        if (a.name == "Unique") {
+                            abilitiesText += "Unique - only one Unique card is allowed per deck.";
                             hasSpecialLargeText = true;
                         }                    
                         if (a.name == "Weapon") {
-                            abilitiesText += "Weapons can be used to attack players and entities.";
+                            abilitiesText += "Weapon - Weapons can be used to attack players and entities.";
                             hasSpecialLargeText = true;
                         }                    
                         if (a.name == "Instrument") {
-                            abilitiesText += "Instruments have special abilities and are needed for other cards.";
+                            abilitiesText += "Instrument - Instruments have special abilities and are needed for other cards.";
                             hasSpecialLargeText = true;
                         } 
                     }
@@ -1211,8 +1223,15 @@ function onMouseover(cardSprite, gameUX) {
             sprite
                 .on('mouseover',        function ()  {})
                 .on('mouseout',        function ()  {})
-            sprite.position.x = 667;
-            sprite.position.y = 265;
+            sprite.position.x = cardSprite.position.x + cardWidth/2;
+            sprite.position.y = cardSprite.position.y - cardHeight*1.5;
+            if (sprite.position.y < cardHeight*2) {
+                sprite.position.y = cardHeight;
+                sprite.position.x = cardSprite.position.x + cardWidth*1.5;
+            }
+            if (sprite.position.x >= 677) {
+                sprite.position.x = cardSprite.position.x - cardWidth;
+            }
             gameUX.app.stage.addChild(sprite)
             gameUX.hoverCards.push(sprite);
         }
