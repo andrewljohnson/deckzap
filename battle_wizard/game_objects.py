@@ -2719,7 +2719,8 @@ class Player:
             self.draw(1 + self.game.global_effects.count("draw_extra_card"))
         self.max_mana += 1
         self.max_mana = min(10, self.max_mana)
-        self.mana = self.max_mana
+        self.mana += self.max_mana
+        self.mana = min(10, self.mana)
 
         for card in self.in_play:
             if card.has_ability("Fade"):

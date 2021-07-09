@@ -433,7 +433,7 @@ export class GameUX {
                     }
                     if (useLargeSize) {
                         if (a.name == "Shield") {
-                            abilitiesText += "Shiled - Shielded entities don't take damage the first time they get damaged.";
+                            abilitiesText += "Shield - Shielded entities don't take damage the first time they get damaged.";
                             hasSpecialLargeText = true;
                         }                    
                         if (a.name == "Guard") {
