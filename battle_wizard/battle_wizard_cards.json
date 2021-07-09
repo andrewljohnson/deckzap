@@ -1600,7 +1600,12 @@
 			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+		{
+			"name": "Townie",
+			"descriptive_id": "Townie"
+		}
+		]
 	},
 	{
 		"name": "Gnomish Soundsmith",
