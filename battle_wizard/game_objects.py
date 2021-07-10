@@ -2711,7 +2711,6 @@ class Player:
                         phoenixes.append(card)
                         break
         for card in phoenixes:
-            print("PLAY PHOENIX")
             self.played_pile.remove(card)
             self.play_entity(card) 
 
