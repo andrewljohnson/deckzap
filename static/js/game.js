@@ -270,9 +270,9 @@ export class GameUX {
 
     showChooseCardView(game, event_name) {
         var self = this;
-        this.showSelectCardView(game, "Artifacts in Your Deck", function (card) {
+        this.showSelectCardView(game, "Your Deck", function (card) {
                 self.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
-            });
+            }, true);
         
     }
 
@@ -284,7 +284,7 @@ export class GameUX {
         
     }
 
-    showSelectCardView(game, title, card_on_click) {
+    showSelectCardView(game, title, card_on_click, showFullDeck) {
         const container = new PIXI.Container();
         this.selectCardContainer = container;
         this.app.stage.addChild(container);
@@ -307,6 +307,9 @@ export class GameUX {
         const cardContainer = new PIXI.Container();
         cardContainer.tint = 0xFF00FF;
         cardContainer.position.x = appWidth/2 - cardWidth*1.5;
+        if (showFullDeck) {
+            cardContainer.position.x = cardWidth;            
+        }
         cardContainer.position.y = 140;
         container.addChild(cardContainer);
 
@@ -314,7 +317,7 @@ export class GameUX {
 
         var index = 0;
         for (let card of cards) {
-            let cardSprite = this.cardSprite(game, card, this.userOrP1(game), index);
+            let cardSprite = this.cardSprite(game, card, this.userOrP1(game), index, false, false, true);
             cardContainer.addChild(cardSprite);
 
             var self = this;
@@ -326,7 +329,7 @@ export class GameUX {
         }
     }
 
-    cardSprite(game, card, player, index, dont_attach_listeners, useLargeSize) {
+    cardSprite(game, card, player, index, dont_attach_listeners, useLargeSize, displayInGrid) {
         var cardTexture = this.cardTexture;
         if (useLargeSize) {
             cardTexture = this.cardLargeTexture;
@@ -337,8 +340,14 @@ export class GameUX {
         cardSprite.anchor.set(.5);
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
-        cardSprite.position.x = (cardWidth)*index + cardWidth/2;
-        cardSprite.position.y = cardHeight/2;
+
+        if (displayInGrid) {
+            cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
+            cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
+        } else {
+            cardSprite.position.x = (cardWidth)*index + cardWidth/2;
+            cardSprite.position.y = cardHeight/2;                        
+        }
 
         cardSprite.index = index;
 
