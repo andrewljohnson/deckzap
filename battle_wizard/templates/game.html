@@ -2,11 +2,7 @@
 {% load static %}
 
 {% block javascript %}
-    {% if request.META.HTTP_HOST == "127.0.0.1:8000" %}
-      <script src="http://localhost:1234/main.js"></script>
-    {% else %}
-      <script src="{% static 'dist/main.js' %}"></script>
-    {% endif %}
+    <script src="{% static 'dist/main.js' %}"></script>
 {% endblock javascript %}
 
 {% block css %}

@@ -12,6 +12,6 @@
   },
   "scripts": {
     "build": "parcel build static/src/parcel-entry.js --out-file main --out-dir static/dist",
-    "start": "parcel static/src/parcel-entry.js --hmr-port 34471 --out-file main"
+    "start": "parcel static/src/parcel-entry.js --hmr-port 34471 --out-dir static/dist --out-file main"
   }
 }
