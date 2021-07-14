@@ -550,7 +550,8 @@
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 4,
-		"cost": 3
+		"cost": 3,
+		"abilities": [{"name": "Lurker", "descriptive_id": "Lurker"}]
 	},
 	{
 		"name": "Nature's Guardian",
@@ -2492,5 +2493,24 @@
 					"descriptive_id": "Fast"
 			}]
 		}]
+	},
+	{
+		"name": "Mana Battery",
+		"race": "alien",
+		"class": "maestro",
+		"card_type": "Artifact",
+		"description": "Stores up to 3 additional mana when you get more than 5. 0: sacrifice this, get the stored mana, draw a card.",
+		"cost": 0,
+		"effects": [{
+			"name": "store_mana",
+			"target_type": "self",
+			"trigger": "start_turn",
+			"effect_type": "triggered"
+		},{
+			"name": "get_mana_and_draw",
+			"target_type": "self",
+			"effect_type": "activated"
+		}
+	]
 	}
 ]

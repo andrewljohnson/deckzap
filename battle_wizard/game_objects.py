@@ -8,7 +8,7 @@ from battle_wizard.jsonDB import JsonDB
 
 
 class Game:
-    def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None):
+    def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None, hs_style=True):
 
         # constructed or test_stacked_deck
         self.game_type = game_type
@@ -36,6 +36,21 @@ class Game:
 
         self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if info else None
         self.show_rope = info["show_rope"] if info else False
+
+        self.max_max_mana = 5
+        self.max_hand_size = 5
+        self.cards_each_turn = 5
+        self.initial_hand_size = 5
+        self.discard_end_of_turn = True
+        self.keep_excess_mana = True
+
+        if hs_style:
+            self.max_max_mana = 10
+            self.max_hand_size = 10
+            self.cards_each_turn = 1
+            self.initial_hand_size = 4
+            self.discard_end_of_turn = False
+            self.keep_excess_mana = False
 
     def as_dict(self):
         return {
@@ -127,7 +142,6 @@ class Game:
         effect_type = self.current_player().card_info_to_resolve["effect_type"]
         for card in self.opponent().in_play + self.current_player().in_play:
             if card.can_be_clicked and entity_to_target.id != card.id:
-                print(f"comparing {entity_to_target.id} != {card.id}")
                 effect_target = {"id": card.id, "target_type":"entity"}
                 moves = self.add_effect_resolve_move(entity_to_target, effect_target, effect_type, moves)
         for p in self.players:
@@ -337,7 +351,6 @@ class Game:
                         break
                 print(f"opponent clickable is {opp.can_be_clicked}")
         elif cp.card_info_to_resolve["effect_type"] in ["entity_at_ready"]:
-            print("entity_at_ready")
             selected_entity = cp.selected_entity()
             only_has_ambush_attack = False
             if not selected_entity.has_ability("Fast"):
@@ -681,7 +694,6 @@ class Game:
             for x in range(0, 2):
                 for card_name in self.player_decks[x]:
                     self.players[x].add_to_deck(card_name, 1)
-                self.players[x].max_mana = 1
             self.get_starting_artifacts()
             for x in range(0, 2):
                 self.players[x].draw(2)
@@ -707,10 +719,9 @@ class Game:
                 for card_name in card_names:
                     self.players[x].add_to_deck(card_name, 1)
                 random.shuffle(self.players[x].deck)
-                self.players[x].max_mana = 0
             self.get_starting_artifacts()
             for x in range(0, 2):                
-                self.players[x].draw(5)
+                self.players[x].draw(self.initial_hand_size)
 
             self.send_start_first_turn(message)
 
@@ -752,6 +763,13 @@ class Game:
         self.clear_damage_this_turn()
         # for Multishot Bow
         self.clear_artifact_effects_targetted_this_turn()
+
+        if self.discard_end_of_turn:
+            while len(self.current_player().hand) > 0:
+                card = random.choice(self.current_player().hand)
+                self.current_player().hand.remove(card)
+                self.current_player().played_pile.append(new_card)
+
         self.turn += 1
         message["log_lines"].append(f"{self.current_player().username}'s turn.")
         message = self.current_player().start_turn(message)
@@ -1948,7 +1966,7 @@ class Player:
     def do_set_max_mana_effect(self, amount):
         for p in self.game.players:
             p.max_mana = amount
-            p.max_mana = min(10, p.max_mana)
+            p.max_mana = min(self.game.max_max_mana, p.max_mana)
             p.mana = min(p.mana, p.max_mana)
 
     def do_gain_armor_effect_on_player(self, card, target_player_username, amount):
@@ -2035,7 +2053,7 @@ class Player:
             target_player = self.game.players[1]
         old_max_mana = target_player.max_mana
         target_player.max_mana += 1
-        target_player.max_mana = min(10, target_player.max_mana)
+        target_player.max_mana = min(self.game.max_max_mana, target_player.max_mana)
         # in case something like Mana Shrub doesn't increase the mana
         if old_max_mana == target_player.max_mana:
             if len(card.effects) == 2 and card.effects[1].name == "decrease_max_mana":
@@ -2062,6 +2080,7 @@ class Player:
             amount -= 1
             card = random.choice(target_player.hand)
             target_player.hand.remove(card)
+            # dont use send_card_to_played_pile, this triggers effects
             self.game.send_card_to_played_pile(card, target_player, did_kill=False)
             if to_deck:
                 for c in target_player.played_pile:
@@ -2602,7 +2621,6 @@ class Player:
         return None 
 
     def target_or_do_entity_effects(self, card, message, username, is_activated_effect=False):
-        print("target_or_do_entity_effects")
         effects = card.effects_enter_play()
         if is_activated_effect:
             effects = card.effects_activated()
@@ -2642,7 +2660,6 @@ class Player:
                     if not "effect_targets" in message:
                         effect_targets = {}
                         if e.target_type == "self" or e.name == "fetch_card":  
-                            print('self and fetch_card')         
                             effect_targets[idx] = {"id": username, "target_type":"player"};
                         elif e.target_type == "this":           
                             effect_targets[idx] = {"id": card.id, "target_type":"entity"};
@@ -2650,7 +2667,6 @@ class Player:
                             effect_targets[idx] = {"target_type": e.target_type};
                         elif e.target_type == "opponents_entity_random":           
                             effect_targets[idx] = {"id": random.choice(self.game.opponent().in_play).id, "target_type":"entity"};
-                        print(effect_targets)
                         message["effect_targets"] = effect_targets
                     message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
         return message
@@ -2706,7 +2722,6 @@ class Player:
             for effect in card.effects_triggered():
                 if effect.trigger == "start_turn":
                     if effect.name == "rebirth":
-                        print("REBIRTH PHOENIX")
                         draw_blocked = True
                         phoenixes.append(card)
                         break
@@ -2715,11 +2730,15 @@ class Player:
             self.play_entity(card) 
 
         if self.game.turn != 0 and not draw_blocked:
-            self.draw(1 + self.game.global_effects.count("draw_extra_card"))
+            self.draw(self.game.cards_each_turn + self.game.global_effects.count("draw_extra_card"))
         self.max_mana += 1
-        self.max_mana = min(10, self.max_mana)
+        self.max_mana = min(self.game.max_max_mana, self.max_mana)
+        if not self.game.keep_excess_mana:
+            self.mana = 0
+
         self.mana += self.max_mana
-        self.mana = min(10, self.mana)
+        excess_mana = self.mana - self.game.max_max_mana
+        self.mana = min(self.game.max_max_mana, self.mana)
 
         for card in self.in_play:
             if card.has_ability("Fade"):
@@ -2755,7 +2774,11 @@ class Player:
             r.effects_exhausted = {}
             for effect in r.effects_triggered():
                 if effect.trigger == "start_turn":
-                    if effect.name == "gain_hp_for_hand":
+                    if effect.name == "store_mana" and excess_mana > 0:
+                        counters = effect.counters or 0
+                        counters += excess_mana
+                        effect.counters = min(3, counters)
+                    elif effect.name == "gain_hp_for_hand":
                         gained = 0
                         to_apply = max(len(self.hand) - 5, 0)
                         while self.hit_points < 30 and to_apply > 0:
