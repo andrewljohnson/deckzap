@@ -190,11 +190,11 @@ class Game:
             # todo: don't hardcode for Infernus
             if len(entity.effects_activated()) > 0 and \
                 entity.effects_activated()[0].target_type == "this" and \
-                entity.effects_activated()[0].cost <= self.current_player().mana:
+                entity.effects_activated()[0].cost <= self.current_player().current_mana():
                 # todo maybe entities will have multiple effects
                 moves.append({"card":entity.id, "move_type": "ACTIVATE_ENTITY", "username": self.ai, "effect_index": 0})
             elif len(entity.effects_activated()) > 0 and \
-                entity.effects_activated()[0].cost <= self.current_player().mana:
+                entity.effects_activated()[0].cost <= self.current_player().current_mana():
                 # todo maybe entities will have multiple effects, only have Winding One right now
                 moves.append({"card":entity.id, "move_type": "ACTIVATE_ENTITY", "username": self.ai, "effect_index": 0})
         for entity in self.opponent().in_play:
@@ -344,7 +344,7 @@ class Game:
                 selected_spell.can_be_clicked = True 
             else:           
                 for e in selected_spell.effects:
-                    if cp.mana >= e.cost:
+                    if cp.current_mana() >= e.cost:
                         self.set_targets_for_target_type(e.target_type, e.target_restrictions)
                         # todo handle mutliple effects if we add cards like that
                         # without this break, this code breaks on Siz Pop
@@ -385,8 +385,8 @@ class Game:
                 if card.needs_self_entity_target_for_activated_effect(x):
                     print("needs_self_entity_target_for_activated_effect")
                     effect_can_be_used = False if len(cp.in_play) == 0 else True
-                if effect.cost > cp.mana:
-                    print("effect.cost > cp.mana")
+                if effect.cost > cp.current_mana():
+                    print("effect.cost > cp.current_mana")
                     effect_can_be_used = False
                 if effect.name in card.effects_exhausted:
                     print("effects_exhausted")
@@ -409,7 +409,7 @@ class Game:
                         for entity in cp.in_play:
                             if not card.has_ability("Lurker"):
                                 card.effect_can_be_used = True
-                if effect.cost > cp.mana:
+                if effect.cost > cp.current_mana():
                     effect_can_be_used = False
                 if effect.name in card.effects_exhausted:
                     effect_can_be_used = False
@@ -418,7 +418,7 @@ class Game:
                 card.can_be_clicked = True
         for card in cp.hand:               
             card.needs_targets = card.needs_targets_for_spell()
-            if cp.mana >= card.cost:
+            if cp.current_mana() >= card.cost:
                 card.can_be_clicked = True
                 if card.needs_card_being_cast_target():
                     card.can_be_clicked = False
@@ -696,7 +696,7 @@ class Game:
                     self.players[x].add_to_deck(card_name, 1)
             self.get_starting_artifacts()
             for x in range(0, 2):
-                self.players[x].draw(2)
+                self.players[x].draw(self.initial_hand_size)
 
             self.send_start_first_turn(message)
 
@@ -768,7 +768,7 @@ class Game:
             while len(self.current_player().hand) > 0:
                 card = random.choice(self.current_player().hand)
                 self.current_player().hand.remove(card)
-                self.current_player().played_pile.append(new_card)
+                self.current_player().played_pile.append(card)
 
         self.turn += 1
         message["log_lines"].append(f"{self.current_player().username}'s turn.")
@@ -799,7 +799,7 @@ class Game:
                 elif card.has_ability("Instrument Required") and not self.current_player().has_instrument():
                     print(f"can't cast {card.name} without having an Instument")
                     return None
-                elif card.cost <= self.current_player().mana:
+                elif card.cost <= self.current_player().current_mana():
                     if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets_for_spell():
                         self.current_player().reset_card_info_to_resolve()
                     elif self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id:
@@ -827,7 +827,7 @@ class Game:
                         # todo this is hardcoded, cant support multiple effects per card?
                         self.current_player().card_info_to_resolve["effect_index"] = 0
                 else:
-                    print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().mana}")                        
+                    print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().current_mana()}")                        
                     return None
                 break
         return message
@@ -978,7 +978,7 @@ class Game:
             effect = artifact.effects_enabled()[effect_index]
             if cp.selected_artifact() and artifact.id == cp.selected_artifact().id and artifact.needs_target_for_activated_effect(effect_index):
                 cp.reset_card_info_to_resolve()
-            elif not effect.name in artifact.effects_exhausted and effect.cost <= cp.mana:
+            elif not effect.name in artifact.effects_exhausted and effect.cost <= cp.current_mana():
                 if not artifact.needs_target_for_activated_effect(effect_index):
                     message["move_type"] = "ACTIVATE_ARTIFACT"
                     message = self.play_move(message)
@@ -1597,6 +1597,17 @@ class Player:
             "card_choice_info": {"cards": [c.as_dict() for c in self.card_choice_info["cards"]], "choice_type": self.card_choice_info["choice_type"]}
         }
 
+    def current_mana(self):
+        return self.mana + self.mana_from_artifacts()
+
+    def mana_from_artifacts(self):
+        mana = 0
+        for artifact in self.artifacts:
+            for effect in artifact.effects:
+                if effect.name == "store_mana":
+                    mana += effect.counters
+        return mana
+
     def add_to_deck(self, card_name, count, add_to_hand=False):
         card = None
         for c in Game.all_cards():
@@ -1876,10 +1887,20 @@ class Player:
         elif e.name == "add_effects":
             message = self.do_add_effects_effect(card, e, effect_targets, message)           
 
-        self.mana -= e.cost
+        self.spend_mana(e.cost)
         self.hit_points -= e.cost_hp
         
         return message 
+
+    def spend_mana(self, amount):
+        amount_to_spend = amount        
+        for artifact in self.artifacts:
+            for effect in artifact.effects:
+                if effect.name == "store_mana":
+                    while amount_to_spend > 0 and effect.counters > 0:                        
+                        effect.counters -= 1
+                        amount_to_spend -= 1
+        self.mana -= amount_to_spend
 
     def do_summon_from_deck_effect_on_player(self, e, effect_targets, target_index):
         if e.target_type == "self" and e.amount == 1:
@@ -2512,13 +2533,13 @@ class Player:
         for c in self.hand:
             if c.id == card_id:
                 card = c
-        if card.cost > self.mana:
-            print(f"card costs too much - costs {card.cost}, mana available {self.mana}")
+        if card.cost > self.current_mana():
+            print(f"card costs too much - costs {card.cost}, mana available {self.current_mana()}")
             return None
 
         self.reset_card_info_to_resolve()
         self.hand.remove(card)
-        self.mana -= card.cost
+        self.spend_mana(card.cost)
 
         for e in self.in_play:
             for idx, effect in enumerate(e.effects_triggered()):
@@ -2528,11 +2549,11 @@ class Player:
         # todo: wrap this into a counterspell method
         for o_card in self.game.opponent().hand:
             for effect in o_card.effects:
-                if effect.target_type == "card_being_cast" and card.cost >= effect.amount and self.game.opponent().mana >= o_card.cost:
+                if effect.target_type == "card_being_cast" and card.cost >= effect.amount and self.game.opponent().current_mana() >= o_card.cost:
                     self.game.send_card_to_played_pile(card, self.game.current_player(), did_kill=False)
                     self.game.opponent().hand.remove(o_card)
                     self.game.opponent().played_pile.append(o_card)
-                    self.game.opponent().mana -= o_card.cost
+                    self.game.opponent().spend_mana(o_card.cost)
                     message["log_lines"].append(f"{card.name} was countered by {self.game.opponent().username}.")
                     message["was_countered"] = True
                     message["counter_username"] = self.game.opponent().username
