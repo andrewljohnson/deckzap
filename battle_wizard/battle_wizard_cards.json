@@ -177,10 +177,17 @@
 			"card_name": "Pine Dryad",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 2,
-			"toughness": 1,
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Pine Dryad",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1
 	},
 	{
 		"name": "Oak Treant",
@@ -195,16 +202,23 @@
 		],
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Pine Dryad",
+			"card_name": "Oak Dryad",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 2,
-			"toughness": 1,
-			"abilities": [
-				{"name": "Guard", "descriptive_id": "Guard"}
-			],
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Oak Dryad",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
 	},
 	{
 		"name": "Summon-Happy Genie",
@@ -225,11 +239,17 @@
 			"card_name": "Elemental",
 			"target_type": "opponent",
 			"effect_type": "enter_play",
-			"power": 1,
-			"toughness": 1,
-			"amount": 2,
-			"cost": 1
+			"amount": 2
 		}]
+	},
+	{
+		"name": "Elemental",
+		"is_token": true,
+		"race": "genie",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
 	},
 	{
 		"name": "Porcupine",
@@ -1384,11 +1404,17 @@
 			"card_name": "Mushroom",
 			"effect_type": "spell",
 			"target_type": "self",
-			"power": 1,
-			"toughness": 1,
-			"amount": 7,
-			"cost": 7
+			"amount": 7
 		}]
+	},
+	{
+		"name": "Mushroom",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
 	},
 	{
 		"name": "Kano from Barias",
@@ -1591,12 +1617,24 @@
 			"name": "make_token",
 			"card_name": "Townie",
 			"effect_type": "enter_play",
-			"target_type": "self",
-			"power": 1,
-			"toughness": 1,
-			"amount": 1,
-			"cost": 1
+			"target_type": "self"
 		}],
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Townie",
+		"is_token": true,
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
 		"abilities": [
 			{
 				"name": "Townie",
@@ -1733,14 +1771,23 @@
 		"description": "Get a 2/1 ghost token when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"image": "spark-spirit.svg",
 			"card_name": "Ghost of the Cat",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 2,
-			"toughness": 1,
 			"amount": 1
 		}]
+	},
+	{
+
+		"name": "Ghost of the Cat",
+		"is_token": true,
+		"image": "spark-spirit.svg",
+		"race": "human",
+		"class": "fighter",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1
 	},
 	{
 
@@ -2015,20 +2062,7 @@
 			"card_name": "Mist Elephant",
 			"target_type": "self",
 			"effect_type": "spell",
-			"power": 3,
-			"cost": 3,
-			"toughness": 3,
-			"amount": 1,
-			"abilities": [
-				{
-					"name": "Fast",
-					"descriptive_id": "Fast"
-				},
-				{
-					"name": "Fade",
-					"descriptive_id": "Fade"
-				}
-			]
+			"amount": 1
 		},
 		{
 			"name": "summon_from_deck_artifact",
@@ -2037,6 +2071,26 @@
 			"amount": 1
 		}		
 	]
+	},
+	{
+		"name": "Mist Elephant",
+		"is_token": true,
+		"race": "human",
+		"class": "fighter",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 2,
+		"cost": 2,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Fade",
+				"descriptive_id": "Fade"
+			}
+		]
 	},
 	{
 
@@ -2188,17 +2242,24 @@
 			"card_name": "Life Guardian Reborn",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 7,
-			"cost": 7,
-			"amount": 1,
-			"toughness": 7,
-			"abilities": [			
-				{
-					"name": "Syphon",
-					"descriptive_id": "Syphon"
-				}
-			]
+			"amount": 1
 		}]
+	},
+	{
+		"name": "Life Guardian Reborn",
+		"is_token": true,
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "Entity",
+		"power": 7,
+		"toughness": 7,
+		"cost": 7,
+		"abilities": [			
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			}
+		]
 	},
 	{
 		"name": "Great Guardian",
@@ -2220,17 +2281,24 @@
 			"card_name": "Great Guardian Reborn",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 8,
-			"cost": 8,
-			"toughness": 8,
-			"amount": 1,
-			"abilities": [			
-				{
-					"name": "Guard",
-					"descriptive_id": "Guard"
-				}
-			]
+			"amount": 1
 		}]
+	},
+	{
+		"name": "Great Guardian Reborn",
+		"is_token": true,
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "Entity",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		]
 	},
 	{
 		"name": "Prophecy of the Nine",
@@ -2320,12 +2388,19 @@
 				"effect_type": "activated",
 				"target_type": "self",
 				"amount": 1,
-				"counters": 5,
-				"power": 2,
-				"toughness": 2,
-				"cost": 0
+				"counters": 5
 			}
 		]
+	},
+	{
+		"name": "Charmed Rat",
+		"is_token": true,
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1
 	},
 	{
 		"name": "Gnomish Militia",

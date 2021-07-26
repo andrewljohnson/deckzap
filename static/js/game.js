@@ -180,11 +180,6 @@ export class GameUX {
 
         if (this.thisPlayer(game)) {
             this.updateHand(game);
-            if (message["show_spell"] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
-              // using this.thisPlayer(game) will break with a counterspell effect 
-              // but we dont shjow counterspells being cast yet
-                this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game))
-            }
             this.updatePlayer(game, this.thisPlayer(game), this.playerAvatar);
             this.updateThisPlayerArtifacts(game);
             this.updateThisPlayerInPlay(game);
@@ -194,6 +189,14 @@ export class GameUX {
             this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
+        }
+
+        if (this.thisPlayer(game)) {
+            if (message["show_spell"] && !this.thisPlayer(game).card_info_to_resolve["card_id"]) {
+              // using this.thisPlayer(game) will break with a counterspell effect 
+              // but we dont shjow counterspells being cast yet
+                this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game))
+            }
         }
 
         this.renderEndTurnButton(game);
@@ -446,6 +449,8 @@ export class GameUX {
                 cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});})
             } else {
                 var self = this;
+                cardSprite.onMouseover = function ()  {onMouseover(this, self)};
+                cardSprite.onMouseout = function ()  {onMouseout(this, self)};
                 cardSprite
                     .on('mousedown',        function (e) {onDragStart(e, this, self)})
                     .on('touchstart',       function (e) {onDragStart(e, this, self)})
@@ -455,14 +460,16 @@ export class GameUX {
                     .on('touchendoutside',  function ()  {onDragEnd(this, self)})
                     .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
                     .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
-                    .on('mouseover',        function ()  {onMouseover(this, self)})
-                    .on('mouseout',        function ()  {onMouseout(this, self)})
+                    .on('mouseover',        cardSprite.onMouseover)
+                    .on('mouseout',         cardSprite.onMouseout)
             }
         } else { 
             var self = this;
+            cardSprite.onMouseover = function ()  {onMouseover(this, self)};
+            cardSprite.onMouseout = function ()  {onMouseout(this, self)};
             cardSprite
-                .on('mouseover',        function ()  {onMouseover(this, self)})
-                .on('mouseout',        function ()  {onMouseout(this, self)})
+                .on('mouseover',        cardSprite.onMouseover)
+                .on('mouseout',        cardSprite.onMouseout)
         }
 
 
@@ -477,6 +484,8 @@ export class GameUX {
 
         return cardSprite;
     }
+
+    on
 
     imagePath(card) {
         let imageName = card.image;
@@ -523,7 +532,7 @@ export class GameUX {
         }
 
         const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        nameBackground.tint = 0x000000
+        nameBackground.tint = 0x0000ff;
         nameBackground.width = cw - 6;
         nameBackground.height = 12;
         nameBackground.alpha = .7;
@@ -603,7 +612,7 @@ export class GameUX {
         var abilitiesText = "";
         var color = 0xAAAAAA;
         for (let a of card.abilities) {
-            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
+            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_entity_attack", "Weapon"].includes(a.descriptive_id)) {
                 if (a.description) {
                     abilitiesText += a.description;
                     color = 0x000000;
@@ -693,7 +702,7 @@ export class GameUX {
             this.addCircledLabel(powerX, powerY, cardSprite, options, cardPower);
             this.addCircledLabel(defenseX, powerY, cardSprite, options, cardToughness);
 
-        } else if (card.turn_played == -1 && !attackEffect) {
+        } else if (card.turn_played == -1) {
             var typeX = aFX + cw/4 - 33;
             var typeY = aFY + ch/2 - 5;
             if (useLargeSize) {
@@ -717,20 +726,37 @@ export class GameUX {
 
             let typeOptions = { ...options };
             typeOptions.fill = 0xffffff;
-            let type = new PIXI.Text(card.card_type, typeOptions);
+
+            var typeName = card.card_type;
+            for (let a of card.abilities) {
+                if ("Weapon" == a.descriptive_id) {
+                    typeName = a.descriptive_id;
+                }
+            }
+
+            let type = new PIXI.Text(typeName, typeOptions);
             type.position.x = typeX + 20;
             type.position.y = typeY + 6
             cardSprite.addChild(type);
         }
 
         if (attackEffect) {
-            let powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
-            if (attackEffect.name == "make_random_townie") {
-                powerCharges = new PIXI.Text(attackEffect.counters + "/" + attackEffect.amount, options);
+
+
+            var powerX = aFX - 24;
+            var powerY = aFY + ch/2;
+            if (useLargeSize) {
+                powerX -= 44;
+                powerY += 20;
             }
-            powerCharges.position.x = aFX + cw - 14;
-            powerCharges.position.y = aFY + ch - 18;
-            cardSprite.addChild(powerCharges);
+            var countersX = powerX + cw - 16;
+            if (attackEffect.name == "make_random_townie") {
+                this.addCircledLabel(powerX, powerY, cardSprite, options, attackEffect.counters);
+                this.addCircledLabel(countersX, powerY, cardSprite, options, attackEffect.amount);
+            } else {
+                this.addCircledLabel(powerX, powerY, cardSprite, options, attackEffect.power);
+                this.addCircledLabel(countersX, powerY, cardSprite, options, attackEffect.counters);
+            }
         }
 
         var filters = []
@@ -766,29 +792,26 @@ export class GameUX {
                     .on('touchendoutside',  function ()  {onDragEnd(this, self)})
                     .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
                     .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
-                if (!useLargeSize) {
+                    cardSprite.onMouseover = function ()  {onMouseover(this, self)};
+                    cardSprite.onMouseout = function ()  {onMouseout(this, self)};
                     cardSprite
-                        .on('mousedown',        function (e) {onDragStart(e, this, self)})
-                        .on('touchstart',       function (e) {onDragStart(e, this, self)})
-                        .on('mouseup',          function ()  {onDragEnd(this, self)})
-                        .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
-                        .on('touchend',         function ()  {onDragEnd(this, self)})
-                        .on('touchendoutside',  function ()  {onDragEnd(this, self)})
-                        .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
-                        .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
-                        .on('mouseover',        function ()  {onMouseover(this, self)})
-                        .on('mouseout',        function ()  {onMouseout(this, self)})
-                }
+                        .on('mouseover',        cardSprite.onMouseover)
+                        .on('mouseout',        cardSprite.onMouseout)
             }
         } else { 
             var self = this;
-            if (!useLargeSize) {
-                cardSprite
-                    .on('mouseover',        function ()  {onMouseover(this, self)})
-                    .on('mouseout',        function ()  {onMouseout(this, self)})
-            }
+            cardSprite.onMouseover = function ()  {onMouseover(this, self)};
+            cardSprite.onMouseout = function ()  {onMouseout(this, self)};
+            cardSprite
+                .on('mouseover',        cardSprite.onMouseover)
+                .on('mouseout',        cardSprite.onMouseout)
         }
 
+        if (useLargeSize) {
+            cardSprite
+                .off('mouseover',        cardSprite.onMouseover)
+                .off('mouseout',        cardSprite.onMouseout)
+        }
 
          if (cardSprite.card.damage_to_show > 0) {
            this.damageSprite(cardSprite);
@@ -1301,9 +1324,8 @@ function onDragStart(event, cardSprite, gameUX) {
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
     cardSprite.data = event.data;
-    cardSprite
-        .on('mouseover',        function ()  {})
-        .on('mouseout',        function ()  {})     
+    cardSprite.off('mouseover', cardSprite.onMouseover);
+    cardSprite.off('mouseout', cardSprite.onMouseout);
     onMouseout(cardSprite, gameUX);
     cardSprite.dragging = true;
     if (cardSprite.card.turn_played == -1) {

@@ -44,7 +44,8 @@ class Game:
         self.discard_end_of_turn = True
         self.keep_excess_mana = True
 
-        if False and hs_style:
+        # False and 
+        if hs_style:
             self.max_max_mana = 10
             self.max_hand_size = 10
             self.cards_each_turn = 1
@@ -2183,14 +2184,14 @@ class Player:
         target_card, target_player = self.game.get_in_play_for_id(target_entity_id)
         target_player.in_play.remove(target_card)  
         target_card.do_leaves_play_effects(target_player, did_kill=False)
-        if not target_card.is_token:
-            if target_player.username != target_card.owner_username:
-                if target_player == self:
-                    target_player = self.game.opponent()
-                else:
-                    target_player = self
-            new_card = self.game.factory_reset_card(target_card, target_player)
-            target_player.hand.append(new_card)  
+        # if not target_card.is_token:
+        if target_player.username != target_card.owner_username:
+            if target_player == self:
+                target_player = self.game.opponent()
+            else:
+                target_player = self
+        new_card = self.game.factory_reset_card(target_card, target_player)
+        target_player.hand.append(new_card)  
 
     def do_make_effect(self, card, target_player_username, make_type, amount):
         target_player = self.game.players[0]
@@ -2343,19 +2344,15 @@ class Player:
         for x in range(0, e.amount):
             if len(self.in_play) == 7:
                 return
-            token_card = {
-                "id": self.game.next_card_id,
-                "power": e.power,
-                "cost": e.cost,
-                "toughness": e.toughness,
-                "image": e.image,
-                "name": e.card_name,
-                "abilities": [a.as_dict() for a in e.abilities],
-                "turn_played": self.game.turn,
-                "is_token": True
-            }
-            self.in_play.append(Card(token_card))
+            card_to_create = None
+            for card in Game.all_cards():
+                if card.name == e.card_name:
+                    card_to_create = card
+            new_card = copy.deepcopy(card_to_create)
+            self.in_play.append(new_card)
             self.game.update_for_entity_changes_zones(self)
+            new_card.id = self.game.next_card_id
+            new_card.owner_username = self.username
             self.game.next_card_id += 1
 
     def do_create_card_effect(self, e):
