@@ -123,6 +123,7 @@
 	},
 	{
 		"name": "Mana Shrub",
+		"image": "berry-bush.svg",
 		"race": "elf",
 		"class": "sorcerer",
 		"card_type": "Entity",
@@ -147,6 +148,7 @@
 	},
 	{
 		"name": "Spouty Gas Ball",
+		"image": "crumbling-ball.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 3,
@@ -311,6 +313,7 @@
 	},
 	{
 		"name": "Think",
+		"image": "think.svg",
 		"race": "elf",
 		"cost": 4,
 		"card_type": "Spell",
@@ -416,6 +419,7 @@
 	},
 	{
 		"name": "Riftwalker Djinn",
+		"image": "djinn.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 3,
@@ -453,6 +457,7 @@
 	},
 	{
 		"name": "LionKin",
+		"image": "lion.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 3,
@@ -464,6 +469,7 @@
 	},
 	{
 		"name": "Training Master",
+		"image": "coronation.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 3,
@@ -509,6 +515,7 @@
 	},
 	{
 		"name": "Faerie Queen",
+		"image": "fairy.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 4,
@@ -546,6 +553,7 @@
 	},
 	{
 		"name": "Winding One",
+		"image": "wind-hole.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 3,
@@ -730,6 +738,7 @@
 	},
 	{
 		"name": "Lightning Elemental",
+		"image": "lightning-tear.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 1,
@@ -756,6 +765,7 @@
 	},
 	{
 		"name": "Tame Tempest",
+		"image": "tornado.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 2,
@@ -806,6 +816,7 @@
 	},
 	{
 		"name": "Kill",
+		"image": "deathcab.svg",
 		"race": "genie",
 		"cost": 4,
 		"card_type": "Spell",
@@ -835,7 +846,7 @@
 		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Kill a artifact.",
+		"description": "Kill an artifact.",
 		"effects": [{
 			"name": "kill",
 			"effect_type": "spell",
@@ -844,6 +855,7 @@
 	},
 	{
 		"name": "Zap",
+		"image": "lightning-trio.svg",
 		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
@@ -937,6 +949,7 @@
 	},
 	{
 		"name": "Inferno Elemental",
+		"image": "brasero.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 5,
@@ -1014,6 +1027,7 @@
 	},
 	{
 		"name": "Siz Pop",
+		"image": "bolt-drop.svg",
 		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
@@ -1111,6 +1125,7 @@
 	},
 	{
 		"name": "Mind Manacles",
+		"image": "manacles.svg",
 		"race": "genie",
 		"cost": 6,
 		"card_type": "Spell",
@@ -1123,6 +1138,7 @@
 	},
 	{
 		"name": "Familiar",
+		"image": "cat.svg",
 		"card_type": "Entity",
 		"power": 1,
 		"toughness": 2,
@@ -1230,6 +1246,7 @@
 	},
 	{
 		"name": "Bow",
+		"image": "bow-arrow.svg",
 		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Deal 2 damage to your opponent.",
@@ -1642,6 +1659,7 @@
 	},
 	{
 		"name": "Befuddling Guitar",
+		"image": "guitar.svg",
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "Artifact",
@@ -1705,6 +1723,7 @@
 	},
 	{
 		"name": "Totem Cat",
+		"image": "totem-mask.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1714,6 +1733,7 @@
 		"description": "Get a 2/1 ghost token when this dies.",
 		"effects": [{
 			"name": "make_token",
+			"image": "spark-spirit.svg",
 			"card_name": "Ghost of the Cat",
 			"effect_type": "leave_play",
 			"target_type": "self",
@@ -1725,6 +1745,7 @@
 	{
 
 		"name": "Taunted Bear",
+		"image": "bear-face.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1749,6 +1770,7 @@
 	{
 
 		"name": "War Scorpion",
+		"image": "scorpion.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1774,6 +1796,7 @@
 	{
 
 		"name": "Berserk Monkey",
+		"image": "monkey.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1796,6 +1819,7 @@
 	},
 	{
 		"name": "Frenzy",
+		"image": "uprising.svg",
 		"race": "human",
 		"class": "fighter",
 		"cost": 1,
@@ -1816,6 +1840,7 @@
 	},
 	{
 		"name": "Impale",
+		"image": "spiked-trunk.svg",
 		"race": "human",
 		"class": "fighter",
 		"cost": 2,
@@ -1837,6 +1862,7 @@
 	},
 	{
 		"name": "Arsenal",
+		"image": "saber-and-pistol.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Artifact",
@@ -1875,6 +1901,7 @@
 	},
 	{
 		"name": "Animal Trainer",
+		"image": "teacher.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1901,6 +1928,7 @@
 	{
 
 		"name": "Viper",
+		"image": "snake-bite.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1924,6 +1952,7 @@
 	},
 	{
 		"name": "Multishot Bow",
+		"image": "striking-arrows.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Artifact",
@@ -1951,6 +1980,7 @@
 	{
 
 		"name": "Enraged Stomper",
+		"image": "mammoth.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1974,6 +2004,7 @@
 	},
 	{
 		"name": "Gird for Battle",
+		"image": "armor-punch.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Spell",
@@ -2010,6 +2041,7 @@
 	{
 
 		"name": "Spirit of the Stampede",
+		"image": "stomp.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -2063,7 +2095,7 @@
 		"class": "sorcerer",
 		"card_type": "Spell",
 		"cost": 1,
-		"description": "Put one of the top 3 cards of your deck in your hand and the others in your played pile.",
+		"description": "Draw one of the top 3 cards of your deck. Put the others in your played pile.",
 		"effects": [
 			{
 				"name": "riffle",
@@ -2497,20 +2529,29 @@
 	{
 		"name": "Mana Battery",
 		"race": "alien",
+		"image": "battery-pack.svg",
 		"class": "maestro",
 		"card_type": "Artifact",
 		"description": "Stores up to 3 additional mana when you get more than 5. 0: sacrifice this, get the stored mana, draw a card.",
 		"cost": 0,
-		"effects": [{
-			"name": "store_mana",
-			"target_type": "self",
-			"trigger": "start_turn",
-			"effect_type": "triggered"
-		},{
-			"name": "get_mana_and_draw",
-			"target_type": "self",
-			"effect_type": "activated"
-		}
-	]
+		"effects": [
+			{
+				"name": "store_mana",
+				"target_type": "self",
+				"trigger": "start_turn",
+				"effect_type": "triggered"
+			},
+			{
+				"name": "get_mana_and_draw",
+				"target_type": "self",
+				"effect_type": "activated"
+			}
+		],
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		]
 	}
 ]

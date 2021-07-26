@@ -64869,6 +64869,12 @@ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "functio
 
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -64907,6 +64913,8 @@ var GameUX = /*#__PURE__*/function () {
     this.bump = new _bump.Bump(PIXI);
     this.cardTexture = PIXI.Texture.from('/static/images/card.png');
     this.cardLargeTexture = PIXI.Texture.from('/static/images/card-large.png');
+    this.cardTextureInPlay = PIXI.Texture.from('/static/images/in play mob.png');
+    this.cardTextureInPlayArtifact = PIXI.Texture.from('/static/images/in play mana artifact.png');
     this.inPlayTexture = PIXI.Texture.from('/static/images/in_play.png');
     this.handTexture = PIXI.Texture.from('/static/images/hand.png');
     this.artifactsTexture = PIXI.Texture.from('/static/images/relics.png');
@@ -64916,10 +64924,11 @@ var GameUX = /*#__PURE__*/function () {
     this.bearTexture = PIXI.Texture.from('/static/images/bear.png');
     this.tigerTexture = PIXI.Texture.from('/static/images/tiger.png');
     PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
+    PIXI.GRAPHICS_CURVES.adaptive = true;
     this.app = new PIXI.Application({
       width: appWidth,
       height: appHeight,
-      antialias: false,
+      antialias: true,
       backgroundAlpha: true,
       resolution: window.devicePixelRatio || 1,
       autoDensity: true
@@ -65136,7 +65145,8 @@ var GameUX = /*#__PURE__*/function () {
 
       if (game.show_rope) {
         this.showRope();
-      }
+      } // this.app.renderer.render(this.app.stage)
+
     }
   }, {
     key: "showMakeView",
@@ -65234,8 +65244,10 @@ var GameUX = /*#__PURE__*/function () {
         var _loop = function _loop() {
           var card = _step2.value;
 
-          var cardSprite = _this.cardSprite(game, card, _this.userOrP1(game), index, false, false, true);
+          var cardSprite = _this.cardSprite(game, card, _this.userOrP1(game), false);
 
+          cardSprite.position.x = (cardWidth + 5) * (index % 8) + cardWidth / 2;
+          cardSprite.position.y = cardHeight / 2 + (cardHeight + 5) * Math.floor(index / 8);
           cardContainer.addChild(cardSprite);
           self = _this;
           cardSprite.on('click', function (e) {
@@ -65256,69 +65268,41 @@ var GameUX = /*#__PURE__*/function () {
       }
     }
   }, {
-    key: "cardSprite",
-    value: function cardSprite(game, card, player, index, dont_attach_listeners, useLargeSize, displayInGrid) {
-      var cardTexture = this.cardTexture;
-
-      if (useLargeSize) {
-        cardTexture = this.cardLargeTexture;
-      }
-
+    key: "baseCardSprite",
+    value: function baseCardSprite(card, cardTexture) {
       var cardSprite = new PIXI.Sprite.from(cardTexture);
       cardSprite.interactive = true;
-      cardSprite.anchor.set(.5);
       cardSprite.card = card;
       cardSprite.buttonMode = true; // hand cursor
 
-      if (displayInGrid) {
-        cardSprite.position.x = (cardWidth + 5) * (index % 8) + cardWidth / 2;
-        cardSprite.position.y = cardHeight / 2 + (cardHeight + 5) * Math.floor(index / 8);
+      return cardSprite;
+    }
+  }, {
+    key: "cardSpriteInPlay",
+    value: function cardSpriteInPlay(game, card, player, dont_attach_listeners) {
+      var cardTexture;
+
+      if (card.name == "Mana Battery") {
+        cardTexture = this.cardTextureInPlayArtifact;
       } else {
-        cardSprite.position.x = cardWidth * index + cardWidth / 2;
-        cardSprite.position.y = cardHeight / 2;
+        cardTexture = this.cardTextureInPlay;
       }
 
-      cardSprite.index = index;
-      var wordWrapWidth = 60;
-      var fontSize = 8;
-
-      if (useLargeSize) {
-        wordWrapWidth += 60 - 11;
-        fontSize = 10;
-      }
-
+      var cardSprite = this.baseCardSprite(card, cardTexture);
+      var imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
+      imageSprite.width = 66;
+      imageSprite.height = 75;
+      imageSprite.position.y = -2;
+      cardSprite.addChild(imageSprite);
       var options = {
         fontFamily: 'Helvetica',
-        fontSize: fontSize,
+        fontSize: 8,
         fill: 0x00000,
         wordWrap: true,
-        wordWrapWidth: wordWrapWidth
+        wordWrapWidth: 60
       };
-      var name = new PIXI.Text(card.name, options);
-      cardSprite.addChild(name);
-      var aFX = -42;
-      var aFY = -55;
-
-      if (useLargeSize) {
-        aFX = aFX * 2 + 4;
-        aFY = aFY * 2 + 4;
-      }
-
-      name.position.x = aFX + 7;
-      name.position.y = aFY + padding / 2;
-
-      if (card.card_type != "Effect") {
-        var cost = new PIXI.Text(card.cost, options);
-        cardSprite.addChild(cost);
-        cost.position.x = aFX + cardWidth - 10;
-        cost.position.y = aFY + 11;
-
-        if (useLargeSize) {
-          cost.position.x += cardWidth - 12;
-          cost.position.y += 11;
-        }
-      }
-
+      var aFX = -cardWidth / 2;
+      var aFY = -cardHeight / 2;
       var activatedEffects = [];
       var attackEffect = null;
 
@@ -65343,202 +65327,18 @@ var GameUX = /*#__PURE__*/function () {
         _iterator3.f();
       }
 
-      options.wordWrapWidth = 72;
-
-      if (useLargeSize) {
-        options.wordWrapWidth = 144;
-      }
-
-      if (card.description && card.description.length > 120) {
-        if (!useLargeSize) {
-          options.fontSize = 6;
-        }
-      }
-
-      var description = new PIXI.Text(card.description, options);
-
-      if (card.description) {
-        // todo don't hardcode hide description for Infernus
-        // todo don't hardcode hide description for Winding One
-        if (card.card_type == "Entity" && activatedEffects.length == 0 || card.card_type != "Entity" || card.turn_played == -1) {
-          cardSprite.addChild(description);
-        }
-      }
-
-      description.position.x = name.position.x;
-      description.position.y = name.position.y + 30;
-
-      if (useLargeSize) {
-        description.position.y += 20 + 2;
-      }
-
-      var addedDescription = null;
-
-      if (card.added_descriptions.length) {
-        var _iterator4 = _createForOfIteratorHelper(card.added_descriptions),
-            _step4;
-
-        try {
-          for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-            var d = _step4.value;
-            addedDescription = new PIXI.Text(d, options);
-            addedDescription.position.x = name.position.x;
-            addedDescription.position.y = description.position.y + description.height;
-            cardSprite.addChild(description);
-          }
-        } catch (err) {
-          _iterator4.e(err);
-        } finally {
-          _iterator4.f();
-        }
-      }
-
-      var abilitiesText = "";
-      var color = 0xAAAAAA;
-
-      var _iterator5 = _createForOfIteratorHelper(card.abilities),
-          _step5;
-
-      try {
-        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-          var a = _step5.value;
-
-          if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
-            if (a.description) {
-              abilitiesText += a.description;
-              color = 0x000000;
-            } else {
-              var hasSpecialLargeText = false; // for Befuddling Guitar
-
-              if (a.name == "DamageDraw") {
-                continue;
-              }
-
-              if (useLargeSize) {
-                if (a.name == "Shield") {
-                  abilitiesText += "Shield - Shielded entities don't take damage the first time they get damaged.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Guard") {
-                  abilitiesText += "Guard - Guard entities must be attacked before anything else.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Syphon") {
-                  abilitiesText += "Syphon - Gain hp when this deals damage.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Fast") {
-                  abilitiesText += "Fast - Fast entities may attack the turn they come into play.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Ambush") {
-                  abilitiesText += "Ambush - Ambush entities may attack other entities the turn they come into play.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Instrument Required") {
-                  abilitiesText += "Instrument Required - You must have an Instrument in play to play this.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Townie") {
-                  abilitiesText += "Townie - Townies have a little ability.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Unique") {
-                  abilitiesText += "Unique - only one Unique card is allowed per deck.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Weapon") {
-                  abilitiesText += "Weapon - Weapons can be used to attack players and entities.";
-                  hasSpecialLargeText = true;
-                }
-
-                if (a.name == "Instrument") {
-                  abilitiesText += "Instrument - Instruments have special abilities and are needed for other cards.";
-                  hasSpecialLargeText = true;
-                }
-              }
-
-              if (!hasSpecialLargeText) {
-                abilitiesText += a.name;
-              }
-
-              if (a != card.abilities[card.abilities.length - 1]) {
-                if (useLargeSize) {
-                  abilitiesText += "\n\n";
-                } else {
-                  abilitiesText += ", ";
-                }
-              }
-            }
-          }
-        }
-      } catch (err) {
-        _iterator5.e(err);
-      } finally {
-        _iterator5.f();
-      }
-
-      var _iterator6 = _createForOfIteratorHelper(card.tokens),
-          _step6;
-
-      try {
-        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-          var _c2 = _step6.value;
-
-          if (_c2.set_can_act == false) {
-            if (abilitiesText.length) {
-              abilitiesText += ", ";
-            }
-
-            abilitiesText += "Can't Attack";
-          }
-        }
-      } catch (err) {
-        _iterator6.e(err);
-      } finally {
-        _iterator6.f();
-      }
-
-      if (abilitiesText) {
-        options.fill = color;
-        var abilities = new PIXI.Text(abilitiesText, options);
-        abilities.position.x = name.position.x;
-
-        if (card.added_descriptions.length) {
-          abilities.position.y = addedDescription.position.y + addedDescription.height;
-        } else if (card.description) {
-          abilities.position.y = description.position.y + description.height;
-        } else {
-          abilities.position.y = name.position.y + 30;
-
-          if (useLargeSize) {
-            abilities.position.y += 20 + 2;
-          }
-        }
-
-        cardSprite.addChild(abilities);
-      }
-
       if (card.card_type == "Entity") {
         var cardPower = card.power;
         var cardToughness = card.toughness - card.damage;
 
         if (card.tokens) {
           // todo does this code need to be clientside?
-          var _iterator7 = _createForOfIteratorHelper(card.tokens),
-              _step7;
+          var _iterator4 = _createForOfIteratorHelper(card.tokens),
+              _step4;
 
           try {
-            for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-              var c = _step7.value;
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+              var c = _step4.value;
 
               if (c.multiplier == "self_artifacts" && player.artifacts) {
                 cardPower += c.power_modifier * player.artifacts.length;
@@ -65555,47 +65355,37 @@ var GameUX = /*#__PURE__*/function () {
               }
             }
           } catch (err) {
-            _iterator7.e(err);
+            _iterator4.e(err);
           } finally {
-            _iterator7.f();
+            _iterator4.f();
           }
 
-          var _iterator8 = _createForOfIteratorHelper(card.tokens),
-              _step8;
+          var _iterator5 = _createForOfIteratorHelper(card.tokens),
+              _step5;
 
           try {
-            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-              var _c = _step8.value;
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              var _c = _step5.value;
               cardToughness += _c.toughness_modifier;
             }
           } catch (err) {
-            _iterator8.e(err);
+            _iterator5.e(err);
           } finally {
-            _iterator8.f();
+            _iterator5.f();
           }
         }
 
         options.fill = 0x000000;
-        var powerToughness = new PIXI.Text(cardPower + "/" + cardToughness, options);
-        powerToughness.position.x = aFX + cardWidth - 14;
-        powerToughness.position.y = aFY + cardHeight - 18;
-
-        if (useLargeSize) {
-          powerToughness.position.x += cardWidth - 7;
-          powerToughness.position.y += cardHeight - 15;
-        }
-
-        cardSprite.addChild(powerToughness);
+        var centerOfEllipse = 17;
+        var powerX = aFX + centerOfEllipse;
+        var powerY = aFY + cardHeight - 14;
+        this.addCircledLabel(powerX, powerY, cardSprite, options, cardPower);
+        var toughnessX = aFX + cardWidth - centerOfEllipse;
+        this.addCircledLabel(toughnessX, powerY, cardSprite, options, cardToughness);
       } else if (card.turn_played == -1 && !attackEffect) {
         var type = new PIXI.Text(card.card_type, options);
         type.position.x = aFX + cardWidth - 28;
         type.position.y = aFY + cardHeight - 18;
-
-        if (useLargeSize) {
-          type.position.x += cardWidth - 5;
-          type.position.y += cardHeight - 16;
-        }
-
         cardSprite.addChild(type);
       }
 
@@ -65608,12 +65398,6 @@ var GameUX = /*#__PURE__*/function () {
 
         powerCharges.position.x = aFX + cardWidth - 14;
         powerCharges.position.y = aFY + cardHeight - 18;
-
-        if (useLargeSize) {
-          powerCharges.position.x += cardWidth - 8;
-          powerCharges.position.y += cardHeight - 16;
-        }
-
         cardSprite.addChild(powerCharges);
       }
 
@@ -65683,7 +65467,566 @@ var GameUX = /*#__PURE__*/function () {
         this.damageSprite(cardSprite);
       }
 
+      cardSprite.anchor.set(.5);
+
+      var _iterator6 = _createForOfIteratorHelper(cardSprite.children),
+          _step6;
+
+      try {
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+          var child = _step6.value;
+          child.anchor.set(.5);
+        }
+      } catch (err) {
+        _iterator6.e(err);
+      } finally {
+        _iterator6.f();
+      }
+
       return cardSprite;
+    }
+  }, {
+    key: "imagePath",
+    value: function imagePath(card) {
+      var imageName = card.image;
+
+      if (!imageName) {
+        imageName = "hades-symbol.svg";
+      }
+
+      return '/static/images/card-art/' + imageName;
+    }
+  }, {
+    key: "cardSprite",
+    value: function cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
+      var cardTexture = useLargeSize ? this.cardLargeTexture : this.cardTexture;
+      var cardSprite = this.baseCardSprite(card, cardTexture);
+      cardSprite.interactive = true;
+      cardSprite.card = card;
+      cardSprite.buttonMode = true; // hand cursor
+
+      var imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
+      imageSprite.width = 37;
+      imageSprite.height = 52;
+      imageSprite.position.y = -29;
+
+      if (useLargeSize) {
+        imageSprite.height *= 2;
+        imageSprite.width *= 2;
+        imageSprite.position.y = -58;
+      }
+
+      cardSprite.addChild(imageSprite);
+      var options = {
+        fontFamily: 'Helvetica',
+        fontSize: 8,
+        fill: 0x00000,
+        wordWrap: true,
+        wordWrapWidth: 60
+      };
+
+      if (useLargeSize) {
+        options = {
+          fontFamily: 'Helvetica',
+          fontSize: 10,
+          fill: 0x00000,
+          wordWrap: true,
+          wordWrapWidth: 109
+        };
+      }
+
+      var aFX = -8;
+      var aFY = -9;
+      var cw = cardWidth;
+      var ch = cardHeight;
+
+      if (useLargeSize) {
+        aFX = -cardWidth / 4 + 16;
+        aFY = -cardHeight / 4;
+        cw *= 2;
+        ch *= 2;
+      }
+
+      var nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+      nameBackground.tint = 0x000000;
+      nameBackground.width = cw - 6;
+      nameBackground.height = 12;
+      nameBackground.alpha = .7;
+      nameBackground.position.x = aFX + 8;
+      nameBackground.position.y = aFY;
+
+      if (useLargeSize) {
+        nameBackground.position.y += 20;
+        nameBackground.width -= 24;
+      }
+
+      cardSprite.addChild(nameBackground);
+
+      var nameOptions = _objectSpread({}, options);
+
+      nameOptions.fill = 0xffffff;
+      var name = new PIXI.Text(card.name, nameOptions);
+      cardSprite.addChild(name);
+      name.position.x = nameBackground.position.x;
+      name.position.y = nameBackground.position.y;
+      var activatedEffects = [];
+      var attackEffect = null;
+
+      var _iterator7 = _createForOfIteratorHelper(card.effects),
+          _step7;
+
+      try {
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+          var e = _step7.value;
+
+          if (e.effect_type == "activated" && e.enabled) {
+            activatedEffects.push(e);
+
+            if (e.name == "attack" || e.name == "make_random_townie") {
+              attackEffect = e;
+            }
+          }
+        }
+      } catch (err) {
+        _iterator7.e(err);
+      } finally {
+        _iterator7.f();
+      }
+
+      if (card.card_type != "Effect") {
+        var costX = aFX - 23;
+        var costY = aFX - 38;
+
+        if (useLargeSize) {
+          costX -= cw / 4;
+          costY -= ch / 4;
+        }
+
+        this.addCircledLabel(costX, costY, cardSprite, options, card.cost);
+      }
+
+      options.wordWrapWidth = 72;
+
+      if (useLargeSize) {
+        options.wordWrapWidth = 142;
+      }
+
+      if (card.description && card.description.length > 120) {
+        options.fontSize = 6;
+      }
+
+      var description = new PIXI.Text(card.description, options);
+
+      if (card.description) {
+        // todo don't hardcode hide description for Infernus
+        // todo don't hardcode hide description for Winding One
+        if (card.card_type == "Entity" && activatedEffects.length == 0 || card.card_type != "Entity" || card.turn_played == -1) {
+          cardSprite.addChild(description);
+        }
+      }
+
+      description.position.x = name.position.x;
+      description.position.y = name.position.y + 28;
+
+      if (useLargeSize) {
+        description.position.y += 20 + 2;
+      }
+
+      var addedDescription = null;
+
+      if (card.added_descriptions.length) {
+        var _iterator8 = _createForOfIteratorHelper(card.added_descriptions),
+            _step8;
+
+        try {
+          for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+            var d = _step8.value;
+            addedDescription = new PIXI.Text(d, options);
+            addedDescription.position.x = name.position.x;
+            addedDescription.position.y = description.position.y + description.height;
+            cardSprite.addChild(description);
+          }
+        } catch (err) {
+          _iterator8.e(err);
+        } finally {
+          _iterator8.f();
+        }
+      }
+
+      var abilitiesText = "";
+      var color = 0xAAAAAA;
+
+      var _iterator9 = _createForOfIteratorHelper(card.abilities),
+          _step9;
+
+      try {
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+          var a = _step9.value;
+
+          if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
+            if (a.description) {
+              abilitiesText += a.description;
+              color = 0x000000;
+            } else {
+              var hasSpecialLargeText = false; // for Befuddling Guitar
+
+              if (a.name == "DamageDraw") {
+                continue;
+              }
+
+              abilitiesText += a.name;
+
+              if (a != card.abilities[card.abilities.length - 1]) {
+                abilitiesText += ", ";
+              }
+            }
+          }
+        }
+      } catch (err) {
+        _iterator9.e(err);
+      } finally {
+        _iterator9.f();
+      }
+
+      if (useLargeSize) {
+        this.showAbilityPanels(cardSprite, card, options, cw, ch);
+      }
+
+      var _iterator10 = _createForOfIteratorHelper(card.tokens),
+          _step10;
+
+      try {
+        for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+          var _c3 = _step10.value;
+
+          if (_c3.set_can_act == false) {
+            if (abilitiesText.length) {
+              abilitiesText += ", ";
+            }
+
+            abilitiesText += "Can't Attack";
+          }
+        }
+      } catch (err) {
+        _iterator10.e(err);
+      } finally {
+        _iterator10.f();
+      }
+
+      if (abilitiesText) {
+        options.fill = color;
+        var abilities = new PIXI.Text(abilitiesText, options);
+        abilities.position.x = name.position.x;
+
+        if (card.added_descriptions.length) {
+          abilities.position.y = addedDescription.position.y + addedDescription.height;
+        } else if (card.description) {
+          abilities.position.y = description.position.y + description.height;
+        } else {
+          abilities.position.y = name.position.y + 30;
+        }
+
+        if (useLargeSize) {
+          abilities.position.y += 20 + 2;
+        }
+
+        cardSprite.addChild(abilities);
+      }
+
+      if (card.card_type == "Entity") {
+        var cardPower = card.power;
+        var cardToughness = card.toughness - card.damage;
+
+        if (card.tokens) {
+          // todo does this code need to be clientside?
+          var _iterator11 = _createForOfIteratorHelper(card.tokens),
+              _step11;
+
+          try {
+            for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
+              var c = _step11.value;
+
+              if (c.multiplier == "self_artifacts" && player.artifacts) {
+                cardPower += c.power_modifier * player.artifacts.length;
+              } else if (c.multiplier == "self_entities_and_artifacts") {
+                if (player.artifacts) {
+                  cardPower += c.power_modifier * player.artifacts.length;
+                }
+
+                if (player.in_play) {
+                  cardPower += c.power_modifier * (player.in_play.length - 1);
+                }
+              } else {
+                cardPower += c.power_modifier;
+              }
+            }
+          } catch (err) {
+            _iterator11.e(err);
+          } finally {
+            _iterator11.f();
+          }
+
+          var _iterator12 = _createForOfIteratorHelper(card.tokens),
+              _step12;
+
+          try {
+            for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+              var _c2 = _step12.value;
+              cardToughness += _c2.toughness_modifier;
+            }
+          } catch (err) {
+            _iterator12.e(err);
+          } finally {
+            _iterator12.f();
+          }
+        }
+
+        options.fill = 0x000000;
+        var centerOfEllipse = 16;
+        var powerX = aFX - cw / 2 + centerOfEllipse;
+        var powerY = aFY + ch / 2;
+        var defenseX = aFX + cw / 2;
+
+        if (useLargeSize) {
+          powerY += 20;
+          powerX -= 5;
+          defenseX -= 5;
+        }
+
+        this.addCircledLabel(powerX, powerY, cardSprite, options, cardPower);
+        this.addCircledLabel(defenseX, powerY, cardSprite, options, cardToughness);
+      } else if (card.turn_played == -1 && !attackEffect) {
+        var typeX = aFX + cw / 4 - 33;
+        var typeY = aFY + ch / 2 - 5;
+
+        if (useLargeSize) {
+          typeX -= 20;
+          typeY += 20;
+        }
+
+        var typeBG = new PIXI.Graphics();
+        typeBG.beginFill(0x111111);
+        typeBG.drawRoundedRect(0, 0, 42, 12, 30);
+        typeBG.position.x = typeX;
+        typeBG.position.y = typeY;
+        typeBG.endFill();
+        typeBG.alpha = .7;
+        cardSprite.addChild(typeBG);
+
+        var typeOptions = _objectSpread({}, options);
+
+        typeOptions.fill = 0xffffff;
+        var type = new PIXI.Text(card.card_type, typeOptions);
+        type.position.x = typeX + 20;
+        type.position.y = typeY + 6;
+        cardSprite.addChild(type);
+      }
+
+      if (attackEffect) {
+        var powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
+
+        if (attackEffect.name == "make_random_townie") {
+          powerCharges = new PIXI.Text(attackEffect.counters + "/" + attackEffect.amount, options);
+        }
+
+        powerCharges.position.x = aFX + cw - 14;
+        powerCharges.position.y = aFY + ch - 18;
+        cardSprite.addChild(powerCharges);
+      }
+
+      var filters = [];
+
+      if (!card.can_be_clicked) {
+        filters.push(cantBeClickedFilter());
+      }
+
+      if (card.shielded && card.turn_played > -1) {
+        filters.push(new _pixiFilters.GodrayFilter());
+      }
+
+      if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
+        filters.push(new _pixiFilters.GodrayFilter());
+        cardSprite.tint = 0xff0000;
+      }
+
+      cardSprite.filters = filters;
+
+      if (dont_attach_listeners) {
+        return cardSprite;
+      }
+
+      if (card.can_be_clicked) {
+        if (this.thisPlayer(game).card_info_to_resolve["card_id"]) {
+          var self = this;
+          cardSprite.on('click', function (e) {
+            self.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {
+              "card": card.id
+            });
+          });
+        } else {
+          var self = this;
+          cardSprite.on('mousedown', function (e) {
+            onDragStart(e, this, self);
+          }).on('touchstart', function (e) {
+            onDragStart(e, this, self);
+          }).on('mouseup', function () {
+            onDragEnd(this, self);
+          }).on('mouseupoutside', function () {
+            onDragEnd(this, self);
+          }).on('touchend', function () {
+            onDragEnd(this, self);
+          }).on('touchendoutside', function () {
+            onDragEnd(this, self);
+          }).on('mousemove', function () {
+            onDragMove(this, self, self.bump);
+          }).on('touchmove', function () {
+            onDragMove(this, self, self.bump);
+          }).on('mouseover', function () {
+            onMouseover(this, self);
+          }).on('mouseout', function () {
+            onMouseout(this, self);
+          });
+        }
+      } else {
+        var self = this;
+        cardSprite.on('mouseover', function () {
+          onMouseover(this, self);
+        }).on('mouseout', function () {
+          onMouseout(this, self);
+        });
+      }
+
+      if (cardSprite.card.damage_to_show > 0) {
+        this.damageSprite(cardSprite);
+      }
+
+      cardSprite.anchor.set(.5);
+
+      var _iterator13 = _createForOfIteratorHelper(cardSprite.children),
+          _step13;
+
+      try {
+        for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
+          var child = _step13.value;
+
+          // graphics we draw don't have an anchor, like the circle for costBackground
+          if (child.anchor) {
+            child.anchor.set(.5);
+          }
+        }
+      } catch (err) {
+        _iterator13.e(err);
+      } finally {
+        _iterator13.f();
+      }
+
+      return cardSprite;
+    }
+  }, {
+    key: "addCircledLabel",
+    value: function addCircledLabel(costX, costY, cardSprite, options, value) {
+      var circle = this.circleBackground(costX, costY);
+      cardSprite.addChild(circle);
+      var cost = new PIXI.Text(value, options);
+      cost.position.x = -3;
+      cost.position.y = -5;
+      circle.addChild(cost);
+    }
+  }, {
+    key: "circleBackground",
+    value: function circleBackground(x, y) {
+      var circlRadius = 7;
+      var background = new PIXI.Graphics();
+      background.beginFill(0xffffff, 1);
+      background.drawCircle(0, 0, circlRadius);
+      background.endFill();
+      var sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+      sprite.position.x = x;
+      sprite.position.y = y;
+      sprite.mask = background;
+      sprite.width = circlRadius * 2;
+      sprite.height = circlRadius * 2;
+      sprite.addChild(background);
+      return sprite;
+    }
+  }, {
+    key: "showAbilityPanels",
+    value: function showAbilityPanels(cardSprite, card, options, cw, ch) {
+      if (card.abilities.length == 0) {
+        return;
+      }
+
+      var topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+      topBG.tint = 0xffff00;
+      cardSprite.addChild(topBG);
+      var yPosition = 0;
+
+      var _iterator14 = _createForOfIteratorHelper(card.abilities),
+          _step14;
+
+      try {
+        for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
+          var a = _step14.value;
+          var abilityText = new PIXI.Text("", options);
+
+          if (a.name == "Shield") {
+            abilityText.text = "Shield - Shielded entities don't take damage the first time they get damaged.";
+          }
+
+          if (a.name == "Guard") {
+            abilityText.text = "Guard - Guard entities must be attacked before anything else.";
+          }
+
+          if (a.name == "Syphon") {
+            abilityText.text = "Syphon - Gain hit points whenever this deals damage.";
+          }
+
+          if (a.name == "Fast") {
+            abilityText.text = "Fast - Fast entities may attack the turn they come into play.";
+          }
+
+          if (a.name == "Ambush") {
+            abilityText.text = "Ambush - Ambush entities may attack other entities the turn they come into play.";
+          }
+
+          if (a.name == "Instrument Required") {
+            abilityText.text = "Instrument Required - You must have an Instrument in play to play this.";
+          }
+
+          if (a.name == "Townie") {
+            abilityText.text = "Townie - Townies have a little ability.";
+          }
+
+          if (a.name == "Unique") {
+            abilityText.text = "Unique - only one Unique card is allowed per deck.";
+          }
+
+          if (a.name == "Weapon") {
+            abilityText.text = "Weapon - Weapons can be used to attack players and entities.";
+          }
+
+          if (a.name == "Instrument") {
+            abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
+          }
+
+          if (abilityText.text) {
+            abilityText.position.x = cw;
+            abilityText.position.y = yPosition - ch / 2 + 20;
+            abilityText.width = cw - 20;
+            yPosition += 40;
+            cardSprite.addChild(abilityText);
+          }
+        }
+      } catch (err) {
+        _iterator14.e(err);
+      } finally {
+        _iterator14.f();
+      }
+
+      topBG.width = cw;
+      topBG.height = yPosition + 20;
+      topBG.position.x = cw + 5;
+      topBG.position.y = -ch / 2 + (20 + yPosition) / 2;
     }
   }, {
     key: "removeCardsFromStage",
@@ -65691,12 +66034,12 @@ var GameUX = /*#__PURE__*/function () {
       if (this.thisPlayer(game) && this.opponent(game)) {
         var spritesToRemove = [];
 
-        var _iterator9 = _createForOfIteratorHelper(this.app.stage.children),
-            _step9;
+        var _iterator15 = _createForOfIteratorHelper(this.app.stage.children),
+            _step15;
 
         try {
-          for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-            var _sprite2 = _step9.value;
+          for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
+            var _sprite2 = _step15.value;
 
             if (_sprite2.card) {
               if (_sprite2.card && !_sprite2.dragging) {
@@ -65705,9 +66048,9 @@ var GameUX = /*#__PURE__*/function () {
             }
           }
         } catch (err) {
-          _iterator9.e(err);
+          _iterator15.e(err);
         } finally {
-          _iterator9.f();
+          _iterator15.f();
         }
 
         for (var _i2 = 0, _spritesToRemove = spritesToRemove; _i2 < _spritesToRemove.length; _i2++) {
@@ -65730,7 +66073,7 @@ var GameUX = /*#__PURE__*/function () {
         godray.time += _this2.app.ticker.elapsedMS / 1000;
       };
 
-      var sprite = this.cardSprite(game, card, player, null);
+      var sprite = this.cardSprite(game, card, player, false);
       sprite.position.x = 100;
       sprite.position.y = this.inPlay.position.y + padding;
       sprite.scale.set(1.5);
@@ -65749,6 +66092,8 @@ var GameUX = /*#__PURE__*/function () {
     key: "showRope",
     value: function showRope() {
       var _this3 = this;
+
+      return;
 
       if (this.showingRope) {
         return;
@@ -65814,8 +66159,7 @@ var GameUX = /*#__PURE__*/function () {
       var b = new PIXI.Sprite.from(this.newGameButtonTexture);
       b.buttonMode = true;
       b.position.x = 23;
-      b.position.y = 17; // b.anchor.set(0.5);
-
+      b.position.y = 17;
       b.interactive = true;
 
       var clickFunction = function clickFunction() {
@@ -66008,22 +66352,22 @@ var GameUX = /*#__PURE__*/function () {
     value: function updateHand(game) {
       var index = 0;
 
-      var _iterator10 = _createForOfIteratorHelper(this.thisPlayer(game).hand),
-          _step10;
+      var _iterator16 = _createForOfIteratorHelper(this.thisPlayer(game).hand),
+          _step16;
 
       try {
-        for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-          var card = _step10.value;
-          var sprite = this.cardSprite(game, card, this.userOrP1(game), index);
+        for (_iterator16.s(); !(_step16 = _iterator16.n()).done;) {
+          var card = _step16.value;
+          var sprite = this.cardSprite(game, card, this.userOrP1(game), false);
+          sprite.position.x = cardWidth * index + cardWidth / 2 + padding;
           sprite.position.y = this.handContainer.position.y + cardHeight / 2;
-          sprite.position.x += padding;
           this.app.stage.addChild(sprite);
           index++;
         }
       } catch (err) {
-        _iterator10.e(err);
+        _iterator16.e(err);
       } finally {
-        _iterator10.f();
+        _iterator16.f();
       }
     }
   }, {
@@ -66041,12 +66385,12 @@ var GameUX = /*#__PURE__*/function () {
     value: function updateInPlay(game, player, inPlaySprite) {
       var cardIdToHide = null;
 
-      var _iterator11 = _createForOfIteratorHelper(player.in_play),
-          _step11;
+      var _iterator17 = _createForOfIteratorHelper(player.in_play),
+          _step17;
 
       try {
-        for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
-          var card = _step11.value;
+        for (_iterator17.s(); !(_step17 = _iterator17.n()).done;) {
+          var card = _step17.value;
 
           if (player.card_info_to_resolve["card_id"] && card.id == player.card_info_to_resolve["card_id"] && player.card_info_to_resolve["effect_type"] != "entity_comes_into_play" && player.card_info_to_resolve["effect_type"] != "entity_activated") {
             cardIdToHide = card.id;
@@ -66054,9 +66398,9 @@ var GameUX = /*#__PURE__*/function () {
           }
         }
       } catch (err) {
-        _iterator11.e(err);
+        _iterator17.e(err);
       } finally {
-        _iterator11.f();
+        _iterator17.f();
       }
 
       var inPlayLength = player.in_play.length;
@@ -66076,20 +66420,20 @@ var GameUX = /*#__PURE__*/function () {
         index = 1;
       }
 
-      var _iterator12 = _createForOfIteratorHelper(player.in_play),
-          _step12;
+      var _iterator18 = _createForOfIteratorHelper(player.in_play),
+          _step18;
 
       try {
-        for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
-          var _card = _step12.value;
+        for (_iterator18.s(); !(_step18 = _iterator18.n()).done;) {
+          var _card = _step18.value;
 
           if (cardIdToHide && _card.id == cardIdToHide && player == this.thisPlayer(game)) {
             continue;
           }
 
-          var sprite = this.cardSprite(game, _card, player, index);
+          var sprite = this.cardSpriteInPlay(game, _card, player, false);
+          sprite.position.x = cardWidth * index + cardWidth / 4 + padding;
           sprite.position.y = inPlaySprite.position.y + cardHeight / 2;
-          sprite.position.x += padding;
 
           if (cardIdToHide && _card.id == cardIdToHide && player == this.opponent(game)) {
             sprite.filters = [targettableGlowFilter()];
@@ -66099,9 +66443,9 @@ var GameUX = /*#__PURE__*/function () {
           index++;
         }
       } catch (err) {
-        _iterator12.e(err);
+        _iterator18.e(err);
       } finally {
-        _iterator12.f();
+        _iterator18.f();
       }
     }
   }, {
@@ -66120,12 +66464,12 @@ var GameUX = /*#__PURE__*/function () {
       // artifactsSprite.children = []
       var cardIdToHide = null;
 
-      var _iterator13 = _createForOfIteratorHelper(player.artifacts),
-          _step13;
+      var _iterator19 = _createForOfIteratorHelper(player.artifacts),
+          _step19;
 
       try {
-        for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
-          var card = _step13.value;
+        for (_iterator19.s(); !(_step19 = _iterator19.n()).done;) {
+          var card = _step19.value;
 
           if (player.card_info_to_resolve["card_id"] && card.id == player.card_info_to_resolve["card_id"]) {
             cardIdToHide = card.id;
@@ -66133,25 +66477,25 @@ var GameUX = /*#__PURE__*/function () {
           }
         }
       } catch (err) {
-        _iterator13.e(err);
+        _iterator19.e(err);
       } finally {
-        _iterator13.f();
+        _iterator19.f();
       }
 
       var index = 0;
 
-      var _iterator14 = _createForOfIteratorHelper(player.artifacts),
-          _step14;
+      var _iterator20 = _createForOfIteratorHelper(player.artifacts),
+          _step20;
 
       try {
-        for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
-          var _card2 = _step14.value;
+        for (_iterator20.s(); !(_step20 = _iterator20.n()).done;) {
+          var _card2 = _step20.value;
 
           if (cardIdToHide && _card2.id == cardIdToHide && player == this.thisPlayer(game)) {
             continue;
           }
 
-          var sprite = this.cardSprite(game, _card2, player, index);
+          var sprite = this.cardSpriteInPlay(game, _card2, player, false);
           this.app.stage.addChild(sprite);
           sprite.position.y = artifactsSprite.position.y + cardHeight / 2;
           sprite.position.x = artifactsSprite.position.x + cardWidth * index + cardWidth / 2;
@@ -66162,29 +66506,29 @@ var GameUX = /*#__PURE__*/function () {
           }
         }
       } catch (err) {
-        _iterator14.e(err);
+        _iterator20.e(err);
       } finally {
-        _iterator14.f();
+        _iterator20.f();
       }
     }
   }, {
     key: "thisPlayer",
     value: function thisPlayer(game) {
-      var _iterator15 = _createForOfIteratorHelper(game.players),
-          _step15;
+      var _iterator21 = _createForOfIteratorHelper(game.players),
+          _step21;
 
       try {
-        for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
-          var player = _step15.value;
+        for (_iterator21.s(); !(_step21 = _iterator21.n()).done;) {
+          var player = _step21.value;
 
           if (player.username == this.username) {
             return player;
           }
         }
       } catch (err) {
-        _iterator15.e(err);
+        _iterator21.e(err);
       } finally {
-        _iterator15.f();
+        _iterator21.f();
       }
 
       return game.players[0];
@@ -66223,12 +66567,12 @@ var GameUX = /*#__PURE__*/function () {
         this.messageNumber = -1;
       }
 
-      var _iterator16 = _createForOfIteratorHelper(log_lines),
-          _step16;
+      var _iterator22 = _createForOfIteratorHelper(log_lines),
+          _step22;
 
       try {
-        for (_iterator16.s(); !(_step16 = _iterator16.n()).done;) {
-          var text = _step16.value;
+        for (_iterator22.s(); !(_step22 = _iterator22.n()).done;) {
+          var text = _step22.value;
           this.messageNumber += 1;
           var textSprite = new PIXI.Text(text, {
             wordWrap: true,
@@ -66241,9 +66585,9 @@ var GameUX = /*#__PURE__*/function () {
           this.gameLogScrollbox.content.addChild(textSprite);
         }
       } catch (err) {
-        _iterator16.e(err);
+        _iterator22.e(err);
       } finally {
-        _iterator16.f();
+        _iterator22.f();
       }
 
       this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
@@ -66281,21 +66625,21 @@ function onDragStart(event, cardSprite, gameUX) {
     });
     var enabled_effects = [];
 
-    var _iterator17 = _createForOfIteratorHelper(cardSprite.card.effects),
-        _step17;
+    var _iterator23 = _createForOfIteratorHelper(cardSprite.card.effects),
+        _step23;
 
     try {
-      for (_iterator17.s(); !(_step17 = _iterator17.n()).done;) {
-        var _e = _step17.value;
+      for (_iterator23.s(); !(_step23 = _iterator23.n()).done;) {
+        var _e = _step23.value;
 
         if (_e.effect_type == "activated" && _e.enabled == true) {
           enabled_effects.push(_e);
         }
       }
     } catch (err) {
-      _iterator17.e(err);
+      _iterator23.e(err);
     } finally {
-      _iterator17.f();
+      _iterator23.f();
     }
 
     var dragging = true;
@@ -66340,21 +66684,21 @@ function onDragEnd(cardSprite, gameUX) {
     } else {
       var collidedSprite;
 
-      var _iterator18 = _createForOfIteratorHelper(gameUX.app.stage.children),
-          _step18;
+      var _iterator24 = _createForOfIteratorHelper(gameUX.app.stage.children),
+          _step24;
 
       try {
-        for (_iterator18.s(); !(_step18 = _iterator18.n()).done;) {
-          var sprite = _step18.value;
+        for (_iterator24.s(); !(_step24 = _iterator24.n()).done;) {
+          var sprite = _step24.value;
 
           if (bump.hit(cardSprite, sprite) && cardSprite.card && sprite.card && cardSprite.card.id != sprite.card.id) {
             collidedSprite = sprite;
           }
         }
       } catch (err) {
-        _iterator18.e(err);
+        _iterator24.e(err);
       } finally {
-        _iterator18.f();
+        _iterator24.f();
       }
 
       if (collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
@@ -66385,12 +66729,12 @@ function onDragEnd(cardSprite, gameUX) {
       playedMove = true;
     } else {
       // todo: this shouldn't bump any non opponent non clickable cards, but that depends on pefect game state 
-      var _iterator19 = _createForOfIteratorHelper(gameUX.app.stage.children),
-          _step19;
+      var _iterator25 = _createForOfIteratorHelper(gameUX.app.stage.children),
+          _step25;
 
       try {
-        for (_iterator19.s(); !(_step19 = _iterator19.n()).done;) {
-          var opponentEntity = _step19.value;
+        for (_iterator25.s(); !(_step25 = _iterator25.n()).done;) {
+          var opponentEntity = _step25.value;
 
           if (opponentEntity.card && opponentEntity.card.id != cardSprite.card.id && opponentEntity.card.can_be_clicked && bump.hit(cardSprite, opponentEntity)) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {
@@ -66400,9 +66744,9 @@ function onDragEnd(cardSprite, gameUX) {
           }
         }
       } catch (err) {
-        _iterator19.e(err);
+        _iterator25.e(err);
       } finally {
-        _iterator19.f();
+        _iterator25.f();
       }
     }
   }
@@ -66434,12 +66778,12 @@ function onDragMove(cardSprite, gameUX, bump) {
     var cardInHand = cardSprite.card.turn_played == -1;
     var collidedEntity = null;
 
-    var _iterator20 = _createForOfIteratorHelper(gameUX.app.stage.children),
-        _step20;
+    var _iterator26 = _createForOfIteratorHelper(gameUX.app.stage.children),
+        _step26;
 
     try {
-      for (_iterator20.s(); !(_step20 = _iterator20.n()).done;) {
-        var entity = _step20.value;
+      for (_iterator26.s(); !(_step26 = _iterator26.n()).done;) {
+        var entity = _step26.value;
 
         if (entity.card && cardSprite.card.id != entity.card.id) {
           if (entity.card.can_be_clicked) {
@@ -66454,9 +66798,9 @@ function onDragMove(cardSprite, gameUX, bump) {
         }
       }
     } catch (err) {
-      _iterator20.e(err);
+      _iterator26.e(err);
     } finally {
-      _iterator20.f();
+      _iterator26.f();
     }
 
     if (!handCollision && cardSprite.card.card_type == "Spell" && !cardSprite.card.needs_targets) {
@@ -66522,7 +66866,7 @@ function onMouseover(cardSprite, gameUX) {
   gameUX.hoverTimeout = setTimeout(function () {
     if (gameUX.hovering) {
       gameUX.hovering = false;
-      var sprite = gameUX.cardSprite(gameUX.game, cardSprite.card, gameUX.thisPlayer(gameUX.game), null, true, true);
+      var sprite = gameUX.cardSprite(gameUX.game, cardSprite.card, gameUX.thisPlayer(gameUX.game), false, true);
       sprite.on('mouseover', function () {}).on('mouseout', function () {});
       sprite.position.x = cardSprite.position.x + cardWidth / 2;
       sprite.position.y = cardSprite.position.y - cardHeight * 1.5;

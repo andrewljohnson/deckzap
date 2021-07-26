@@ -29,6 +29,8 @@ export class GameUX {
         this.bump = new Bump(PIXI);
         this.cardTexture = PIXI.Texture.from('/static/images/card.png');
         this.cardLargeTexture = PIXI.Texture.from('/static/images/card-large.png');
+        this.cardTextureInPlay = PIXI.Texture.from('/static/images/in play mob.png');
+        this.cardTextureInPlayArtifact = PIXI.Texture.from('/static/images/in play mana artifact.png');
         this.inPlayTexture = PIXI.Texture.from('/static/images/in_play.png');
         this.handTexture = PIXI.Texture.from('/static/images/hand.png');
         this.artifactsTexture = PIXI.Texture.from('/static/images/relics.png');
@@ -39,10 +41,11 @@ export class GameUX {
         this.tigerTexture = PIXI.Texture.from('/static/images/tiger.png');
 
         PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
+        PIXI.GRAPHICS_CURVES.adaptive = true
         this.app = new PIXI.Application({
             width: appWidth, 
             height: appHeight, 
-            antialias: false, 
+            antialias: true, 
             backgroundAlpha: true,
             resolution: window.devicePixelRatio || 1,
             autoDensity: true
@@ -239,6 +242,7 @@ export class GameUX {
         if (game.show_rope) {
             this.showRope();
         }
+        // this.app.renderer.render(this.app.stage)
     }
 
     showMakeView(game) {
@@ -317,7 +321,9 @@ export class GameUX {
 
         var index = 0;
         for (let card of cards) {
-            let cardSprite = this.cardSprite(game, card, this.userOrP1(game), index, false, false, true);
+            let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false);
+            cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
+            cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
             cardContainer.addChild(cardSprite);
 
             var self = this;
@@ -329,57 +335,34 @@ export class GameUX {
         }
     }
 
-    cardSprite(game, card, player, index, dont_attach_listeners, useLargeSize, displayInGrid) {
-        var cardTexture = this.cardTexture;
-        if (useLargeSize) {
-            cardTexture = this.cardLargeTexture;
-        }
-
+    baseCardSprite(card, cardTexture) {
         let cardSprite = new PIXI.Sprite.from(cardTexture);
         cardSprite.interactive = true;
-        cardSprite.anchor.set(.5);
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
 
-        if (displayInGrid) {
-            cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
-            cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
+        return cardSprite;
+    }
+
+    cardSpriteInPlay(game, card, player, dont_attach_listeners) {
+        var cardTexture;
+        if (card.name == "Mana Battery") {
+            cardTexture = this.cardTextureInPlayArtifact;
         } else {
-            cardSprite.position.x = (cardWidth)*index + cardWidth/2;
-            cardSprite.position.y = cardHeight/2;                        
+            cardTexture = this.cardTextureInPlay;
         }
 
-        cardSprite.index = index;
+        var cardSprite = this.baseCardSprite(card, cardTexture);
+        let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
+        imageSprite.width = 66;
+        imageSprite.height = 75;
+        imageSprite.position.y = -2;
+        cardSprite.addChild(imageSprite);
 
-        var wordWrapWidth = 60;
-        var fontSize = 8;
-        if (useLargeSize) {
-            wordWrapWidth += 60 - 11;
-            fontSize = 10;
-        }
-        let options = {fontFamily : 'Helvetica', fontSize: fontSize, fill : 0x00000, wordWrap: true, wordWrapWidth: wordWrapWidth};
-        let name = new PIXI.Text(card.name, options);
-        cardSprite.addChild(name);
-
-        let aFX = -42;
-        let aFY = -55;
-        if (useLargeSize) {
-            aFX = aFX * 2 + 4;
-            aFY = aFY * 2 + 4;
-        }
-        name.position.x = aFX + 7;
-        name.position.y = aFY + padding/2;
-
-        if (card.card_type != "Effect") {
-            let cost = new PIXI.Text(card.cost, options);
-            cardSprite.addChild(cost);
-            cost.position.x = aFX + cardWidth - 10;
-            cost.position.y = aFY + 11;
-            if (useLargeSize) {
-                cost.position.x += cardWidth - 12;
-                cost.position.y += 11;
-            }
-        }
+        let options = {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 60};
+        
+        let aFX = -cardWidth / 2;
+        let aFY = -cardHeight / 2;
 
         let activatedEffects = [];
         let attackEffect = null;
@@ -391,138 +374,6 @@ export class GameUX {
                 }
             }
         }
-
-        options.wordWrapWidth = 72;
-        if (useLargeSize) {
-            options.wordWrapWidth = 144;
-        }
-        if (card.description && card.description.length > 120) {
-            if (!useLargeSize) {
-               options.fontSize = 6; 
-            }
-        }
-        let description = new PIXI.Text(card.description, options);
-        if (card.description) {
-            // todo don't hardcode hide description for Infernus
-            // todo don't hardcode hide description for Winding One
-            if ((card.card_type == "Entity" && activatedEffects.length == 0) ||
-                card.card_type != "Entity" ||
-                card.turn_played == -1) {
-                cardSprite.addChild(description);
-            }
-        }
-        description.position.x = name.position.x;
-        description.position.y = name.position.y + 30;
-        if (useLargeSize) {
-            description.position.y += 20 + 2;
-        }
-
-        var addedDescription = null;
-        if (card.added_descriptions.length) {
-            for (let d of card.added_descriptions) {
-                addedDescription = new PIXI.Text(d, options);
-                addedDescription.position.x = name.position.x;
-                addedDescription.position.y = description.position.y + description.height;
-                cardSprite.addChild(description);
-            }
-        }
-
-        var abilitiesText = "";
-        var color = 0xAAAAAA;
-        for (let a of card.abilities) {
-            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
-                if (a.description) {
-                    abilitiesText += a.description;
-                    color = 0x000000;
-                } else {
-                    var hasSpecialLargeText = false;
-                    // for Befuddling Guitar
-                    if (a.name == "DamageDraw") {
-                        continue;
-                    }
-                    if (useLargeSize) {
-                        if (a.name == "Shield") {
-                            abilitiesText += "Shield - Shielded entities don't take damage the first time they get damaged.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Guard") {
-                            abilitiesText += "Guard - Guard entities must be attacked before anything else.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Syphon") {
-                            abilitiesText += "Syphon - Gain hp when this deals damage.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Fast") {
-                            abilitiesText += "Fast - Fast entities may attack the turn they come into play.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Ambush") {
-                            abilitiesText += "Ambush - Ambush entities may attack other entities the turn they come into play.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Instrument Required") {
-                            abilitiesText += "Instrument Required - You must have an Instrument in play to play this.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Townie") {
-                            abilitiesText += "Townie - Townies have a little ability.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Unique") {
-                            abilitiesText += "Unique - only one Unique card is allowed per deck.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Weapon") {
-                            abilitiesText += "Weapon - Weapons can be used to attack players and entities.";
-                            hasSpecialLargeText = true;
-                        }                    
-                        if (a.name == "Instrument") {
-                            abilitiesText += "Instrument - Instruments have special abilities and are needed for other cards.";
-                            hasSpecialLargeText = true;
-                        } 
-                    }
-                    if (!hasSpecialLargeText) {                        
-                        abilitiesText += a.name;
-                    }
-                if (a != card.abilities[card.abilities.length-1]) {                
-                    if (useLargeSize) {
-                        abilitiesText += "\n\n";
-                    } else {
-                        abilitiesText += ", ";
-
-                    }
-                }                
-            }
-        }
-    }
-
-        for (let c of card.tokens) {
-           if (c.set_can_act == false) {
-            if (abilitiesText.length) {
-                abilitiesText += ", ";
-            }
-            abilitiesText += "Can't Attack";
-           }
-        }
-
-        if (abilitiesText) {
-            options.fill = color;
-            let abilities = new PIXI.Text(abilitiesText, options);
-            abilities.position.x = name.position.x;                
-            if (card.added_descriptions.length) {
-                abilities.position.y = addedDescription.position.y + addedDescription.height;
-            } else if (card.description) {
-                abilities.position.y = description.position.y + description.height;
-            } else {
-                abilities.position.y = name.position.y + 30;                
-                if (useLargeSize) {
-                    abilities.position.y += 20 + 2;
-                }
-            }
-            cardSprite.addChild(abilities);
-        }        
-
 
         if (card.card_type == "Entity") {
             let cardPower = card.power;
@@ -548,22 +399,16 @@ export class GameUX {
                 }
             }
             options.fill = 0x000000;
-            let powerToughness = new PIXI.Text(cardPower + "/" + cardToughness, options);
-            powerToughness.position.x = aFX + cardWidth - 14;
-            powerToughness.position.y = aFY + cardHeight - 18;
-            if (useLargeSize) {
-                powerToughness.position.x += cardWidth - 7;
-                powerToughness.position.y += cardHeight - 15;
-            }
-            cardSprite.addChild(powerToughness);
+            let centerOfEllipse = 17
+            var powerX = aFX + centerOfEllipse;
+            var powerY  = aFY + cardHeight - 14;
+            this.addCircledLabel(powerX, powerY, cardSprite, options, cardPower);
+            var toughnessX  = aFX + cardWidth - centerOfEllipse;
+            this.addCircledLabel(toughnessX, powerY, cardSprite, options, cardToughness);
         } else if (card.turn_played == -1 && !attackEffect) {
             let type = new PIXI.Text(card.card_type, options);
             type.position.x = aFX + cardWidth - 28;
             type.position.y = aFY + cardHeight - 18;
-            if (useLargeSize) {
-                type.position.x += cardWidth - 5;
-                type.position.y += cardHeight - 16;
-            }
             cardSprite.addChild(type);
         }
 
@@ -574,10 +419,6 @@ export class GameUX {
             }
             powerCharges.position.x = aFX + cardWidth - 14;
             powerCharges.position.y = aFY + cardHeight - 18;
-            if (useLargeSize) {
-                powerCharges.position.x += cardWidth - 8;
-                powerCharges.position.y += cardHeight - 16;
-            }
             cardSprite.addChild(powerCharges);
         }
 
@@ -629,7 +470,428 @@ export class GameUX {
            this.damageSprite(cardSprite);
         }
 
+        cardSprite.anchor.set(.5);
+        for (let child of cardSprite.children) {
+            child.anchor.set(.5);
+        }
+
         return cardSprite;
+    }
+
+    imagePath(card) {
+        let imageName = card.image;
+        if (!imageName) {
+            imageName = "hades-symbol.svg"
+        }
+        return '/static/images/card-art/' + imageName;
+    }
+
+    cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
+        var cardTexture = (useLargeSize ? this.cardLargeTexture : this.cardTexture); 
+        var cardSprite = this.baseCardSprite(card, cardTexture);
+
+        cardSprite.interactive = true;
+        cardSprite.card = card;
+        cardSprite.buttonMode = true;  // hand cursor
+
+        let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
+        imageSprite.width = 37;
+        imageSprite.height = 52;
+        imageSprite.position.y = -29;
+        if (useLargeSize) {
+            imageSprite.height *=2;
+            imageSprite.width *=2;
+            imageSprite.position.y = -58;
+        }
+        cardSprite.addChild(imageSprite);
+
+        let options = {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 60};        
+        if (useLargeSize) {
+            options = {fontFamily : 'Helvetica', fontSize: 10, fill : 0x00000, wordWrap: true, wordWrapWidth: 109};        
+        }
+
+        let aFX = -8;
+        let aFY = -9;
+
+        var cw = cardWidth;
+        var ch = cardHeight;
+        if (useLargeSize) {
+            aFX = -cardWidth/4 + 16;
+            aFY = -cardHeight/4;
+            cw*= 2;
+            ch*= 2;            
+        }
+
+        const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        nameBackground.tint = 0x000000
+        nameBackground.width = cw - 6;
+        nameBackground.height = 12;
+        nameBackground.alpha = .7;
+        nameBackground.position.x = aFX + 8;
+        nameBackground.position.y = aFY;
+            if (useLargeSize) {
+                nameBackground.position.y += 20
+                nameBackground.width -= 24;
+            }
+        cardSprite.addChild(nameBackground);
+
+        let nameOptions = { ...options };
+        nameOptions.fill = 0xffffff;
+        let name = new PIXI.Text(card.name, nameOptions);
+        cardSprite.addChild(name);
+        name.position.x = nameBackground.position.x;
+        name.position.y = nameBackground.position.y;
+
+
+        let activatedEffects = [];
+        let attackEffect = null;
+        for (let e of card.effects) {
+            if (e.effect_type == "activated" && e.enabled) {
+                activatedEffects.push(e)
+                if (e.name == "attack" || e.name == "make_random_townie") {
+                    attackEffect = e;
+                }
+            }
+        }
+        if (card.card_type != "Effect") {
+            var costX = aFX - 23;
+            var costY = aFX - 38;
+            if (useLargeSize) {
+                costX -= cw/4;
+                costY -= ch/4;
+            }
+            this.addCircledLabel(costX, costY, cardSprite, options, card.cost);
+        }            
+
+        options.wordWrapWidth = 72;
+        if (useLargeSize) {
+            options.wordWrapWidth = 142;
+        }
+
+        if (card.description && card.description.length > 120) {
+               options.fontSize = 6; 
+        }
+
+
+        let description = new PIXI.Text(card.description, options);
+        if (card.description) {
+            // todo don't hardcode hide description for Infernus
+            // todo don't hardcode hide description for Winding One
+            if ((card.card_type == "Entity" && activatedEffects.length == 0) ||
+                card.card_type != "Entity" ||
+                card.turn_played == -1) {
+                cardSprite.addChild(description);
+            }
+        }
+        description.position.x = name.position.x;
+        description.position.y = name.position.y + 28;
+        if (useLargeSize) {
+            description.position.y += 20 + 2;
+        }
+
+
+        var addedDescription = null;
+        if (card.added_descriptions.length) {
+            for (let d of card.added_descriptions) {
+                addedDescription = new PIXI.Text(d, options);
+                addedDescription.position.x = name.position.x;
+                addedDescription.position.y = description.position.y + description.height;
+                cardSprite.addChild(description);
+            }
+        }
+
+        var abilitiesText = "";
+        var color = 0xAAAAAA;
+        for (let a of card.abilities) {
+            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck"].includes(a.descriptive_id)) {
+                if (a.description) {
+                    abilitiesText += a.description;
+                    color = 0x000000;
+                } else {
+                    var hasSpecialLargeText = false;
+                    // for Befuddling Guitar
+                    if (a.name == "DamageDraw") {
+                        continue;
+                    }
+                        abilitiesText += a.name;
+                    if (a != card.abilities[card.abilities.length-1]) {                
+                           abilitiesText += ", ";
+                    }                
+                }
+            }
+        }
+
+        if (useLargeSize) {
+            this.showAbilityPanels(cardSprite, card, options, cw, ch);
+        }
+
+        for (let c of card.tokens) {
+           if (c.set_can_act == false) {
+            if (abilitiesText.length) {
+                abilitiesText += ", ";
+            }
+            abilitiesText += "Can't Attack";
+           }
+        }
+
+        if (abilitiesText) {
+            options.fill = color;
+            let abilities = new PIXI.Text(abilitiesText, options);
+            abilities.position.x = name.position.x;                
+            if (card.added_descriptions.length) {
+                abilities.position.y = addedDescription.position.y + addedDescription.height;
+            } else if (card.description) {
+                abilities.position.y = description.position.y + description.height;
+            } else {
+                abilities.position.y = name.position.y + 30;                
+            }
+            if (useLargeSize) {
+                abilities.position.y += 20 + 2;
+            }
+            cardSprite.addChild(abilities);
+        }        
+
+
+        if (card.card_type == "Entity") {
+            let cardPower = card.power;
+            let cardToughness = card.toughness - card.damage;
+            if (card.tokens) {
+                // todo does this code need to be clientside?
+                for (let c of card.tokens) {
+                    if (c.multiplier == "self_artifacts" && player.artifacts) {
+                        cardPower += c.power_modifier * player.artifacts.length;                        
+                    } else if (c.multiplier == "self_entities_and_artifacts") {
+                        if (player.artifacts) {
+                            cardPower += c.power_modifier * player.artifacts.length;                        
+                        }
+                        if (player.in_play) {
+                            cardPower += c.power_modifier * (player.in_play.length - 1);                        
+                        }
+                    } else {
+                        cardPower += c.power_modifier;                        
+                    }
+                }
+                for (let c of card.tokens) {
+                    cardToughness += c.toughness_modifier;
+                }
+            }
+            options.fill = 0x000000;
+
+            let centerOfEllipse = 16
+
+            var powerX = aFX - cw/2 + centerOfEllipse;
+            var powerY = aFY + ch/2;
+            var defenseX = aFX + cw/2;
+
+            if (useLargeSize) {
+                powerY += 20;
+                powerX -= 5;
+                defenseX -= 5;
+
+            }
+
+            this.addCircledLabel(powerX, powerY, cardSprite, options, cardPower);
+            this.addCircledLabel(defenseX, powerY, cardSprite, options, cardToughness);
+
+        } else if (card.turn_played == -1 && !attackEffect) {
+            var typeX = aFX + cw/4 - 33;
+            var typeY = aFY + ch/2 - 5;
+            if (useLargeSize) {
+                typeX -= 20;
+                typeY += 20;
+            }
+            var typeBG = new PIXI.Graphics();
+            typeBG.beginFill(0x111111);
+            typeBG.drawRoundedRect(
+                0,
+                0,
+                42,
+                12,
+                30
+            );
+            typeBG.position.x = typeX;
+            typeBG.position.y = typeY;
+            typeBG.endFill();
+            typeBG.alpha = .7;
+            cardSprite.addChild(typeBG);
+
+            let typeOptions = { ...options };
+            typeOptions.fill = 0xffffff;
+            let type = new PIXI.Text(card.card_type, typeOptions);
+            type.position.x = typeX + 20;
+            type.position.y = typeY + 6
+            cardSprite.addChild(type);
+        }
+
+        if (attackEffect) {
+            let powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
+            if (attackEffect.name == "make_random_townie") {
+                powerCharges = new PIXI.Text(attackEffect.counters + "/" + attackEffect.amount, options);
+            }
+            powerCharges.position.x = aFX + cw - 14;
+            powerCharges.position.y = aFY + ch - 18;
+            cardSprite.addChild(powerCharges);
+        }
+
+        var filters = []
+        if (!card.can_be_clicked) {
+            filters.push(cantBeClickedFilter());                        
+        }
+        if (card.shielded && card.turn_played > -1) {
+            filters.push(new GodrayFilter());                        
+        }
+        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
+            filters.push(new GodrayFilter());                        
+            cardSprite.tint = 0xff0000;
+        }
+
+        cardSprite.filters = filters;
+
+        if (dont_attach_listeners) {
+            return cardSprite;
+        }
+
+        if (card.can_be_clicked) {
+            if (this.thisPlayer(game).card_info_to_resolve["card_id"]) {
+                var self = this;
+                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});})
+            } else {
+                var self = this;
+                cardSprite
+                    .on('mousedown',        function (e) {onDragStart(e, this, self)})
+                    .on('touchstart',       function (e) {onDragStart(e, this, self)})
+                    .on('mouseup',          function ()  {onDragEnd(this, self)})
+                    .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
+                    .on('touchend',         function ()  {onDragEnd(this, self)})
+                    .on('touchendoutside',  function ()  {onDragEnd(this, self)})
+                    .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
+                    .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
+                if (!useLargeSize) {
+                    cardSprite
+                        .on('mousedown',        function (e) {onDragStart(e, this, self)})
+                        .on('touchstart',       function (e) {onDragStart(e, this, self)})
+                        .on('mouseup',          function ()  {onDragEnd(this, self)})
+                        .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
+                        .on('touchend',         function ()  {onDragEnd(this, self)})
+                        .on('touchendoutside',  function ()  {onDragEnd(this, self)})
+                        .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
+                        .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
+                        .on('mouseover',        function ()  {onMouseover(this, self)})
+                        .on('mouseout',        function ()  {onMouseout(this, self)})
+                }
+            }
+        } else { 
+            var self = this;
+            if (!useLargeSize) {
+                cardSprite
+                    .on('mouseover',        function ()  {onMouseover(this, self)})
+                    .on('mouseout',        function ()  {onMouseout(this, self)})
+            }
+        }
+
+
+         if (cardSprite.card.damage_to_show > 0) {
+           this.damageSprite(cardSprite);
+        }
+
+        cardSprite.anchor.set(.5);
+        for (let child of cardSprite.children) {
+            // graphics we draw don't have an anchor, like the circle for costBackground
+            if (child.anchor) {
+                child.anchor.set(.5);                
+            }
+        }
+
+        return cardSprite;
+    }
+
+    addCircledLabel(costX, costY, cardSprite, options, value) {
+        var circle = this.circleBackground(costX, costY);
+        cardSprite.addChild(circle);
+        let cost = new PIXI.Text(value, options);
+        cost.position.x = -3;
+        cost.position.y = -5;
+        circle.addChild(cost);
+    }
+
+    circleBackground(x, y) {
+        const circlRadius = 7;
+        const background = new PIXI.Graphics();
+        background.beginFill(0xffffff, 1);
+        background.drawCircle(0, 0, circlRadius);
+        background.endFill();
+        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        sprite.position.x = x;
+        sprite.position.y = y;
+        sprite.mask = background;
+        sprite.width = circlRadius*2;
+        sprite.height = circlRadius*2;
+        sprite.addChild(background);
+        return sprite;
+    }
+
+    showAbilityPanels(cardSprite, card, options, cw, ch) {
+        const topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        cardSprite.addChild(topBG);
+        topBG.tint = 0xffff00;
+        var yPosition = 0;
+        for (let a of card.abilities) {
+            let abilityText = new PIXI.Text("", options);
+            if (a.name == "Shield") {
+                abilityText.text = "Shield - Shielded entities don't take damage the first time they get damaged.";
+            }                    
+            if (a.name == "Guard") {
+                abilityText.text = "Guard - Guard entities must be attacked before anything else.";
+            }                    
+            if (a.name == "Syphon") {
+                abilityText.text = "Syphon - Gain hit points whenever this deals damage.";
+            }                    
+            if (a.name == "Fast") {
+                abilityText.text = "Fast - Fast entities may attack the turn they come into play.";
+            }                    
+            if (a.name == "Ambush") {
+                abilityText.text = "Ambush - Ambush entities may attack other entities the turn they come into play.";
+            }                    
+            if (a.name == "Instrument Required") {
+                abilityText.text = "Instrument Required - You must have an Instrument in play to play this.";
+            }                    
+            if (a.name == "Townie") {
+                abilityText.text = "Townie - Townies have a little ability.";
+            }                    
+            if (a.name == "Unique") {
+                abilityText.text = "Unique - only one Unique card is allowed per deck.";
+            }                    
+            if (a.name == "Weapon") {
+                abilityText.text = "Weapon - Weapons can be used to attack players and entities.";
+            }                    
+            if (a.name == "Instrument") {
+                abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
+            } 
+            if (a.name == "Fade") {
+                abilityText.text = "Fade - Fade entities get -1/-1 at the beginning of the turn.";
+            }                    
+            if (a.name == "Stomp") {
+                abilityText.text = "Stomp - Stomp entities deal excess damage to players.";
+            }                    
+            if (a.name == "Lurker") {
+                abilityText.text = "Lurker - Lurker entities can't be targetted until they attack.";
+            }                    
+            if (abilityText.text) {
+                abilityText.position.x = cw;
+                abilityText.position.y = yPosition - ch/2 + 20;
+                abilityText.width = cw - 20;
+                yPosition += 40;
+                cardSprite.addChild(abilityText);
+            }
+        }
+        if (yPosition == 0) {
+            cardSprite.removeChild(topBG);
+        }
+        topBG.width = cw;
+        topBG.height = yPosition + 20;
+        topBG.position.x = cw + 5;
+        topBG.position.y = -ch/2 + (20+yPosition)/2;
+
     }
 
     removeCardsFromStage(game) {
@@ -655,7 +917,7 @@ export class GameUX {
       var incrementGodrayTime = () => {
         godray.time += this.app.ticker.elapsedMS / 1000;
       }
-      let sprite = this.cardSprite(game, card, player, null);
+      let sprite = this.cardSprite(game, card, player, false);
       sprite.position.x = 100;
       sprite.position.y = this.inPlay.position.y + padding;
       sprite.scale.set(1.5);
@@ -671,6 +933,7 @@ export class GameUX {
     }
 
     showRope() {
+        return;
         if (this.showingRope) {
             return;
         }
@@ -723,7 +986,6 @@ export class GameUX {
         b.buttonMode = true;
         b.position.x = 23;
         b.position.y = 17;
-        // b.anchor.set(0.5);
         b.interactive = true;
         var clickFunction = () => {
             this.gameRoom.endTurn()
@@ -889,9 +1151,9 @@ export class GameUX {
     updateHand(game) {
         var index = 0;
         for (let card of this.thisPlayer(game).hand) {
-            let sprite = this.cardSprite(game, card, this.userOrP1(game), index);
+            let sprite = this.cardSprite(game, card, this.userOrP1(game), false);
+            sprite.position.x = (cardWidth)*index + cardWidth/2 + padding;
             sprite.position.y = this.handContainer.position.y + cardHeight/2;
-            sprite.position.x += padding;
             this.app.stage.addChild(sprite);
             index++;                
         }
@@ -933,9 +1195,10 @@ export class GameUX {
                 continue;
             }
 
-            let sprite = this.cardSprite(game, card, player, index);
+            let sprite = this.cardSpriteInPlay(game, card, player, false);
+            sprite.position.x = (cardWidth)*index + cardWidth/4 + padding;
             sprite.position.y = inPlaySprite.position.y + cardHeight/2;
-            sprite.position.x += padding;
+
             if (cardIdToHide && card.id == cardIdToHide && player == this.opponent(game)) {
                 sprite.filters = [targettableGlowFilter()];
             }
@@ -972,7 +1235,7 @@ export class GameUX {
                 continue;
             }
 
-            let sprite = this.cardSprite(game, card, player, index);
+            let sprite = this.cardSpriteInPlay(game, card, player, false);
             this.app.stage.addChild(sprite);
             sprite.position.y = artifactsSprite.position.y + cardHeight/2;
             sprite.position.x = artifactsSprite.position.x + cardWidth*index + cardWidth/2;
@@ -1221,17 +1484,12 @@ function onDragMove(cardSprite, gameUX, bump) {
 
 
 function onMouseover(cardSprite, gameUX) {
-    if (!gameUX.hoverCards) {
-       gameUX.hoverCards = [] 
-    }
     gameUX.hovering = true;
     gameUX.hoverTimeout = setTimeout(() => { 
         if (gameUX.hovering) {
+            gameUX.app.stage.removeChild(gameUX.hoverCards);
             gameUX.hovering = false;
-            let sprite = gameUX.cardSprite(gameUX.game, cardSprite.card, gameUX.thisPlayer(gameUX.game), null, true, true);
-            sprite
-                .on('mouseover',        function ()  {})
-                .on('mouseout',        function ()  {})
+            let sprite = gameUX.cardSprite(gameUX.game, cardSprite.card, gameUX.thisPlayer(gameUX.game), false, true);
             sprite.position.x = cardSprite.position.x + cardWidth/2;
             sprite.position.y = cardSprite.position.y - cardHeight*1.5;
             if (sprite.position.y < cardHeight*2) {
@@ -1242,7 +1500,7 @@ function onMouseover(cardSprite, gameUX) {
                 sprite.position.x = cardSprite.position.x - cardWidth;
             }
             gameUX.app.stage.addChild(sprite)
-            gameUX.hoverCards.push(sprite);
+            gameUX.hoverCards = sprite;
         }
     }, 300);
 
@@ -1251,7 +1509,7 @@ function onMouseover(cardSprite, gameUX) {
 function onMouseout(cardSprite, gameUX) {
     clearTimeout(gameUX.hoverTimeout);
     gameUX.hovering = false
-    gameUX.app.stage.removeChild(gameUX.hoverCards.shift());
+    gameUX.app.stage.removeChild(gameUX.hoverCards);
 }
 
 

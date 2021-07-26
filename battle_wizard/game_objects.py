@@ -44,7 +44,7 @@ class Game:
         self.discard_end_of_turn = True
         self.keep_excess_mana = True
 
-        if hs_style:
+        if False and hs_style:
             self.max_max_mana = 10
             self.max_hand_size = 10
             self.cards_each_turn = 1
@@ -2348,6 +2348,7 @@ class Player:
                 "power": e.power,
                 "cost": e.cost,
                 "toughness": e.toughness,
+                "image": e.image,
                 "name": e.card_name,
                 "abilities": [a.as_dict() for a in e.abilities],
                 "turn_played": self.game.turn,
@@ -2977,6 +2978,7 @@ class Card:
         self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
         self.description = info["description"] if "description" in info else None
         self.global_effect = info["global_effect"] if "global_effect" in info else None
+        self.image = info["image"] if "image" in info else None
         self.is_token = info["is_token"] if "is_token" in info else False
         self.name = info["name"]
         self.needs_targets = info["needs_targets"] if "needs_targets" in info else False
@@ -3006,6 +3008,7 @@ class Card:
                  effects_can_be_clicked: {self.effects_can_be_clicked}\n \
                  effects_exhausted: {self.effects_exhausted}\n \
                  id: {self.id}, turn played: {self.turn_played}\n \
+                 image: {self.image}\n \
                  needs_targets: {self.needs_targets} is_token: {self.is_token} shielded: {self.shielded}\n \
                  original_description: {self.original_description}\n \
                  owner_username: {self.owner_username}"
@@ -3030,6 +3033,7 @@ class Card:
             "effects_exhausted": self.effects_exhausted,
             "global_effect": self.global_effect,
             "id": self.id,
+            "image": self.image,
             "is_token": self.is_token,
             "name": self.name,
             "needs_targets": self.needs_targets,
@@ -3257,6 +3261,7 @@ class CardEffect:
         self.effect_to_activate = CardEffect(info["effect_to_activate"], info["effect_to_activate"]["id"] if "id" in info["effect_to_activate"] else 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
         self.enabled = info["enabled"] if "enabled" in info else True
+        self.image = info["image"] if "image" in info else None
         self.make_type = info["make_type"] if "make_type" in info else None
         self.multiplier = info["multiplier"] if "multiplier" in info else None
         self.name = info["name"] if "name" in info else None 
@@ -3277,7 +3282,7 @@ class CardEffect:
             trigger: {self.trigger} toughness: {self.toughness} multiplier: {self.multiplier}\n \
             amount: {self.amount} cost: {self.cost} targetted_this_turn: {self.targetted_this_turn}\n \
             description: {self.description} cost_hp: {self.cost_hp}\n \
-            target_type: {self.target_type} name: {self.card_name}\n \
+            target_type: {self.target_type} name: {self.card_name} name: {self.image}\n \
             make_type: {self.make_type} tokens: {self.tokens} turns: {self.turns}\n \
             sacrifice_on_activate: {self.sacrifice_on_activate} abilities: {self.abilities}\n \
             effect_type: {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} \
@@ -3298,6 +3303,7 @@ class CardEffect:
             "effect_type": self.effect_type,
             "enabled": self.enabled,
             "id": self.id,
+            "image": self.image,
             "make_type": self.make_type,
             "multiplier": self.multiplier,
             "name": self.name,
