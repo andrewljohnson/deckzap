@@ -42,8 +42,8 @@ class JsonDB:
 
     def save_to_decks_database(self, username, deck, decks_database):
         if not username in decks_database:
-            decks_database[username] = {"decks": [], "next_id": 0}   
-        if not "id" in deck or not deck["id"]:
+            decks_database[username] = {"decks": [], "next_id": 0} 
+        if not "id" in deck or deck["id"] == None:
             deck["id"] = decks_database[username]["next_id"]
             decks_database[username]["next_id"] += 1
             decks_database[username]["decks"].append(deck)

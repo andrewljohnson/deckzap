@@ -444,7 +444,7 @@
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 2,
-		"cost": 5,
+		"cost": 1,
 		"abilities": [
 			{
 				"name": "Guard",
@@ -1614,6 +1614,7 @@
 		"cost": 1,
 		"description": "Summon a Townie.",
 		"effects": [{
+			"amount": 1,
 			"name": "make_token",
 			"card_name": "Townie",
 			"effect_type": "enter_play",
@@ -2178,31 +2179,6 @@
 		}]
 	},
 	{
-
-		"name": "Phoenix",
-		"race": "elf",
-		"class": "sorcerer",
-		"card_type": "Entity",
-		"description": "If this is in your played pile at the start of your turn, skip your draw this turn, and return it to play. ",
-		"power": 2,
-		"toughness": 2,
-		"cost": 5,
-		"abilities": [
-			{
-				"name": "Unique",
-				"descriptive_id": "Unique"
-			}
-		],
-		"effects": [
-			{
-				"name": "rebirth",
-				"effect_type": "triggered",
-				"target_type": "this",
-				"trigger": "start_turn"
-			}
-		]
-	},
-	{
 		"name": "Premonition",
 		"race": "elf",
 		"class": "sorcerer",
@@ -2229,7 +2205,7 @@
 		"card_type": "Entity",
 		"power": 7,
 		"toughness": 7,
-		"cost": 7,
+		"cost": 1,
 		"description": "Get a 7/7 entity with Syphon when this dies.",
 		"abilities": [			
 			{
@@ -2299,40 +2275,6 @@
 				"descriptive_id": "Guard"
 			}
 		]
-	},
-	{
-		"name": "Prophecy of the Nine",
-		"race": "elf",
-		"class": "sorcerer",
-		"cost": 9,
-		"card_type": "Spell",
-		"description": "Deal 9 damage to everything.",
-		"effects": [{
-			"name": "damage",
-			"effect_type": "spell",
-			"target_type": "all",
-			"amount": 9
-		}]
-	},
-	{
-		"name": "Prophecy of the Ten",
-		"race": "elf",
-		"class": "sorcerer",
-		"cost": 10,
-		"card_type": "Spell",
-		"description": "Gain 10 hit points. Draw until you have 10 cards.",
-		"effects": [{
-			"name": "draw",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 10
-		}, 
-		{
-			"name": "heal",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 10
-		}]
 	},
 	{
 		"name": "Gnomish Piper",

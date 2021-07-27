@@ -127,7 +127,7 @@ export class GameUX {
             .on('click', clickFunction)
             .on('tap', clickFunction)
 
-        let text = new PIXI.Text("New Game", {fontFamily : 'Helvetica', fontSize: 12, fill : 0x00000});
+        let text = new PIXI.Text("New Game", {fontFamily : 'Arial', fontSize: 12, fill : 0x00000});
         text.position.x = 23;
         text.position.y = 13;
         b.addChild(text);
@@ -303,8 +303,10 @@ export class GameUX {
         background.alpha = .7;
         container.addChild(background);
 
-
-        let options = {fontFamily : 'Helvetica', fontSize: 24, fill : 0xFFFFFF, align: "middle"};
+        let options = this.textOptions();
+        options.fontSize = 24;
+        options.fill = 0xFFFFFF;
+        options.align = "middle";
         let name = new PIXI.Text(title, options);
         name.position.x = appWidth/2 - name.width/2;
         name.position.y = 80
@@ -357,12 +359,13 @@ export class GameUX {
 
         var cardSprite = this.baseCardSprite(card, cardTexture);
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
-        imageSprite.width = 66;
-        imageSprite.height = 75;
-        imageSprite.position.y = -2;
+        imageSprite.width = 75;
+        imageSprite.height = 85;
+        imageSprite.position.y = -7;
         cardSprite.addChild(imageSprite);
+        this.ellipsifyImageSprite(imageSprite)
 
-        let options = {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 60};
+        let options = this.textOptions();
         
         let aFX = -cardWidth / 2;
         let aFY = -cardHeight / 2;
@@ -401,7 +404,6 @@ export class GameUX {
                     cardToughness += c.toughness_modifier;
                 }
             }
-            options.fill = 0x000000;
             let centerOfEllipse = 17
             var powerX = aFX + centerOfEllipse;
             var powerY  = aFY + cardHeight - 14;
@@ -490,9 +492,13 @@ export class GameUX {
     imagePath(card) {
         let imageName = card.image;
         if (!imageName) {
-            imageName = "hades-symbol.svg"
+            imageName = "uncertainty.svg"
         }
         return '/static/images/card-art/' + imageName;
+    }
+
+    textOptions() {
+        return {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 64};
     }
 
     cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
@@ -504,19 +510,21 @@ export class GameUX {
         cardSprite.buttonMode = true;  // hand cursor
 
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
-        imageSprite.width = 37;
-        imageSprite.height = 52;
+        imageSprite.width = 60;
+        imageSprite.height = 60;
         imageSprite.position.y = -29;
         if (useLargeSize) {
-            imageSprite.height *=2;
-            imageSprite.width *=2;
+            imageSprite.height = 85;
+            imageSprite.width  = 75;
             imageSprite.position.y = -58;
         }
+        this.ellipsifyImageSprite(imageSprite)
         cardSprite.addChild(imageSprite);
 
-        let options = {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 60};        
+        let options = this.textOptions();
         if (useLargeSize) {
-            options = {fontFamily : 'Helvetica', fontSize: 10, fill : 0x00000, wordWrap: true, wordWrapWidth: 109};        
+            options.fontSize = 10;
+            options.wordWrapWidth = 109;
         }
 
         let aFX = -8;
@@ -544,12 +552,20 @@ export class GameUX {
             }
         cardSprite.addChild(nameBackground);
 
-        let nameOptions = { ...options };
+        let nameOptions = this.textOptions();
         nameOptions.fill = 0xffffff;
         let name = new PIXI.Text(card.name, nameOptions);
         cardSprite.addChild(name);
         name.position.x = nameBackground.position.x;
         name.position.y = nameBackground.position.y;
+
+        const descriptionBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        descriptionBackground.tint = 0xffffff;
+        descriptionBackground.alpha = .8;
+        descriptionBackground.width = cw - 6;
+        descriptionBackground.height = ch/2 - 10;
+        descriptionBackground.position.y = descriptionBackground.height/2;
+        cardSprite.addChild(descriptionBackground);
 
 
         let activatedEffects = [];
@@ -569,20 +585,21 @@ export class GameUX {
                 costX -= cw/4;
                 costY -= ch/4;
             }
-            this.addCircledLabel(costX, costY, cardSprite, options, card.cost);
+            this.addCircledLabel(costX, costY, cardSprite, this.textOptions(), card.cost);
         }            
 
-        options.wordWrapWidth = 72;
+        let descriptionOptions = this.textOptions();
+        descriptionOptions.wordWrapWidth = 72;
         if (useLargeSize) {
-            options.wordWrapWidth = 142;
+            descriptionOptions.wordWrapWidth = 142;
         }
 
         if (card.description && card.description.length > 120) {
-               options.fontSize = 6; 
+            descriptionOptions.fontSize = 6; 
         }
 
 
-        let description = new PIXI.Text(card.description, options);
+        let description = new PIXI.Text(card.description, descriptionOptions);
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
@@ -602,7 +619,7 @@ export class GameUX {
         var addedDescription = null;
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
-                addedDescription = new PIXI.Text(d, options);
+                addedDescription = new PIXI.Text(d, this.textOptions());
                 addedDescription.position.x = name.position.x;
                 addedDescription.position.y = description.position.y + description.height;
                 cardSprite.addChild(description);
@@ -631,7 +648,7 @@ export class GameUX {
         }
 
         if (useLargeSize) {
-            this.showAbilityPanels(cardSprite, card, options, cw, ch);
+            this.showAbilityPanels(cardSprite, card, cw, ch);
         }
 
         for (let c of card.tokens) {
@@ -644,8 +661,9 @@ export class GameUX {
         }
 
         if (abilitiesText) {
-            options.fill = color;
-            let abilities = new PIXI.Text(abilitiesText, options);
+            var abilitiesOptions = this.textOptions();
+            abilitiesOptions.fill = color;
+            let abilities = new PIXI.Text(abilitiesText, abilitiesOptions);
             abilities.position.x = name.position.x;                
             if (card.added_descriptions.length) {
                 abilities.position.y = addedDescription.position.y + addedDescription.height;
@@ -684,7 +702,8 @@ export class GameUX {
                     cardToughness += c.toughness_modifier;
                 }
             }
-            options.fill = 0x000000;
+            var ptOptions = this.textOptions()
+            ptOptions.fill = 0x000000;
 
             let centerOfEllipse = 16
 
@@ -699,8 +718,8 @@ export class GameUX {
 
             }
 
-            this.addCircledLabel(powerX, powerY, cardSprite, options, cardPower);
-            this.addCircledLabel(defenseX, powerY, cardSprite, options, cardToughness);
+            this.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower);
+            this.addCircledLabel(defenseX, powerY, cardSprite, ptOptions, cardToughness);
 
         } else if (card.turn_played == -1) {
             var typeX = aFX + cw/4 - 33;
@@ -724,7 +743,7 @@ export class GameUX {
             typeBG.alpha = .7;
             cardSprite.addChild(typeBG);
 
-            let typeOptions = { ...options };
+            let typeOptions = this.textOptions();
             typeOptions.fill = 0xffffff;
 
             var typeName = card.card_type;
@@ -750,12 +769,13 @@ export class GameUX {
                 powerY += 20;
             }
             var countersX = powerX + cw - 16;
+            var attackEffectOptions = this.textOptions() 
             if (attackEffect.name == "make_random_townie") {
-                this.addCircledLabel(powerX, powerY, cardSprite, options, attackEffect.counters);
-                this.addCircledLabel(countersX, powerY, cardSprite, options, attackEffect.amount);
+                this.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
+                this.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.amount);
             } else {
-                this.addCircledLabel(powerX, powerY, cardSprite, options, attackEffect.power);
-                this.addCircledLabel(countersX, powerY, cardSprite, options, attackEffect.counters);
+                this.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power);
+                this.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
             }
         }
 
@@ -838,22 +858,46 @@ export class GameUX {
     }
 
     circleBackground(x, y) {
-        const circlRadius = 7;
+        const circleRadius = 7;
         const background = new PIXI.Graphics();
         background.beginFill(0xffffff, 1);
-        background.drawCircle(0, 0, circlRadius);
+        background.drawCircle(0, 0, circleRadius);
         background.endFill();
         const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         sprite.position.x = x;
         sprite.position.y = y;
         sprite.mask = background;
-        sprite.width = circlRadius*2;
-        sprite.height = circlRadius*2;
+        sprite.width = circleRadius * 2;
+        sprite.height = circleRadius * 2;
         sprite.addChild(background);
         return sprite;
     }
 
-    showAbilityPanels(cardSprite, card, options, cw, ch) {
+    ellipsifyImageSprite(imageSprite) {
+        var bg = this.ellipseBackground(imageSprite.width, imageSprite.height);
+        imageSprite.mask = bg;
+        imageSprite.addChild(bg);        
+    }
+
+    ellipseBackground(width, height) {
+        const ellipseW = width;
+        const ellipseH = height;
+        const background = new PIXI.Graphics();
+        background.beginFill(0xff0000, 1);
+        background.drawEllipse(0, 0, ellipseW, ellipseH)
+        background.endFill();
+        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        sprite.mask = background;
+        sprite.width = ellipseW;
+        sprite.height = ellipseH;
+        sprite.addChild(background);
+        return background;
+    }
+
+    showAbilityPanels(cardSprite, card, cw, ch) {
+        var options = this.textOptions();
+        options.fontSize = 6;
+
         const topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         cardSprite.addChild(topBG);
         topBG.tint = 0xffff00;
@@ -900,10 +944,12 @@ export class GameUX {
                 abilityText.text = "Lurker - Lurker entities can't be targetted until they attack.";
             }                    
             if (abilityText.text) {
+                const rowHeight = 54;
                 abilityText.position.x = cw;
-                abilityText.position.y = yPosition - ch/2 + 20;
+                abilityText.position.y = yPosition - ch/2 + 25;
                 abilityText.width = cw - 20;
-                yPosition += 40;
+                abilityText.height = rowHeight - 10;
+                yPosition += rowHeight;
                 cardSprite.addChild(abilityText);
             }
         }
@@ -1034,7 +1080,7 @@ export class GameUX {
         } else {
             textFillColor = 0xAAAAAA;
         }
-        let text = new PIXI.Text("End Turn", {fontFamily : 'Helvetica', fontSize: 12, fill : textFillColor});
+        let text = new PIXI.Text("End Turn", {fontFamily : 'Arial', fontSize: 12, fill : textFillColor});
         text.position.x = 27;
         text.position.y = 14;
         b.addChild(text);
@@ -1043,7 +1089,7 @@ export class GameUX {
         this.endTurnButton = b;
         this.buttonMenu.addChild(this.endTurnButton)
 
-        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : 'Helvetica', fontSize: 12, fill : textFillColor, align: "center"});
+        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : 'Arial', fontSize: 12, fill : textFillColor, align: "center"});
         turnText.position.x = this.buttonMenu.width/2;
         turnText.position.y = b.position.y + 60 + padding;
         turnText.anchor.set(0.5, 0.5);
@@ -1066,7 +1112,7 @@ export class GameUX {
 
 
     updatePlayer(game, player, avatarSprite) {
-        var props = {fontFamily : 'Helvetica', fontSize: 12, fill : 0x00000};
+        var props = {fontFamily : 'Arial', fontSize: 12, fill : 0x00000};
         avatarSprite.children = []
         let avatar;
         let usernameText = player.username;
@@ -1514,11 +1560,14 @@ function onMouseover(cardSprite, gameUX) {
             let sprite = gameUX.cardSprite(gameUX.game, cardSprite.card, gameUX.thisPlayer(gameUX.game), false, true);
             sprite.position.x = cardSprite.position.x + cardWidth/2;
             sprite.position.y = cardSprite.position.y - cardHeight*1.5;
-            if (sprite.position.y < cardHeight*2) {
+            if (sprite.position.y < cardHeight) {
+                console.log("adjust");
                 sprite.position.y = cardHeight;
-                sprite.position.x = cardSprite.position.x + cardWidth*1.5;
+                sprite.position.x = cardSprite.position.x + cardWidth*1.5 + 10;
             }
             if (sprite.position.x >= 677) {
+                                console.log("adjust again X");
+
                 sprite.position.x = cardSprite.position.x - cardWidth;
             }
             gameUX.app.stage.addChild(sprite)

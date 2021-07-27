@@ -350,7 +350,6 @@ class Game:
                         # todo handle mutliple effects if we add cards like that
                         # without this break, this code breaks on Siz Pop
                         break
-                print(f"opponent clickable is {opp.can_be_clicked}")
         elif cp.card_info_to_resolve["effect_type"] in ["entity_at_ready"]:
             selected_entity = cp.selected_entity()
             only_has_ambush_attack = False
@@ -695,6 +694,7 @@ class Game:
             for x in range(0, 2):
                 for card_name in self.player_decks[x]:
                     self.players[x].add_to_deck(card_name, 1)
+                self.players[x].deck.reverse()
             self.get_starting_artifacts()
             for x in range(0, 2):
                 self.players[x].draw(self.initial_hand_size)
@@ -1081,7 +1081,7 @@ class Game:
         else:
             message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {self.power_with_tokens(attacking_card, self.current_player())}.")
             self.opponent().damage(self.power_with_tokens(attacking_card, self.current_player()))
-            self.current_player().do_attack_abilities(attacking_card)
+        self.current_player().do_attack_abilities(attacking_card)
         return message
 
     def activate_artifact(self, message):
@@ -2584,8 +2584,6 @@ class Player:
             self.play_artifact(card)
             if card.has_ability("Slow Artifact"):
                 card.effects_exhausted.append(card.effects[0].name)
-        else:
-            self.played_pile.append(card)            
 
         if card.card_type == "Entity" and card.has_ability("Shield"):
             card.shielded = True
@@ -2603,6 +2601,10 @@ class Player:
                 elif e.target_type == "all_cards_in_deck":           
                     message["effect_targets"][idx] = {"target_type": "player", "id": self.username};
                 message = self.do_card_effect(card, e, message, message["effect_targets"], idx)
+
+        if card.card_type == "Spell":
+            self.played_pile.append(card)            
+
 
         message["card_name"] = card.name
         message["played_card"] = True
@@ -2735,20 +2737,7 @@ class Player:
         self.game.turn_start_time = datetime.datetime.now()
         self.game.show_rope = False
 
-        draw_blocked = False
-        phoenixes = []
-        for card in self.played_pile:
-            for effect in card.effects_triggered():
-                if effect.trigger == "start_turn":
-                    if effect.name == "rebirth":
-                        draw_blocked = True
-                        phoenixes.append(card)
-                        break
-        for card in phoenixes:
-            self.played_pile.remove(card)
-            self.play_entity(card) 
-
-        if self.game.turn != 0 and not draw_blocked:
+        if self.game.turn != 0:
             self.draw(self.game.cards_each_turn + self.game.global_effects.count("draw_extra_card"))
         self.max_mana += 1
         self.max_mana = min(self.game.max_max_mana, self.max_mana)
