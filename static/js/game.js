@@ -359,9 +359,9 @@ export class GameUX {
 
         var cardSprite = this.baseCardSprite(card, cardTexture);
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
-        imageSprite.width = 75;
-        imageSprite.height = 85;
-        imageSprite.position.y = -7;
+        imageSprite.width = 70;
+        imageSprite.height = 102;
+        imageSprite.position.y = 0;
         cardSprite.addChild(imageSprite);
         this.ellipsifyImageSprite(imageSprite)
 
@@ -510,11 +510,11 @@ export class GameUX {
         cardSprite.buttonMode = true;  // hand cursor
 
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
-        imageSprite.width = 60;
-        imageSprite.height = 60;
-        imageSprite.position.y = -29;
+        imageSprite.height = 80;
+        imageSprite.width = 58;
+        imageSprite.position.y = -25;
         if (useLargeSize) {
-            imageSprite.height = 85;
+            imageSprite.height = 110;
             imageSprite.width  = 75;
             imageSprite.position.y = -58;
         }
@@ -883,8 +883,8 @@ export class GameUX {
         const ellipseW = width;
         const ellipseH = height;
         const background = new PIXI.Graphics();
-        background.beginFill(0xff0000, 1);
-        background.drawEllipse(0, 0, ellipseW, ellipseH)
+        background.beginFill(0xffffff, 1);
+        background.drawEllipse(0, 0, ellipseW, ellipseH - height/3)
         background.endFill();
         const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         sprite.mask = background;
