@@ -2549,7 +2549,7 @@
 		"image": "battery-pack.svg",
 		"class": "maestro",
 		"card_type": "Artifact",
-		"description": "Stores up to 3 additional mana when you get more than 5. 0: sacrifice this, get the stored mana, draw a card.",
+		"description": "Stores 3 excess mana over 5. Sacrifice to get the stored mana, draw a card.",
 		"cost": 0,
 		"effects": [
 			{

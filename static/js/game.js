@@ -360,8 +360,8 @@ export class GameUX {
         var cardSprite = this.baseCardSprite(card, cardTexture);
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
         imageSprite.width = 70;
-        imageSprite.height = 102;
-        imageSprite.position.y = 0;
+        imageSprite.height = 98;
+        imageSprite.position.y = -8;
         cardSprite.addChild(imageSprite);
         this.ellipsifyImageSprite(imageSprite)
 
@@ -382,34 +382,7 @@ export class GameUX {
         }
 
         if (card.card_type == "Entity") {
-            let cardPower = card.power;
-            let cardToughness = card.toughness - card.damage;
-            if (card.tokens) {
-                // todo does this code need to be clientside?
-                for (let c of card.tokens) {
-                    if (c.multiplier == "self_artifacts" && player.artifacts) {
-                        cardPower += c.power_modifier * player.artifacts.length;                        
-                    } else if (c.multiplier == "self_entities_and_artifacts") {
-                        if (player.artifacts) {
-                            cardPower += c.power_modifier * player.artifacts.length;                        
-                        }
-                        if (player.in_play) {
-                            cardPower += c.power_modifier * (player.in_play.length - 1);                        
-                        }
-                    } else {
-                        cardPower += c.power_modifier;                        
-                    }
-                }
-                for (let c of card.tokens) {
-                    cardToughness += c.toughness_modifier;
-                }
-            }
-            let centerOfEllipse = 17
-            var powerX = aFX + centerOfEllipse;
-            var powerY  = aFY + cardHeight - 14;
-            this.addCircledLabel(powerX, powerY, cardSprite, options, cardPower);
-            var toughnessX  = aFX + cardWidth - centerOfEllipse;
-            this.addCircledLabel(toughnessX, powerY, cardSprite, options, cardToughness);
+            this.addStats(card, cardSprite, -8, -14, cardWidth-16, cardHeight, false)
         } else if (card.turn_played == -1 && !attackEffect) {
             let type = new PIXI.Text(card.card_type, options);
             type.position.x = aFX + cardWidth - 28;
@@ -498,7 +471,7 @@ export class GameUX {
     }
 
     textOptions() {
-        return {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 64};
+        return {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 75};
     }
 
     cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
@@ -510,9 +483,9 @@ export class GameUX {
         cardSprite.buttonMode = true;  // hand cursor
 
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
-        imageSprite.height = 80;
+        imageSprite.height = 76;
         imageSprite.width = 58;
-        imageSprite.position.y = -25;
+        imageSprite.position.y = -27;
         if (useLargeSize) {
             imageSprite.height = 110;
             imageSprite.width  = 75;
@@ -520,12 +493,6 @@ export class GameUX {
         }
         this.ellipsifyImageSprite(imageSprite)
         cardSprite.addChild(imageSprite);
-
-        let options = this.textOptions();
-        if (useLargeSize) {
-            options.fontSize = 10;
-            options.wordWrapWidth = 109;
-        }
 
         let aFX = -8;
         let aFY = -9;
@@ -540,19 +507,25 @@ export class GameUX {
         }
 
         const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        nameBackground.tint = 0x0000ff;
+        nameBackground.tint = 0x000000;
         nameBackground.width = cw - 6;
         nameBackground.height = 12;
         nameBackground.alpha = .7;
         nameBackground.position.x = aFX + 8;
-        nameBackground.position.y = aFY;
-            if (useLargeSize) {
-                nameBackground.position.y += 20
-                nameBackground.width -= 24;
-            }
+        nameBackground.position.y = aFY + 2;
+        let nameOptions = this.textOptions();
+        if (card.name.length >= 22) {
+            nameOptions.fontSize --;
+        }
+        if (useLargeSize) {
+            nameOptions.fontSize = 12;
+            nameOptions.wordWrapWidth = 142;
+            nameBackground.position.x -= 4
+            nameBackground.position.y += 19
+            nameBackground.height = 16;
+        }
         cardSprite.addChild(nameBackground);
 
-        let nameOptions = this.textOptions();
         nameOptions.fill = 0xffffff;
         let name = new PIXI.Text(card.name, nameOptions);
         cardSprite.addChild(name);
@@ -585,13 +558,38 @@ export class GameUX {
                 costX -= cw/4;
                 costY -= ch/4;
             }
-            this.addCircledLabel(costX, costY, cardSprite, this.textOptions(), card.cost);
+
+            imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "amethyst.svg"));
+            imageSprite.tint = 0x0000ff;
+            imageSprite.height = 15;
+            imageSprite.width = 15;
+            if (useLargeSize) {
+                imageSprite.height = 25;
+                imageSprite.width = 25;
+            }
+            imageSprite.position.x = costX;
+            imageSprite.position.y = costY;
+            cardSprite.addChild(imageSprite);
+
+            var ptOptions = this.textOptions()
+            ptOptions.stroke = 0x000000;
+            ptOptions.strokeThickness = 2;
+            ptOptions.fill = 0xffffff;
+            ptOptions.fontSize = 12;
+            if (useLargeSize) {
+                ptOptions.fontSize = 17;
+            }
+            let cost = new PIXI.Text(card.cost, ptOptions);
+            cost.position.x = costX;
+            cost.position.y = costY;
+            cardSprite.addChild(cost);
+
         }            
 
         let descriptionOptions = this.textOptions();
-        descriptionOptions.wordWrapWidth = 72;
         if (useLargeSize) {
             descriptionOptions.wordWrapWidth = 142;
+            descriptionOptions.fontSize = 12;
         }
 
         if (card.description && card.description.length > 120) {
@@ -599,7 +597,41 @@ export class GameUX {
         }
 
 
-        let description = new PIXI.Text(card.description, descriptionOptions);
+        var abilitiesText = "";
+        var color = 0xAAAAAA;
+        for (let a of card.abilities) {
+            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_entity_attack", "Weapon"].includes(a.descriptive_id)) {
+                if (a.description) {
+                    abilitiesText += a.description;
+                    color = 0x000000;
+                } else {
+                    var hasSpecialLargeText = false;
+                    // for Befuddling Guitar
+                    if (a.name == "DamageDraw") {
+                        continue;
+                    }
+                        abilitiesText += a.name;
+                    if (a != card.abilities[card.abilities.length-1]) {                
+                           abilitiesText += ", ";
+                    }               
+                }
+            }
+        }
+
+        for (let c of card.tokens) {
+           if (c.set_can_act == false) {
+            if (abilitiesText.length) {
+                abilitiesText += ", ";
+            }
+            abilitiesText += "Can't Attack";
+           }
+        }
+
+
+        let description = new PIXI.Text(abilitiesText + ". " + card.description, descriptionOptions);
+        if (abilitiesText.length == 0) {
+            description = new PIXI.Text(card.description, descriptionOptions);
+        }
         if (card.description) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
@@ -626,100 +658,13 @@ export class GameUX {
             }
         }
 
-        var abilitiesText = "";
-        var color = 0xAAAAAA;
-        for (let a of card.abilities) {
-            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_entity_attack", "Weapon"].includes(a.descriptive_id)) {
-                if (a.description) {
-                    abilitiesText += a.description;
-                    color = 0x000000;
-                } else {
-                    var hasSpecialLargeText = false;
-                    // for Befuddling Guitar
-                    if (a.name == "DamageDraw") {
-                        continue;
-                    }
-                        abilitiesText += a.name;
-                    if (a != card.abilities[card.abilities.length-1]) {                
-                           abilitiesText += ", ";
-                    }                
-                }
-            }
-        }
-
         if (useLargeSize) {
             this.showAbilityPanels(cardSprite, card, cw, ch);
         }
 
-        for (let c of card.tokens) {
-           if (c.set_can_act == false) {
-            if (abilitiesText.length) {
-                abilitiesText += ", ";
-            }
-            abilitiesText += "Can't Attack";
-           }
-        }
-
-        if (abilitiesText) {
-            var abilitiesOptions = this.textOptions();
-            abilitiesOptions.fill = color;
-            let abilities = new PIXI.Text(abilitiesText, abilitiesOptions);
-            abilities.position.x = name.position.x;                
-            if (card.added_descriptions.length) {
-                abilities.position.y = addedDescription.position.y + addedDescription.height;
-            } else if (card.description) {
-                abilities.position.y = description.position.y + description.height;
-            } else {
-                abilities.position.y = name.position.y + 30;                
-            }
-            if (useLargeSize) {
-                abilities.position.y += 20 + 2;
-            }
-            cardSprite.addChild(abilities);
-        }        
-
 
         if (card.card_type == "Entity") {
-            let cardPower = card.power;
-            let cardToughness = card.toughness - card.damage;
-            if (card.tokens) {
-                // todo does this code need to be clientside?
-                for (let c of card.tokens) {
-                    if (c.multiplier == "self_artifacts" && player.artifacts) {
-                        cardPower += c.power_modifier * player.artifacts.length;                        
-                    } else if (c.multiplier == "self_entities_and_artifacts") {
-                        if (player.artifacts) {
-                            cardPower += c.power_modifier * player.artifacts.length;                        
-                        }
-                        if (player.in_play) {
-                            cardPower += c.power_modifier * (player.in_play.length - 1);                        
-                        }
-                    } else {
-                        cardPower += c.power_modifier;                        
-                    }
-                }
-                for (let c of card.tokens) {
-                    cardToughness += c.toughness_modifier;
-                }
-            }
-            var ptOptions = this.textOptions()
-            ptOptions.fill = 0x000000;
-
-            let centerOfEllipse = 16
-
-            var powerX = aFX - cw/2 + centerOfEllipse;
-            var powerY = aFY + ch/2;
-            var defenseX = aFX + cw/2;
-
-            if (useLargeSize) {
-                powerY += 20;
-                powerX -= 5;
-                defenseX -= 5;
-
-            }
-
-            this.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower);
-            this.addCircledLabel(defenseX, powerY, cardSprite, ptOptions, cardToughness);
+            this.addStats(card, cardSprite, aFX, aFY, cw, ch, useLargeSize)
 
         } else if (card.turn_played == -1) {
             var typeX = aFX + cw/4 - 33;
@@ -729,7 +674,7 @@ export class GameUX {
                 typeY += 20;
             }
             var typeBG = new PIXI.Graphics();
-            typeBG.beginFill(0x111111);
+            typeBG.beginFill(0x444444);
             typeBG.drawRoundedRect(
                 0,
                 0,
@@ -848,21 +793,98 @@ export class GameUX {
         return cardSprite;
     }
 
-    addCircledLabel(costX, costY, cardSprite, options, value) {
+    addStats(card, cardSprite, aFX, aFY, cw, ch, useLargeSize) {
+        let cardPower = card.power;
+        let cardToughness = card.toughness - card.damage;
+        if (card.tokens) {
+            // todo does this code need to be clientside?
+            for (let c of card.tokens) {
+                if (c.multiplier == "self_artifacts" && player.artifacts) {
+                    cardPower += c.power_modifier * player.artifacts.length;                        
+                } else if (c.multiplier == "self_entities_and_artifacts") {
+                    if (player.artifacts) {
+                        cardPower += c.power_modifier * player.artifacts.length;                        
+                    }
+                    if (player.in_play) {
+                        cardPower += c.power_modifier * (player.in_play.length - 1);                        
+                    }
+                } else {
+                    cardPower += c.power_modifier;                        
+                }
+            }
+            for (let c of card.tokens) {
+                cardToughness += c.toughness_modifier;
+            }
+        }
+
+        var ptOptions = this.textOptions()
+
+        let centerOfEllipse = 16
+
+        var powerX = aFX - cw/2 + centerOfEllipse;
+        var powerY = aFY + ch/2;
+        var defenseX = aFX + cw/2;
+
+        if (useLargeSize) {
+            powerY += 20;
+            powerX -= 5;
+            defenseX -= 5;
+        }
+
+        let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "piercing-sword.svg"));
+        imageSprite.tint = 0xffff00;
+        imageSprite.height = 17;
+        imageSprite.width = 17;
+        imageSprite.position.x = powerX;
+        imageSprite.position.y = powerY;
+        cardSprite.addChild(imageSprite);
+
+        this.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower, 0xffff00);
+
+
+        imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "hearts.svg"));
+        imageSprite.tint = 0xff0000;
+        imageSprite.height = 17;
+        imageSprite.width = 17;
+        imageSprite.position.x = defenseX;
+        imageSprite.position.y = powerY;
+        cardSprite.addChild(imageSprite);
+
+
+        ptOptions.stroke = 0x000000;
+        ptOptions.strokeThickness = 2;
+        ptOptions.fill = 0xffffff;
+        ptOptions.fontSize = 9;
+        let defense = new PIXI.Text(cardToughness, ptOptions);
+        defense.position.x = defenseX;
+        defense.position.y = powerY;
+        cardSprite.addChild(defense);        
+    }
+
+    addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
+        options.stroke = 0x000000;
+        options.strokeThickness = 2;
+        options.fill = 0xffffff;
+        options.fontSize = 11;
+
         var circle = this.circleBackground(costX, costY);
+        circle.tint = fillColor
         cardSprite.addChild(circle);
         let cost = new PIXI.Text(value, options);
-        cost.position.x = -3;
-        cost.position.y = -5;
+        cost.position.x = -4;
+        cost.position.y = -8;
         circle.addChild(cost);
     }
 
     circleBackground(x, y) {
         const circleRadius = 7;
         const background = new PIXI.Graphics();
-        background.beginFill(0xffffff, 1);
+        
+        background.beginFill(0x000000, 1);
+        background.lineStyle(2, 0x000000, 1); 
         background.drawCircle(0, 0, circleRadius);
         background.endFill();
+
         const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         sprite.position.x = x;
         sprite.position.y = y;
@@ -1142,16 +1164,11 @@ export class GameUX {
         armor.position.y = hp.height + hp.position.y;
         avatarSprite.addChild(armor);
 
-        let mana = new PIXI.Text("Mana: " + this.manaString(player.max_mana, player.mana), props);
-        mana.position.x = padding/2 + avatar.position.x + avatar.width;
-        mana.position.y = armor.height + armor.position.y;
-        avatarSprite.addChild(mana);
-
-        let hand = mana;
+        let hand = armor;
         if (player == this.opponent(game)) {
             hand = new PIXI.Text("Hand: " + player.hand.length, props);
             hand.position.x = padding/2 + avatar.position.x + avatar.width;
-            hand.position.y = mana.height + mana.position.y;
+            hand.position.y = armor.height + armor.position.y;
             avatarSprite.addChild(hand);        
         }
 
@@ -1164,6 +1181,16 @@ export class GameUX {
         playedPile.position.x = padding/2 + avatar.position.x + avatar.width;
         playedPile.position.y = deck.height + deck.position.y;
         avatarSprite.addChild(playedPile);
+
+        let mana = new PIXI.Text("Mana: ", props);
+        mana.position.x = padding/2 + avatar.position.x + avatar.width;
+        mana.position.y = playedPile.height + playedPile.position.y;
+        avatarSprite.addChild(mana);
+
+        var manaGems = this.manaGems(player.max_mana, player.mana);
+        manaGems.position.x = mana.position.x + mana.width;
+        manaGems.position.y = playedPile.height + playedPile.position.y;        
+        avatarSprite.addChild(manaGems);
 
         if (!player.can_be_clicked) {
             avatarSprite.filters = [cantBeClickedFilter()];                        
@@ -1215,6 +1242,34 @@ export class GameUX {
             manaString += "✧"
         }
         return manaString
+    }
+
+    manaGems(maxMana, currentMana) {
+        const background = new PIXI.Container();
+        var xPixels = 0;
+        var gemSize = 12;
+        for (var i=0;i<currentMana;i++) {
+            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "amethyst.svg"));
+            imageSprite.tint = 0x0000ff;
+            imageSprite.height = gemSize;
+            imageSprite.width = gemSize;
+            imageSprite.position.x = xPixels;
+            imageSprite.position.y = 0;
+            background.addChild(imageSprite)
+            xPixels += gemSize + 1;
+        }
+        for (var i=0;i<currentMana;i++) {
+            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "amethyst.svg"));
+            imageSprite.tint = 0x0000ff;
+            imageSprite.height = gemSize;
+            imageSprite.width = gemSize;
+            imageSprite.position.x = xPixels;
+            imageSprite.position.y = 0;
+            imageSprite.alpha = .3
+            background.addChild(imageSprite)
+            xPixels += gemSize + 1;
+        }
+        return background
     }
 
     updateHand(game) {
