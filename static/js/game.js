@@ -304,6 +304,7 @@ export class GameUX {
         container.addChild(background);
 
         let options = this.textOptions();
+        options.wordWrapWidth = 500
         options.fontSize = 24;
         options.fill = 0xFFFFFF;
         options.align = "middle";
@@ -632,7 +633,10 @@ export class GameUX {
         if (abilitiesText.length == 0) {
             description = new PIXI.Text(card.description, descriptionOptions);
         }
-        if (card.description) {
+        if (abilitiesText.length != 0 && !card.description) {
+            description = new PIXI.Text(abilitiesText + ". ", descriptionOptions);
+        }
+        if (card.description || abilitiesText.length) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
             if ((card.card_type == "Entity" && activatedEffects.length == 0) ||
@@ -705,8 +709,6 @@ export class GameUX {
         }
 
         if (attackEffect) {
-
-
             var powerX = aFX - 24;
             var powerY = aFY + ch/2;
             if (useLargeSize) {
@@ -1616,7 +1618,6 @@ function onMouseover(cardSprite, gameUX) {
             sprite.position.x = cardSprite.position.x + cardWidth/2;
             sprite.position.y = cardSprite.position.y - cardHeight*1.5;
             if (sprite.position.y < cardHeight) {
-                console.log("adjust");
                 sprite.position.y = cardHeight;
                 sprite.position.x = cardSprite.position.x + cardWidth*1.5 + 10;
             }

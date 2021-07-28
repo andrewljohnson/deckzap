@@ -1311,7 +1311,6 @@ class GameObjectTests(TestCase):
             Test Mana Battery in STS Ice Cream style game.
         """
         dbName, game = self.game_for_decks([["Mana Battery", "Winding One", "Winding One"], []], hs_style=False)
-        print(game.current_player().hand)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().artifacts), 1)
         self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 0)

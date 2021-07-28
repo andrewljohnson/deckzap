@@ -51,3 +51,7 @@ I had to change the nginx config recommended to this code to get it to work for 
             proxy_pass http://channels-backend;
         }
     }
+
+# Graphics
+
+Graphics from: https://game-icons.net/
