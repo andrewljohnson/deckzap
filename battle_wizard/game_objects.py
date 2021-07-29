@@ -20,6 +20,10 @@ class Game:
         self.players = [Player(self, u) for u in info["players"]] if info else []
         # player 0 always acts on even turns, player 1 acts on odd turns
         self.turn = int(info["turn"]) if info else 0
+
+        self.responding_player = Player(self, info["responding_player"]) if info and info["responding_player"] else None
+        self.move_to_complete = info["move_to_complete"] if info and "move_to_complete" in info else None
+
         # the next id to give a card when doing make_card effects
         # each card gets the next unusued integer
         self.next_card_id = int(info["next_card_id"]) if info else 0
@@ -56,7 +60,9 @@ class Game:
     def as_dict(self):
         return {
             "players": [p.as_dict() for p in self.players], 
+            "responding_player": self.responding_player.as_dict() if self.responding_player else None, 
             "turn": self.turn, 
+            "move_to_complete": self.move_to_complete, 
             "next_card_id": self.next_card_id, 
             "global_effects": self.global_effects, 
             "db_name": self.db_name, 
@@ -264,6 +270,8 @@ class Game:
             message = self.finish_riffle(message)        
         # moves that get triggered indirectly from game UX actions (e.g. SELECT_ENTITY twice could be an ATTACK)
         elif move_type == 'ATTACK':
+            message = self.initiate_attack(message)            
+        elif move_type == 'ALLOW_ATTACK':
             message = self.attack(message)            
         elif move_type == 'ACTIVATE_ARTIFACT':
             message = self.activate_artifact(message)            
@@ -433,6 +441,8 @@ class Game:
                 if card.card_type == "Spell" and card.needs_artifact_target():
                     card.can_be_clicked = False if len(cp.artifacts) == 0 and len(opp.artifacts) == 0 else True
                 if card.card_type == "Entity" and not cp.can_summon():
+                    card.can_be_clicked = False
+                if card.card_type != "Spell" and self.responding_player:
                     card.can_be_clicked = False
                 if card.name == "Mind Manacles":
                     card.can_be_clicked = False
@@ -1061,28 +1071,51 @@ class Game:
                     return None
         return message
 
-    def attack(self, message):
+    def initiate_attack(self, message):
+        self.responding_player = self.opponent()
         card_id = message["card"]
         attacking_card = self.current_player().in_play_card(card_id)
-        attacking_card.attacked = True
-        self.current_player().reset_card_info_to_resolve()
-        for a in attacking_card.abilities:
-            if a.descriptive_id == "Lurker":
-                a.enabled = False
         if "defending_card" in message:
             defending_card_id = message["defending_card"]
             defending_card = self.opponent().in_play_card(defending_card_id)
+            message["log_lines"].append(f"{attacking_card.name} intends to attack {defending_card.name}")
+        else:
+            message["log_lines"].append(f"{attacking_card.name} intends to attack {self.opponent().username} for {self.power_with_tokens(attacking_card, self.current_player())}.")
+        self.move_to_complete = copy.deepcopy(message)
+        self.turn += 1
+        # todo rope
+        return message
+
+    def attack(self, message):
+        move_to_complete = copy.deepcopy(self.move_to_complete)
+        self.move_to_complete = None
+        self.turn += 1
+        self.responding_player = None
+        card_id = move_to_complete["card"]
+        attacking_card = self.current_player().in_play_card(card_id)
+        attacking_card.attacked = True
+        self.current_player().reset_card_info_to_resolve()
+        if not attacking_card:
+            return move_to_complete
+        for a in attacking_card.abilities:
+            if a.descriptive_id == "Lurker":
+                a.enabled = False
+        if "defending_card" in move_to_complete:
+            defending_card_id = move_to_complete["defending_card"]
+            defending_card = self.opponent().in_play_card(defending_card_id)
+            if not defending_card:
+                return move_to_complete
             self.resolve_combat(
                 attacking_card, 
                 defending_card
             )
-            message["defending_card"] = defending_card.as_dict()
-            message["log_lines"].append(f"{attacking_card.name} attacks {defending_card.name}")
+            move_to_complete["defending_card"] = defending_card.as_dict()
+            move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {defending_card.name}")
         else:
-            message["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {self.power_with_tokens(attacking_card, self.current_player())}.")
+            move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {self.power_with_tokens(attacking_card, self.current_player())}.")
             self.opponent().damage(self.power_with_tokens(attacking_card, self.current_player()))
         self.current_player().do_attack_abilities(attacking_card)
-        return message
+        return move_to_complete
 
     def activate_artifact(self, message):
         card_id = message["card"]

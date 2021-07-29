@@ -915,6 +915,7 @@
 	},
 	{
 		"name": "Inner Fire",
+		"image": "burning-passion.svg",
 		"race": "genie",
 		"cost": 0,
 		"card_type": "Spell",

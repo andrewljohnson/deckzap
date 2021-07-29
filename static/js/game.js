@@ -199,7 +199,7 @@ export class GameUX {
             }
         }
 
-        this.renderEndTurnButton(game);
+        this.renderEndTurnButton(game, message);
 
         if (this.thisPlayer(game).card_info_to_resolve["card_id"]) {
             var targettableSprites = [];
@@ -227,6 +227,18 @@ export class GameUX {
             }
         }
 
+        if (!this.isShowingCastAnimation) {
+            this.showSelectionViews(game);
+        } else {
+            this.needsToShowMakeViews = true;
+        }
+
+        if (game.show_rope) {
+            this.showRope();
+        }
+    }
+
+    showSelectionViews(game) {
         if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
@@ -242,10 +254,6 @@ export class GameUX {
         } else {
             // not a choose cards view
         }                           
-        if (game.show_rope) {
-            this.showRope();
-        }
-        // this.app.renderer.render(this.app.stage)
     }
 
     showMakeView(game) {
@@ -492,7 +500,19 @@ export class GameUX {
             imageSprite.width  = 75;
             imageSprite.position.y = -58;
         }
-        this.ellipsifyImageSprite(imageSprite)
+        if (card.card_type == "Entity" || card.card_type == "Artifact") {
+            this.ellipsifyImageSprite(imageSprite)        
+        } else if (card.card_type == "Spell") {
+            imageSprite.height = 89;
+            imageSprite.width = cardWidth*2 - 20;
+            imageSprite.position.y = -28;
+            if (useLargeSize) {
+                imageSprite.height = 125;
+                imageSprite.width  = cardWidth*4 - 20 - 8;
+                imageSprite.position.y = -57;
+            }
+            this.rectanglifyImageSprite(imageSprite)                    
+        }
         cardSprite.addChild(imageSprite);
 
         let aFX = -8;
@@ -918,6 +938,27 @@ export class GameUX {
         return background;
     }
 
+    rectanglifyImageSprite(imageSprite) {
+        var bg = this.rectangleBackground(imageSprite.width, imageSprite.height);
+        imageSprite.mask = bg;
+        imageSprite.addChild(bg);        
+    }
+
+    rectangleBackground(width, height) {
+        const rectangleW = cardWidth;
+        const rectangleH = height;
+        const background = new PIXI.Graphics();
+        background.beginFill(0xffffff, 1);
+        background.drawRect(-rectangleW/2, -rectangleH/2, rectangleW, rectangleH);
+        background.endFill();
+        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        sprite.mask = background;
+        sprite.width = rectangleW;
+        sprite.height = rectangleH;
+        sprite.addChild(background);
+        return background;
+    }
+
     showAbilityPanels(cardSprite, card, cw, ch) {
         var options = this.textOptions();
         options.fontSize = 6;
@@ -1017,10 +1058,16 @@ export class GameUX {
       this.app.stage.addChild(sprite)
       this.app.ticker.add(incrementGodrayTime)
       this.app.stage.filters = [godray];
+      this.isShowingCastAnimation = true;
       setTimeout(() => { 
+            this.isShowingCastAnimation = false;
             this.app.stage.filters = []; 
             this.app.ticker.remove(incrementGodrayTime)
             this.app.stage.removeChild(sprite)
+            if (this.needsToShowMakeViews) {
+                this.showSelectionViews(game);
+            }
+            this.needsToShowMakeViews = false;
         }, 1000);
 
     }
@@ -1067,7 +1114,7 @@ export class GameUX {
 
     }
 
-    renderEndTurnButton(game) {
+    renderEndTurnButton(game, message) {
         if (this.turnLabel) {
             this.buttonMenu.removeChild(this.turnLabel)
         }
@@ -1081,7 +1128,11 @@ export class GameUX {
         b.position.y = 17;
         b.interactive = true;
         var clickFunction = () => {
-            this.gameRoom.endTurn()
+            if (game.responding_player) {
+                this.gameRoom.passForAttack(message)
+            } else {
+                this.gameRoom.endTurn()
+            }
             if (this.ropeSprite) {
                 this.showingRope = false;
                 this.ropeSprite.filters = []; 
@@ -1104,8 +1155,14 @@ export class GameUX {
         } else {
             textFillColor = 0xAAAAAA;
         }
-        let text = new PIXI.Text("End Turn", {fontFamily : 'Arial', fontSize: 12, fill : textFillColor});
-        text.position.x = 27;
+        var title = "End Turn";
+        var positionX = 27;
+        if (game.responding_player) {
+            title = "Pass";
+            positionX = 37;
+        }
+        let text = new PIXI.Text(title, {fontFamily : 'Arial', fontSize: 12, fill : textFillColor});
+        text.position.x = positionX;
         text.position.y = 14;
         b.addChild(text);
 
