@@ -123,6 +123,7 @@
 	},
 	{
 		"name": "Mana Shrub",
+		"image": "berry-bush.svg",
 		"race": "elf",
 		"class": "sorcerer",
 		"card_type": "Entity",
@@ -147,6 +148,7 @@
 	},
 	{
 		"name": "Spouty Gas Ball",
+		"image": "crumbling-ball.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 3,
@@ -175,10 +177,17 @@
 			"card_name": "Pine Dryad",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 2,
-			"toughness": 1,
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Pine Dryad",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1
 	},
 	{
 		"name": "Oak Treant",
@@ -193,16 +202,23 @@
 		],
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Pine Dryad",
+			"card_name": "Oak Dryad",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 2,
-			"toughness": 1,
-			"abilities": [
-				{"name": "Guard", "descriptive_id": "Guard"}
-			],
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Oak Dryad",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
 	},
 	{
 		"name": "Summon-Happy Genie",
@@ -223,11 +239,17 @@
 			"card_name": "Elemental",
 			"target_type": "opponent",
 			"effect_type": "enter_play",
-			"power": 1,
-			"toughness": 1,
-			"amount": 2,
-			"cost": 1
+			"amount": 2
 		}]
+	},
+	{
+		"name": "Elemental",
+		"is_token": true,
+		"race": "genie",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
 	},
 	{
 		"name": "Porcupine",
@@ -311,6 +333,7 @@
 	},
 	{
 		"name": "Think",
+		"image": "think.svg",
 		"race": "elf",
 		"cost": 4,
 		"card_type": "Spell",
@@ -416,6 +439,7 @@
 	},
 	{
 		"name": "Riftwalker Djinn",
+		"image": "djinn.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 3,
@@ -453,6 +477,7 @@
 	},
 	{
 		"name": "LionKin",
+		"image": "lion.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 3,
@@ -464,6 +489,7 @@
 	},
 	{
 		"name": "Training Master",
+		"image": "coronation.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 3,
@@ -509,6 +535,7 @@
 	},
 	{
 		"name": "Faerie Queen",
+		"image": "fairy.svg",
 		"race": "elf",
 		"card_type": "Entity",
 		"power": 4,
@@ -546,11 +573,13 @@
 	},
 	{
 		"name": "Winding One",
+		"image": "wind-hole.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 3,
 		"toughness": 4,
-		"cost": 3
+		"cost": 3,
+		"abilities": [{"name": "Lurker", "descriptive_id": "Lurker"}]
 	},
 	{
 		"name": "Nature's Guardian",
@@ -729,6 +758,7 @@
 	},
 	{
 		"name": "Lightning Elemental",
+		"image": "lightning-tear.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 1,
@@ -755,6 +785,7 @@
 	},
 	{
 		"name": "Tame Tempest",
+		"image": "tornado.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 2,
@@ -805,6 +836,7 @@
 	},
 	{
 		"name": "Kill",
+		"image": "deathcab.svg",
 		"race": "genie",
 		"cost": 4,
 		"card_type": "Spell",
@@ -834,7 +866,7 @@
 		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Kill a artifact.",
+		"description": "Kill an artifact.",
 		"effects": [{
 			"name": "kill",
 			"effect_type": "spell",
@@ -843,6 +875,7 @@
 	},
 	{
 		"name": "Zap",
+		"image": "lightning-trio.svg",
 		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
@@ -882,6 +915,7 @@
 	},
 	{
 		"name": "Inner Fire",
+		"image": "burning-passion.svg",
 		"race": "genie",
 		"cost": 0,
 		"card_type": "Spell",
@@ -909,6 +943,10 @@
 		"cost": 3,
 		"abilities": [
 			{
+				"name": "Shield",
+				"descriptive_id": "Shield"
+			},
+			{
 				"name": "DamageDraw",
 				"description": "Draw a card when this deals damage to your opponent.",
 				"descriptive_id": "DamageDraw",
@@ -932,6 +970,7 @@
 	},
 	{
 		"name": "Inferno Elemental",
+		"image": "brasero.svg",
 		"race": "genie",
 		"card_type": "Entity",
 		"power": 5,
@@ -1009,6 +1048,7 @@
 	},
 	{
 		"name": "Siz Pop",
+		"image": "bolt-drop.svg",
 		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
@@ -1106,6 +1146,7 @@
 	},
 	{
 		"name": "Mind Manacles",
+		"image": "manacles.svg",
 		"race": "genie",
 		"cost": 6,
 		"card_type": "Spell",
@@ -1118,6 +1159,7 @@
 	},
 	{
 		"name": "Familiar",
+		"image": "cat.svg",
 		"card_type": "Entity",
 		"power": 1,
 		"toughness": 2,
@@ -1225,6 +1267,7 @@
 	},
 	{
 		"name": "Bow",
+		"image": "bow-arrow.svg",
 		"card_type": "Artifact",
 		"cost": 1,
 		"description": "✦✦: Deal 2 damage to your opponent.",
@@ -1362,11 +1405,17 @@
 			"card_name": "Mushroom",
 			"effect_type": "spell",
 			"target_type": "self",
-			"power": 1,
-			"toughness": 1,
-			"amount": 7,
-			"cost": 7
+			"amount": 7
 		}]
+	},
+	{
+		"name": "Mushroom",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
 	},
 	{
 		"name": "Kano from Barias",
@@ -1566,15 +1615,28 @@
 		"cost": 1,
 		"description": "Summon a Townie.",
 		"effects": [{
+			"amount": 1,
 			"name": "make_token",
 			"card_name": "Townie",
 			"effect_type": "enter_play",
-			"target_type": "self",
-			"power": 1,
-			"toughness": 1,
-			"amount": 1,
-			"cost": 1
+			"target_type": "self"
 		}],
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Townie",
+		"is_token": true,
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
 		"abilities": [
 			{
 				"name": "Townie",
@@ -1596,7 +1658,12 @@
 			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+		{
+			"name": "Townie",
+			"descriptive_id": "Townie"
+		}
+		]
 	},
 	{
 		"name": "Gnomish Soundsmith",
@@ -1632,6 +1699,7 @@
 	},
 	{
 		"name": "Befuddling Guitar",
+		"image": "guitar.svg",
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "Artifact",
@@ -1695,6 +1763,7 @@
 	},
 	{
 		"name": "Totem Cat",
+		"image": "totem-mask.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1707,14 +1776,25 @@
 			"card_name": "Ghost of the Cat",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 2,
-			"toughness": 1,
 			"amount": 1
 		}]
 	},
 	{
 
+		"name": "Ghost of the Cat",
+		"is_token": true,
+		"image": "spark-spirit.svg",
+		"race": "human",
+		"class": "fighter",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1
+	},
+	{
+
 		"name": "Taunted Bear",
+		"image": "bear-face.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1739,6 +1819,7 @@
 	{
 
 		"name": "War Scorpion",
+		"image": "scorpion.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1764,6 +1845,7 @@
 	{
 
 		"name": "Berserk Monkey",
+		"image": "monkey.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1786,6 +1868,7 @@
 	},
 	{
 		"name": "Frenzy",
+		"image": "uprising.svg",
 		"race": "human",
 		"class": "fighter",
 		"cost": 1,
@@ -1806,6 +1889,7 @@
 	},
 	{
 		"name": "Impale",
+		"image": "spiked-trunk.svg",
 		"race": "human",
 		"class": "fighter",
 		"cost": 2,
@@ -1827,6 +1911,7 @@
 	},
 	{
 		"name": "Arsenal",
+		"image": "saber-and-pistol.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Artifact",
@@ -1865,6 +1950,7 @@
 	},
 	{
 		"name": "Animal Trainer",
+		"image": "teacher.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1891,6 +1977,7 @@
 	{
 
 		"name": "Viper",
+		"image": "snake-bite.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1914,6 +2001,7 @@
 	},
 	{
 		"name": "Multishot Bow",
+		"image": "striking-arrows.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Artifact",
@@ -1941,6 +2029,7 @@
 	{
 
 		"name": "Enraged Stomper",
+		"image": "mammoth.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
@@ -1964,6 +2053,7 @@
 	},
 	{
 		"name": "Gird for Battle",
+		"image": "armor-punch.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Spell",
@@ -1974,20 +2064,7 @@
 			"card_name": "Mist Elephant",
 			"target_type": "self",
 			"effect_type": "spell",
-			"power": 3,
-			"cost": 3,
-			"toughness": 3,
-			"amount": 1,
-			"abilities": [
-				{
-					"name": "Fast",
-					"descriptive_id": "Fast"
-				},
-				{
-					"name": "Fade",
-					"descriptive_id": "Fade"
-				}
-			]
+			"amount": 1
 		},
 		{
 			"name": "summon_from_deck_artifact",
@@ -1998,15 +2075,36 @@
 	]
 	},
 	{
+		"name": "Mist Elephant",
+		"is_token": true,
+		"race": "human",
+		"class": "fighter",
+		"card_type": "Entity",
+		"power": 3,
+		"toughness": 2,
+		"cost": 2,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Fade",
+				"descriptive_id": "Fade"
+			}
+		]
+	},
+	{
 
 		"name": "Spirit of the Stampede",
+		"image": "stomp.svg",
 		"race": "human",
 		"class": "fighter",
 		"card_type": "Entity",
 		"description": "+1/+0 for each other entity and artifact you have.",
 		"power": 2,
 		"toughness": 5,
-		"cost": 1,
+		"cost": 5,
 		"abilities": [
 			{
 				"name": "Stomp",
@@ -2053,7 +2151,7 @@
 		"class": "sorcerer",
 		"card_type": "Spell",
 		"cost": 1,
-		"description": "Put one of the top 3 cards of your deck in your hand and the others in your played pile.",
+		"description": "Draw one of the top 3 cards of your deck. Put the others in your played pile.",
 		"effects": [
 			{
 				"name": "riffle",
@@ -2082,31 +2180,6 @@
 		}]
 	},
 	{
-
-		"name": "Phoenix",
-		"race": "elf",
-		"class": "sorcerer",
-		"card_type": "Entity",
-		"description": "If this is in your played pile at the start of your turn, skip your draw this turn, and return it to play. ",
-		"power": 2,
-		"toughness": 2,
-		"cost": 5,
-		"abilities": [
-			{
-				"name": "Unique",
-				"descriptive_id": "Unique"
-			}
-		],
-		"effects": [
-			{
-				"name": "rebirth",
-				"effect_type": "triggered",
-				"target_type": "this",
-				"trigger": "start_turn"
-			}
-		]
-	},
-	{
 		"name": "Premonition",
 		"race": "elf",
 		"class": "sorcerer",
@@ -2133,7 +2206,7 @@
 		"card_type": "Entity",
 		"power": 7,
 		"toughness": 7,
-		"cost": 7,
+		"cost": 1,
 		"description": "Get a 7/7 entity with Syphon when this dies.",
 		"abilities": [			
 			{
@@ -2146,17 +2219,24 @@
 			"card_name": "Life Guardian Reborn",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 7,
-			"cost": 7,
-			"amount": 1,
-			"toughness": 7,
-			"abilities": [			
-				{
-					"name": "Syphon",
-					"descriptive_id": "Syphon"
-				}
-			]
+			"amount": 1
 		}]
+	},
+	{
+		"name": "Life Guardian Reborn",
+		"is_token": true,
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "Entity",
+		"power": 7,
+		"toughness": 7,
+		"cost": 7,
+		"abilities": [			
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			}
+		]
 	},
 	{
 		"name": "Great Guardian",
@@ -2178,51 +2258,24 @@
 			"card_name": "Great Guardian Reborn",
 			"effect_type": "leave_play",
 			"target_type": "self",
-			"power": 8,
-			"cost": 8,
-			"toughness": 8,
-			"amount": 1,
-			"abilities": [			
-				{
-					"name": "Guard",
-					"descriptive_id": "Guard"
-				}
-			]
+			"amount": 1
 		}]
 	},
 	{
-		"name": "Prophecy of the Nine",
+		"name": "Great Guardian Reborn",
+		"is_token": true,
 		"race": "elf",
 		"class": "sorcerer",
-		"cost": 9,
-		"card_type": "Spell",
-		"description": "Deal 9 damage to everything.",
-		"effects": [{
-			"name": "damage",
-			"effect_type": "spell",
-			"target_type": "all",
-			"amount": 9
-		}]
-	},
-	{
-		"name": "Prophecy of the Ten",
-		"race": "elf",
-		"class": "sorcerer",
-		"cost": 10,
-		"card_type": "Spell",
-		"description": "Gain 10 hit points. Draw until you have 10 cards.",
-		"effects": [{
-			"name": "draw",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 10
-		}, 
-		{
-			"name": "heal",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 10
-		}]
+		"card_type": "Entity",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		]
 	},
 	{
 		"name": "Gnomish Piper",
@@ -2278,12 +2331,19 @@
 				"effect_type": "activated",
 				"target_type": "self",
 				"amount": 1,
-				"counters": 5,
-				"power": 2,
-				"toughness": 2,
-				"cost": 0
+				"counters": 5
 			}
 		]
+	},
+	{
+		"name": "Charmed Rat",
+		"is_token": true,
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "Entity",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1
 	},
 	{
 		"name": "Gnomish Militia",
@@ -2483,5 +2543,33 @@
 					"descriptive_id": "Fast"
 			}]
 		}]
+	},
+	{
+		"name": "Mana Battery",
+		"race": "alien",
+		"image": "battery-pack.svg",
+		"class": "maestro",
+		"card_type": "Artifact",
+		"description": "Stores 3 excess mana over 5. Sacrifice to get the stored mana, draw a card.",
+		"cost": 0,
+		"effects": [
+			{
+				"name": "store_mana",
+				"target_type": "self",
+				"trigger": "start_turn",
+				"effect_type": "triggered"
+			},
+			{
+				"name": "get_mana_and_draw",
+				"target_type": "self",
+				"effect_type": "activated"
+			}
+		],
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		]
 	}
 ]

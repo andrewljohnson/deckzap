@@ -141,6 +141,13 @@ export class GameRoom {
         this.sendPlayMoveEvent("END_TURN", {});
     }
 
+    passForAttack(message) {
+        this.sendPlayMoveEvent("ALLOW_ATTACK", message);
+    }
+
+    passForSpellResolution(message) {
+        this.sendPlayMoveEvent("RESOLVE_CARD", message);
+    }
 }
 
 function getSearchParameters() {
