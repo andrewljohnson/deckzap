@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { Bump } from './lib/bump.js';
-import { AdjustmentFilter, DropShadowFilter, ShockwaveFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
+import { AdjustmentFilter, DropShadowFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 
 const appWidth = 840;
@@ -26,11 +26,13 @@ export class GameUX {
         this.oldSelfArmor = 0;        
         this.oldSelfHP = 30;        
 
+        this.spriteDamageCounts = {};
+        this.arrows = []
         this.bump = new Bump(PIXI);
         this.cardTexture = PIXI.Texture.from('/static/images/card.png');
         this.cardLargeTexture = PIXI.Texture.from('/static/images/card-large.png');
         this.cardTextureInPlay = PIXI.Texture.from('/static/images/in play mob.png');
-        this.cardTextureInPlayArtifact = PIXI.Texture.from('/static/images/in play mana artifact.png');
+        this.cardTextureInPlayGuard = PIXI.Texture.from('/static/images/in play guard mob.png');
         this.inPlayTexture = PIXI.Texture.from('/static/images/in_play.png');
         this.handTexture = PIXI.Texture.from('/static/images/hand.png');
         this.artifactsTexture = PIXI.Texture.from('/static/images/relics.png');
@@ -48,7 +50,8 @@ export class GameUX {
             antialias: true, 
             backgroundAlpha: true,
             resolution: window.devicePixelRatio || 1,
-            autoDensity: true
+            autoDensity: true,
+            transparent: true            
         });
         document.getElementById("new_game").appendChild(this.app.view);
         this.renderStaticElements();
@@ -171,21 +174,20 @@ export class GameUX {
     }
 
     refresh(game, message) {
-        if (this.arrows && this.arrows.length) {
-            for (let a of this.arrows) {
-                this.app.stage.removeChild(a);
-            }
-            for (let t of this.triangles) {
-                this.app.stage.removeChild(t);
-            }
-            this.arrows = []
-            this.triangles = []
-        }
+        this.clearArrows()
 
         if (this.selectCardContainer) {
             this.selectCardContainer.parent.removeChild(this.selectCardContainer);
             this.selectCardContainer = null;
             this.selectCardInnerContainer = null;
+        }
+
+        if (this.thisPlayer(game)) {
+            if (message["show_spell"] && !this.thisPlayer(game).card_info_to_target["card_id"]) {
+              // using this.thisPlayer(game) will break with a counterspell effect 
+              // but we dont shjow counterspells being cast yet
+                this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game), message)
+            }
         }
 
         this.removeCardsFromStage(game)
@@ -201,14 +203,6 @@ export class GameUX {
             this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
-        }
-
-        if (this.thisPlayer(game)) {
-            if (message["show_spell"] && !this.thisPlayer(game).card_info_to_target["card_id"]) {
-              // using this.thisPlayer(game) will break with a counterspell effect 
-              // but we dont shjow counterspells being cast yet
-                this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game))
-            }
         }
 
         if (game.spell_stack.length > 0) {
@@ -252,37 +246,41 @@ export class GameUX {
                 }
             } 
 
-            var defending_id = null
-            var defendingCardSprite = null;
-            if (attack["defending_card"]) {
-                defending_id = attack["defending_card"];
-                for (let sprite of this.app.stage.children) {
-                    if (sprite.card && sprite.card.id == defending_id) {
-                        defendingCardSprite = sprite;
-                    }
-                } 
-            }
+            if (attackingCardSprite) {
+                var defending_id = null
+                var defendingCardSprite = null;
+                if (attack["defending_card"]) {
+                    defending_id = attack["defending_card"];
+                    for (let sprite of this.app.stage.children) {
+                        if (sprite.card && sprite.card.id == defending_id) {
+                            defendingCardSprite = sprite;
+                        }
+                    } 
+                }
 
-            var toXYArc = [this.playerAvatar.position.x-attackingCardSprite.position.x+this.playerAvatar.width/4,
-                        this.playerAvatar.position.y-attackingCardSprite.position.y+this.playerAvatar.height/2];
-            if (defending_id) {
-               toXYArc = [defendingCardSprite.position.x-attackingCardSprite.position.x,
-                        defendingCardSprite.position.y-attackingCardSprite.position.y]; 
-            }
-            var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
-                        this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
-            if (defending_id) {
-               toXYArrow = [defendingCardSprite.position.x,
-                        defendingCardSprite.position.y-10]; 
-            }
+                var toXYArc = [this.playerAvatar.position.x-attackingCardSprite.position.x+this.playerAvatar.width/4,
+                            this.playerAvatar.position.y-attackingCardSprite.position.y+this.playerAvatar.height/2];
+                if (defending_id && defendingCardSprite) {
+                   toXYArc = [defendingCardSprite.position.x-attackingCardSprite.position.x,
+                            defendingCardSprite.position.y-attackingCardSprite.position.y]; 
+                }
+                var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
+                            this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
+                if (defending_id && defendingCardSprite) {
+                   toXYArrow = [defendingCardSprite.position.x,
+                            defendingCardSprite.position.y-10]; 
+                }
 
 
-            this.showTargettingArrow(
-                [30,0],
-                [200,100],
-                toXYArc, 
-                toXYArrow,
-                [attackingCardSprite.position.x,attackingCardSprite.position.y ]);
+                if(!defending_id || defendingCardSprite) {
+                    this.showTargettingArrow(
+                        [30,0],
+                        [200,100],
+                        toXYArc, 
+                        toXYArrow,
+                        [attackingCardSprite.position.x,attackingCardSprite.position.y ]);                    
+                }
+            }
         }
 
         if (!this.isShowingCastAnimation) {
@@ -295,12 +293,28 @@ export class GameUX {
         if (game.show_rope) {
             this.showRope();
         }
+
+        // put arrows and spell being cast above other refreshed sprites
+        if (this.spellBeingCastSprite) {
+            this.app.stage.removeChild(this.spellBeingCastSprite);
+            this.app.stage.addChild(this.spellBeingCastSprite);
+        }
+        for (let arrow of this.arrows) {
+            this.app.stage.removeChild(arrow);
+            this.app.stage.addChild(arrow);
+        }
+    }
+
+    clearArrows() {
+        if (this.arrows && this.arrows.length) {
+            for (let a of this.arrows) {
+                this.app.stage.removeChild(a);
+            }
+            this.arrows = []
+        }        
     }
 
     showTargettingArrow(cpXY1, cpXY2, toXY, toXYArrow, fromXY){
-        if (!this.arrows) {
-            this.arrows = []
-        }
         const bezierArrow = new PIXI.Graphics();
         this.arrows.push(bezierArrow);
         bezierArrow.tint = 0xff0000;
@@ -313,57 +327,32 @@ export class GameUX {
         normal[0] /= l;
         normal[1] /= l;
         
+        var arrowSize = 10;
         const tangent = [
-            -normal[1] * 20,
-            normal[0] * 20
+            -normal[1] * arrowSize,
+            normal[0] * arrowSize
         ]
 
-        normal[0] *= 20;
-        normal[1] *= 20;
+        normal[0] *= arrowSize;
+        normal[1] *= arrowSize;
         
         bezierArrow.position.set(fromXY[0], fromXY[1], 0);
         
         bezierArrow
-            .lineStyle(6, 0xffffff, 1)
+            .lineStyle(4, 0xffffff, 1)
             .bezierCurveTo(cpXY1[0],cpXY1[1],cpXY2[0],cpXY2[1],toXY[0],toXY[1])
-
-        this.createTriangle(toXYArrow[0],toXYArrow[1], 65)
+            .lineStyle(1, 0xffffff, 1)
+            .beginFill(0xFF0000, 1)
+            .moveTo(toXY[0] + normal[0] + tangent[0], toXY[1] + normal[1] + tangent[1])
+            .lineTo(toXY[0] , toXY[1] )
+            .lineTo(toXY[0] - normal[0] + tangent[0], toXY[1] - normal[1] + tangent[1])
+            .lineTo(toXY[0] + normal[0] + tangent[0]-1, toXY[1] + normal[1] + tangent[1])
+            .endFill();
         
-        return new PIXI.Sprite(this.app.renderer.generateTexture(bezierArrow,2,2));
-    }
+        var sprite = new PIXI.Sprite(this.app.renderer.generateTexture(bezierArrow,2,2))
+        bezierArrow.filters = glowAndShadowFilters()
 
-    createTriangle(xPos, yPos, rotation) {
-      var triangle = new PIXI.Graphics();
-        if (!this.triangles) {
-            this.triangles = []
-        }
-      this.app.stage.addChild(triangle); 
-      this.triangles.push(triangle);
-
-      var triangleWidth = 20,
-          triangleHeight = triangleWidth,
-          triangleHalfway = triangleWidth/2;
-
-      triangle.position.set(
-        xPos,
-        yPos,
-        // this.playerAvatar.position.x + this.playerAvatar.width/4-triangleWidth/2 + 3, 
-        // this.playerAvatar.position.y + this.playerAvatar.height/2-triangleHeight/2 + 3
-        );
-
-      // draw triangle 
-      triangle.beginFill(0xFF0000, 1);
-      triangle.lineStyle(0, 0xFF0000, 1);
-      triangle.moveTo(triangleWidth, 0);
-      triangle.lineTo(triangleHalfway, triangleHeight); 
-      triangle.lineTo(0, 0);
-      triangle.lineTo(triangleHalfway, 0);
-      triangle.endFill();
-      
-      triangle.rotation = rotation*0.0174533;
-      
-
-
+        return sprite;
     }
 
     makeCardsInteractive() {
@@ -388,6 +377,8 @@ export class GameUX {
     showSelectionViews(game) {
         if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make_from_deck") {
+            this.showMakeFromDeckView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
             this.showRiffleView(game, "FINISH_RIFFLE");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_hand") {
@@ -412,6 +403,13 @@ export class GameUX {
                     self.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
                 }
             });
+    }
+
+    showMakeFromDeckView(game) {
+        var self = this;
+        this.showSelectCardView(game, "Make from Deck", function(card) {
+            self.gameRoom.sendPlayMoveEvent("FETCH_CARD", {"card":card.id});
+        });
     }
 
    showRevealView(game) {
@@ -476,10 +474,16 @@ export class GameUX {
         if (showFullDeck) {
             cardContainer.position.x = cardWidth;            
         }
+
+        var cards = this.thisPlayer(game).card_choice_info["cards"];
+
+        // make global effect has 5 cards
+        if (cards.length == 5) {
+            cardContainer.position.x = appWidth/2 - cardWidth*2.5;            
+        }
         cardContainer.position.y = 140;
         container.addChild(cardContainer);
 
-        var cards = this.thisPlayer(game).card_choice_info["cards"];
 
         var index = 0;
         for (let card of cards) {
@@ -505,11 +509,11 @@ export class GameUX {
     }
 
     cardSpriteInPlay(game, card, player, dont_attach_listeners) {
-        var cardTexture;
-        if (card.name == "Mana Battery") {
-            cardTexture = this.cardTextureInPlayArtifact;
-        } else {
-            cardTexture = this.cardTextureInPlay;
+        var cardTexture = this.cardTextureInPlay;
+        for (let a of card.abilities) {
+            if (a.name == "Guard") {
+                cardTexture = this.cardTextureInPlayGuard;
+            }                    
         }
 
         var cardSprite = this.baseCardSprite(card, cardTexture);
@@ -519,6 +523,20 @@ export class GameUX {
         imageSprite.position.y = -8;
         cardSprite.addChild(imageSprite);
         this.ellipsifyImageSprite(imageSprite)
+
+        if (card.name == "Mana Battery") {
+            var currentBatteryMana = 0;
+            for (let effect of card.effects) {
+                if (effect.name == "store_mana") {
+                    currentBatteryMana = effect.counters;
+                }
+            }
+            var gems = this.manaGems(3, currentBatteryMana);
+            gems.position.x = -gems.width/2;
+            gems.position.y = cardHeight/2 - 7 - gems.height;
+            cardSprite.addChild(gems);
+        }
+
 
         let options = this.textOptions();
         
@@ -536,7 +554,7 @@ export class GameUX {
             }
         }
 
-        if (card.card_type == "Entity") {
+        if (card.card_type == "Mob") {
             this.addStats(card, cardSprite, player, -8, -14, cardWidth-16, cardHeight, false)
         } else if (card.turn_played == -1 && !attackEffect) {
             let type = new PIXI.Text(card.card_type, options);
@@ -560,11 +578,10 @@ export class GameUX {
             filters.push(cantBeClickedFilter());                        
         }
         if (card.shielded && card.turn_played > -1) {
-            filters.push(new GodrayFilter());                        
+            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0xFFFFFF}));                        
         }
         if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            filters.push(new GodrayFilter());                        
-            cardSprite.tint = 0xff0000;
+            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0x000000}));                        
         }
 
         cardSprite.filters = filters;
@@ -576,7 +593,7 @@ export class GameUX {
         if (card.can_be_clicked) {
             if (this.thisPlayer(game).card_info_to_target["card_id"]) {
                 var self = this;
-                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});})
+                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card":card.id});})
             } else {
                 var self = this;
                 cardSprite
@@ -600,12 +617,15 @@ export class GameUX {
 
 
          if (cardSprite.card.damage_to_show > 0) {
-           this.damageSprite(cardSprite);
+           this.damageSprite(imageSprite, cardSprite.card.id + '_pic', cardSprite.card.damage_to_show);
+           this.damageSprite(cardSprite, cardSprite.card.id, cardSprite.card.damage_to_show);
         }
 
         cardSprite.anchor.set(.5);
         for (let child of cardSprite.children) {
-            child.anchor.set(.5);
+            if (child.anchor) {
+                child.anchor.set(.5);
+            }
         }
 
         return cardSprite;
@@ -668,7 +688,7 @@ export class GameUX {
             imageSprite.width  = 75;
             imageSprite.position.y = -58;
         }
-        if (card.card_type == "Entity" || card.card_type == "Artifact") {
+        if (card.card_type == "Mob" || card.card_type == "Artifact") {
             this.ellipsifyImageSprite(imageSprite)        
         } else if (card.card_type == "Spell") {
             imageSprite.height = 89;
@@ -789,7 +809,7 @@ export class GameUX {
         var abilitiesText = "";
         var color = 0xAAAAAA;
         for (let a of card.abilities) {
-            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_entity_attack", "Weapon"].includes(a.descriptive_id)) {
+            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
                 if (a.description) {
                     abilitiesText += a.description;
                     color = 0x000000;
@@ -827,8 +847,8 @@ export class GameUX {
         if (card.description || abilitiesText.length) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
-            if ((card.card_type == "Entity" && activatedEffects.length == 0) ||
-                card.card_type != "Entity" ||
+            if ((card.card_type == "Mob" && activatedEffects.length == 0) ||
+                card.card_type != "Mob" ||
                 card.turn_played == -1) {
                 cardSprite.addChild(description);
             }
@@ -855,7 +875,7 @@ export class GameUX {
         }
 
 
-        if (card.card_type == "Entity") {
+        if (card.card_type == "Mob") {
             this.addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize)
 
         } else if (card.turn_played == -1) {
@@ -919,11 +939,10 @@ export class GameUX {
             filters.push(cantBeClickedFilter());                        
         }
         if (card.shielded && card.turn_played > -1) {
-            filters.push(new GodrayFilter());                        
+            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0xFFFFFF}));                        
         }
         if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            filters.push(new GodrayFilter());                        
-            cardSprite.tint = 0xff0000;
+            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0x000000}));                        
         }
 
         cardSprite.filters = filters;
@@ -935,7 +954,7 @@ export class GameUX {
         if (card.can_be_clicked) {
             if (this.thisPlayer(game).card_info_to_target["card_id"]) {
                 var self = this;
-                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":card.id});})
+                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card":card.id});})
             } else {
                 var self = this;
                 cardSprite
@@ -957,9 +976,6 @@ export class GameUX {
             cardSprite
                 .on('mouseover',        cardSprite.onMouseover)
                 .on('mouseout',        cardSprite.onMouseout)
-        }
-        if (cardSprite.card.damage_to_show > 0) {
-           this.damageSprite(cardSprite);
         }
 
         cardSprite.anchor.set(.5);
@@ -1190,7 +1206,7 @@ export class GameUX {
         if (this.thisPlayer(game) && this.opponent(game)) {
             let spritesToRemove = [];
             for (let sprite of this.app.stage.children) {
-                if (sprite.card) {
+                if (sprite.card && sprite != this.spellBeingCastSprite) {
                     if (sprite.card && !sprite.dragging) {
                         spritesToRemove.push(sprite);
                     }                    
@@ -1204,7 +1220,7 @@ export class GameUX {
         }
     }
 
-    showCardThatWasCast(card, game, player) {
+    showCardThatWasCast(card, game, player, message) {
       var godray = new GodrayFilter();
       var incrementGodrayTime = () => {
         godray.time += this.app.ticker.elapsedMS / 1000;
@@ -1213,11 +1229,14 @@ export class GameUX {
       sprite.position.x = 100;
       sprite.position.y = this.inPlay.position.y + padding;
       sprite.scale.set(1.5);
+      this.spellBeingCastSprite = sprite;
       this.app.stage.addChild(sprite)
+      this.showArrowsForSpell(game, sprite, message, card);
       this.app.ticker.add(incrementGodrayTime)
       this.app.stage.filters = [godray];
       this.isShowingCastAnimation = true;
       setTimeout(() => { 
+            this.clearArrows()
             this.isShowingCastAnimation = false;
             this.app.stage.filters = []; 
             this.app.ticker.remove(incrementGodrayTime)
@@ -1227,6 +1246,7 @@ export class GameUX {
                 this.makeCardsInteractive()
             }
             this.needsToShowMakeViews = false;
+            this.spellBeingCastSprite = null;
         }, 1000);
 
     }
@@ -1252,71 +1272,72 @@ export class GameUX {
             this.spellStackSprites = []
             }
             this.spellStackSprites.push(sprite)
-
-
-
             var card = spell[1]
             var spellMessage = spell[0]
-            if (spellMessage["effect_targets"] && spellMessage["effect_targets"][0].target_type == "player") {
-                var toXYArc = [this.playerAvatar.position.x-sprite.position.x+this.playerAvatar.width/4,
-                                this.playerAvatar.position.y-sprite.position.y+this.playerAvatar.height/2];
-                var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
-                                this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
+            this.showArrowsForSpell(game, sprite, spellMessage, card);
+        }
+    }
 
-                if (spellMessage["effect_targets"][0].id == this.opponent(game).username) {
-                    toXYArc = [this.opponentAvatar.position.x-sprite.position.x+this.opponentAvatar.width/4,
-                                    this.opponentAvatar.position.y-sprite.position.y+this.opponentAvatar.height/2];
-                    toXYArrow = [this.opponentAvatar.position.x+this.opponentAvatar.width/4,
-                                    this.opponentAvatar.position.y+this.opponentAvatar.height/2 - 10];
-                }
-                this.showTargettingArrow(
-                    [30,0],
-                    [200,100],
-                    toXYArc, 
-                    toXYArrow,
-                    [sprite.position.x,sprite.position.y ]);
-            } else if (spellMessage["effect_targets"] && spellMessage["effect_targets"][0].target_type != "player") {
-                var defending_id = spellMessage["effect_targets"][0].id;
-                var defendingCardSprite = null;
-                for (let sprite of this.app.stage.children) {
-                    if (sprite.card && sprite.card.id == defending_id) {
-                        defendingCardSprite = sprite;
-                    }
-                } 
+    showArrowsForSpell(game, sprite, spellMessage, card) {
+        if (spellMessage["effect_targets"] && spellMessage["effect_targets"][0].target_type == "player") {
+            var toXYArc = [this.playerAvatar.position.x-sprite.position.x+this.playerAvatar.width/4,
+                            this.playerAvatar.position.y-sprite.position.y+this.playerAvatar.height/2];
+            var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
+                            this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
 
-                var toXYArc = [defendingCardSprite.position.x-sprite.position.x+defendingCardSprite.width/4,
-                            defendingCardSprite.position.y-sprite.position.y+defendingCardSprite.height/2];
-                var toXYArrow = [defendingCardSprite.position.x+defendingCardSprite.width/4,
-                            defendingCardSprite.position.y+defendingCardSprite.height/2 - 10];
-                this.showTargettingArrow(
-                    [30,0],
-                    [200,100],
-                    toXYArc, 
-                    toXYArrow,
+            if (spellMessage["effect_targets"][0].id == this.opponent(game).username) {
+                toXYArc = [this.opponentAvatar.position.x-sprite.position.x+this.opponentAvatar.width/4,
+                                this.opponentAvatar.position.y-sprite.position.y+this.opponentAvatar.height/2];
+                toXYArrow = [this.opponentAvatar.position.x+this.opponentAvatar.width/4,
+                                this.opponentAvatar.position.y+this.opponentAvatar.height/2 - 10];
+            }
+            this.showTargettingArrow(
+                [30,0],
+                [200,100],
+                toXYArc, 
+                toXYArrow,
                 [sprite.position.x,sprite.position.y ]);
-            }
-
-            // hax: impale
-            if (spellMessage["effect_targets"] && spellMessage["effect_targets"].length == 2 && spellMessage["effect_targets"][1].target_type == "player") {
-                var toXYArc = [this.playerAvatar.position.x-sprite.position.x+this.playerAvatar.width/4,
-                                this.playerAvatar.position.y-sprite.position.y+this.playerAvatar.height/2];
-                var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
-                                this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
-
-                if (spellMessage["effect_targets"][0].id != this.opponent(game).username) {
-                    toXYArc = [this.opponentAvatar.position.x-sprite.position.x+this.opponentAvatar.width/4,
-                                    this.opponentAvatar.position.y-sprite.position.y+this.opponentAvatar.height/2];
-                    toXYArrow = [this.opponentAvatar.position.x+this.opponentAvatar.width/4,
-                                    this.opponentAvatar.position.y+this.opponentAvatar.height/2 - 10];
+        } else if (spellMessage["effect_targets"] && ["mob", "artifact"].includes(spellMessage["effect_targets"][0].target_type)) {
+            var defending_id = spellMessage["effect_targets"][0].id;
+            var defendingCardSprite = null;
+            for (let sprite of this.app.stage.children) {
+                if (sprite.card && sprite.card.id == defending_id) {
+                    defendingCardSprite = sprite;
                 }
+            } 
+            if(defendingCardSprite) {
+                var toXYArc = [defendingCardSprite.position.x-sprite.position.x,
+                            defendingCardSprite.position.y-sprite.position.y];
+                var toXYArrow = [defendingCardSprite.position.x,
+                            defendingCardSprite.position.y - 10];
                 this.showTargettingArrow(
                     [30,0],
                     [200,100],
                     toXYArc, 
                     toXYArrow,
-                    [sprite.position.x,sprite.position.y ]);
-
+                [sprite.position.x,sprite.position.y ]);                    
             }
+        }
+
+        // hax: impale, inner fire, other 2 effect cards
+        if (spellMessage["effect_targets"] && spellMessage["effect_targets"].length == 2 && spellMessage["effect_targets"][1].target_type == "player" && spellMessage["effect_targets"][1].id == this.opponent(game).username) {
+            var toXYArc = [this.playerAvatar.position.x-sprite.position.x+this.playerAvatar.width/4,
+                            this.playerAvatar.position.y-sprite.position.y+this.playerAvatar.height/2];
+            var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
+                            this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
+
+            if (spellMessage["effect_targets"][0].id != this.opponent(game).username) {
+                toXYArc = [this.opponentAvatar.position.x-sprite.position.x+this.opponentAvatar.width/4,
+                                this.opponentAvatar.position.y-sprite.position.y+this.opponentAvatar.height/2];
+                toXYArrow = [this.opponentAvatar.position.x+this.opponentAvatar.width/4,
+                                this.opponentAvatar.position.y+this.opponentAvatar.height/2 - 10];
+            }
+            this.showTargettingArrow(
+                [30,0],
+                [200,100],
+                toXYArc, 
+                toXYArrow,
+                [sprite.position.x,sprite.position.y ]);
 
         }
     }
@@ -1445,12 +1466,12 @@ export class GameUX {
     }
 
     isActivePlayer(game) {
-        return (game.turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
-                || game.turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
+        return (game.actor_turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
+                || game.actor_turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
     }
 
     activePlayer(game) {
-        if (game.turn % 2 == 0) {
+        if (game.actor_turn % 2 == 0) {
             return game.players[0];
         }
         return game.players[1];
@@ -1506,14 +1527,14 @@ export class GameUX {
         playedPile.position.y = deck.height + deck.position.y;
         avatarSprite.addChild(playedPile);
 
-        let mana = new PIXI.Text("Mana: ", props);
+        let mana = new PIXI.Text("Mana", props);
         mana.position.x = padding/2 + avatar.position.x + avatar.width;
-        mana.position.y = playedPile.height + playedPile.position.y;
+        mana.position.y = playedPile.height + playedPile.position.y + 8;
         avatarSprite.addChild(mana);
 
         var manaGems = this.manaGems(player.max_mana, player.mana);
-        manaGems.position.x = mana.position.x + mana.width;
-        manaGems.position.y = playedPile.height + playedPile.position.y;        
+        manaGems.position.x = mana.position.x;
+        manaGems.position.y = mana.position.y + mana.height;        
         avatarSprite.addChild(manaGems);
 
         if (!player.can_be_clicked) {
@@ -1537,28 +1558,35 @@ export class GameUX {
         }
 
         if (player.damage_to_show > 0) {
-           this.damageSprite(avatarSprite);
+           this.damageSprite(avatarSprite, player.username, player.damage_to_show);
         }
     }
 
-    damageSprite(spriteToDamage) {
-        spriteToDamage.tint = 0xFF00000;
-        var godray = new GodrayFilter();
-        var incrementGodrayTime = () => {
-            godray.time += this.app.ticker.elapsedMS / 1000;
-        }
-        this.app.ticker.add(incrementGodrayTime)
-        spriteToDamage.filters = [godray];
+    damageSprite(spriteToDamage, spriteId, damage_to_show) {
           setTimeout(() => { 
-                spriteToDamage.tint = 0xFFFFFF;
-                spriteToDamage.filters = []; 
-                this.app.ticker.remove(incrementGodrayTime)
-            }, 1000);   
+                this.spriteDamageCounts[spriteId] += 1;
+                if (!this.spriteDamageCounts[spriteId] && this.spriteDamageCounts[spriteId] != 0) {
+                    this.spriteDamageCounts[spriteId] = 0                    
+                    var godray = new GlowFilter({ distance: 8,  outerStrength: 8, innerStrength: 2 , color: 0xFF0000});
+                    spriteToDamage.filters = [godray];
+                    this.damageSprite(spriteToDamage, spriteId, damage_to_show);                    
+                } else if (this.spriteDamageCounts[spriteId] >= damage_to_show*3) {
+                    this.spriteDamageCounts[spriteId] = 0
+                    spriteToDamage.filters = []; 
+                } else {
+                    var godray = new GlowFilter({ distance: 8,  outerStrength: 8, innerStrength: 2 , color: 0xFF0000});
+                    spriteToDamage.filters = [godray];
+                    setTimeout(() => { 
+                        spriteToDamage.filters = [];
+                    }, 100); 
+                    this.spriteDamageCounts[spriteId] += 1
+                    this.damageSprite(spriteToDamage, spriteId, damage_to_show);                    
+                }
+            }, 200);   
     }
 
     manaString(maxMana, currentMana) {
-        var manaString = "";
-
+        var manaString = ""
         for (var i=0;i<currentMana;i++) {
             manaString += "✦"
         }
@@ -1582,7 +1610,7 @@ export class GameUX {
             background.addChild(imageSprite)
             xPixels += gemSize + 1;
         }
-        for (var i=0;i<currentMana;i++) {
+        for (var i=0;i<maxMana-currentMana;i++) {
             let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "amethyst.svg"));
             imageSprite.tint = 0x0000ff;
             imageSprite.height = gemSize;
@@ -1618,7 +1646,7 @@ export class GameUX {
     updateInPlay(game, player, inPlaySprite) {
         var cardIdToHide = null
         for (let card of player.in_play) {
-            if (player.card_info_to_target["card_id"] && card.id == player.card_info_to_target["card_id"] && player.card_info_to_target["effect_type"] != "entity_comes_into_play" && player.card_info_to_target["effect_type"] != "entity_activated") {
+            if (player.card_info_to_target["card_id"] && card.id == player.card_info_to_target["card_id"] && player.card_info_to_target["effect_type"] != "mob_comes_into_play" && player.card_info_to_target["effect_type"] != "mob_activated") {
                 cardIdToHide = card.id;
                 break;
             }
@@ -1757,8 +1785,8 @@ function onDragStart(event, cardSprite, gameUX) {
         if(cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
         } 
-    } else if (cardSprite.card.card_type == "Entity") {
-        gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card":cardSprite.card.id});
+    } else if (cardSprite.card.card_type == "Mob") {
+        gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card":cardSprite.card.id});
     } else if (cardSprite.card.card_type == "Artifact") {
         gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card":cardSprite.card.id});
         let enabled_effects = [];
@@ -1769,7 +1797,7 @@ function onDragStart(event, cardSprite, gameUX) {
         }
         var dragging = true;
         for (let e of enabled_effects) {
-            if (!["any", "any_enemy", "entity", "opponents_entity", "self_entity", "artifact", "any_player"].includes(e.target_type)) {
+            if (!["any", "any_enemy", "mob", "opponents_mob", "self_mob", "artifact", "any_player"].includes(e.target_type)) {
                 // e.target_type is in ["self", "opponent", "Artifact", "all"]
                 dragging = false;
             }
@@ -1789,7 +1817,7 @@ function onDragEnd(cardSprite, gameUX) {
         if(!bump.hit(cardSprite, gameUX.handContainer) && (cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact") && !cardSprite.card.needs_targets) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
             playedMove = true;
-        } else if(bump.hit(cardSprite, gameUX.inPlay) && cardSprite.card.card_type == "Entity" && cardSprite.card.can_be_clicked) {
+        } else if(bump.hit(cardSprite, gameUX.inPlay) && cardSprite.card.card_type == "Mob" && cardSprite.card.can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
             playedMove = true;
         } else if(bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == "Spell" && gameUX.opponent(gameUX.game).can_be_clicked) {
@@ -1806,8 +1834,10 @@ function onDragEnd(cardSprite, gameUX) {
                 }
             }
             if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
-                if (collidedSprite.card.card_type == "Entity") {
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card": collidedSprite.card.id});
+                if (collidedSprite.card.turn_played == -1) {
+                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_STACK_SPELL", {"card": collidedSprite.card.id});
+                } else if (collidedSprite.card.card_type == "Mob") {
+                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": collidedSprite.card.id});
                 } else if (collidedSprite.card.card_type == "Artifact") {
                     gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card": collidedSprite.card.id});
                 } else {
@@ -1816,7 +1846,7 @@ function onDragEnd(cardSprite, gameUX) {
                 playedMove = true;
             }
         }
-    } else {  // it's an entity or artifact already in play
+    } else {  // it's a mob or artifact already in play
         if(bump.hit(cardSprite, gameUX.opponentAvatar)) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_OPPONENT", {});
             playedMove = true;
@@ -1825,9 +1855,9 @@ function onDragEnd(cardSprite, gameUX) {
             playedMove = true;
         } else {
             // todo: this shouldn't bump any non opponent non clickable cards, but that depends on pefect game state 
-            for (let opponentEntity of gameUX.app.stage.children) {
-                if(opponentEntity.card && opponentEntity.card.id != cardSprite.card.id && opponentEntity.card.can_be_clicked && bump.hit(cardSprite, opponentEntity)) {
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_ENTITY", {"card": opponentEntity.card.id});
+            for (let opponentMob of gameUX.app.stage.children) {
+                if(opponentMob.card && opponentMob.card.id != cardSprite.card.id && opponentMob.card.can_be_clicked && bump.hit(cardSprite, opponentMob)) {
+                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": opponentMob.card.id});
                     playedMove = true;
                 }
             }
@@ -1863,16 +1893,18 @@ function onDragMove(cardSprite, gameUX, bump) {
         let artifactsCollision = bump.hit(cardSprite, gameUX.artifacts);
         let cardInHand = cardSprite.card.turn_played == -1;
 
-        let collidedEntity = null;
-        for (let entity of gameUX.app.stage.children) {
-            if (entity.card && cardSprite.card.id != entity.card.id) {
-                if (entity.card.can_be_clicked) {
-                    entity.filters = []
+        let collidedMob = null;
+        for (let mob of gameUX.app.stage.children) {
+            if (mob.card && cardSprite.card.id != mob.card.id) {
+                if (mob.card.can_be_clicked) {
+                    mob.filters = []
                 } else {
-                    entity.filters = [cantBeClickedFilter()];                                        
-                }                
-                if(entity.card.turn_played != -1 && entity.card.id != cardSprite.card.id && entity.card.can_be_clicked && bump.hit(cardSprite, entity)) {
-                    collidedEntity = entity;
+                    mob.filters = [cantBeClickedFilter()];                                        
+                }  
+                // took this out of the if to support spell_stack... does it break anything?
+                // mob.card.turn_played != -1 &&               
+                if(mob.card.id != cardSprite.card.id && mob.card.can_be_clicked && bump.hit(cardSprite, mob)) {
+                    collidedMob = mob;
                 }
             }
         }
@@ -1888,19 +1920,19 @@ function onDragMove(cardSprite, gameUX, bump) {
             gameUX.opponentAvatar.filters = [targettableGlowFilter()];
         } else if((cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact") && selfCollision && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
             gameUX.playerAvatar.filters = [targettableGlowFilter()];
-        } else if(cardInHand && inPlayCollision && cardSprite.card.card_type == "Entity") {
+        } else if(cardInHand && inPlayCollision && cardSprite.card.card_type == "Mob") {
             cardSprite.filters = glowAndShadowFilters();
             if (!cardSprite.card.can_be_clicked) {
                 cardSprite.filters.push(cantBeClickedFilter());                        
             }
         } else if(cardInHand && artifactsCollision && cardSprite.card.card_type == "Artifact") {
             cardSprite.filters = glowAndShadowFilters();
-        } else if(!cardInHand && opponentCollision && cardSprite.card.card_type == "Entity") {
+        } else if(!cardInHand && opponentCollision && cardSprite.card.card_type == "Mob") {
             cardSprite.filters = glowAndShadowFilters();
             gameUX.opponentAvatar.filters = [targettableGlowFilter()];
-        } else if (collidedEntity && collidedEntity.card.can_be_clicked && ((cardSprite.card.card_type == "Artifact" && collidedEntity.card.card_type == "Entity") || (cardSprite.card.card_type == "Entity" && collidedEntity.card.card_type == "Entity") || (cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets))) {
+        } else if (collidedMob && collidedMob.card.can_be_clicked && ((cardSprite.card.card_type == "Artifact" && collidedMob.card.card_type == "Mob") || (cardSprite.card.card_type == "Mob" && collidedMob.card.card_type == "Mob") || (cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets))) {
             cardSprite.filters = glowAndShadowFilters();
-            collidedEntity.filters = [targettableGlowFilter()];
+            collidedMob.filters = [targettableGlowFilter()];
         } else {
             gameUX.inPlay.filters = [];
             if (!cardSprite.card.can_be_clicked) {

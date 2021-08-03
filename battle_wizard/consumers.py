@@ -73,8 +73,8 @@ class BattleWizardConsumer(WebsocketConsumer):
     def run_ai(self):
         self.ai_running = True
         self.last_move_time = datetime.datetime.now()
-        # todo don't reference AI by index 1
         self.game.set_clickables()
+        # todo don't reference AI by index 1
         moves = self.game.legal_moves_for_ai(self.game.players[1])
         if self.ai == "random_bot":
             chosen_move = random.choice(moves)
@@ -98,7 +98,7 @@ class BattleWizardConsumer(WebsocketConsumer):
                         if being_cast.name in ["Faerie War Chant", "Faerie's Blessing"]:
                             chosen_move = move
 
-                if move["move_type"] == "RESOLVE_ENTITY_EFFECT":
+                if move["move_type"] == "RESOLVE_MOB_EFFECT":
                     coming_into_play, _ = self.game.get_in_play_for_id(move["card"])
                     print(f"{coming_into_play.name} is resolving on {move['effect_targets'][0]['id']}")
                     target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
@@ -115,17 +115,19 @@ class BattleWizardConsumer(WebsocketConsumer):
                         print(f"ids for curr: {[card.id for card in self.game.current_player().in_play]}")
                         print(f"ids for opp: {[card.id for card in self.game.opponent().in_play]}")
                     chosen_move = move
-                if move["move_type"] == "SELECT_ENTITY":
+                if move["move_type"] == "SELECT_MOB":
                     chosen_move = move
             for move in moves:
                 if move["move_type"] == "SELECT_OPPONENT":
                     chosen_move = move
             for move in moves:
-                if move["move_type"] == "RESOLVE_ENTITY_EFFECT" and move["effect_targets"][0]["id"] == self.game.opponent().username :
+                if move["move_type"] == "RESOLVE_MOB_EFFECT" and move["effect_targets"][0]["id"] == self.game.opponent().username :
                     chosen_move = move
         else:
             print(f"Unknown AI bot: {self.ai}")
         chosen_move["log_lines"] = []
+        print("AI playing " + chosen_move["move_type"])
+        print(chosen_move)
         message = self.game.play_move(chosen_move)    
         self.send_game_message(self.game.as_dict(), message)
         self.ai_running = False

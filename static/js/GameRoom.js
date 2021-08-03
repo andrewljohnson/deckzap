@@ -61,7 +61,6 @@ export class GameRoom {
                 if (data["turn_time"] >= data["max_turn_time"]) {
                     self.gameUX.showRope();   
                 }
-                // console.log(data);
             } else {
                 let game = data["game"];
                 if (!data["game"]) {
