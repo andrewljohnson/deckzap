@@ -2603,5 +2603,34 @@
 			"effect_type": "spell",
 			"target_type": "being_cast_mob"
 		}]
+	},
+	{
+		"name": "Counter Spell",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Counter a spell.",
+		"effects": [{
+			"name": "stack_counter",
+			"amount": 2,
+			"effect_type": "spell",
+			"target_type": "being_cast_spell"
+		}]
+	},
+	{
+		"name": "Spell Archaeologist",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"power": 2,
+		"toughness": 3,
+		"cost": 3,
+		"description": "Get a random spell back from your yard at the end of your turn",
+		"effects": [{
+			"name": "spell_from_yard",
+			"effect_type": "triggered",
+			"target_type": "self",
+			"amount": 1
+		}]
 	}
 ]

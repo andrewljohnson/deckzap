@@ -498,6 +498,8 @@ class Game:
             self.set_targets_for_self_mob_effect(target_restrictions)
         elif target_type == "being_cast_mob":
             self.set_targets_for_being_cast_mob_effect()
+        elif target_type == "being_cast_spell":
+            self.set_targets_for_being_cast_spell_effect()
         elif target_type == "opponent":
             self.opponent().can_be_clicked = True
         elif target_type == "self":
@@ -608,6 +610,12 @@ class Game:
             card.can_be_clicked = True
             did_target = True
         return did_target
+
+    def set_targets_for_being_cast_spell_effect(self):
+        for spell in self.spell_stack:
+            card = spell[1]
+            if card["card_type"] == "Spell":
+                card["can_be_clicked"] = True
 
     def set_targets_for_being_cast_mob_effect(self):
         for spell in self.spell_stack:
@@ -818,6 +826,21 @@ class Game:
                 card = random.choice(self.current_player().hand)
                 self.current_player().hand.remove(card)
                 self.current_player().played_pile.append(card)
+
+        for mob in self.current_player().in_play:
+            for effect in mob.effects_triggered():
+                if effect.name == "spell_from_yard":
+                    spells = []
+                    for card in self.current_player().played_pile:
+                        if card.card_type == "Spell":
+                            spells.append(card)
+                    if len(spells) == 0:
+                        continue
+                    else:
+                        if len(self.current_player().hand) < 10:
+                            spell = random.choice(spells)
+                            self.current_player().hand.append(spell)
+                            self.current_player().played_pile.remove(spell)
 
         self.turn += 1
         self.actor_turn += 1
@@ -1619,7 +1642,8 @@ class Game:
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_with_effect_to_target.id
         new_message["card_name"] = card_with_effect_to_target.name
-        new_message = self.play_move(new_message)       
+        new_message = self.play_move(new_message)    
+        print ("doing play_move in select_player_target")   
         return new_message             
 
     def select_player_target_for_spell(self, username, card, message):

@@ -989,6 +989,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
         game.play_move({"username": "a", "move_type": "SELECT_SELF", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "RESOLVE_CARD", "card": 1, "log_lines":[]})        
         self.assertEqual(game.current_player().hit_points, 27)
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})        
@@ -1308,24 +1309,41 @@ class GameObjectTests(TestCase):
 
     def test_mana_battery(self):
         """
-            Test Mana Battery in STS Ice Cream style game.
+            Test Mana Battery.
         """
-        dbName, game = self.game_for_decks([["Mana Battery", "Winding One", "Winding One"], []], hs_style=False)
+        dbName, game = self.game_for_decks([["Mana Battery", "Winding One", "Winding One"], []])
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().artifacts), 1)
         self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 0)
         for x in range(0,3):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        self.assertEqual(game.current_player().mana, 5)
+        self.assertEqual(game.current_player().mana, 4)
         self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 3)
-        self.assertEqual(game.current_player().current_mana(), 8)
+        self.assertEqual(game.current_player().current_mana(), 7)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        self.assertEqual(game.current_player().mana, 5)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 0)
-        self.assertEqual(game.current_player().current_mana(), 5)
+        self.assertEqual(game.current_player().mana, 1)
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 3)
+        self.assertEqual(game.current_player().current_mana(), 4)
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
-        self.assertEqual(game.current_player().mana, 2)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 0)
-        self.assertEqual(game.current_player().current_mana(), 2)
+        self.assertEqual(game.current_player().mana, 0)
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 1)
+        self.assertEqual(game.current_player().current_mana(), 1)
+        os.remove(f"database/games/{dbName}.json")
+
+
+
+    def test_spell_archaeologist(self):
+        """
+            Test Spell Archaeologist
+        """
+        dbName, game = self.game_for_decks([["Spell Archaeologist", "Zap"], []])
+        game.players[0].mana = 3
+        game.players[0].played_pile.append(game.players[0].hand[1])
+        game.players[0].hand.pop()
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(len(game.current_player().hand), 0)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.opponent().hand), 1)
         os.remove(f"database/games/{dbName}.json")
