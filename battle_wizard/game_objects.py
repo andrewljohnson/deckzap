@@ -1704,7 +1704,6 @@ class Player:
             self.hit_points = 30
             self.damage_this_turn = 0
             self.damage_to_show = 0
-            self.armor = 0
             self.mana = 0
             self.max_mana = 0
             self.hand = []
@@ -1723,7 +1722,6 @@ class Player:
             self.hit_points = info["hit_points"]
             self.damage_this_turn = info["damage_this_turn"]
             self.damage_to_show = info["damage_to_show"]
-            self.armor = info["armor"]
             self.mana = info["mana"]
             self.max_mana = info["max_mana"]
             self.deck = [Card(c_info) for c_info in info["deck"]]
@@ -1735,7 +1733,7 @@ class Player:
 
     def __repr__(self):
         return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - \
-                {self.hit_points} hp - {self.damage_this_turn} damage_this_turn- {self.damage_to_show} damage_to_show - {self.armor} armor, {self.mana} mana, self.card_info_to_target {self.card_info_to_target} \
+                {self.hit_points} hp - {self.damage_this_turn} damage_this_turn - {self.damage_to_show} damage_to_show - {self.mana} mana, self.card_info_to_target {self.card_info_to_target} \
                 {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
                 {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
                 self.can_be_clicked {self.can_be_clicked}, \
@@ -1749,7 +1747,6 @@ class Player:
             "hit_points": self.hit_points,
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
-            "armor": self.armor,
             "mana": self.mana,
             "max_mana": self.max_mana,
             "deck_id": self.deck_id,
@@ -1798,10 +1795,6 @@ class Player:
                 self.deck.append(new_card)
 
     def damage(self, amount):
-        while amount > 0 and self.armor > 0:
-            amount -= 1
-            self.armor -= 1
-
         while amount > 0 and self.hit_points > 0:
             amount -= 1
             if self.hit_points == 1 and self.cant_die_ability():
@@ -1867,9 +1860,6 @@ class Player:
         elif e.name == "fetch_card_into_play":
             self.do_fetch_card_effect_on_player(card, effect_targets[target_index]["id"], e.target_type, e.target_restrictions, choice_type="fetch_artifact_into_play")
             message["log_lines"].append(f"{self.username} cracks {card.name} to fetch a artifact.")
-        elif e.name == "gain_armor":
-            self.do_gain_armor_effect_on_player(card, effect_targets[target_index]["id"], e.amount)
-            message["log_lines"].append(f"{self.username} gains {e.amount} armor from {card.name}.")
         elif e.name == "take_extra_turn":
             message["log_lines"].append(f"{self.username} takes an extra turn.")
             message = self.do_take_extra_turn_effect_on_player(effect_targets[target_index]["id"], message)
@@ -2175,12 +2165,6 @@ class Player:
             p.max_mana = amount
             p.max_mana = min(self.game.max_max_mana, p.max_mana)
             p.mana = min(p.mana, p.max_mana)
-
-    def do_gain_armor_effect_on_player(self, card, target_player_username, amount):
-        target_player = self.game.players[0]
-        if target_player.username != target_player_username:
-            target_player = self.game.players[1]
-        target_player.armor += amount
 
     def do_take_extra_turn_effect_on_player(self, target_player_username, message):
         target_player = self.game.players[0]
@@ -3168,7 +3152,7 @@ class Player:
                 self.game.opponent().draw(ability.amount)
             else:
                 self.draw(ability.amount)
-        #todo syphon ignores Shield and Armor
+
         if attacking_card.has_ability("Syphon"):
             self.hit_points += self.game.power_with_tokens(attacking_card, self)
             self.hit_points = min(30, self.hit_points)

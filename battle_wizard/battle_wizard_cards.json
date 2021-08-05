@@ -1298,44 +1298,6 @@
 		}]
 	},
 	{
-		"name": "Shield",
-		"card_type": "Artifact",
-		"cost": 1,
-		"description": "✦✦: Gain 2 armor.",
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
-				"name": "gain_armor",
-				"effect_type": "activated",
-				"target_type": "self",
-				"cost": 2,
-				"amount": 2
-		}]
-	},
-	{
-		"name": "Shield Up",
-		"race": "genie",
-		"card_type": "Spell",
-		"cost": 3,
-		"description": "Gain 7 armor. Draw a card.",
-		"effects": [{
-				"name": "gain_armor",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 7
-		},
-		{
-				"name": "draw",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 1
-		}]
-	},
-	{
 		"name": "Abyssal Crystal",
 		"card_type": "Artifact",
 		"cost": 1,
@@ -2717,7 +2679,7 @@
 		"description": "Return all mobs to their owners' hands.",
 		"effects": [{
 			"name": "unwind",
-			"effect_type": "spell",
+			"effect_type": "enter_play",
 			"target_type": "all_entities"
 		}]
 	},
