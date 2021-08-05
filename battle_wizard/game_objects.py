@@ -52,7 +52,6 @@ class Game:
         self.discard_end_of_turn = True
         self.keep_excess_mana = True
 
-        # False and 
         if hs_style:
             self.max_max_mana = 10
             self.max_hand_size = 10
@@ -387,8 +386,8 @@ class Game:
                         # without this break, this code breaks on Siz Pop
                         break
         elif cp.card_info_to_target["effect_type"] in ["mob_at_ready"]:
-            if len(self.spell_stack) == 0:
-                selected_mob = cp.selected_mob()
+            selected_mob = cp.selected_mob()
+            if len(self.spell_stack) == 0 or selected_mob.has_ability("Superfast"):
                 only_has_ambush_attack = False
                 if not selected_mob.has_ability("Fast"):
                     if selected_mob.has_ability("Ambush"):
@@ -446,14 +445,12 @@ class Game:
                 if effect.name in card.effects_exhausted:
                     effect_can_be_used = False
                 card.effects_can_be_clicked.append(effect_can_be_used)      
-            if cp.can_select_for_attack(card.id) and not self.defending_player and len(self.spell_stack) == 0:
+            if cp.can_select_for_attack(card.id) and (card.has_ability("Superfast") or (not self.defending_player and len(self.spell_stack) == 0)):
                 card.can_be_clicked = True
         for card in cp.hand:               
             card.needs_targets = card.needs_targets_for_spell()
             if cp.current_mana() >= card.cost:
                 card.can_be_clicked = True
-                if card.needs_card_being_cast_target():
-                    card.can_be_clicked = False
                 if card.card_type == "Artifact":
                     card.can_be_clicked = len(cp.artifacts) != 3
                 if card.card_type == "Spell" and card.needs_mob_target():
@@ -470,6 +467,8 @@ class Game:
                     card.can_be_clicked = False
                 if card.card_type != "Spell" and (self.defending_player or len(self.spell_stack) > 0):
                     card.can_be_clicked = False
+                    if card.has_ability("Superfast"):
+                        card.can_be_clicked = True
                 if card.name == "Mind Manacles":
                     card.can_be_clicked = False
                     for e in opp.in_play:
@@ -746,6 +745,7 @@ class Game:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].deck.reverse()
             self.get_starting_artifacts()
+            self.get_starting_spells()
             for x in range(0, 2):
                 self.players[x].draw(self.initial_hand_size)
 
@@ -771,6 +771,7 @@ class Game:
                     self.players[x].add_to_deck(card_name, 1)
                 random.shuffle(self.players[x].deck)
             self.get_starting_artifacts()
+            self.get_starting_spells()
             for x in range(0, 2):                
                 self.players[x].draw(self.initial_hand_size)
 
@@ -786,6 +787,26 @@ class Game:
             found_artifact.turn_played = self.turn
             self.current_player().play_artifact(found_artifact)
             self.current_player().deck.remove(found_artifact)
+        
+        found_artifact = None
+        for c in self.opponent().deck:
+            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
+                found_artifact = c
+                break
+        if found_artifact:
+            found_artifact.turn_played = self.turn
+            self.opponent().play_artifact(found_artifact)
+            self.opponent().deck.remove(found_artifact)
+
+    def get_starting_spells(self):
+        found_spell = None
+        for c in self.current_player().deck:
+            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Hand":
+                found_spell = c
+                break
+        if found_spell:
+            self.current_player().hand.append(found_spell)
+            self.current_player().deck.remove(found_spell)
         
         found_artifact = None
         for c in self.opponent().deck:
@@ -860,10 +881,7 @@ class Game:
                         if not mob.has_ability("Lurker"):
                             has_mob_target = True
 
-                if card.needs_card_being_cast_target():
-                    print(f"can't select counterspell on own turn")
-                    return None
-                elif card.needs_artifact_target() and len(self.current_player().artifacts) == 0 and len(self.opponent().artifacts) == 0 :
+                if card.needs_artifact_target() and len(self.current_player().artifacts) == 0 and len(self.opponent().artifacts) == 0 :
                     print(f"can't select artifact targetting spell with no artifacts in play")
                     return None
                 elif card.card_type == "Spell" and card.needs_mob_target() and not has_mob_target:
@@ -1366,14 +1384,13 @@ class Game:
         if card.id == player.card_info_to_target["card_id"]:
             player.reset_card_info_to_target()
 
-        if not card.is_token:
-            if player.username != card.owner_username:
-                if player == self.current_player():
-                    player = self.opponent()
-                else:
-                    player = self.current_player()
-            new_card = self.factory_reset_card(card, player)
-            player.played_pile.append(new_card)
+        if player.username != card.owner_username:
+            if player == self.current_player():
+                player = self.opponent()
+            else:
+                player = self.current_player()
+        new_card = self.factory_reset_card(card, player)
+        player.played_pile.append(new_card)
 
         self.update_for_mob_changes_zones(player)
 
@@ -2046,6 +2063,8 @@ class Player:
             message = self.do_add_effects_effect(card, e, effect_targets, message)           
         elif e.name == "stack_counter":
            message =  self.do_counter_card_effect(effect_targets[target_index]['id'], message)
+        elif e.name == "summon_from_hand":
+            message = self.do_summon_from_hand_effect(effect_targets[target_index]["id"], message)
 
         self.spend_mana(e.cost)
         self.hit_points -= e.cost_hp
@@ -2061,7 +2080,10 @@ class Player:
 
         for artifact in self.artifacts:
             for effect in artifact.effects:
-                if effect.name == "store_mana":
+                if effect.name == "refresh_mana":
+                    if self.mana == 0:
+                        self.mana = self.max_mana
+                elif effect.name == "store_mana":
                     while amount_to_spend > 0 and effect.counters > 0:                        
                         effect.counters -= 1
                         amount_to_spend -= 1
@@ -2285,7 +2307,7 @@ class Player:
             target_card.damage_to_show += amount
             if target_card.damage >= target_card.toughness_with_tokens():
                 self.game.send_card_to_played_pile(target_card, target_player, did_kill=True)
-                if card.has_ability("die_to_top_deck") and not target_card.is_token:
+                if card.has_ability("die_to_top_deck"):
                     card = None
                     for c in target_player.played_pile:
                         if c.id == target_card.id:
@@ -2348,7 +2370,6 @@ class Player:
         target_card, target_player = self.game.get_in_play_for_id(target_mob_id)
         target_player.in_play.remove(target_card)  
         target_card.do_leaves_play_effects(target_player, did_kill=False)
-        # if not target_card.is_token:
         if target_player.username != target_card.owner_username:
             if target_player == self:
                 target_player = self.game.opponent()
@@ -2737,22 +2758,22 @@ class Player:
         # todo rope
         return message
 
-    def do_counter_card_effect(self, card_id, message):
-        self.game.actor_turn += 1
-        stack_spell = None
-        for spell in self.game.spell_stack:
-            if spell[1]["id"] == card_id:
-                stack_spell = spell
-                break
-
-        self.game.spell_stack.remove(stack_spell)
-        spell_to_resolve = message
-        spell_to_resolve["log_lines"] = []
-        card = Card(stack_spell[1])
-        self.game.send_card_to_played_pile(card, self.game.current_player(), did_kill=False)
-        spell_to_resolve["log_lines"].append(f"{card.name} was countered by {self.game.opponent().username}.")
-        spell_to_resolve["card_name"] = card.name
-        return spell_to_resolve
+    def do_summon_from_hand_effect(self, target_username, message):
+        target = self.game.players[0]
+        caster = self.game.players[1]
+        if target.username != target_username:
+            target = self.game.players[1]
+            caster = self.game.players[0]
+        nonspells = []
+        for card in target.hand:
+            if card.card_type != "Spell":
+                nonspells.append(card)
+        if len(nonspells) > 0:
+            to_summon = random.choice(nonspells)
+            target.hand.remove(to_summon)
+            message = self.play_mob_or_artifact(to_summon, message, False)
+            message["log_lines"].append(f"{to_summon.name} was summoned for {caster.username}.")
+        return message
 
     def play_card(self, card_id, message):
         self.game.actor_turn += 1
@@ -2766,46 +2787,9 @@ class Player:
                 if effect.trigger == "friendly_card_played" and effect.target_type == "this":
                     self.do_add_tokens_effect(e, effect, {idx: {"id": e.id, "target_type":"mob"}}, idx)
 
-        # todo: wrap this into a counterspell method
-        for o_card in self.game.opponent().hand:
-            for effect in o_card.effects:
-                if effect.target_type == "card_being_cast" and card.cost >= effect.amount and self.game.opponent().current_mana() >= o_card.cost:
-                    self.game.send_card_to_played_pile(card, self.game.current_player(), did_kill=False)
-                    self.game.opponent().hand.remove(o_card)
-                    self.game.opponent().played_pile.append(o_card)
-                    self.game.opponent().spend_mana(o_card.cost)
-                    spell_to_resolve["log_lines"].append(f"{card.name} was countered by {self.game.opponent().username}.")
-                    spell_to_resolve["was_countered"] = True
-                    spell_to_resolve["counter_username"] = self.game.opponent().username
-                    spell_to_resolve["card_name"] = card.name
-                    return spell_to_resolve
-
         spell_to_resolve["log_lines"].append(f"{self.username} plays {card.name}.")
-        if card.card_type == "Mob":
-            if len(card.effects) > 0:
-                self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
-            for c in self.in_play:
-                if len(c.effects_triggered()) > 0:
-                    # Spouty Gas Ball code
-                    if c.effects_triggered()[0].trigger == "play_friendly_mob":
-                        if c.effects_triggered()[0].name == "damage" and c.effects_triggered()[0].target_type == "opponents_mob_random":
-                            if len(self.game.opponent().in_play) > 0:
-                                mob = random.choice(self.game.opponent().in_play)
-                                if mob.shielded:
-                                    mob.shielded = False
-                                else:
-                                    mob.damage += c.effects_triggered()[0].amount
-                                    mob.damage_this_turn += c.effects_triggered()[0].amount
-                                    mob.damage_to_show += c.effects_triggered()[0].amount
-                                    if mob.damage >= mob.toughness_with_tokens():
-                                        self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
-                                spell_to_resolve["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {mob.name}.")
-            self.play_mob(card)
 
-        elif card.card_type == "Artifact":
-            self.play_artifact(card)
-            if card.has_ability("Slow Artifact"):
-                card.effects_exhausted.append(card.effects[0].name)
+        spell_to_resolve = self.play_mob_or_artifact(card, spell_to_resolve)
 
         if card.card_type == "Mob" and card.has_ability("Shield"):
             card.shielded = True
@@ -2836,6 +2820,32 @@ class Player:
 
         return spell_to_resolve
 
+    def play_mob_or_artifact(self, card, spell_to_resolve, do_effects=True):
+        if card.card_type == "Mob":
+            if len(card.effects) > 0 and do_effects:
+                self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
+            for c in self.in_play:
+                if len(c.effects_triggered()) > 0:
+                    # Spouty Gas Ball code
+                    if c.effects_triggered()[0].trigger == "play_friendly_mob":
+                        if c.effects_triggered()[0].name == "damage" and c.effects_triggered()[0].target_type == "opponents_mob_random":
+                            if len(self.game.opponent().in_play) > 0:
+                                mob = random.choice(self.game.opponent().in_play)
+                                if mob.shielded:
+                                    mob.shielded = False
+                                else:
+                                    mob.damage += c.effects_triggered()[0].amount
+                                    mob.damage_this_turn += c.effects_triggered()[0].amount
+                                    mob.damage_to_show += c.effects_triggered()[0].amount
+                                    if mob.damage >= mob.toughness_with_tokens():
+                                        self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
+                                spell_to_resolve["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {mob.name}.")
+            self.play_mob(card)
+        elif card.card_type == "Artifact":
+            self.play_artifact(card)
+            if card.has_ability("Slow Artifact"):
+                card.effects_exhausted.append(card.effects[0].name)
+        return spell_to_resolve
 
     def play_mob(self, card):
         self.in_play.append(card)
@@ -2931,6 +2941,23 @@ class Player:
         self.reset_card_info_to_target()
         return message
 
+    def do_counter_card_effect(self, card_id, message):
+        self.game.actor_turn += 1
+        stack_spell = None
+        for spell in self.game.spell_stack:
+            if spell[1]["id"] == card_id:
+                stack_spell = spell
+                break
+
+        self.game.spell_stack.remove(stack_spell)
+        spell_to_resolve = message
+        spell_to_resolve["log_lines"] = []
+        card = Card(stack_spell[1])
+        self.game.send_card_to_played_pile(card, self.game.current_player(), did_kill=False)
+        spell_to_resolve["log_lines"].append(f"{card.name} was countered by {self.game.opponent().username}.")
+        spell_to_resolve["card_name"] = card.name
+        return spell_to_resolve
+
     def modify_new_card(self, game, card):
         if card.card_type == "Spell":            
             if 'spells_cost_more' in game.global_effects:
@@ -2968,6 +2995,10 @@ class Player:
 
         if self.game.turn != 0:
             draw_count = self.game.cards_each_turn + self.game.global_effects.count("draw_extra_card")
+            for a in self.artifacts:
+                for e in a.effects_triggered():
+                    if e.name == "draw" and e.trigger == "start_turn":
+                        draw_count += e.amount
             if self.has_brarium():
                 self.do_make_from_deck_effect(self.username)
                 draw_count -= 1
@@ -3400,12 +3431,6 @@ class Card:
         if e.target_type in ["self", "opponent", "Artifact", "all"]: 
             return False
         return True
-
-    def needs_card_being_cast_target(self):
-        for e in self.effects:
-            if e.target_type == "card_being_cast":
-                return True
-        return False
 
     def toughness_with_tokens(self):
         toughness = self.toughness

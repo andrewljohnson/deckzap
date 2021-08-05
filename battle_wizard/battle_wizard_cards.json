@@ -1067,32 +1067,6 @@
 		}]
 	},
 	{
-		"name": "Counterspell",
-		"race": "genie",
-		"cost": 2,
-		"card_type": "Spell",
-		"description": "Counter a mob or spell that costs 2 or more.",
-		"effects": [{
-			"name": "counter",
-			"amount": 2,
-			"effect_type": "spell",
-			"target_type": "card_being_cast"
-		}]
-	},
-	{
-		"name": "Big Counterspell",
-		"race": "genie",
-		"cost": 3,
-		"card_type": "Spell",
-		"description": "Counter a mob or spell that costs 3 or more.",
-		"effects": [{
-			"name": "counter",
-			"amount": 3,
-			"effect_type": "spell",
-			"target_type": "card_being_cast"
-		}]
-	},
-	{
 		"name": "Master Time",
 		"race": "genie",
 		"cost": 8,
@@ -2561,7 +2535,7 @@
 			}
 		]
 	},
-	{
+	{ 
 		"name": "Lil' Maker",
 		"race": "genie",
 		"class": "wizard",
@@ -2583,7 +2557,7 @@
 		"race": "genie",
 		"class": "wizard",
 		"card_type": "Artifact",
-		"description": "Replace your nornal draw with a choice of 3 cards.",
+		"description": "Replace your normal draw with a choice of 3 cards.",
 		"cost": 2,
 		"effects": [{
 			"name": "replace_draw_with_make",
@@ -2594,6 +2568,7 @@
 	{
 		"name": "Counter Mob",
 		"race": "genie",
+		"class": "wizard",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Counter a mob.",
@@ -2607,6 +2582,7 @@
 	{
 		"name": "Counter Spell",
 		"race": "genie",
+		"class": "wizard",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Counter a spell.",
@@ -2631,6 +2607,167 @@
 			"effect_type": "triggered",
 			"target_type": "self",
 			"amount": 1
+		}]
+	},
+	{
+		"name": "Quickster",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"description": "Draw when this deals damage.",
+		"power": 1,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{ 
+		"name": "Game Maker",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 4,
+		"description": "Make a card from your deck.",
+		"effects": [{
+			"name": "make_from_deck",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "deck_card",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Orpheus Krustal",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Artifact",
+		"description": "Draw 2 extra cards at the beginning of your turn.",
+		"cost": 5,
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"trigger": "start_turn",
+			"effect_type": "triggered",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Crazy Control",
+		"race": "genie",
+		"cost": 6,
+		"card_type": "Spell",
+		"description": "Summon a random entity or artifact from your opponent's hand.",
+		"effects": [{
+			"name": "summon_from_hand",
+			"amount": 1,
+			"effect_type": "spell",
+			"target_type": "opponent"
+		}]
+	},
+	{ 
+		"name": "Legendary Djinn",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"power": 7,
+		"toughness": 7,
+		"cost": 7,
+		"description": "Make a card from your deck.",
+		"effects": [{
+			"name": "make_from_deck",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "deck_card",
+			"amount": 1
+		}],
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{ 
+		"name": "Octopug",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"description": "Return all mobs to their owners' hands.",
+		"effects": [{
+			"name": "unwind",
+			"effect_type": "spell",
+			"target_type": "all_entities"
+		}]
+	},
+	{
+		"name": "Nonapug Whistle",
+		"race": "genie",
+		"class": "wizard",
+		"cost": 9,
+		"card_type": "Spell",
+		"description": "Make 3/3s with Superfast.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Nonapug Decon",
+			"target_type": "self",
+			"effect_type": "spell",
+			"amount": 3
+		}]
+	},
+	{
+		"name": "Nonapug Decon",
+		"is_token": true,
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"power": 3,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{
+		"name": "Quasar Tap",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Artifact",
+		"description": "Refresh your mana after you spend it all.",
+		"cost": 10,
+		"effects": [{
+			"name": "refresh_mana",
+			"target_type": "self",
+			"trigger": "mana_exhausted",
+			"effect_type": "triggered"
 		}]
 	}
 ]

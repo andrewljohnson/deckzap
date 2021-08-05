@@ -184,8 +184,6 @@ export class GameUX {
 
         if (this.thisPlayer(game)) {
             if (message["show_spell"] && !this.thisPlayer(game).card_info_to_target["card_id"]) {
-              // using this.thisPlayer(game) will break with a counterspell effect 
-              // but we dont shjow counterspells being cast yet
                 this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game), message)
             }
         }
@@ -303,6 +301,64 @@ export class GameUX {
             this.app.stage.removeChild(arrow);
             this.app.stage.addChild(arrow);
         }
+        console.log(message);
+        if (message["move_type"] == "END_TURN") {
+            this.showChangeTurnAnimation(game)
+        }
+    }
+
+    showChangeTurnAnimation(game) {
+        const container = new PIXI.Container();
+        this.app.stage.addChild(container);
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        var modalWidth = this.opponentAvatar.width;
+        var modalHeight = this.inPlay.height * 2 + padding;
+        this.roundRectangle(background)
+        background.width = modalWidth;
+        background.height = modalHeight;
+        container.position.x = this.opponentAvatar.position.x;
+        container.position.y = this.opponentAvatar.position.y + this.opponentAvatar.height + padding;
+        background.tint = 0x000000;
+        background.alpha = .7;
+        container.addChild(background);
+
+        let options = this.textOptions();
+        options.wordWrapWidth = 400
+        options.fontSize = 32;
+        options.fill = 0xFFFFFF;
+        options.align = "middle";
+        let name = new PIXI.Text(this.activePlayer(game).username + "'s turn", options);
+        name.position.x = modalWidth/2 - name.width/2;
+        name.position.y = 80
+        container.addChild(name);
+        setTimeout(() => { 
+            container.alpha = .8;
+            setTimeout(() => { 
+                container.alpha = .5;
+                setTimeout(() => { 
+                    container.alpha = .2;
+                    setTimeout(() => { 
+                        container.alpha = .1;
+                        this.app.stage.removeChild(container);
+                    }, 400);            
+                }, 400);            
+            }, 400);            
+        }, 400);            
+    }
+
+    roundRectangle(sprite) {
+        var graphics = new PIXI.Graphics();
+        graphics.beginFill(0x000000);
+        graphics.drawRoundedRect(
+            0,
+            0,
+            sprite.width,
+            sprite.height,
+            1
+        );
+        graphics.endFill();
+        sprite.mask = graphics;
+        sprite.addChild(graphics)
     }
 
     clearArrows() {
@@ -486,6 +542,7 @@ export class GameUX {
 
 
         var index = 0;
+        var self = this;
         for (let card of cards) {
             let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false);
             cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
@@ -494,6 +551,7 @@ export class GameUX {
 
             cardSprite
                 .on('click',        function (e) {
+                    this.onMouseout(cardSprite, self);
                     card_on_click(card);
                 })
             index += 1;
@@ -814,12 +872,11 @@ export class GameUX {
                     abilitiesText += a.description;
                     color = 0x000000;
                 } else {
-                    var hasSpecialLargeText = false;
                     // for Befuddling Guitar
                     if (a.name == "DamageDraw") {
                         continue;
                     }
-                        abilitiesText += a.name;
+                    abilitiesText += a.name;
                     if (a != card.abilities[card.abilities.length-1]) {                
                            abilitiesText += ", ";
                     }               
@@ -1155,6 +1212,9 @@ export class GameUX {
             if (a.name == "Fast") {
                 abilityText.text = "Fast - Fast entities may attack the turn they come into play.";
             }                    
+            if (a.name == "Superfast") {
+                abilityText.text = "Superfast - Superfast entities may be played and attack as instants.";
+            }                    
             if (a.name == "Ambush") {
                 abilityText.text = "Ambush - Ambush entities may attack other entities the turn they come into play.";
             }                    
@@ -1242,10 +1302,10 @@ export class GameUX {
             this.app.ticker.remove(incrementGodrayTime)
             this.app.stage.removeChild(sprite)
             if (this.needsToShowMakeViews) {
+                this.needsToShowMakeViews = false;
                 this.showSelectionViews(game);
                 this.makeCardsInteractive()
             }
-            this.needsToShowMakeViews = false;
             this.spellBeingCastSprite = null;
         }, 1000);
 
