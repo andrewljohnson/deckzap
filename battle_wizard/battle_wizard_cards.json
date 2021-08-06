@@ -2,6 +2,7 @@
 	{
 		"name": "Crystal Spyglass",
 		"race": "elf",
+		"image": "spyglass.svg",
 		"card_type": "Artifact",
 		"description": "0: View Opponent's hand once on your turn.",
 		"cost": 1,
@@ -14,8 +15,9 @@
 	{
 		"name": "Fountain of Youth",
 		"race": "elf",
+		"image": "water-fountain.svg",
 		"card_type": "Artifact",
-		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30 total life.",
+		"description": "Gain 1 hp per card in hand more than 5, at beginning of your turn, to a maximum of 30.",
 		"cost": 3,
 		"effects": [{
 			"name": "gain_hp_for_hand",
@@ -27,6 +29,7 @@
 	{
 		"name": "Voodoo Doll",
 		"race": "genie",
+		"image": "voodoo-doll.svg",
 		"card_type": "Artifact",
 		"description": "Opponent loses 1 life per card in hand at beginning of your turn.",
 		"cost": 3,
@@ -40,6 +43,7 @@
 	{
 		"name": "Leyline Amulet",
 		"race": "elf",
+		"image": "gem-necklace.svg",
 		"card_type": "Artifact",
 		"description": "Whenever you draw a spell, reduce its cost by 1.",
 		"cost": 3,
@@ -53,11 +57,12 @@
 	{
 		"name": "Ice Prison",
 		"race": "genie",
+		"image": "frozen-block.svg",
 		"card_type": "Artifact",
-		"description": "Each player may only untap one entity that attacked last turn.",
+		"description": "Each player may only untap one mob that attacked last turn.",
 		"cost": 5,
 		"effects": [{
-			"name": "stop_entity_renew",
+			"name": "stop_mob_renew",
 			"target_type": "all_players",
 			"trigger": "start_turn",
 			"effect_type": "triggered"
@@ -66,12 +71,13 @@
 	{
 		"name": "Leyline Portal",
 		"race": "genie",
+		"image": "star-gate.svg",
 		"card_type": "Artifact",
-		"description": "Whenever you draw an entity, reduce its cost by 1.",
+		"description": "Whenever you draw a mob, reduce its cost by 1.",
 		"cost": 2,
 		"effects": [{
 			"name": "reduce_cost",
-			"target_type": "Entity",
+			"target_type": "Mob",
 			"trigger": "draw",
 			"effect_type": "triggered"
 		}]
@@ -79,6 +85,7 @@
 	{
 		"name": "Book of Knowledge",
 		"race": "genie",
+		"image": "enlightenment.svg",
 		"card_type": "Artifact",
 		"cost": 3,
 		"description": "✦: Draw a card once on your turn.",
@@ -93,6 +100,7 @@
 	{
 		"name": "Mirror of Fate",
 		"race": "genie",
+		"image": "mirror-mirror.svg",
 		"card_type": "Artifact",
 		"cost": 6,
 		"description": "✦✦✦✦✦✦: Switch hit points with your opponent. Sacrifice this.",
@@ -107,13 +115,14 @@
 	{
 		"name": "Scepter of Manipulation",
 		"race": "genie",
+		"image": "lunar-wand.svg",
 		"card_type": "Artifact",
 		"cost": 4,
-		"description": "✦: Prevent an entity from attacking, once on your turn.",
+		"description": "✦: Prevent a mob from attacking, once on your turn.",
 		"effects": [{
 				"name": "add_tokens",
 				"effect_type": "activated",
-				"target_type": "entity",
+				"target_type": "mob",
 				"cost": 1,
 				"tokens": [{
 					"turns": 2,
@@ -126,7 +135,7 @@
 		"image": "berry-bush.svg",
 		"race": "elf",
 		"class": "sorcerer",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
@@ -150,16 +159,16 @@
 		"name": "Spouty Gas Ball",
 		"image": "crumbling-ball.svg",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 2,
 		"cost": 2,
-		"description": "Whenever you play an entity, deal a damage to a random enemy entity.",
+		"description": "Whenever you play a mob, deal a damage to a random enemy mob.",
 		"effects": [{
 			"name": "damage",
-			"target_type": "opponents_entity_random",
+			"target_type": "opponents_mob_random",
 			"amount": 1,
-			"trigger": "play_friendly_entity",
+			"trigger": "play_friendly_mob",
 			"effect_type": "triggered",
 			"toughness": 1
 		}]
@@ -167,7 +176,7 @@
 	{
 		"name": "Pine Treant",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 3,
 		"cost": 3,
@@ -184,7 +193,7 @@
 		"name": "Pine Dryad",
 		"is_token": true,
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1
@@ -192,7 +201,7 @@
 	{
 		"name": "Oak Treant",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 5,
 		"cost": 5,
@@ -212,7 +221,7 @@
 		"name": "Oak Dryad",
 		"is_token": true,
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
@@ -223,7 +232,7 @@
 	{
 		"name": "Summon-Happy Genie",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 6,
 		"toughness": 2,
 		"cost": 5,
@@ -246,7 +255,7 @@
 		"name": "Elemental",
 		"is_token": true,
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 0
@@ -254,7 +263,7 @@
 	{
 		"name": "Porcupine",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
@@ -269,7 +278,7 @@
 	{
 		"name": "Thought Sprite",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 3,
 		"cost": 3,
@@ -284,37 +293,37 @@
 	{
 		"name": "Sniper Elf",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 4,
 		"toughness": 5,
 		"cost": 6,
-		"description": "Destroy an enemy entity with Guard.",
+		"description": "Destroy an enemy mob with Guard.",
 		"effects": [{
 			"name": "kill",
 			"effect_type": "enter_play",
-			"target_type": "opponents_entity",
+			"target_type": "opponents_mob",
 			"target_restrictions": [{"needs_guard": null}]
 		}]
 	},
 	{
 		"name": "Dragonslayer Elf",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 4,
 		"toughness": 2,
 		"cost": 3,
-		"description": "Destroy an entity power 6 or greater.",
+		"description": "Destroy a mob power 6 or greater.",
 		"effects": [{
 			"name": "kill",
 			"effect_type": "enter_play",
-			"target_type": "entity",
+			"target_type": "mob",
 			"target_restrictions": [{"power": 6}]
 		}]
 	},
 	{
 		"name": "Mana Tree",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 0,
 		"toughness": 4,
 		"cost": 3,
@@ -348,7 +357,7 @@
 	{
 		"name": "Unstable Tempest",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"description": "Take 2 damage.",
 		"toughness": 2,
@@ -363,15 +372,15 @@
 	{
 		"name": "Energizer",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
-		"description": "Give an entity gets +2/+0 this turn.",
+		"description": "Give a mob gets +2/+0 this turn.",
 		"toughness": 1,
 		"cost": 1,
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "enter_play",
-			"target_type": "entity",
+			"target_type": "mob",
 			"tokens": [{
 				"turns": 1,
 				"power_modifier": 2,
@@ -382,15 +391,15 @@
 	{
 		"name": "Elven Vanguard",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
-		"description": "Give an entity gets +1/+1 this turn.",
+		"description": "Give a mob gets +1/+1 this turn.",
 		"toughness": 2,
 		"cost": 2,
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "enter_play",
-			"target_type": "entity",
+			"target_type": "mob",
 			"tokens": [{
 				"turns": 1,
 				"power_modifier": 1,
@@ -401,7 +410,7 @@
 	{
 		"name": "Mist Elemental",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 3,
 		"cost": 1,
@@ -412,7 +421,7 @@
 	{
 		"name": "Largest Gorilla in the Forest",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 8,
 		"toughness": 8,
 		"cost": 9,
@@ -426,7 +435,7 @@
 	{
 		"name": "Tame-ish Sabretooth",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 7,
 		"toughness": 7,
 		"cost": 8,
@@ -441,10 +450,10 @@
 		"name": "Riftwalker Djinn",
 		"image": "djinn.svg",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 2,
-		"cost": 1,
+		"cost": 5,
 		"abilities": [
 			{
 				"name": "Guard",
@@ -467,7 +476,7 @@
 	{
 		"name": "Centaur",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 5,
 		"cost": 4,
@@ -479,7 +488,7 @@
 		"name": "LionKin",
 		"image": "lion.svg",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 3,
 		"cost": 2,
@@ -491,21 +500,21 @@
 		"name": "Training Master",
 		"image": "coronation.svg",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
-		"description": "Double the power of another entity.",
+		"description": "Double the power of another mob.",
 		"effects": [{
 			"name": "double_power",
 			"effect_type": "enter_play",
-			"target_type": "self_entity"
+			"target_type": "self_mob"
 		}]	
 	},
 	{
 		"name": "Gold Dragon",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 6,
 		"toughness": 6,
 		"cost": 5,
@@ -520,7 +529,7 @@
 	{
 		"name": "Rainbow Dragon",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 6,
 		"toughness": 6,
 		"cost": 5,
@@ -537,7 +546,7 @@
 		"name": "Faerie Queen",
 		"image": "fairy.svg",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 4,
 		"toughness": 4,
 		"cost": 6,
@@ -555,7 +564,7 @@
 	{
 		"name": "Infernus",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"description": "✦: +1/+0",
 		"power": 5,
 		"toughness": 5,
@@ -575,7 +584,7 @@
 		"name": "Winding One",
 		"image": "wind-hole.svg",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 4,
 		"cost": 3,
@@ -584,7 +593,7 @@
 	{
 		"name": "Nature's Guardian",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 8,
 		"toughness": 8,
 		"cost": 6,
@@ -593,7 +602,7 @@
 		]
 	},
 	{
-		"name": "Make Entity+",
+		"name": "Make Mob+",
 		"race": "elf",
 		"cost": 1,
 		"card_type": "Spell",
@@ -602,7 +611,7 @@
 			"name": "make",
 			"effect_type": "spell",
 			"target_type": "self",
-			"make_type": "Entity",
+			"make_type": "Mob",
 			"amount": 1
 		}, 
 		{
@@ -612,28 +621,15 @@
 		}]
 	},
 	{
-		"name": "Forest Ritual",
-		"race": "elf",
-		"cost": 0,
-		"card_type": "Spell",
-		"description": "Get 2 mana this turn",
-		"effects": [{
-			"name": "mana",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 2
-		}]
-	},
-	{
 		"name": "Faerie War Chant",
 		"race": "elf",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Give an entity gets +3/+3 this turn.",
+		"description": "Give a mob gets +3/+3 this turn.",
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "spell",
-			"target_type": "entity",
+			"target_type": "mob",
 			"tokens": [{
 				"turns": 1,
 				"power_modifier": 3,
@@ -646,11 +642,11 @@
 		"race": "elf",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Give an entity gets +2/+2 permanently.",
+		"description": "Give a mob gets +2/+2 permanently.",
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "spell",
-			"target_type": "entity",
+			"target_type": "mob",
 			"tokens": [{
 				"power_modifier": 2,
 				"toughness_modifier": 2
@@ -702,7 +698,7 @@
 		"race": "elf",
 		"cost": 3,
 		"card_type": "Spell",
-		"description": "Summon a random entity from your deck.",
+		"description": "Summon a random mob from your deck.",
 		"effects": [{
 			"effect_type": "spell",
 			"target_type": "self",
@@ -751,7 +747,7 @@
 	{
 		"name": "Stone Elemental",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
 		"cost": 1
@@ -760,7 +756,7 @@
 		"name": "Lightning Elemental",
 		"image": "lightning-tear.svg",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 2,
@@ -775,7 +771,7 @@
 	{
 		"name": "Air Elemental",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 5,
 		"cost": 2,
@@ -787,27 +783,28 @@
 		"name": "Tame Tempest",
 		"image": "tornado.svg",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
 		"cost": 3,
-		"description": "Return an entity to its owner's hand.",
+		"description": "Return a mob to its owner's hand.",
 		"effects": [{
 			"name": "unwind",
 			"effect_type": "enter_play",
-			"target_type": "entity"
+			"target_type": "mob"
 		}]	
 	},
 	{
 		"name": "Unwind",
 		"race": "genie",
+		"image": "acrobatic.svg",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Return an entity to its owner's hand.",
+		"description": "Return a mob to its owner's hand.",
 		"effects": [{
 			"name": "unwind",
 			"effect_type": "spell",
-			"target_type": "entity"
+			"target_type": "mob"
 		}]
 	},
 	{
@@ -840,11 +837,11 @@
 		"race": "genie",
 		"cost": 4,
 		"card_type": "Spell",
-		"description": "Kill an entity.",
+		"description": "Kill a mob.",
 		"effects": [{
 			"name": "kill",
 			"effect_type": "spell",
-			"target_type": "entity"
+			"target_type": "mob"
 		}]
 	},
 	{
@@ -852,12 +849,12 @@
 		"race": "genie",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Target entity gains Lurker.",
+		"description": "Target mob gains Lurker.",
 		"effects": [ 
 			{
-				"name": "add_entity_abilities",
+				"name": "add_mob_abilities",
 				"effect_type": "spell",
-				"target_type": "entity",
+				"target_type": "mob",
 				"abilities": [{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}]
 			}
 		]
@@ -937,7 +934,7 @@
 		"name": "Trickster",
 		"race": "elf",
 		"class": "sorcerer",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
@@ -957,7 +954,7 @@
 	{
 		"name": "Fire Elemental",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
@@ -972,7 +969,7 @@
 		"name": "Inferno Elemental",
 		"image": "brasero.svg",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 5,
 		"toughness": 5,
 		"cost": 5,
@@ -986,7 +983,7 @@
 	{
 		"name": "Lord of the Storm",
 		"race": "genie",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"description": "Return all other entities to their owners' hands.",
 		"power": 3,
 		"toughness": 3,
@@ -1027,12 +1024,12 @@
 		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Target entity can't attack. Draw a card.",
+		"description": "Target mob can't attack. Draw a card.",
 		"effects": [ 
 			{
 				"name": "add_tokens",
 				"effect_type": "spell",
-				"target_type": "entity",
+				"target_type": "mob",
 				"tokens": [{
 					"turns": 2,
 					"set_can_act": false
@@ -1064,32 +1061,6 @@
 			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 1
-		}]
-	},
-	{
-		"name": "Counterspell",
-		"race": "genie",
-		"cost": 2,
-		"card_type": "Spell",
-		"description": "Counter an entity or spell that costs 2 or more.",
-		"effects": [{
-			"name": "counter",
-			"amount": 2,
-			"effect_type": "spell",
-			"target_type": "card_being_cast"
-		}]
-	},
-	{
-		"name": "Big Counterspell",
-		"race": "genie",
-		"cost": 3,
-		"card_type": "Spell",
-		"description": "Counter an entity or spell that costs 3 or more.",
-		"effects": [{
-			"name": "counter",
-			"amount": 3,
-			"effect_type": "spell",
-			"target_type": "card_being_cast"
 		}]
 	},
 	{
@@ -1150,17 +1121,17 @@
 		"race": "genie",
 		"cost": 6,
 		"card_type": "Spell",
-		"description": "Take control of an entity.",
+		"description": "Take control of a mob.",
 		"effects": [{
 			"name": "take_control",
 			"effect_type": "spell",
-			"target_type": "opponents_entity"
+			"target_type": "opponents_mob"
 		}]
 	},
 	{
 		"name": "Familiar",
 		"image": "cat.svg",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 2,
 		"cost": 2,
@@ -1174,20 +1145,20 @@
 	},
 	{
 		"name": "Orc",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 4,
 		"cost": 3
 	},
 	{
 		"name": "Common Bunger",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 4,
 		"toughness": 5,
 		"cost": 4
 	},
 	{
-		"name": "Make Entity",
+		"name": "Make Mob",
 		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 entities to make and add to your deck.",
@@ -1195,7 +1166,7 @@
 			"name": "make",
 			"effect_type": "spell",
 			"target_type": "self",
-			"make_type": "Entity",
+			"make_type": "Mob",
 			"amount": 1
 		}]
 	},
@@ -1227,7 +1198,7 @@
 	},
 	{
 		"name": "The Biggest One",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 15,
 		"toughness": 15,
 		"cost": 10
@@ -1235,6 +1206,7 @@
 	{
 		"name": "Dagger",
 		"card_type": "Artifact",
+		"image": "bone-knife.svg",
 		"cost": 1,
 		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
 		"original_description": "✦✦: Make this a 1 power weapon with 2 charges.",
@@ -1288,6 +1260,7 @@
 	{
 		"name": "Wand",
 		"card_type": "Artifact",
+		"image": "orb-wand.svg",
 		"cost": 1,
 		"description": "✦✦: Deal 1 damage to anything.",
 		"abilities": [
@@ -1307,6 +1280,7 @@
 	{
 		"name": "Prayer Beads",
 		"card_type": "Artifact",
+		"image": "prayer-beads.svg",
 		"cost": 1,
 		"description": "✦✦: Heal 2 hit points",
 		"abilities": [
@@ -1324,46 +1298,9 @@
 		}]
 	},
 	{
-		"name": "Shield",
-		"card_type": "Artifact",
-		"cost": 1,
-		"description": "✦✦: Gain 2 armor.",
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
-				"name": "gain_armor",
-				"effect_type": "activated",
-				"target_type": "self",
-				"cost": 2,
-				"amount": 2
-		}]
-	},
-	{
-		"name": "Shield Up",
-		"race": "genie",
-		"card_type": "Spell",
-		"cost": 3,
-		"description": "Gain 7 armor. Draw a card.",
-		"effects": [{
-				"name": "gain_armor",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 7
-		},
-		{
-				"name": "draw",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 1
-		}]
-	},
-	{
 		"name": "Abyssal Crystal",
 		"card_type": "Artifact",
+		"image": "moebius-star.svg",
 		"cost": 1,
 		"description": "✦✦: draw a card and lose 2 life.",
 		"abilities": [
@@ -1384,6 +1321,7 @@
 	{
 		"name": "Wish Stone",
 		"card_type": "Artifact",
+		"image": "rune-stone.svg",
 		"cost": 4,
 		"description": "0: sacrifice this, put a artifact from your deck into play.",
 		"effects": [{
@@ -1412,7 +1350,7 @@
 		"name": "Mushroom",
 		"is_token": true,
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 0
@@ -1420,7 +1358,7 @@
 	{
 		"name": "Kano from Barias",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 0,
 		"toughness": 2,
 		"cost": 4,
@@ -1452,7 +1390,7 @@
 		"name": "Gnomish Minstrel",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
@@ -1469,7 +1407,7 @@
 		"name": "Town Ranger",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 2,
 		"cost": 1,
@@ -1488,7 +1426,7 @@
 		"name": "Town Fighter",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
@@ -1507,7 +1445,7 @@
 		"name": "Town Wizard",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
@@ -1530,16 +1468,16 @@
 		"name": "Town Shaman",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
-		"description": "Make an Entity.",
+		"description": "Make an Mob.",
 		"effects": [{
 			"name": "make",
 			"effect_type": "enter_play",
 			"target_type": "self",
-			"make_type": "Entity",
+			"make_type": "Mob",
 			"amount": 1
 		}],	
 		"abilities": [
@@ -1553,7 +1491,7 @@
 		"name": "Town Priest",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 2,
 		"cost": 1,
@@ -1574,6 +1512,7 @@
 	{
 		"name": "Lute",
 		"card_type": "Artifact",
+		"image": "lyre.svg",
 		"cost": 1,
 		"description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
 		"original_description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
@@ -1609,7 +1548,7 @@
 		"name": "Gnomish Mayor",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
@@ -1633,7 +1572,7 @@
 		"is_token": true,
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
@@ -1648,7 +1587,7 @@
 		"name": "Gnomish Press Gang",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
 		"cost": 2,
@@ -1669,7 +1608,7 @@
 		"name": "Gnomish Soundsmith",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
 		"cost": 3,
@@ -1685,7 +1624,7 @@
 	{
 		"name": "Bewitching Lights",
 		"race": "elf",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
 		"cost": 3,
@@ -1698,53 +1637,11 @@
 		]
 	},
 	{
-		"name": "Befuddling Guitar",
-		"image": "guitar.svg",
-		"race": "gnome",
-		"class": "bard",
-		"card_type": "Artifact",
-		"cost": 3,
-		"description": "If this kills an entity, put it on top of its owner's deck. If it attacks a player, they put a random card from their hand into their deck then draw a card.",
-		"abilities": [
-			{
-				"name": "Instrument",
-				"descriptive_id": "Instrument"
-			},
-			{
-				"name": "Weapon",
-				"descriptive_id": "Weapon"
-			},
-			{
-				"name": "die_to_top_deck",
-				"descriptive_id": "die_to_top_deck"
-			},
-			{
-				"name": "discard_random_to_deck",
-				"descriptive_id": "discard_random_to_deck",
-				"amount": 1
-			},
-			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw",
-				"target_type": "opponent",
-				"amount": 1
-			}
-		],
-		"effects": [{
-					"name": "attack",
-					"effect_type": "activated",
-					"target_type": "any_enemy",
-					"counters": 2,
-					"cost": 0,
-					"power": 3
-		}]
-	},
-	{
 		"name": "Town Council",
 		"race": "gnome",
 		"class": "bard",
-		"description": "Each other Entity you control gets +1/+1 for every 2 Entities you control, rounded down.",
-		"card_type": "Entity",
+		"description": "Each other Mob you control gets +1/+1 for every 2 Entities you control, rounded down.",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 4,
 		"cost": 3,
@@ -1766,7 +1663,7 @@
 		"image": "totem-mask.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
@@ -1786,7 +1683,7 @@
 		"image": "spark-spirit.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 1,
 		"cost": 1
@@ -1797,7 +1694,7 @@
 		"image": "bear-face.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 2,
 		"cost": 1,
@@ -1822,7 +1719,7 @@
 		"image": "scorpion.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"description": "Has Fast if something else does.",
 		"power": 2,
 		"toughness": 2,
@@ -1838,7 +1735,7 @@
 				"name": "toggle_symbiotic_fast",
 				"effect_type": "triggered",
 				"target_type": "self",
-				"trigger": "entity_changes_zones"
+				"trigger": "mob_changes_zones"
 			}
 		]
 	},
@@ -1848,7 +1745,7 @@
 		"image": "monkey.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"description": "Gets +1/+1 whenever you play a card.",
 		"power": 0,
 		"toughness": 1,
@@ -1894,12 +1791,12 @@
 		"class": "fighter",
 		"cost": 2,
 		"card_type": "Spell",
-		"description": "Deal 3 damage to an Entity and your Opponent.",
+		"description": "Deal 3 damage to an Mob and your Opponent.",
 		"effects": [
 			{
 				"name": "damage",
 				"effect_type": "spell",
-				"target_type": "entity",
+				"target_type": "mob",
 				"amount": 3
 			},
 			{
@@ -1939,7 +1836,7 @@
 				"name": "set_token",
 				"effect_type": "triggered",
 				"target_type": "self_entities",
-				"trigger": "entity_changes_zones",
+				"trigger": "mob_changes_zones",
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
@@ -1953,24 +1850,24 @@
 		"image": "teacher.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
-		"description": "Give a friendly entity +2/+2 and Fade.",
+		"description": "Give a friendly mob +2/+2 and Fade.",
 		"toughness": 2,
 		"cost": 2,
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "enter_play",
-			"target_type": "self_entity",
+			"target_type": "self_mob",
 			"tokens": [{
 				"power_modifier": 2,
 				"toughness_modifier": 2
 			}]
 		},
 		{
-			"name": "add_entity_abilities",
+			"name": "add_mob_abilities",
 			"effect_type": "enter_play",
-			"target_type": "entity",
+			"target_type": "mob",
 			"abilities": [{"name": "Fade", "descriptive_id": "Fade", "enabled": true}]
 		}]
 	},
@@ -1980,7 +1877,7 @@
 		"image": "snake-bite.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 4,
 		"toughness": 3,
 		"cost": 3,
@@ -2013,8 +1910,8 @@
 				"descriptive_id": "Weapon"
 			},
 			{
-				"name": "multi_entity_attack",
-				"descriptive_id": "multi_entity_attack"
+				"name": "multi_mob_attack",
+				"descriptive_id": "multi_mob_attack"
 			}
 		],
 		"effects": [{
@@ -2032,7 +1929,7 @@
 		"image": "mammoth.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"description": "Deals you 1 damage at the start of your turn.",
 		"power": 5,
 		"toughness": 5,
@@ -2079,7 +1976,7 @@
 		"is_token": true,
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 3,
 		"toughness": 2,
 		"cost": 2,
@@ -2100,8 +1997,8 @@
 		"image": "stomp.svg",
 		"race": "human",
 		"class": "fighter",
-		"card_type": "Entity",
-		"description": "+1/+0 for each other entity and artifact you have.",
+		"card_type": "Mob",
+		"description": "+1/+0 for each other mob and artifact you have.",
 		"power": 2,
 		"toughness": 5,
 		"cost": 5,
@@ -2116,7 +2013,7 @@
 				"name": "set_token",
 				"effect_type": "triggered",
 				"target_type": "this",
-				"trigger": "entity_changes_zones",
+				"trigger": "mob_changes_zones",
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
@@ -2131,17 +2028,17 @@
 		"class": "sorcerer",
 		"card_type": "Spell",
 		"cost": 1,
-		"description": "Kill an entity. Its controller gains life equal to its toughness.",
+		"description": "Kill a mob. Its controller gains life equal to its toughness.",
 		"effects": [
 			{
 				"name": "gain_for_toughness",
 				"effect_type": "spell",
-				"target_type": "entity"
+				"target_type": "mob"
 			},		
 			{
 				"name": "kill",
 				"effect_type": "spell",
-				"target_type": "entity"
+				"target_type": "mob"
 			}
 		]
 	},
@@ -2164,6 +2061,7 @@
 	{
 		"name": "Disk of Death",
 		"card_type": "Artifact",
+		"image": "chakram.svg",
 		"cost": 4,
 		"description": "1: sacrifice this, kill all Artifacts and Entities.",
 		"abilities": [
@@ -2203,11 +2101,11 @@
 		"name": "Life Guardian",
 		"race": "elf",
 		"class": "sorcerer",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 7,
 		"toughness": 7,
 		"cost": 1,
-		"description": "Get a 7/7 entity with Syphon when this dies.",
+		"description": "Get a 7/7 mob with Syphon when this dies.",
 		"abilities": [			
 			{
 				"name": "Syphon",
@@ -2227,7 +2125,7 @@
 		"is_token": true,
 		"race": "elf",
 		"class": "sorcerer",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 7,
 		"toughness": 7,
 		"cost": 7,
@@ -2242,11 +2140,11 @@
 		"name": "Great Guardian",
 		"race": "elf",
 		"class": "sorcerer",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 8,
 		"toughness": 8,
 		"cost": 8,
-		"description": "Get an 8/8 entity with Guard when this dies.",
+		"description": "Get an 8/8 mob with Guard when this dies.",
 		"abilities": [			
 			{
 				"name": "Guard",
@@ -2266,7 +2164,7 @@
 		"is_token": true,
 		"race": "elf",
 		"class": "sorcerer",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 8,
 		"toughness": 8,
 		"cost": 8,
@@ -2281,11 +2179,11 @@
 		"name": "Gnomish Piper",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 4,
 		"toughness": 4,
 		"cost": 4,
-		"description": "Gain control of an entity this turn. It gets Ambush.",
+		"description": "Gain control of a mob this turn. It gets Ambush.",
 		"abilities": [			
 			{
 				"name": "Guard",
@@ -2295,7 +2193,7 @@
 		"effects": [
 			{
 				"name": "add_effects",
-				"target_type": "opponents_entity",
+				"target_type": "opponents_mob",
 				"effect_type": "enter_play",
 				"effects": [{
 					"name": "take_control",
@@ -2305,9 +2203,9 @@
 				}]
 			},
 			{
-				"name": "add_entity_abilities",
+				"name": "add_mob_abilities",
 				"effect_type": "enter_play",
-				"target_type": "opponents_entity",
+				"target_type": "opponents_mob",
 				"abilities": [{"name": "Ambush", "descriptive_id": "Ambush", "enabled": true}],
 				"turns": 1
 			}
@@ -2316,6 +2214,7 @@
 	{
 		"name": "Akbar's Pan Pipes",
 		"card_type": "Artifact",
+		"image": "pan-flute.svg",
 		"cost": 4,
 		"description": "Remove a counter: Summon a 2/2 rat.",
 		"abilities": [
@@ -2340,7 +2239,7 @@
 		"is_token": true,
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
 		"cost": 1
@@ -2349,7 +2248,7 @@
 		"name": "Gnomish Militia",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 5,
 		"toughness": 5,
 		"cost": 5,
@@ -2389,11 +2288,11 @@
 		"name": "Song Dragon",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 4,
 		"toughness": 9,
 		"cost": 7,
-		"description": "Gain control of a random entity at the beginning of your turn.",
+		"description": "Gain control of a random mob at the beginning of your turn.",
 		"abilities": [			
 			{
 				"name": "Guard",
@@ -2408,7 +2307,7 @@
 				"name": "take_control",
 				"trigger": "start_turn",
 				"effect_type": "triggered",
-				"target_type": "opponents_entity_random"
+				"target_type": "opponents_mob_random"
 			}
 		]
 	},
@@ -2418,7 +2317,7 @@
 		"class": "bard",
 		"cost": 7,
 		"card_type": "Spell",
-		"description": "Draw a card for each Entity you control.",
+		"description": "Draw a card for each Mob you control.",
 		"abilities": [
 				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
 		],
@@ -2434,7 +2333,7 @@
 		"name": "Avatar of Song",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 8,
 		"toughness": 8,
 		"cost": 8,
@@ -2490,7 +2389,7 @@
 		"name": "Ilra, Lady of Wind and Music",
 		"race": "gnome",
 		"class": "bard",
-		"card_type": "Entity",
+		"card_type": "Mob",
 		"power": 6,
 		"toughness": 6,
 		"cost": 9,
@@ -2547,10 +2446,10 @@
 	{
 		"name": "Mana Battery",
 		"race": "alien",
-		"image": "battery-pack.svg",
 		"class": "maestro",
+		"image": "battery-pack.svg",
 		"card_type": "Artifact",
-		"description": "Stores 3 excess mana over 5. Sacrifice to get the stored mana, draw a card.",
+		"description": "Stores unused mana up to 3.",
 		"cost": 0,
 		"effects": [
 			{
@@ -2558,18 +2457,594 @@
 				"target_type": "self",
 				"trigger": "start_turn",
 				"effect_type": "triggered"
-			},
-			{
-				"name": "get_mana_and_draw",
-				"target_type": "self",
-				"effect_type": "activated"
-			}
-		],
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
 			}
 		]
+	},
+	{ 
+		"name": "Lil' Maker",
+		"race": "genie",
+		"class": "wizard",
+		"image": "mad-scientist.svg",
+		"card_type": "Mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Make a card from your deck.",
+		"effects": [{
+			"name": "make_from_deck",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "deck_card",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Brarium",
+		"race": "genie",
+		"class": "wizard",
+		"image": "crystal-ball.svg",
+		"card_type": "Artifact",
+		"description": "Replace your normal draw with a choice of 3 cards.",
+		"cost": 2,
+		"effects": [{
+			"name": "replace_draw_with_make",
+			"trigger": "draw",
+			"effect_type": "triggered"
+		}]
+	},
+	{
+		"name": "Counter Mob",
+		"race": "genie",
+		"class": "wizard",
+		"image": "magic-swirl.svg",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Counter a mob.",
+		"effects": [{
+			"name": "stack_counter",
+			"amount": 2,
+			"effect_type": "spell",
+			"target_type": "being_cast_mob"
+		}]
+	},
+	{
+		"name": "Counter Spell",
+		"race": "genie",
+		"class": "wizard",
+		"image": "bolt-spell-cast.svg",
+		"cost": 2,
+		"card_type": "Spell",
+		"description": "Counter a spell.",
+		"effects": [{
+			"name": "stack_counter",
+			"amount": 2,
+			"effect_type": "spell",
+			"target_type": "being_cast_spell"
+		}]
+	},
+	{
+		"name": "Spell Archaeologist",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"image": "architect-mask.svg",
+		"power": 2,
+		"toughness": 3,
+		"cost": 3,
+		"description": "Get a random spell back from your yard at the end of your turn",
+		"effects": [{
+			"name": "spell_from_yard",
+			"effect_type": "triggered",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Quickster",
+		"race": "genie",
+		"class": "wizard",
+		"image": "run.svg",
+		"card_type": "Mob",
+		"description": "Draw when this deals damage.",
+		"power": 1,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{ 
+		"name": "Game Maker",
+		"race": "genie",
+		"class": "wizard",
+		"image": "glink-glonk.jpg",
+		"card_type": "Mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 4,
+		"description": "Make a card from your deck.",
+		"effects": [{
+			"name": "make_from_deck",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "deck_card",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Orpheus Krustal",
+		"race": "genie",
+		"class": "wizard",
+		"image": "crystal-shine.svg",
+		"card_type": "Artifact",
+		"description": "Draw 2 extra cards at the beginning of your turn.",
+		"cost": 5,
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"trigger": "start_turn",
+			"effect_type": "triggered",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Crazy Control",
+		"race": "genie",
+		"class": "wizard",
+		"image": "misdirection.svg",
+		"cost": 6,
+		"card_type": "Spell",
+		"description": "Summon a random entity or artifact from your opponent's hand.",
+		"effects": [{
+			"name": "summon_from_hand",
+			"amount": 1,
+			"effect_type": "spell",
+			"target_type": "opponent"
+		}]
+	},
+	{ 
+		"name": "Legendary Djinn",
+		"race": "genie",
+		"class": "wizard",
+		"image": "drakkar-dragon.svg",
+		"card_type": "Mob",
+		"power": 7,
+		"toughness": 7,
+		"cost": 7,
+		"description": "Make a card from your deck.",
+		"effects": [{
+			"name": "make_from_deck",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "deck_card",
+			"amount": 1
+		}],
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{ 
+		"name": "Octopug",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "Mob",
+		"image": "labrador-head.svg",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"description": "Return all mobs to their owners' hands.",
+		"effects": [{
+			"name": "unwind",
+			"effect_type": "enter_play",
+			"target_type": "all_entities"
+		}]
+	},
+	{
+		"name": "Nonapug Whistle",
+		"race": "genie",
+		"class": "wizard",
+		"image": "whistle.svg",
+		"cost": 9,
+		"card_type": "Spell",
+		"description": "Make 3/3s with Superfast.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Nonapug Decon",
+			"target_type": "self",
+			"effect_type": "spell",
+			"amount": 3
+		}]
+	},
+	{
+		"name": "Nonapug Decon",
+		"is_token": true,
+		"race": "genie",
+		"class": "wizard",
+		"image": "snout.svg",
+		"card_type": "Mob",
+		"power": 3,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{
+		"name": "Quasar Tap",
+		"race": "genie",
+		"class": "wizard",
+		"image": "well.svg",
+		"card_type": "Artifact",
+		"description": "Refresh your mana after you spend it all.",
+		"cost": 10,
+		"effects": [{
+			"name": "refresh_mana",
+			"target_type": "self",
+			"trigger": "mana_exhausted",
+			"effect_type": "triggered"
+		}]
+	},
+	{
+		"name": "Find Artifact",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "chest.svg",
+		"cost": 0,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 artifacts to make and add to your deck. It costs 3.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "spell",
+			"target_type": "self",
+			"make_type": "Artifact",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Wind of Mercury",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "wingfoot.svg",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Target mob gets Fast. Draw a card.",
+		"effects": [ 
+			{
+				"name": "add_mob_abilities",
+				"effect_type": "spell",
+				"target_type": "mob",
+				"abilities": [{"name": "Fast", "descriptive_id": "Fast", "enabled": true}]
+			},
+			{
+				"name": "draw",
+				"target_type": "self",
+				"effect_type": "spell",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Fidget Spinner",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "spinning-blades.svg",
+		"card_type": "Mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1,
+		"description": "Gets +1/+1 when Kept.",
+		"abilities": [
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_power_increase": 1,
+				"keep_toughness_increase": 1
+			}
+		]
+	},
+	{
+		"name": "Rolling Thunder",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "rolling-energy.svg",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Deal 2 damage. Improves when cast.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "any",
+			"amount": 2
+		},
+		{
+			"name": "improve_damage_when_cast",
+			"effect_type": "spell",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Tame Shop Demon",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "pentacle.svg",
+		"card_type": "Spell",
+		"cost": 1,
+		"level": 0,
+		"effects": [
+			{
+				"name": "make_token",
+				"card_names": ["Lephrachaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
+				"card_descriptions": [
+					"Make a 1/1. Improves when cast.", 
+					"Make a 2/2 Superfast. Improves when cast.", 
+					"Make a 4/4 Superfast. Improves when cast.", 
+					"Make a 6/6 Superfast that draws you a card when it deals damage." 
+				],
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 1
+			},		
+			{
+				"name": "improve_effect_when_cast",
+				"effect_type": "spell",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Lephrachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "troll.svg",
+		"card_type": "Mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
+	},
+	{
+		"name": "Awesomerachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "ogre.svg",
+		"card_type": "Mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 0,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{
+		"name": "Megachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "air-man.svg",
+		"card_type": "Mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 0,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{
+		"name": "Ultrachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "robot-antennas.svg",
+		"card_type": "Mob",
+		"power": 6,
+		"toughness": 6,
+		"cost": 0,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			},
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw"
+			}
+		]
+	},
+	{
+		"name": "Work in Progress",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "aquarium.svg",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 3,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 1"
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 1",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "fish-monster.svg",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 4,
+		"toughness": 4,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 2"
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 2",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "angler-fish.svg",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 4,
+		"toughness": 4,
+		"cost": 3,
+		"description": "Draw when this deals damage.",
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 3"
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 3",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "piranha.svg",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 4,
+		"toughness": 5,
+		"cost": 2,
+		"description": "Draw when this deals damage.",
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 4"
+			},
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 4",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "helicoprion.svg",
+		"card_type": "Mob",
+		"power": 5,
+		"toughness": 6,
+		"cost": 2,
+		"description": "Draw when this deals damage.",
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep"
+			},
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast",
+				"amount": 1
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast",
+				"amount": 1
+			}
+		]
+	},
+	{ 
+		"name": "Side Project",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"image": "rock-golem.svg",
+		"card_type": "Mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0,
+		"description": "Spend all your mana. This gets +1/+1 per mana.",
+		"effects": [{
+			"name": "buff_power_toughness_from_mana",
+			"effect_type": "enter_play",
+			"target_type": "this"
+		}]
+	},
+	{
+		"name": "Elemental Ritual",
+		"race": "genie",
+		"race": "wizard",
+		"image": "round-struck.svg",
+		"cost": 0,
+		"card_type": "Spell",
+		"description": "Get 2 mana this turn",
+		"effects": [{
+			"name": "mana",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 2
+		}]
 	}
 ]
