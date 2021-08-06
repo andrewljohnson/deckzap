@@ -612,19 +612,6 @@
 		}]
 	},
 	{
-		"name": "Forest Ritual",
-		"race": "elf",
-		"cost": 0,
-		"card_type": "Spell",
-		"description": "Get 2 mana this turn",
-		"effects": [{
-			"name": "mana",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 2
-		}]
-	},
-	{
 		"name": "Faerie War Chant",
 		"race": "elf",
 		"cost": 1,
@@ -2730,6 +2717,322 @@
 			"target_type": "self",
 			"trigger": "mana_exhausted",
 			"effect_type": "triggered"
+		}]
+	},
+	{
+		"name": "Make Artifact",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"cost": 0,
+		"card_type": "Spell",
+		"description": "Choose 1 of 3 artifacts to make and add to your deck. It costs 3.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "spell",
+			"target_type": "self",
+			"make_type": "Artifact",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Wind of Mercury",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"cost": 0,
+		"card_type": "Spell",
+		"description": "Target mob gets Fast. Draw a card.",
+		"effects": [ 
+			{
+				"name": "add_mob_abilities",
+				"effect_type": "spell",
+				"target_type": "mob",
+				"abilities": [{"name": "Fast", "descriptive_id": "Fast", "enabled": true}]
+			},
+			{
+				"name": "draw",
+				"target_type": "self",
+				"effect_type": "spell",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Fidget Spinner",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1,
+		"description": "Gets +1/+1 when Kept.",
+		"abilities": [
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_power_increase": 1,
+				"keep_toughness_increase": 1
+			}
+		]
+	},
+	{
+		"name": "Rolling Thunder",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"cost": 1,
+		"card_type": "Spell",
+		"description": "Deal 3 damage. Improves when cast.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "any",
+			"amount": 3
+		},
+		{
+			"name": "improve_damage_when_cast",
+			"effect_type": "spell",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Tame Shop Demon",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Spell",
+		"cost": 1,
+		"level": 0,
+		"description": "Make a 1/1. Improves when cast.",
+		"effects": [
+			{
+				"name": "make_token",
+				"card_names": ["Lephrachaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 1
+			},		
+			{
+				"name": "improve_effect_when_cast",
+				"effect_type": "spell",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Lephrachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
+	},
+	{
+		"name": "Awesomerachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 0,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{
+		"name": "Megachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 0,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			}
+		]
+	},
+	{
+		"name": "Ultrachaun",
+		"is_token": true,
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"power": 6,
+		"toughness": 6,
+		"cost": 0,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast"
+			},
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw"
+			}
+		]
+	},
+	{
+		"name": "Work in Progress",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 3,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 1"
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 1",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 4,
+		"toughness": 4,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 2"
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 2",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 4,
+		"toughness": 4,
+		"cost": 3,
+		"description": "Draw when this deals damage.",
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 3"
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 3",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"description": "Improves when Kept.",
+		"power": 4,
+		"toughness": 5,
+		"cost": 2,
+		"description": "Draw when this deals damage.",
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep",
+				"keep_evolve": "WIP: Stage 4"
+			},
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "WIP: Stage 4",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"power": 5,
+		"toughness": 6,
+		"cost": 2,
+		"description": "Draw when this deals damage.",
+		"abilities": [
+			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			},
+			{
+				"name": "Keep",
+				"descriptive_id": "Keep"
+			},
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast",
+				"amount": 1
+			},
+			{
+				"name": "Superfast",
+				"descriptive_id": "Superfast",
+				"amount": 1
+			}
+		]
+	},
+{ 
+		"name": "Side Project",
+		"race": "dwarf",
+		"class": "tinkerer",
+		"card_type": "Mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0,
+		"description": "Spend all your mana. This gets +1/+1 per mana.",
+		"effects": [{
+			"name": "buff_power_toughness_from_mana",
+			"effect_type": "enter_play",
+			"target_type": "this"
+		}]
+	},
+	{
+		"name": "Elemental Ritual",
+		"race": "genie",
+		"race": "wizard",
+		"cost": 0,
+		"card_type": "Spell",
+		"description": "Get 2 mana this turn",
+		"effects": [{
+			"name": "mana",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 2
 		}]
 	}
 ]

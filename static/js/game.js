@@ -21,9 +21,7 @@ export class GameUX {
         this.allCards = JSON.parse(document.getElementById("card_store").getAttribute("all_cards"));
         this.gameType = document.getElementById("data_store").getAttribute("game_type");
         this.username = document.getElementById("data_store").getAttribute("username");
-        this.oldOpponentArmor = 0;
         this.oldOpponentHP = 30;
-        this.oldSelfArmor = 0;        
         this.oldSelfHP = 30;        
 
         this.spriteDamageCounts = {};
@@ -1242,6 +1240,9 @@ export class GameUX {
             if (a.name == "Lurker") {
                 abilityText.text = "Lurker - Lurker entities can't be targetted until they attack.";
             }                    
+            if (a.name == "Keep") {
+                abilityText.text = "Keep - Cards with Keep can be Kept by races (dwarves) that discard their hand each turn.";
+            }                    
             if (abilityText.text) {
                 const rowHeight = 54;
                 abilityText.position.x = cw;
@@ -1564,16 +1565,11 @@ export class GameUX {
         hp.position.y = username.height + username.position.y
         avatarSprite.addChild(hp);
 
-        let armor = new PIXI.Text(player.armor + " armor", props);
-        armor.position.x = padding/2 + avatar.position.x + avatar.width;
-        armor.position.y = hp.height + hp.position.y;
-        avatarSprite.addChild(armor);
-
-        let hand = armor;
+        let hand = hp;
         if (player == this.opponent(game)) {
             hand = new PIXI.Text("Hand: " + player.hand.length, props);
             hand.position.x = padding/2 + avatar.position.x + avatar.width;
-            hand.position.y = armor.height + armor.position.y;
+            hand.position.y = hp.height + hp.position.y;
             avatarSprite.addChild(hand);        
         }
 

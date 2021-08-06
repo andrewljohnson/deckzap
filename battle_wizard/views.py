@@ -2,6 +2,7 @@ import json
 import random
 import string
 
+from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer
 from battle_wizard.jsonDB import JsonDB
 from battle_wizard.forms import SignUpForm
 from django.contrib.auth import login, authenticate 
@@ -35,78 +36,11 @@ def signup(request):
 
 def add_initial_decks(username):
     decks_db = JsonDB().decks_database()
-    elf_sorcerer_deck = {
-        "name": "Elf Sorcerer",
-        "cards": {
-            "Push Soul": 2,
-            "Riffle": 2,
-            "Disk of Death": 1,
-            "Premonition": 1,
-            "Life Guardian": 1,
-            "Great Guardian": 1,
-            "Stiff Wind": 2,
-            "Kill Artifact": 2,
-            "Counterspell": 2,
-            "Big Counterspell": 2,
-            "Unwind": 2,
-            "Trickster": 2,
-            "Shield Up": 2,
-            "Think": 2,
-            "Lightning Storm": 2,
-        }
-    }
-    JsonDB().save_to_decks_database(username, elf_sorcerer_deck, decks_db)
-
-    human_fighter_deck = {
-        "name": "Human Fighter",
-        "cards": {
-            "Bow": 1,
-            "Totem Cat": 2,
-            "Taunted Bear": 2,
-            "War Scorpion": 2,
-            "Berserk Monkey": 2,
-            "Lightning Elemental": 2,
-            "Spouty Gas Ball": 2,
-            "Siz Pop": 2,
-            "Frenzy": 2,
-            "Impale": 2,
-            "Arsenal": 1,
-            "Animal Trainer": 2,
-            "Viper": 2,
-            "Training Master": 2,
-            "Multishot Bow": 1,
-            "Enraged Stomper": 2,
-            "Gird for Battle": 2,
-            "Spirit of the Stampede": 1
-        }
-    }
-    JsonDB().save_to_decks_database(username, human_fighter_deck, decks_db)
-
-    gnome_bard_deck = {
-        "name": "Gnome Bard",
-        "cards": {
-            "Gnomish Minstrel": 2,
-            "Lute": 1,
-            "Familiar": 1,
-            "Air Elemental": 2,
-            "Gnomish Mayor": 2,
-            "Gnomish Press Gang": 2,
-            "Gnomish Soundsmith": 2,
-            "Befuddling Guitar": 1,
-            "Town Council": 2,
-            "Gnomish Piper": 2,
-            "Mind Manacles": 2,
-            "Akbar's Pan Pipes": 1,
-            "Gnomish Militia": 2,
-            "Resonant Frequency": 2,
-            "Song Dragon": 1,
-            "Jubilee": 1,
-            "Avatar of Song": 1,
-            "Ilra, Lady of Wind and Music": 2,
-            "Dazzling Solo": 1,
-        }}
-    JsonDB().save_to_decks_database(username, gnome_bard_deck, decks_db)    
-
+    genie_wizard = default_deck_genie_wizard()
+    JsonDB().save_to_decks_database(username, genie_wizard, decks_db)
+    dwarf_tinkerer = default_deck_dwarf_tinkerer()
+    JsonDB().save_to_decks_database(username, dwarf_tinkerer, decks_db)
+   
 def logout(request):
     logout_django(request)
     return redirect('/')

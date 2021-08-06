@@ -1350,3 +1350,36 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         self.assertEqual(game.players[0].mana, game.players[0].max_mana)
         os.remove(f"database/games/{dbName}.json")
+
+    def test_rolling_thunder(self):
+        """
+            Test Rolling Thunder
+        """
+        dbName, game = self.game_for_decks([["Rolling Thunder"], []])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(27, game.players[1].hit_points)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(23, game.players[1].hit_points)
+        os.remove(f"database/games/{dbName}.json")
+
+
+    def test_tame_shop_demon(self):
+        """
+            Test Tame Shop Demon
+        """
+        dbName, game = self.game_for_decks([["Tame Shop Demon"], []])
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(1, len(game.players[0].in_play))
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(2, len(game.players[0].in_play))
+        self.assertEqual("Lephrachaun", game.players[0].in_play[0].name)
+        self.assertEqual("Awesomerachaun", game.players[0].in_play[1].name)
+        os.remove(f"database/games/{dbName}.json")
+
+
