@@ -36,10 +36,8 @@ def signup(request):
 
 def add_initial_decks(username):
     decks_db = JsonDB().decks_database()
-    genie_wizard = default_deck_genie_wizard()
-    JsonDB().save_to_decks_database(username, genie_wizard, decks_db)
-    dwarf_tinkerer = default_deck_dwarf_tinkerer()
-    JsonDB().save_to_decks_database(username, dwarf_tinkerer, decks_db)
+    JsonDB().save_to_decks_database(username, default_deck_genie_wizard(), decks_db)
+    JsonDB().save_to_decks_database(username, default_deck_dwarf_tinkerer(), decks_db)
    
 def logout(request):
     logout_django(request)
@@ -70,7 +68,7 @@ def profile(request, username):
     decks = JsonDB().decks_database()[username]["decks"] if username in JsonDB().decks_database() else []
     decks.reverse()
 
-    if len(decks) < 3:
+    if len(decks) == 0:
         add_initial_decks(username)
         decks = JsonDB().decks_database()[username]["decks"] if username in JsonDB().decks_database() else []
         decks.reverse()

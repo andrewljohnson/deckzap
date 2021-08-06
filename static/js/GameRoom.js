@@ -66,6 +66,7 @@ export class GameRoom {
                 if (!data["game"]) {
                     console.log(data);                    
                 }
+                console.log(data);
                 self.gameUX.refresh(game, data);
                 self.gameUX.logMessage(data["log_lines"]);
             }

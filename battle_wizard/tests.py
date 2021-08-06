@@ -327,12 +327,12 @@ class GameObjectTests(TestCase):
         """
             Test Gnomish Soundsmith fetches an Instrument from deck.
         """
-        deck = ["Gnomish Soundsmith", "LionKin", "LionKin", "LionKin", "LionKin", "Befuddling Guitar"]
+        deck = ["Gnomish Soundsmith", "LionKin", "LionKin", "LionKin", "LionKin", "Akbar's Pan Pipes"]
         dbName, game = self.game_for_decks([deck, []])
         game.players[0].mana = 3
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "FETCH_CARD", "card": game.current_player().card_choice_info["cards"][0].id, "log_lines":[]})
-        self.assertEqual(game.current_player().hand[-1].name, "Befuddling Guitar")
+        self.assertEqual(game.current_player().hand[-1].name, "Akbar's Pan Pipes")
         os.remove(f"database/games/{dbName}.json")
 
     def test_wishstone_makes(self):
@@ -366,44 +366,6 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.opponent().hand), 0)
         self.assertEqual(len(game.opponent().played_pile), 1)
         os.remove(f"database/games/{dbName}.json")
-
-    def test_befuddling_guitar_attack_player(self):
-        """
-            Test Befuddling Guitar.
-        """
-        dbName, game = self.game_for_decks([["Befuddling Guitar"], ["LionKin"]])
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
-        self.assertEqual(game.opponent().hit_points, 27)
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
-        self.assertEqual(len(game.current_player().artifacts), 0)
-        os.remove(f"database/games/{dbName}.json")
-
-    def test_befuddling_guitar_attack_mob(self):
-        """
-            Test Befuddling Guitar.
-        """
-        dbName, game = self.game_for_decks([["Befuddling Guitar"], ["LionKin"]])
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.players[1].mana = game.players[1].hand[0].cost
-        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.players[0].mana = game.players[0].hand[0].cost
-        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, 27)
-        self.assertEqual(game.opponent().deck[-1].name, "LionKin")
-        os.remove(f"database/games/{dbName}.json")
-
 
     def test_town_council(self):
         """
@@ -608,7 +570,9 @@ class GameObjectTests(TestCase):
         """
             Test Arsenal and Kill Artifact.
         """
-        dbName, game = self.game_for_decks([["War Scorpion", "Befuddling Guitar", "Arsenal", "War Scorpion"], ["Mind Manacles"]])
+        dbName, game = self.game_for_decks([["War Scorpion", "Akbar's Pan Pipes", "Arsenal", "War Scorpion"], ["Mind Manacles"]])
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -923,7 +887,9 @@ class GameObjectTests(TestCase):
         """
             Spirit of the Stampede
         """
-        dbName, game = self.game_for_decks([["Spirit of the Stampede", "Spirit of the Stampede", "Befuddling Guitar"], []])
+        dbName, game = self.game_for_decks([["Spirit of the Stampede", "Spirit of the Stampede", "Akbar's Pan Pipes"], []])
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        

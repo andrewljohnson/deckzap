@@ -2,6 +2,7 @@
 	{
 		"name": "Crystal Spyglass",
 		"race": "elf",
+		"image": "spyglass.svg",
 		"card_type": "Artifact",
 		"description": "0: View Opponent's hand once on your turn.",
 		"cost": 1,
@@ -14,8 +15,9 @@
 	{
 		"name": "Fountain of Youth",
 		"race": "elf",
+		"image": "water-fountain.svg",
 		"card_type": "Artifact",
-		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30 total life.",
+		"description": "Gain 1 hp per card in hand more than 5, at beginning of your turn, to a maximum of 30.",
 		"cost": 3,
 		"effects": [{
 			"name": "gain_hp_for_hand",
@@ -27,6 +29,7 @@
 	{
 		"name": "Voodoo Doll",
 		"race": "genie",
+		"image": "voodoo-doll.svg",
 		"card_type": "Artifact",
 		"description": "Opponent loses 1 life per card in hand at beginning of your turn.",
 		"cost": 3,
@@ -40,6 +43,7 @@
 	{
 		"name": "Leyline Amulet",
 		"race": "elf",
+		"image": "gem-necklace.svg",
 		"card_type": "Artifact",
 		"description": "Whenever you draw a spell, reduce its cost by 1.",
 		"cost": 3,
@@ -53,6 +57,7 @@
 	{
 		"name": "Ice Prison",
 		"race": "genie",
+		"image": "frozen-block.svg",
 		"card_type": "Artifact",
 		"description": "Each player may only untap one mob that attacked last turn.",
 		"cost": 5,
@@ -66,6 +71,7 @@
 	{
 		"name": "Leyline Portal",
 		"race": "genie",
+		"image": "star-gate.svg",
 		"card_type": "Artifact",
 		"description": "Whenever you draw a mob, reduce its cost by 1.",
 		"cost": 2,
@@ -79,6 +85,7 @@
 	{
 		"name": "Book of Knowledge",
 		"race": "genie",
+		"image": "enlightenment.svg",
 		"card_type": "Artifact",
 		"cost": 3,
 		"description": "✦: Draw a card once on your turn.",
@@ -93,6 +100,7 @@
 	{
 		"name": "Mirror of Fate",
 		"race": "genie",
+		"image": "mirror-mirror.svg",
 		"card_type": "Artifact",
 		"cost": 6,
 		"description": "✦✦✦✦✦✦: Switch hit points with your opponent. Sacrifice this.",
@@ -107,6 +115,7 @@
 	{
 		"name": "Scepter of Manipulation",
 		"race": "genie",
+		"image": "lunar-wand.svg",
 		"card_type": "Artifact",
 		"cost": 4,
 		"description": "✦: Prevent a mob from attacking, once on your turn.",
@@ -788,6 +797,7 @@
 	{
 		"name": "Unwind",
 		"race": "genie",
+		"image": "acrobatic.svg",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Return a mob to its owner's hand.",
@@ -1196,6 +1206,7 @@
 	{
 		"name": "Dagger",
 		"card_type": "Artifact",
+		"image": "bone-knife.svg",
 		"cost": 1,
 		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
 		"original_description": "✦✦: Make this a 1 power weapon with 2 charges.",
@@ -1249,6 +1260,7 @@
 	{
 		"name": "Wand",
 		"card_type": "Artifact",
+		"image": "orb-wand.svg",
 		"cost": 1,
 		"description": "✦✦: Deal 1 damage to anything.",
 		"abilities": [
@@ -1268,6 +1280,7 @@
 	{
 		"name": "Prayer Beads",
 		"card_type": "Artifact",
+		"image": "prayer-beads.svg",
 		"cost": 1,
 		"description": "✦✦: Heal 2 hit points",
 		"abilities": [
@@ -1287,6 +1300,7 @@
 	{
 		"name": "Abyssal Crystal",
 		"card_type": "Artifact",
+		"image": "moebius-star.svg",
 		"cost": 1,
 		"description": "✦✦: draw a card and lose 2 life.",
 		"abilities": [
@@ -1307,6 +1321,7 @@
 	{
 		"name": "Wish Stone",
 		"card_type": "Artifact",
+		"image": "rune-stone.svg",
 		"cost": 4,
 		"description": "0: sacrifice this, put a artifact from your deck into play.",
 		"effects": [{
@@ -1497,6 +1512,7 @@
 	{
 		"name": "Lute",
 		"card_type": "Artifact",
+		"image": "lyre.svg",
 		"cost": 1,
 		"description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
 		"original_description": "✦✦: Make this an instrument with 2 charges that fetches Townies.",
@@ -1619,48 +1635,6 @@
 					"amount": 1
 				}
 		]
-	},
-	{
-		"name": "Befuddling Guitar",
-		"image": "guitar.svg",
-		"race": "gnome",
-		"class": "bard",
-		"card_type": "Artifact",
-		"cost": 3,
-		"description": "If this kills a mob, put it on top of its owner's deck. If it attacks a player, they put a random card from their hand into their deck then draw a card.",
-		"abilities": [
-			{
-				"name": "Instrument",
-				"descriptive_id": "Instrument"
-			},
-			{
-				"name": "Weapon",
-				"descriptive_id": "Weapon"
-			},
-			{
-				"name": "die_to_top_deck",
-				"descriptive_id": "die_to_top_deck"
-			},
-			{
-				"name": "discard_random_to_deck",
-				"descriptive_id": "discard_random_to_deck",
-				"amount": 1
-			},
-			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw",
-				"target_type": "opponent",
-				"amount": 1
-			}
-		],
-		"effects": [{
-					"name": "attack",
-					"effect_type": "activated",
-					"target_type": "any_enemy",
-					"counters": 2,
-					"cost": 0,
-					"power": 3
-		}]
 	},
 	{
 		"name": "Town Council",
@@ -2087,6 +2061,7 @@
 	{
 		"name": "Disk of Death",
 		"card_type": "Artifact",
+		"image": "chakram.svg",
 		"cost": 4,
 		"description": "1: sacrifice this, kill all Artifacts and Entities.",
 		"abilities": [
@@ -2239,6 +2214,7 @@
 	{
 		"name": "Akbar's Pan Pipes",
 		"card_type": "Artifact",
+		"image": "pan-flute.svg",
 		"cost": 4,
 		"description": "Remove a counter: Summon a 2/2 rat.",
 		"abilities": [
@@ -2470,8 +2446,8 @@
 	{
 		"name": "Mana Battery",
 		"race": "alien",
-		"image": "battery-pack.svg",
 		"class": "maestro",
+		"image": "battery-pack.svg",
 		"card_type": "Artifact",
 		"description": "Stores unused mana up to 3.",
 		"cost": 0,
@@ -2488,6 +2464,7 @@
 		"name": "Lil' Maker",
 		"race": "genie",
 		"class": "wizard",
+		"image": "mad-scientist.svg",
 		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
@@ -2505,6 +2482,7 @@
 		"name": "Brarium",
 		"race": "genie",
 		"class": "wizard",
+		"image": "crystal-ball.svg",
 		"card_type": "Artifact",
 		"description": "Replace your normal draw with a choice of 3 cards.",
 		"cost": 2,
@@ -2518,6 +2496,7 @@
 		"name": "Counter Mob",
 		"race": "genie",
 		"class": "wizard",
+		"image": "magic-swirl.svg",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Counter a mob.",
@@ -2532,6 +2511,7 @@
 		"name": "Counter Spell",
 		"race": "genie",
 		"class": "wizard",
+		"image": "bolt-spell-cast.svg",
 		"cost": 2,
 		"card_type": "Spell",
 		"description": "Counter a spell.",
@@ -2547,6 +2527,7 @@
 		"race": "genie",
 		"class": "wizard",
 		"card_type": "Mob",
+		"image": "architect-mask.svg",
 		"power": 2,
 		"toughness": 3,
 		"cost": 3,
@@ -2562,6 +2543,7 @@
 		"name": "Quickster",
 		"race": "genie",
 		"class": "wizard",
+		"image": "run.svg",
 		"card_type": "Mob",
 		"description": "Draw when this deals damage.",
 		"power": 1,
@@ -2587,6 +2569,7 @@
 		"name": "Game Maker",
 		"race": "genie",
 		"class": "wizard",
+		"image": "glink-glonk.jpg",
 		"card_type": "Mob",
 		"power": 4,
 		"toughness": 4,
@@ -2604,6 +2587,7 @@
 		"name": "Orpheus Krustal",
 		"race": "genie",
 		"class": "wizard",
+		"image": "crystal-shine.svg",
 		"card_type": "Artifact",
 		"description": "Draw 2 extra cards at the beginning of your turn.",
 		"cost": 5,
@@ -2618,6 +2602,8 @@
 	{
 		"name": "Crazy Control",
 		"race": "genie",
+		"class": "wizard",
+		"image": "misdirection.svg",
 		"cost": 6,
 		"card_type": "Spell",
 		"description": "Summon a random entity or artifact from your opponent's hand.",
@@ -2632,6 +2618,7 @@
 		"name": "Legendary Djinn",
 		"race": "genie",
 		"class": "wizard",
+		"image": "drakkar-dragon.svg",
 		"card_type": "Mob",
 		"power": 7,
 		"toughness": 7,
@@ -2660,6 +2647,7 @@
 		"race": "genie",
 		"class": "wizard",
 		"card_type": "Mob",
+		"image": "labrador-head.svg",
 		"power": 8,
 		"toughness": 8,
 		"cost": 8,
@@ -2674,6 +2662,7 @@
 		"name": "Nonapug Whistle",
 		"race": "genie",
 		"class": "wizard",
+		"image": "whistle.svg",
 		"cost": 9,
 		"card_type": "Spell",
 		"description": "Make 3/3s with Superfast.",
@@ -2690,6 +2679,7 @@
 		"is_token": true,
 		"race": "genie",
 		"class": "wizard",
+		"image": "snout.svg",
 		"card_type": "Mob",
 		"power": 3,
 		"toughness": 3,
@@ -2709,6 +2699,7 @@
 		"name": "Quasar Tap",
 		"race": "genie",
 		"class": "wizard",
+		"image": "well.svg",
 		"card_type": "Artifact",
 		"description": "Refresh your mana after you spend it all.",
 		"cost": 10,
@@ -2720,9 +2711,10 @@
 		}]
 	},
 	{
-		"name": "Make Artifact",
+		"name": "Find Artifact",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "chest.svg",
 		"cost": 0,
 		"card_type": "Spell",
 		"description": "Choose 1 of 3 artifacts to make and add to your deck. It costs 3.",
@@ -2738,7 +2730,8 @@
 		"name": "Wind of Mercury",
 		"race": "dwarf",
 		"class": "tinkerer",
-		"cost": 0,
+		"image": "wingfoot.svg",
+		"cost": 1,
 		"card_type": "Spell",
 		"description": "Target mob gets Fast. Draw a card.",
 		"effects": [ 
@@ -2760,6 +2753,7 @@
 		"name": "Fidget Spinner",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "spinning-blades.svg",
 		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
@@ -2778,14 +2772,15 @@
 		"name": "Rolling Thunder",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "rolling-energy.svg",
 		"cost": 1,
 		"card_type": "Spell",
-		"description": "Deal 3 damage. Improves when cast.",
+		"description": "Deal 2 damage. Improves when cast.",
 		"effects": [{
 			"name": "damage",
 			"effect_type": "spell",
 			"target_type": "any",
-			"amount": 3
+			"amount": 2
 		},
 		{
 			"name": "improve_damage_when_cast",
@@ -2797,14 +2792,20 @@
 		"name": "Tame Shop Demon",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "pentacle.svg",
 		"card_type": "Spell",
 		"cost": 1,
 		"level": 0,
-		"description": "Make a 1/1. Improves when cast.",
 		"effects": [
 			{
 				"name": "make_token",
 				"card_names": ["Lephrachaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
+				"card_descriptions": [
+					"Make a 1/1. Improves when cast.", 
+					"Make a 2/2 Superfast. Improves when cast.", 
+					"Make a 4/4 Superfast. Improves when cast.", 
+					"Make a 6/6 Superfast that draws you a card when it deals damage." 
+				],
 				"effect_type": "spell",
 				"target_type": "self",
 				"amount": 1
@@ -2821,6 +2822,7 @@
 		"is_token": true,
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "troll.svg",
 		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
@@ -2831,6 +2833,7 @@
 		"is_token": true,
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "ogre.svg",
 		"card_type": "Mob",
 		"power": 2,
 		"toughness": 2,
@@ -2851,6 +2854,7 @@
 		"is_token": true,
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "air-man.svg",
 		"card_type": "Mob",
 		"power": 4,
 		"toughness": 4,
@@ -2871,6 +2875,7 @@
 		"is_token": true,
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "robot-antennas.svg",
 		"card_type": "Mob",
 		"power": 6,
 		"toughness": 6,
@@ -2894,6 +2899,7 @@
 		"name": "Work in Progress",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "aquarium.svg",
 		"card_type": "Mob",
 		"description": "Improves when Kept.",
 		"power": 3,
@@ -2911,6 +2917,7 @@
 		"name": "WIP: Stage 1",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "fish-monster.svg",
 		"card_type": "Mob",
 		"description": "Improves when Kept.",
 		"power": 4,
@@ -2928,6 +2935,7 @@
 		"name": "WIP: Stage 2",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "angler-fish.svg",
 		"card_type": "Mob",
 		"description": "Improves when Kept.",
 		"power": 4,
@@ -2951,6 +2959,7 @@
 		"name": "WIP: Stage 3",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "piranha.svg",
 		"card_type": "Mob",
 		"description": "Improves when Kept.",
 		"power": 4,
@@ -2979,6 +2988,7 @@
 		"name": "WIP: Stage 4",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "helicoprion.svg",
 		"card_type": "Mob",
 		"power": 5,
 		"toughness": 6,
@@ -3006,10 +3016,11 @@
 			}
 		]
 	},
-{ 
+	{ 
 		"name": "Side Project",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"image": "rock-golem.svg",
 		"card_type": "Mob",
 		"power": 1,
 		"toughness": 1,
@@ -3025,6 +3036,7 @@
 		"name": "Elemental Ritual",
 		"race": "genie",
 		"race": "wizard",
+		"image": "round-struck.svg",
 		"cost": 0,
 		"card_type": "Spell",
 		"description": "Get 2 mana this turn",

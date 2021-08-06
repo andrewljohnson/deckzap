@@ -201,7 +201,7 @@ export class GameUX {
             this.updateOpponentInPlay(game);
         }
 
-        if (game.spell_stack.length > 0) {
+        if (game.stack.length > 0) {
             this.showSpellStack(game);
         }
 
@@ -232,8 +232,8 @@ export class GameUX {
                 alert("GAME OVER");
             }
         }
-        if (game.defending_player) {
-            var attack = game.move_to_complete;
+        if (game.stack.length > 0 && game.stack[game.stack.length-1].move_type == "ATTACK") {
+            var attack = game.stack[game.stack.length-1][0];
             var attacking_id = attack["card"];
             var attackingCardSprite = null;
             for (let sprite of this.app.stage.children) {
@@ -299,7 +299,6 @@ export class GameUX {
             this.app.stage.removeChild(arrow);
             this.app.stage.addChild(arrow);
         }
-        console.log(message);
         if (message["move_type"] == "END_TURN") {
             this.showChangeTurnAnimation(game)
         }
@@ -578,7 +577,7 @@ export class GameUX {
         imageSprite.height = 98;
         imageSprite.position.y = -8;
         cardSprite.addChild(imageSprite);
-        this.ellipsifyImageSprite(imageSprite)
+        this.ellipsifyImageSprite(imageSprite, card)
 
         if (card.name == "Mana Battery") {
             var currentBatteryMana = 0;
@@ -745,7 +744,7 @@ export class GameUX {
             imageSprite.position.y = -58;
         }
         if (card.card_type == "Mob" || card.card_type == "Artifact") {
-            this.ellipsifyImageSprite(imageSprite)        
+            this.ellipsifyImageSprite(imageSprite, card)        
         } else if (card.card_type == "Spell") {
             imageSprite.height = 89;
             imageSprite.width = cardWidth*2 - 20;
@@ -870,7 +869,6 @@ export class GameUX {
                     abilitiesText += a.description;
                     color = 0x000000;
                 } else {
-                    // for Befuddling Guitar
                     if (a.name == "DamageDraw") {
                         continue;
                     }
@@ -891,15 +889,23 @@ export class GameUX {
            }
         }
 
-
-        let description = new PIXI.Text(abilitiesText + ". " + card.description, descriptionOptions);
-        if (abilitiesText.length == 0) {
-            description = new PIXI.Text(card.description, descriptionOptions);
+        var baseDescription =  card.description;
+        if (card.name == "Tame Shop Demon") {
+           baseDescription = card.effects[0].card_descriptions[card.level];
         }
-        if (abilitiesText.length != 0 && !card.description) {
+        if (card.name == "Rolling Thunder") {
+           var damage = card.effects[0].amount;
+           baseDescription = `Deal ${damage} damage. Improves when cast.`;
+        }
+
+        let description = new PIXI.Text(abilitiesText + ". " + baseDescription, descriptionOptions);
+        if (abilitiesText.length == 0) {
+            description = new PIXI.Text(baseDescription, descriptionOptions);
+        }
+        if (abilitiesText.length != 0 && !baseDescription) {
             description = new PIXI.Text(abilitiesText + ". ", descriptionOptions);
         }
-        if (card.description || abilitiesText.length) {
+        if (baseDescription || abilitiesText.length) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
             if ((card.card_type == "Mob" && activatedEffects.length == 0) ||
@@ -1146,8 +1152,15 @@ export class GameUX {
         return sprite;
     }
 
-    ellipsifyImageSprite(imageSprite) {
-        var bg = this.ellipseBackground(imageSprite.width, imageSprite.height);
+    ellipsifyImageSprite(imageSprite, card) {
+        var width = imageSprite.width;
+        var height = imageSprite.height;
+        if (card.image && card.image.endsWith(".jpg")) {
+            // hax
+            width *= 3.4;
+            height *= 3.4;
+        }
+        var bg = this.ellipseBackground(width, height);
         imageSprite.mask = bg;
         imageSprite.addChild(bg);        
     }
@@ -1304,7 +1317,7 @@ export class GameUX {
             this.app.stage.removeChild(sprite)
             if (this.needsToShowMakeViews) {
                 this.needsToShowMakeViews = false;
-                this.showSelectionViews(game);
+                this.showSelectionViews(this.game);
                 this.makeCardsInteractive()
             }
             this.spellBeingCastSprite = null;
@@ -1314,7 +1327,7 @@ export class GameUX {
 
     showSpellStack(game) {
         var index = -1;
-        for (let spell of game.spell_stack) {
+        for (let spell of game.stack) {
             index++;
             var playerName = spell[0].username;
             var player = null;
@@ -1466,10 +1479,10 @@ export class GameUX {
         b.position.y = 17;
         b.interactive = true;
         var clickFunction = () => {
-            if (game.spell_stack.length > 0) {
-                this.gameRoom.passForSpellResolution(message)
-            } else if (game.defending_player) {
+            if (game.stack.length > 0 && game.stack[game.stack.length-1].move_type == "ATTACK") {
                 this.gameRoom.passForAttack(message)
+            } else if (game.stack.length > 0) {
+                this.gameRoom.passForSpellResolution(message)
             } else {
                 this.gameRoom.endTurn()
             }
@@ -1487,7 +1500,7 @@ export class GameUX {
 
         let textFillColor = 0xffffff;
         if (this.isActivePlayer(game)) {
-            if (this.thisPlayer(game).mana == 0 || game.defending_player || game.spell_stack.length > 0) {
+            if (this.thisPlayer(game).mana == 0 || game.stack.length > 0) {
                 b.tint = 0xff0000;
             } else {
                 b.tint = 0xff7b7b;
@@ -1498,7 +1511,7 @@ export class GameUX {
         }
         var title = "End Turn";
         var positionX = 27;
-        if (game.defending_player || game.spell_stack.length > 0) {
+        if (game.stack.length > 0) {
             if (this.isActivePlayer(game)) {
                 title = "OK";
                 positionX = 45;
@@ -1728,7 +1741,7 @@ export class GameUX {
             }
 
             let sprite = this.cardSpriteInPlay(game, card, player, false);
-            sprite.position.x = (cardWidth)*index + cardWidth/4 + padding;
+            sprite.position.x = (cardWidth)*index + cardWidth/2 + padding + 4;
             sprite.position.y = inPlaySprite.position.y + cardHeight/2;
 
             if (cardIdToHide && card.id == cardIdToHide && player == this.opponent(game)) {
@@ -1829,6 +1842,7 @@ export class GameUX {
 
 
 function onDragStart(event, cardSprite, gameUX) {
+    console.log(cardSprite.card)
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
@@ -1886,7 +1900,15 @@ function onDragEnd(cardSprite, gameUX) {
             var collidedSprite;
             for (let sprite of gameUX.app.stage.children) {
                 if (bump.hit(cardSprite, sprite) && cardSprite.card && sprite.card && cardSprite.card.id != sprite.card.id) {
-                    collidedSprite = sprite;
+                    var inHand = false;
+                    for (let card of gameUX.thisPlayer(gameUX.game).hand) {
+                        if (card.id == sprite.card.id) {
+                            inHand = true;
+                        }
+                    }
+                    if (!inHand) {
+                        collidedSprite = sprite;
+                    }
                 }
             }
             if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
@@ -1957,7 +1979,7 @@ function onDragMove(cardSprite, gameUX, bump) {
                 } else {
                     mob.filters = [cantBeClickedFilter()];                                        
                 }  
-                // took this out of the if to support spell_stack... does it break anything?
+                // took this out of the if to support stack... does it break anything?
                 // mob.card.turn_played != -1 &&               
                 if(mob.card.id != cardSprite.card.id && mob.card.can_be_clicked && bump.hit(cardSprite, mob)) {
                     collidedMob = mob;
