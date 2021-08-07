@@ -1483,6 +1483,24 @@ export class GameUX {
 
     }
 
+    activePlayerHasMoves(game) {
+        for (let sprite of this.app.stage.children) {
+            if(sprite.card && sprite.card.can_be_clicked) {
+                console.log("card cen be clicked")
+                return true;
+            }
+        }        
+        if (game.players[0].can_be_clicked) {
+                console.log("p1 cen be clicked")
+            return true;
+        }
+        if (game.players[1].can_be_clicked) {
+            return true;
+                console.log("p2 cen be clicked")
+        }
+        return false;
+    }
+
     renderEndTurnButton(game, message) {
         if (this.turnLabel) {
             this.buttonMenu.removeChild(this.turnLabel)
@@ -1521,7 +1539,7 @@ export class GameUX {
 
         let textFillColor = 0xffffff;
         if (this.isActivePlayer(game)) {
-            if (this.thisPlayer(game).mana == 0 || game.stack.length > 0) {
+            if (!this.activePlayerHasMoves(game) || game.stack.length > 0) {
                 b.tint = 0xff0000;
             } else {
                 b.tint = 0xff7b7b;
