@@ -74,7 +74,6 @@ export class GameUX {
 
         this.buttonMenu = this.menu(cardContainerWidth + padding * 2, topOfMiddle);
         this.app.stage.addChild(this.buttonMenu);
-        this.buttonMenu.addChild(this.newGameButton(22, 230 - 40 - padding - 8, this));
 
         let playerOneY = middleOfMiddle + cardHeight + padding;
         this.playerAvatar = this.avatar(cardContainerWidth/2 - avatarWidth/2, playerOneY);
@@ -114,15 +113,18 @@ export class GameUX {
         return background;
     }
 
-    newGameButton(x, y, gameUX) {
+    newGameButton(x, y, game) {
         const b = new PIXI.Sprite.from(this.newGameButtonTexture);
-        b.buttonMode = true;
         b.position.x = x;
         b.position.y = y;
         // b.anchor.set(0.5);
-        b.interactive = true;
+        if (this.isPlaying(game)) {
+            b.buttonMode = true;
+            b.interactive = true;
+        }
+        var self = this;
         var clickFunction = function() {
-            gameUX.gameRoom.nextRoom()
+            self.gameRoom.nextRoom()
         };
         b
             .on('click', clickFunction)
@@ -132,7 +134,6 @@ export class GameUX {
         text.position.x = 23;
         text.position.y = 13;
         b.addChild(text);
-
         return b;
     }
 
@@ -199,6 +200,11 @@ export class GameUX {
             this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
+            if (!this.newGameButtonAdded) {
+                this.buttonMenu.addChild(this.newGameButton(22, 230 - 40 - padding - 8, game));
+                this.newGameButtonAdded = true;
+            }
+
         }
 
         if (game.stack.length > 0) {
@@ -281,7 +287,7 @@ export class GameUX {
 
         if (!this.isShowingCastAnimation) {
             this.showSelectionViews(game);
-            this.makeCardsInteractive()
+            this.makeCardsInteractive(game)
         } else {
             this.needsToShowMakeViews = true;
         }
@@ -408,7 +414,11 @@ export class GameUX {
         return sprite;
     }
 
-    makeCardsInteractive() {
+    makeCardsInteractive(game) {
+        if (!this.isPlaying(game)) {
+            return;
+        }
+
         // hax: prevents spurious onMousover events from firing during rendering all the cards
         setTimeout(() => { 
             for (let sprite of this.app.stage.children) {
@@ -555,11 +565,12 @@ export class GameUX {
         }
     }
 
-    baseCardSprite(card, cardTexture) {
+    baseCardSprite(card, cardTexture, game) { 
         let cardSprite = new PIXI.Sprite.from(cardTexture);
         cardSprite.card = card;
-        cardSprite.buttonMode = true;  // hand cursor
-
+        if (this.isPlaying(game)) {
+            cardSprite.buttonMode = true;  // hand cursor
+        }
         return cardSprite;
     }
 
@@ -571,7 +582,7 @@ export class GameUX {
             }                    
         }
 
-        var cardSprite = this.baseCardSprite(card, cardTexture);
+        var cardSprite = this.baseCardSprite(card, cardTexture, game);
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
         imageSprite.width = 70;
         imageSprite.height = 98;
@@ -652,8 +663,8 @@ export class GameUX {
             } else {
                 var self = this;
                 cardSprite
-                    .on('mousedown',        function (e) {onDragStart(e, this, self)})
-                    .on('touchstart',       function (e) {onDragStart(e, this, self)})
+                    .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
+                    .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
                     .on('mouseup',          function ()  {onDragEnd(this, self)})
                     .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
                     .on('touchend',         function ()  {onDragEnd(this, self)})
@@ -729,7 +740,7 @@ export class GameUX {
 
     cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
         var cardTexture = (useLargeSize ? this.cardLargeTexture : this.cardTexture); 
-        var cardSprite = this.baseCardSprite(card, cardTexture);
+        var cardSprite = this.baseCardSprite(card, cardTexture, game);
 
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
@@ -1019,8 +1030,8 @@ export class GameUX {
             } else {
                 var self = this;
                 cardSprite
-                    .on('mousedown',        function (e) {onDragStart(e, this, self)})
-                    .on('touchstart',       function (e) {onDragStart(e, this, self)})
+                    .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
+                    .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
                     .on('mouseup',          function ()  {onDragEnd(this, self)})
                     .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
                     .on('touchend',         function ()  {onDragEnd(this, self)})
@@ -1116,6 +1127,13 @@ export class GameUX {
         defense.position.x = defenseX;
         defense.position.y = powerY;
         cardSprite.addChild(defense);        
+
+
+        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
+        cardId.position.x = defenseX - cardWidth/4 - 5;
+        cardId.position.y = powerY;
+        cardSprite.addChild(cardId);        
+
     }
 
     addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
@@ -1318,7 +1336,7 @@ export class GameUX {
             if (this.needsToShowMakeViews) {
                 this.needsToShowMakeViews = false;
                 this.showSelectionViews(this.game);
-                this.makeCardsInteractive()
+                this.makeCardsInteractive(game)
             }
             this.spellBeingCastSprite = null;
         }, 1000);
@@ -1474,10 +1492,13 @@ export class GameUX {
         }
 
         const b = new PIXI.Sprite.from(this.newGameButtonTexture);
-        b.buttonMode = true;
         b.position.x = 23;
         b.position.y = 17;
-        b.interactive = true;
+        if (this.isPlaying(game)) {
+            b.buttonMode = true;
+            b.interactive = true;
+        }
+
         var clickFunction = () => {
             if (game.stack.length > 0 && game.stack[game.stack.length-1].move_type == "ATTACK") {
                 this.gameRoom.passForAttack(message)
@@ -1838,11 +1859,18 @@ export class GameUX {
         this.gameLogScrollbox.update();
     }
 
+    isPlaying(game) {
+        return [game.players[0].username, game.players[1].username].includes(this.username)
+        
+    }
 }
 
 
-function onDragStart(event, cardSprite, gameUX) {
-    console.log(cardSprite.card)
+function onDragStart(event, cardSprite, gameUX, game) {
+    if (!gameUX.isPlaying(game)) {
+        return;
+    }
+
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
