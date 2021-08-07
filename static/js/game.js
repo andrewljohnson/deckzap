@@ -334,19 +334,22 @@ export class GameUX {
         name.position.x = modalWidth/2 - name.width/2;
         name.position.y = 80
         container.addChild(name);
-        setTimeout(() => { 
-            container.alpha = .8;
-            setTimeout(() => { 
-                container.alpha = .5;
-                setTimeout(() => { 
-                    container.alpha = .2;
-                    setTimeout(() => { 
-                        container.alpha = .1;
-                        this.app.stage.removeChild(container);
-                    }, 400);            
-                }, 400);            
-            }, 400);            
-        }, 400);            
+
+        var i = 1;                  
+
+        function myLoop() {        
+          setTimeout(function() {   
+            container.alpha -= .01
+            i++;                    
+            if (container.alpha > 0) {          
+              myLoop();            
+            }                     
+          }, 10)
+        }
+
+        myLoop();             
+
+       
     }
 
     roundRectangle(sprite) {
@@ -1537,6 +1540,7 @@ export class GameUX {
             .on('click', clickFunction)
             .on('tap', clickFunction)
 
+        var title = "End Turn";
         let textFillColor = 0xffffff;
         if (this.isActivePlayer(game)) {
             if (!this.activePlayerHasMoves(game) || game.stack.length > 0) {
@@ -1545,10 +1549,10 @@ export class GameUX {
                 b.tint = 0xff7b7b;
             }
         } else {
+            title = "Waiting...";
             textFillColor = 0xAAAAAA;
             b.interactive = false;
         }
-        var title = "End Turn";
         var positionX = 27;
         if (game.stack.length > 0) {
             if (this.isActivePlayer(game)) {
