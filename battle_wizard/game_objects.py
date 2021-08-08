@@ -3059,10 +3059,12 @@ class Player:
             if self.has_brarium():
                 draw_count -= 1
                 if draw_count > 0:
-                    self.draw(draw_count)
+                    if self.race != "dwarf" or self.game.turn > 1:
+                        self.draw(draw_count)
                 self.do_make_from_deck_effect(self.username)
             else:
-                self.draw(draw_count)
+                if self.race != "dwarf" or self.game.turn > 1:
+                    self.draw(draw_count)
 
         if self.race == "dwarf":
             self.max_mana = 3

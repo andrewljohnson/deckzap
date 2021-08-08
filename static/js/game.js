@@ -344,7 +344,7 @@ export class GameUX {
             if (container.alpha > 0) {          
               myLoop();            
             }                     
-          }, 10)
+          }, 40-i)
         }
 
         myLoop();             
@@ -1224,31 +1224,34 @@ export class GameUX {
 
     showAbilityPanels(cardSprite, card, cw, ch) {
         var options = this.textOptions();
-        options.fontSize = 6;
+        options.fontSize = 10;
+        options.wordWrapWidth = cw - 8;
 
         const topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         cardSprite.addChild(topBG);
         topBG.tint = 0xffff00;
+        const textContainer = new PIXI.Container();
+        cardSprite.addChild(textContainer);
         var yPosition = 0;
         for (let a of card.abilities) {
             let abilityText = new PIXI.Text("", options);
             if (a.name == "Shield") {
-                abilityText.text = "Shield - Shielded entities don't take damage the first time they get damaged.";
+                abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
             }                    
             if (a.name == "Guard") {
-                abilityText.text = "Guard - Guard entities must be attacked before anything else.";
+                abilityText.text = "Guard - Guard mobs must be attacked before anything else.";
             }                    
             if (a.name == "Syphon") {
-                abilityText.text = "Syphon - Gain hit points whenever this deals damage.";
+                abilityText.text = "Syphon - Gain hit points when this deals damage.";
             }                    
             if (a.name == "Fast") {
-                abilityText.text = "Fast - Fast entities may attack the turn they come into play.";
+                abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
             }                    
             if (a.name == "Superfast") {
-                abilityText.text = "Superfast - Superfast entities may be played and attack as instants.";
+                abilityText.text = "Superfast - Superfast mobs may be played and attack as instants.";
             }                    
             if (a.name == "Ambush") {
-                abilityText.text = "Ambush - Ambush entities may attack other entities the turn they come into play.";
+                abilityText.text = "Ambush - Ambush mobs may attack other mobs the turn they come into play.";
             }                    
             if (a.name == "Instrument Required") {
                 abilityText.text = "Instrument Required - You must have an Instrument in play to play this.";
@@ -1260,40 +1263,40 @@ export class GameUX {
                 abilityText.text = "Unique - only one Unique card is allowed per deck.";
             }                    
             if (a.name == "Weapon") {
-                abilityText.text = "Weapon - Weapons can be used to attack players and entities.";
+                abilityText.text = "Weapon - Weapons can be used to attack players and mobs.";
             }                    
             if (a.name == "Instrument") {
                 abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
             } 
             if (a.name == "Fade") {
-                abilityText.text = "Fade - Fade entities get -1/-1 at the beginning of the turn.";
+                abilityText.text = "Fade - Fade mobs get -1/-1 at the beginning of the turn.";
             }                    
             if (a.name == "Stomp") {
-                abilityText.text = "Stomp - Stomp entities deal excess damage to players.";
+                abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
             }                    
             if (a.name == "Lurker") {
-                abilityText.text = "Lurker - Lurker entities can't be targetted until they attack.";
+                abilityText.text = "Lurker - Lurker mobs can't be targetted until they attack.";
             }                    
             if (a.name == "Keep") {
                 abilityText.text = "Keep - Cards with Keep can be Kept by races (dwarves) that discard their hand each turn.";
             }                    
             if (abilityText.text) {
-                const rowHeight = 54;
-                abilityText.position.x = cw;
-                abilityText.position.y = yPosition - ch/2 + 25;
-                abilityText.width = cw - 20;
-                abilityText.height = rowHeight - 10;
-                yPosition += rowHeight;
-                cardSprite.addChild(abilityText);
+                abilityText.position.x -= cw/2 - 4;
+                abilityText.position.y = yPosition - ch/2 + 2;
+                yPosition += abilityText.height + 10;
+                textContainer.addChild(abilityText);
             }
         }
         if (yPosition == 0) {
             cardSprite.removeChild(topBG);
+            cardSprite.removeChild(textContainer);
         }
         topBG.width = cw;
-        topBG.height = yPosition + 20;
+        topBG.height = ch;
         topBG.position.x = cw + 5;
-        topBG.position.y = -ch/2 + (20+yPosition)/2;
+        topBG.position.y = 0;
+        textContainer.position.x = topBG.position.x;
+        textContainer.position.y = topBG.position.y;
 
     }
 
