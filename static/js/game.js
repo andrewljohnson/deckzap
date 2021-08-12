@@ -173,6 +173,7 @@ export class GameUX {
     }
 
     refresh(game, message) {
+        this.game = game;
         this.clearArrows()
 
         if (this.selectCardContainer) {
@@ -191,9 +192,8 @@ export class GameUX {
                     }
                 }
                 this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game), message)
-                var self = this
-                setTimeout(function() {   
-                    self.finishRefresh(game, message);
+                setTimeout(() => {   
+                    this.finishRefresh(message);
                 }, 1000);
                 return;
             }
@@ -201,7 +201,8 @@ export class GameUX {
         this.finishRefresh(game, message);
     }
 
-    finishRefresh(game, message) {
+    finishRefresh(message) {
+        const game = this.game;
         this.removeCardsFromStage(game)
 
         if (this.thisPlayer(game)) {
