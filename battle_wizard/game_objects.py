@@ -120,6 +120,9 @@ class Game:
             if not has_action_selected:
                 moves.append({"move_type": "END_TURN", "username": self.ai})
 
+        print(player.selected_mob().name if player.selected_mob() else None)
+        print(player.selected_artifact().name if player.selected_artifact() else None)
+        print(player.selected_spell().name if player.selected_spell() else None)
         print("legal moves for AI: " + str(moves))
         return moves
 
@@ -1350,8 +1353,6 @@ class Game:
             print(c.id)
             if c.id == message['card']:
                 card = c
-        print("fetched card id us: " + str(message['card']))
-        print("fetched card is: " + str(card))
         if card_type == "Artifact":
             if into_play:
                 self.current_player().play_artifact(card)
@@ -1417,7 +1418,7 @@ class Game:
         # hax
         if new_card.name == "Rolling Thunder":
             new_card.effects[0].amount = card.effects[0].amount 
-        if new_card.name == "Fidget Spinner":
+        elif new_card.name == "Fidget Spinner":
             new_card.power = card.power
             new_card.toughness = card.toughness
         # hax - does this more belong in factory_reset_card?

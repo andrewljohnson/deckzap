@@ -183,10 +183,25 @@ export class GameUX {
 
         if (this.thisPlayer(game)) {
             if (message["show_spell"] && !this.thisPlayer(game).card_info_to_target["card_id"]) {
+                for (let sprite of this.app.stage.children) {
+                    if (sprite.card && sprite.card.id == message["show_spell"]["id"] && sprite != this.spellBeingCastSprite) {
+                        if (sprite.parent) {
+                            sprite.parent.removeChild(sprite)
+                        }                        
+                    }
+                }
                 this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game), message)
+                var self = this
+                setTimeout(function() {   
+                    self.finishRefresh(game, message);
+                }, 1000);
+                return;
             }
         }
+        this.finishRefresh(game, message);
+    }
 
+    finishRefresh(game, message) {
         this.removeCardsFromStage(game)
 
         if (this.thisPlayer(game)) {
@@ -238,7 +253,7 @@ export class GameUX {
                 alert("GAME OVER");
             }
         }
-        if (game.stack.length > 0 && game.stack[game.stack.length-1].move_type == "ATTACK") {
+        if (game.stack.length > 0 && game.stack[game.stack.length-1][0].move_type == "ATTACK") {
             var attack = game.stack[game.stack.length-1][0];
             var attacking_id = attack["card"];
             var attackingCardSprite = null;
@@ -260,27 +275,17 @@ export class GameUX {
                     } 
                 }
 
-                var toXYArc = [this.playerAvatar.position.x-attackingCardSprite.position.x+this.playerAvatar.width/4,
-                            this.playerAvatar.position.y-attackingCardSprite.position.y+this.playerAvatar.height/2];
-                if (defending_id && defendingCardSprite) {
-                   toXYArc = [defendingCardSprite.position.x-attackingCardSprite.position.x,
-                            defendingCardSprite.position.y-attackingCardSprite.position.y]; 
-                }
-                var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
-                            this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
-                if (defending_id && defendingCardSprite) {
-                   toXYArrow = [defendingCardSprite.position.x,
-                            defendingCardSprite.position.y-10]; 
-                }
-
-
-                if(!defending_id || defendingCardSprite) {
-                    this.showTargettingArrow(
-                        [30,0],
-                        [200,100],
-                        toXYArc, 
-                        toXYArrow,
-                        [attackingCardSprite.position.x,attackingCardSprite.position.y ]);                    
+                if(defending_id && defendingCardSprite) {
+                    this.showArrow(
+                        attackingCardSprite,
+                        defendingCardSprite, 
+                        );                    
+                } else {
+                    this.showArrow(
+                        attackingCardSprite,
+                        this.opponentAvatar,
+                        {x:this.playerAvatar.width/4, y: this.playerAvatar.height/2} 
+                        );                                        
                 }
             }
         }
@@ -376,10 +381,19 @@ export class GameUX {
         }        
     }
 
-    showTargettingArrow(cpXY1, cpXY2, toXY, toXYArrow, fromXY){
+    showArrow(fromSprite, toSprite, adjustment={'x':0, 'y': 0}){
+        let cpXY1 = [30,0];
+        let cpXY2 = [200,100];
+        let toXY = [toSprite.position.x - fromSprite.position.x + adjustment.x, toSprite.position.y - fromSprite.position.y + adjustment.y];
+        let fromXY = [fromSprite.position.x, fromSprite.position.y];
+        let toXYArc = [toSprite.position.x-fromSprite.position.x+toSprite.width/4,
+                        toSprite.position.y-fromSprite.position.y+toSprite.height/2];
+        let toXYArrow = [toSprite.position.x+toSprite.width/4,
+                        toSprite.position.y+toSprite.height/2 - 10];
+
         const bezierArrow = new PIXI.Graphics();
-        this.arrows.push(bezierArrow);
         bezierArrow.tint = 0xff0000;
+        this.arrows.push(bezierArrow);
         this.app.stage.addChild(bezierArrow); 
         const normal = [
             - (toXY[1] - cpXY2[1]),
@@ -1131,12 +1145,10 @@ export class GameUX {
         defense.position.y = powerY;
         cardSprite.addChild(defense);        
 
-
         let cardId = new PIXI.Text("id: " + card.id, ptOptions);
         cardId.position.x = defenseX - cardWidth/4 - 5;
         cardId.position.y = powerY;
         cardSprite.addChild(cardId);        
-
     }
 
     addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
@@ -1378,23 +1390,18 @@ export class GameUX {
 
     showArrowsForSpell(game, sprite, spellMessage, card) {
         if (spellMessage["effect_targets"] && spellMessage["effect_targets"][0].target_type == "player") {
-            var toXYArc = [this.playerAvatar.position.x-sprite.position.x+this.playerAvatar.width/4,
-                            this.playerAvatar.position.y-sprite.position.y+this.playerAvatar.height/2];
-            var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
-                            this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
-
             if (spellMessage["effect_targets"][0].id == this.opponent(game).username) {
-                toXYArc = [this.opponentAvatar.position.x-sprite.position.x+this.opponentAvatar.width/4,
-                                this.opponentAvatar.position.y-sprite.position.y+this.opponentAvatar.height/2];
-                toXYArrow = [this.opponentAvatar.position.x+this.opponentAvatar.width/4,
-                                this.opponentAvatar.position.y+this.opponentAvatar.height/2 - 10];
+               this.showArrow(
+                    sprite, 
+                    this.opponentAvatar,
+                    {x:this.opponentAvatar.width/4, y: this.opponentAvatar.height/2});
+            } else {
+               this.showArrow(
+                    sprite, 
+                    this.playerAvatar,
+                    {x:this.playerAvatar.width/4, y: this.playerAvatar.height/2});
+
             }
-            this.showTargettingArrow(
-                [30,0],
-                [200,100],
-                toXYArc, 
-                toXYArrow,
-                [sprite.position.x,sprite.position.y ]);
         } else if (spellMessage["effect_targets"] && ["mob", "artifact"].includes(spellMessage["effect_targets"][0].target_type)) {
             var defending_id = spellMessage["effect_targets"][0].id;
             var defendingCardSprite = null;
@@ -1404,38 +1411,18 @@ export class GameUX {
                 }
             } 
             if(defendingCardSprite) {
-                var toXYArc = [defendingCardSprite.position.x-sprite.position.x,
-                            defendingCardSprite.position.y-sprite.position.y];
-                var toXYArrow = [defendingCardSprite.position.x,
-                            defendingCardSprite.position.y - 10];
-                this.showTargettingArrow(
-                    [30,0],
-                    [200,100],
-                    toXYArc, 
-                    toXYArrow,
-                [sprite.position.x,sprite.position.y ]);                    
+                this.showArrow(
+                    sprite, 
+                    defendingCardSprite);                    
             }
         }
 
         // hax: impale, inner fire, other 2 effect cards
         if (spellMessage["effect_targets"] && spellMessage["effect_targets"].length == 2 && spellMessage["effect_targets"][1].target_type == "player" && spellMessage["effect_targets"][1].id == this.opponent(game).username) {
-            var toXYArc = [this.playerAvatar.position.x-sprite.position.x+this.playerAvatar.width/4,
-                            this.playerAvatar.position.y-sprite.position.y+this.playerAvatar.height/2];
-            var toXYArrow = [this.playerAvatar.position.x+this.playerAvatar.width/4,
-                            this.playerAvatar.position.y+this.playerAvatar.height/2 - 10];
-
-            if (spellMessage["effect_targets"][0].id != this.opponent(game).username) {
-                toXYArc = [this.opponentAvatar.position.x-sprite.position.x+this.opponentAvatar.width/4,
-                                this.opponentAvatar.position.y-sprite.position.y+this.opponentAvatar.height/2];
-                toXYArrow = [this.opponentAvatar.position.x+this.opponentAvatar.width/4,
-                                this.opponentAvatar.position.y+this.opponentAvatar.height/2 - 10];
-            }
-            this.showTargettingArrow(
-                [30,0],
-                [200,100],
-                toXYArc, 
-                toXYArrow,
-                [sprite.position.x,sprite.position.y ]);
+            this.showArrow(
+                sprite, this.playerAvatar,
+                {x:this.playerAvatar.width/4, y:this.playerAvatar.height/2} 
+                );
 
         }
     }
@@ -1492,17 +1479,14 @@ export class GameUX {
     activePlayerHasMoves(game) {
         for (let sprite of this.app.stage.children) {
             if(sprite.card && sprite.card.can_be_clicked) {
-                console.log("card cen be clicked")
                 return true;
             }
         }        
         if (game.players[0].can_be_clicked) {
-                console.log("p1 cen be clicked")
             return true;
         }
         if (game.players[1].can_be_clicked) {
             return true;
-                console.log("p2 cen be clicked")
         }
         return false;
     }
@@ -1524,7 +1508,9 @@ export class GameUX {
         }
 
         var clickFunction = () => {
-            if (game.stack.length > 0 && game.stack[game.stack.length-1].move_type == "ATTACK") {
+            console.log("game.stack is ");
+            console.log(game.stack);
+            if (game.stack.length > 0 && game.stack[game.stack.length-1][0].move_type == "ATTACK") {
                 this.gameRoom.passForAttack(message)
             } else if (game.stack.length > 0) {
                 this.gameRoom.passForSpellResolution(message)
@@ -1557,9 +1543,15 @@ export class GameUX {
             b.interactive = false;
         }
         var positionX = 27;
+
         if (game.stack.length > 0) {
             if (this.isActivePlayer(game)) {
                 title = "OK";
+                console.log("checking move type");
+                console.log(game.stack[game.stack.length-1][0])
+                if (game.stack[game.stack.length-1][0].move_type == "ATTACK") {
+                    title = "OK"
+                }
                 positionX = 45;
             } else {    
                 title = "Waiting...";
@@ -1951,6 +1943,7 @@ function onDragEnd(cardSprite, gameUX) {
             playedMove = true;
         } else {
             var collidedSprite;
+            var overlapArea = 0;
             for (let sprite of gameUX.app.stage.children) {
                 if (bump.hit(cardSprite, sprite) && cardSprite.card && sprite.card && cardSprite.card.id != sprite.card.id) {
                     var inHand = false;
@@ -1960,7 +1953,16 @@ function onDragEnd(cardSprite, gameUX) {
                         }
                     }
                     if (!inHand) {
-                        collidedSprite = sprite;
+                        var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
+                        var boundsMob = [sprite.position.x, sprite.position.y, sprite.position.x+sprite.width, sprite.position.y+sprite.height]
+
+                        var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
+                        var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
+                        var newOverlapArea = x_overlap * y_overlap;
+                        if (newOverlapArea > overlapArea) {
+                            overlapArea = newOverlapArea;
+                            collidedSprite = sprite;
+                        }
                     }
                 }
             }
@@ -1985,13 +1987,28 @@ function onDragEnd(cardSprite, gameUX) {
             gameUX.gameRoom.sendPlayMoveEvent("ACTIVATE_ARTIFACT", {"card":cardSprite.card.id});
             playedMove = true;
         } else {
-            // todo: this shouldn't bump any non opponent non clickable cards, but that depends on pefect game state 
+            var spriteToHit = null;
+            var overlapArea = 0;
             for (let opponentMob of gameUX.app.stage.children) {
                 if(opponentMob.card && opponentMob.card.id != cardSprite.card.id && opponentMob.card.can_be_clicked && bump.hit(cardSprite, opponentMob)) {
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": opponentMob.card.id});
-                    playedMove = true;
+                    var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
+                    var boundsMob = [opponentMob.position.x, opponentMob.position.y, opponentMob.position.x+opponentMob.width, opponentMob.position.y+opponentMob.height]
+
+                    var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
+                    var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
+                    var newOverlapArea = x_overlap * y_overlap;
+                    if (newOverlapArea > overlapArea) {
+                        overlapArea = newOverlapArea;
+                        spriteToHit = opponentMob;
+                    }
                 }
             }
+            if (spriteToHit) {
+                    console.log(`selecting mob with name ${spriteToHit.card.name} and id ${spriteToHit.card.id}`)
+                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": spriteToHit.card.id});
+                    playedMove = true;
+            }
+
         }
 
     }
@@ -2025,6 +2042,7 @@ function onDragMove(cardSprite, gameUX, bump) {
         let cardInHand = cardSprite.card.turn_played == -1;
 
         let collidedMob = null;
+        var overlapArea = 0;
         for (let mob of gameUX.app.stage.children) {
             if (mob.card && cardSprite.card.id != mob.card.id) {
                 if (mob.card.can_be_clicked) {
@@ -2035,7 +2053,16 @@ function onDragMove(cardSprite, gameUX, bump) {
                 // took this out of the if to support stack... does it break anything?
                 // mob.card.turn_played != -1 &&               
                 if(mob.card.id != cardSprite.card.id && mob.card.can_be_clicked && bump.hit(cardSprite, mob)) {
-                    collidedMob = mob;
+                    var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
+                    var boundsMob = [mob.position.x, mob.position.y, mob.position.x+mob.width, mob.position.y+mob.height]
+
+                    var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
+                    var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
+                    var newOverlapArea = x_overlap * y_overlap;
+                    if (newOverlapArea > overlapArea) {
+                        overlapArea = newOverlapArea;
+                        collidedMob = mob;
+                    }
                 }
             }
         }
