@@ -2606,7 +2606,7 @@
 		"image": "misdirection.svg",
 		"cost": 6,
 		"card_type": "Spell",
-		"description": "Summon a random entity or artifact from your opponent's hand.",
+		"description": "Summon a random mob or artifact from your opponent's hand.",
 		"effects": [{
 			"name": "summon_from_hand",
 			"amount": 1,
@@ -2799,7 +2799,7 @@
 		"effects": [
 			{
 				"name": "make_token",
-				"card_names": ["Lephrachaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
+				"card_names": ["Leprechaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
 				"card_descriptions": [
 					"Make a 1/1. Improves when cast.", 
 					"Make a 2/2 Superfast. Improves when cast.", 
@@ -2818,7 +2818,7 @@
 		]
 	},
 	{
-		"name": "Lephrachaun",
+		"name": "Leprechaun",
 		"is_token": true,
 		"race": "dwarf",
 		"class": "tinkerer",
@@ -2882,16 +2882,16 @@
 		"cost": 0,
 		"abilities": [
 			{
+				"name": "DamageDraw",
+				"descriptive_id": "DamageDraw"
+			},
+			{
 				"name": "Fast",
 				"descriptive_id": "Fast"
 			},
 			{
 				"name": "Superfast",
 				"descriptive_id": "Superfast"
-			},
-			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw"
 			}
 		]
 	},

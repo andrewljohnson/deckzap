@@ -74,7 +74,6 @@ export class GameUX {
 
         this.buttonMenu = this.menu(cardContainerWidth + padding * 2, topOfMiddle);
         this.app.stage.addChild(this.buttonMenu);
-        this.buttonMenu.addChild(this.newGameButton(22, 230 - 40 - padding - 8, this));
 
         let playerOneY = middleOfMiddle + cardHeight + padding;
         this.playerAvatar = this.avatar(cardContainerWidth/2 - avatarWidth/2, playerOneY);
@@ -114,15 +113,18 @@ export class GameUX {
         return background;
     }
 
-    newGameButton(x, y, gameUX) {
+    newGameButton(x, y, game) {
         const b = new PIXI.Sprite.from(this.newGameButtonTexture);
-        b.buttonMode = true;
         b.position.x = x;
         b.position.y = y;
         // b.anchor.set(0.5);
-        b.interactive = true;
+        if (this.isPlaying(game)) {
+            b.buttonMode = true;
+            b.interactive = true;
+        }
+        var self = this;
         var clickFunction = function() {
-            gameUX.gameRoom.nextRoom()
+            self.gameRoom.nextRoom()
         };
         b
             .on('click', clickFunction)
@@ -132,7 +134,6 @@ export class GameUX {
         text.position.x = 23;
         text.position.y = 13;
         b.addChild(text);
-
         return b;
     }
 
@@ -199,6 +200,11 @@ export class GameUX {
             this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
+            if (!this.newGameButtonAdded) {
+                this.buttonMenu.addChild(this.newGameButton(22, 230 - 40 - padding - 8, game));
+                this.newGameButtonAdded = true;
+            }
+
         }
 
         if (game.stack.length > 0) {
@@ -281,7 +287,7 @@ export class GameUX {
 
         if (!this.isShowingCastAnimation) {
             this.showSelectionViews(game);
-            this.makeCardsInteractive()
+            this.makeCardsInteractive(game)
         } else {
             this.needsToShowMakeViews = true;
         }
@@ -328,19 +334,22 @@ export class GameUX {
         name.position.x = modalWidth/2 - name.width/2;
         name.position.y = 80
         container.addChild(name);
-        setTimeout(() => { 
-            container.alpha = .8;
-            setTimeout(() => { 
-                container.alpha = .5;
-                setTimeout(() => { 
-                    container.alpha = .2;
-                    setTimeout(() => { 
-                        container.alpha = .1;
-                        this.app.stage.removeChild(container);
-                    }, 400);            
-                }, 400);            
-            }, 400);            
-        }, 400);            
+
+        var i = 1;                  
+
+        function myLoop() {        
+          setTimeout(function() {   
+            container.alpha -= .01
+            i++;                    
+            if (container.alpha > 0) {          
+              myLoop();            
+            }                     
+          }, 40-i)
+        }
+
+        myLoop();             
+
+       
     }
 
     roundRectangle(sprite) {
@@ -408,7 +417,11 @@ export class GameUX {
         return sprite;
     }
 
-    makeCardsInteractive() {
+    makeCardsInteractive(game) {
+        if (!this.isPlaying(game)) {
+            return;
+        }
+
         // hax: prevents spurious onMousover events from firing during rendering all the cards
         setTimeout(() => { 
             for (let sprite of this.app.stage.children) {
@@ -555,11 +568,12 @@ export class GameUX {
         }
     }
 
-    baseCardSprite(card, cardTexture) {
+    baseCardSprite(card, cardTexture, game) { 
         let cardSprite = new PIXI.Sprite.from(cardTexture);
         cardSprite.card = card;
-        cardSprite.buttonMode = true;  // hand cursor
-
+        if (this.isPlaying(game)) {
+            cardSprite.buttonMode = true;  // hand cursor
+        }
         return cardSprite;
     }
 
@@ -571,7 +585,7 @@ export class GameUX {
             }                    
         }
 
-        var cardSprite = this.baseCardSprite(card, cardTexture);
+        var cardSprite = this.baseCardSprite(card, cardTexture, game);
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
         imageSprite.width = 70;
         imageSprite.height = 98;
@@ -652,8 +666,8 @@ export class GameUX {
             } else {
                 var self = this;
                 cardSprite
-                    .on('mousedown',        function (e) {onDragStart(e, this, self)})
-                    .on('touchstart',       function (e) {onDragStart(e, this, self)})
+                    .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
+                    .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
                     .on('mouseup',          function ()  {onDragEnd(this, self)})
                     .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
                     .on('touchend',         function ()  {onDragEnd(this, self)})
@@ -729,7 +743,7 @@ export class GameUX {
 
     cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
         var cardTexture = (useLargeSize ? this.cardLargeTexture : this.cardTexture); 
-        var cardSprite = this.baseCardSprite(card, cardTexture);
+        var cardSprite = this.baseCardSprite(card, cardTexture, game);
 
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
@@ -1019,8 +1033,8 @@ export class GameUX {
             } else {
                 var self = this;
                 cardSprite
-                    .on('mousedown',        function (e) {onDragStart(e, this, self)})
-                    .on('touchstart',       function (e) {onDragStart(e, this, self)})
+                    .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
+                    .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
                     .on('mouseup',          function ()  {onDragEnd(this, self)})
                     .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
                     .on('touchend',         function ()  {onDragEnd(this, self)})
@@ -1116,6 +1130,13 @@ export class GameUX {
         defense.position.x = defenseX;
         defense.position.y = powerY;
         cardSprite.addChild(defense);        
+
+
+        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
+        cardId.position.x = defenseX - cardWidth/4 - 5;
+        cardId.position.y = powerY;
+        cardSprite.addChild(cardId);        
+
     }
 
     addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
@@ -1203,31 +1224,34 @@ export class GameUX {
 
     showAbilityPanels(cardSprite, card, cw, ch) {
         var options = this.textOptions();
-        options.fontSize = 6;
+        options.fontSize = 10;
+        options.wordWrapWidth = cw - 8;
 
         const topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         cardSprite.addChild(topBG);
         topBG.tint = 0xffff00;
+        const textContainer = new PIXI.Container();
+        cardSprite.addChild(textContainer);
         var yPosition = 0;
         for (let a of card.abilities) {
             let abilityText = new PIXI.Text("", options);
             if (a.name == "Shield") {
-                abilityText.text = "Shield - Shielded entities don't take damage the first time they get damaged.";
+                abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
             }                    
             if (a.name == "Guard") {
-                abilityText.text = "Guard - Guard entities must be attacked before anything else.";
+                abilityText.text = "Guard - Guard mobs must be attacked before anything else.";
             }                    
             if (a.name == "Syphon") {
-                abilityText.text = "Syphon - Gain hit points whenever this deals damage.";
+                abilityText.text = "Syphon - Gain hit points when this deals damage.";
             }                    
             if (a.name == "Fast") {
-                abilityText.text = "Fast - Fast entities may attack the turn they come into play.";
+                abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
             }                    
             if (a.name == "Superfast") {
-                abilityText.text = "Superfast - Superfast entities may be played and attack as instants.";
+                abilityText.text = "Superfast - Superfast mobs may be played and attack as instants.";
             }                    
             if (a.name == "Ambush") {
-                abilityText.text = "Ambush - Ambush entities may attack other entities the turn they come into play.";
+                abilityText.text = "Ambush - Ambush mobs may attack other mobs the turn they come into play.";
             }                    
             if (a.name == "Instrument Required") {
                 abilityText.text = "Instrument Required - You must have an Instrument in play to play this.";
@@ -1239,40 +1263,40 @@ export class GameUX {
                 abilityText.text = "Unique - only one Unique card is allowed per deck.";
             }                    
             if (a.name == "Weapon") {
-                abilityText.text = "Weapon - Weapons can be used to attack players and entities.";
+                abilityText.text = "Weapon - Weapons can be used to attack players and mobs.";
             }                    
             if (a.name == "Instrument") {
                 abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
             } 
             if (a.name == "Fade") {
-                abilityText.text = "Fade - Fade entities get -1/-1 at the beginning of the turn.";
+                abilityText.text = "Fade - Fade mobs get -1/-1 at the beginning of the turn.";
             }                    
             if (a.name == "Stomp") {
-                abilityText.text = "Stomp - Stomp entities deal excess damage to players.";
+                abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
             }                    
             if (a.name == "Lurker") {
-                abilityText.text = "Lurker - Lurker entities can't be targetted until they attack.";
+                abilityText.text = "Lurker - Lurker mobs can't be targetted until they attack.";
             }                    
             if (a.name == "Keep") {
                 abilityText.text = "Keep - Cards with Keep can be Kept by races (dwarves) that discard their hand each turn.";
             }                    
             if (abilityText.text) {
-                const rowHeight = 54;
-                abilityText.position.x = cw;
-                abilityText.position.y = yPosition - ch/2 + 25;
-                abilityText.width = cw - 20;
-                abilityText.height = rowHeight - 10;
-                yPosition += rowHeight;
-                cardSprite.addChild(abilityText);
+                abilityText.position.x -= cw/2 - 4;
+                abilityText.position.y = yPosition - ch/2 + 2;
+                yPosition += abilityText.height + 10;
+                textContainer.addChild(abilityText);
             }
         }
         if (yPosition == 0) {
             cardSprite.removeChild(topBG);
+            cardSprite.removeChild(textContainer);
         }
         topBG.width = cw;
-        topBG.height = yPosition + 20;
+        topBG.height = ch;
         topBG.position.x = cw + 5;
-        topBG.position.y = -ch/2 + (20+yPosition)/2;
+        topBG.position.y = 0;
+        textContainer.position.x = topBG.position.x;
+        textContainer.position.y = topBG.position.y;
 
     }
 
@@ -1318,7 +1342,7 @@ export class GameUX {
             if (this.needsToShowMakeViews) {
                 this.needsToShowMakeViews = false;
                 this.showSelectionViews(this.game);
-                this.makeCardsInteractive()
+                this.makeCardsInteractive(game)
             }
             this.spellBeingCastSprite = null;
         }, 1000);
@@ -1465,6 +1489,24 @@ export class GameUX {
 
     }
 
+    activePlayerHasMoves(game) {
+        for (let sprite of this.app.stage.children) {
+            if(sprite.card && sprite.card.can_be_clicked) {
+                console.log("card cen be clicked")
+                return true;
+            }
+        }        
+        if (game.players[0].can_be_clicked) {
+                console.log("p1 cen be clicked")
+            return true;
+        }
+        if (game.players[1].can_be_clicked) {
+            return true;
+                console.log("p2 cen be clicked")
+        }
+        return false;
+    }
+
     renderEndTurnButton(game, message) {
         if (this.turnLabel) {
             this.buttonMenu.removeChild(this.turnLabel)
@@ -1474,10 +1516,13 @@ export class GameUX {
         }
 
         const b = new PIXI.Sprite.from(this.newGameButtonTexture);
-        b.buttonMode = true;
         b.position.x = 23;
         b.position.y = 17;
-        b.interactive = true;
+        if (this.isPlaying(game)) {
+            b.buttonMode = true;
+            b.interactive = true;
+        }
+
         var clickFunction = () => {
             if (game.stack.length > 0 && game.stack[game.stack.length-1].move_type == "ATTACK") {
                 this.gameRoom.passForAttack(message)
@@ -1498,18 +1543,19 @@ export class GameUX {
             .on('click', clickFunction)
             .on('tap', clickFunction)
 
+        var title = "End Turn";
         let textFillColor = 0xffffff;
         if (this.isActivePlayer(game)) {
-            if (this.thisPlayer(game).mana == 0 || game.stack.length > 0) {
+            if (!this.activePlayerHasMoves(game) || game.stack.length > 0) {
                 b.tint = 0xff0000;
             } else {
                 b.tint = 0xff7b7b;
             }
         } else {
+            title = "Waiting...";
             textFillColor = 0xAAAAAA;
             b.interactive = false;
         }
-        var title = "End Turn";
         var positionX = 27;
         if (game.stack.length > 0) {
             if (this.isActivePlayer(game)) {
@@ -1838,11 +1884,18 @@ export class GameUX {
         this.gameLogScrollbox.update();
     }
 
+    isPlaying(game) {
+        return [game.players[0].username, game.players[1].username].includes(this.username)
+        
+    }
 }
 
 
-function onDragStart(event, cardSprite, gameUX) {
-    console.log(cardSprite.card)
+function onDragStart(event, cardSprite, gameUX, game) {
+    if (!gameUX.isPlaying(game)) {
+        return;
+    }
+
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
