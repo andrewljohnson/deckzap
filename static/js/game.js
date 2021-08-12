@@ -426,7 +426,7 @@ export class GameUX {
             .lineTo(toXY[0] + normal[0] + tangent[0]-1, toXY[1] + normal[1] + tangent[1])
             .endFill();
         
-        var sprite = new PIXI.Sprite(this.app.renderer.generateTexture(bezierArrow,2,2))
+        var sprite = new PIXI.Sprite(this.app.renderer.generateTexture(bezierArrow,{resolution:2,region:2}))
         bezierArrow.filters = glowAndShadowFilters()
 
         return sprite;
@@ -1404,17 +1404,15 @@ export class GameUX {
 
             }
         } else if (spellMessage["effect_targets"] && ["mob", "artifact"].includes(spellMessage["effect_targets"][0].target_type)) {
-            var defending_id = spellMessage["effect_targets"][0].id;
-            var defendingCardSprite = null;
+            var targetID = spellMessage["effect_targets"][0].id;
+            var targetCardSprite = null;
             for (let sprite of this.app.stage.children) {
-                if (sprite.card && sprite.card.id == defending_id) {
-                    defendingCardSprite = sprite;
+                if (sprite.card && sprite.card.id == targetID) {
+                    targetCardSprite = sprite;
                 }
             } 
-            if(defendingCardSprite) {
-                this.showArrow(
-                    sprite, 
-                    defendingCardSprite);                    
+            if(targetCardSprite && sprite != targetCardSprite) {
+                this.showArrow(sprite, targetCardSprite);
             }
         }
 

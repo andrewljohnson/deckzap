@@ -1193,10 +1193,10 @@ class Game:
         card_id = message["card"]
         attacking_card = self.opponent().in_play_card(card_id)
 
+        self.stack.append([copy.deepcopy(message), attacking_card.as_dict()])
+
         self.unset_clickables(message["move_type"])
         self.set_clickables()
-
-        self.stack.append([copy.deepcopy(message), attacking_card.as_dict()])
 
         if not self.current_player().has_instants():
             return self.attack(message)
