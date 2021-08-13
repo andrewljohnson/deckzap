@@ -325,7 +325,7 @@ class Game:
 
         return message
 
-    def unset_clickables(self, move_type):
+    def unset_clickables(self, move_type, cancel_damage=True):
         """
             unhighlight everything before highlighting possible attacks/spells
         """
@@ -347,7 +347,7 @@ class Game:
             card.effects_can_be_clicked = []
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
-        if move_type != "UNSELECT":
+        if move_type != "UNSELECT" and cancel_damage:
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
             for card in self.opponent().in_play + self.current_player().in_play:
@@ -578,12 +578,12 @@ class Game:
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
             did_target = False
             for card in self.opponent().in_play:
-                if card.power >= list(target_restrictions[0].values())[0]:
+                if card.power_with_tokens() >= list(target_restrictions[0].values())[0]:
                     if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
                         did_target = True
             for card in self.current_player().in_play:
-                if card.power >= list(target_restrictions[0].values())[0]:
+                if card.power_with_tokens() >= list(target_restrictions[0].values())[0]:
                     if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
                         did_target = True
@@ -1199,7 +1199,10 @@ class Game:
         self.set_clickables()
 
         if not self.current_player().has_instants():
-            return self.attack(message)
+            message = self.attack(message)
+            self.unset_clickables(message["move_type"], cancel_damage=False)
+            self.set_clickables()
+            return message
 
         if "defending_card" in message:
             defending_card_id = message["defending_card"]
@@ -1660,7 +1663,7 @@ class Game:
                 break
 
         effect_targets = []
-        effect_targets.append({"id": selected_card.id, "target_type":"being_cast_mob"})            
+        effect_targets.append({"id": selected_card.id})            
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name
@@ -2788,7 +2791,10 @@ class Player:
 
         if not self.game.current_player().has_instants():
             self.game.actor_turn += 1
-            return self.play_card(card.id, message)
+            message = self.play_card(card.id, message)
+            self.game.unset_clickables(message["move_type"], cancel_damage=False)
+            self.game.set_clickables()
+            return message
 
         message["log_lines"].append(f"{self.username} starts to play {card.name}.")
 
@@ -3460,6 +3466,8 @@ class Card:
         e = self.effects[0]
         for spell in game.stack:
             card = Card(spell[1])
+            if spell[0]["move_type"] == "ATTACK":
+                continue
             if e.target_type == "being_cast":
                 return True
             if e.target_type == "being_cast_mob" and card.card_type == "Mob":
@@ -3572,7 +3580,6 @@ class Card:
         for e in self.effects:
             if e.id == effect_id:
                 return e
-
 
 class CardEffect:
     def __init__(self, info, effect_id):

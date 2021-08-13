@@ -62,20 +62,20 @@ class BattleWizardConsumer(WebsocketConsumer):
                     time_for_next_move = False
                     if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
                         time_for_next_move = True
-                    if (time_for_next_move or len(self.game.legal_moves_for_ai(self.game.players[1])) == 1) and not self.ai_running:
+                    self.game.set_clickables()
+                    moves = self.game.legal_moves_for_ai(self.game.players[1])
+                    if (time_for_next_move or len(moves) == 1) and not self.ai_running:
                         if self.game.players[0].hit_points > 0 and self.game.players[1].hit_points > 0: 
                             print("RUN AI")
-                            self.run_ai()
+                            self.run_ai(moves)
                     else:
                         print("get time while ai running")
 
 
-    def run_ai(self):
+    def run_ai(self, moves):
         self.ai_running = True
         self.last_move_time = datetime.datetime.now()
-        self.game.set_clickables()
         # todo don't reference AI by index 1
-        moves = self.game.legal_moves_for_ai(self.game.players[1])
         if self.ai == "random_bot":
             chosen_move = random.choice(moves)
             #while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":

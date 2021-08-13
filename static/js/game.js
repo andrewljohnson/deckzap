@@ -49,7 +49,7 @@ export class GameUX {
             backgroundAlpha: true,
             resolution: window.devicePixelRatio || 1,
             autoDensity: true,
-            transparent: true            
+            backgroundAlpha: true            
         });
         document.getElementById("new_game").appendChild(this.app.view);
         this.renderStaticElements();
@@ -174,14 +174,6 @@ export class GameUX {
 
     refresh(game, message) {
         this.game = game;
-        this.clearArrows()
-
-        if (this.selectCardContainer) {
-            this.selectCardContainer.parent.removeChild(this.selectCardContainer);
-            this.selectCardContainer = null;
-            this.selectCardInnerContainer = null;
-        }
-
         if (this.thisPlayer(game)) {
             if (message["show_spell"] && !this.thisPlayer(game).card_info_to_target["card_id"]) {
                 for (let sprite of this.app.stage.children) {
@@ -203,6 +195,7 @@ export class GameUX {
 
     finishRefresh(message) {
         const game = this.game;
+        this.clearArrows()
         this.removeCardsFromStage(game)
 
         if (this.thisPlayer(game)) {
@@ -230,9 +223,11 @@ export class GameUX {
         this.renderEndTurnButton(game, message);
 
         if (this.thisPlayer(game).card_info_to_target["card_id"]) {
+            /*
             var targettableSprites = [];
             for (let sprite of this.app.stage.children) {
-                if (sprite.card && sprite.card.can_be_clicked) {
+                if (sprite.card && sprite.card.can_be_clicked && !sprite.dragging) {
+                    console.log("adding this a glow " + sprite.card.name)
                     targettableSprites.push(sprite)
                 }
             }
@@ -245,6 +240,7 @@ export class GameUX {
             for (let sprite of targettableSprites) {
                 sprite.filters = [targettableGlowFilter()]
             }
+            */
         }
 
         this.game = game;
@@ -259,7 +255,7 @@ export class GameUX {
             var attacking_id = attack["card"];
             var attackingCardSprite = null;
             for (let sprite of this.app.stage.children) {
-                if (sprite.card && sprite.card.id == attacking_id) {
+                if (sprite.card && sprite.card.id == attacking_id && !this.spellStackSprites.includes(sprite)) {
                     attackingCardSprite = sprite;
                 }
             } 
@@ -282,10 +278,14 @@ export class GameUX {
                         defendingCardSprite, 
                         );                    
                 } else {
+                    let avatar = this.opponentAvatar;
+                    if (this.activePlayer(game).username != this.opponent(game).username) {                        
+                        avatar = this.playerAvatar;
+                    }
                     this.showArrow(
                         attackingCardSprite,
-                        this.opponentAvatar,
-                        {x:this.playerAvatar.width/4, y: this.playerAvatar.height/2} 
+                        avatar,
+                        {x:avatar.width/4, y: avatar.height/2} 
                         );                                        
                 }
             }
@@ -456,6 +456,11 @@ export class GameUX {
     }
 
     showSelectionViews(game) {
+        if (this.selectCardContainer) {
+            this.selectCardContainer.parent.removeChild(this.selectCardContainer);
+            this.selectCardContainer = null;
+            this.selectCardInnerContainer = null;
+        }
         if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make_from_deck") {
@@ -1363,6 +1368,9 @@ export class GameUX {
     }
 
     showSpellStack(game) {
+        if (!this.spellStackSprites) {
+            this.spellStackSprites = []
+        }
         var index = -1;
         for (let spell of game.stack) {
             index++;
@@ -1375,13 +1383,13 @@ export class GameUX {
             }
 
             let sprite = this.cardSprite(game, spell[1], player, false);
+            if (spell[0].move_type == "ATTACK") {
+                continue;
+            }
             sprite.position.x = 100 + 20*index;
             sprite.position.y = this.inPlay.position.y + padding + 40*index;
             sprite.scale.set(1.5);
             this.app.stage.addChild(sprite)
-            if (!this.spellStackSprites) {
-            this.spellStackSprites = []
-            }
             this.spellStackSprites.push(sprite)
             var card = spell[1]
             var spellMessage = spell[0]
@@ -1418,9 +1426,13 @@ export class GameUX {
 
         // hax: impale, inner fire, other 2 effect cards
         if (spellMessage["effect_targets"] && spellMessage["effect_targets"].length == 2 && spellMessage["effect_targets"][1].target_type == "player" && spellMessage["effect_targets"][1].id == this.opponent(game).username) {
+            let avatar = this.playerAvatar;
+            if (spellMessage["effect_targets"][1].id == this.opponent(game).username) {
+                avatar = this.opponentAvatar;
+            }
             this.showArrow(
-                sprite, this.playerAvatar,
-                {x:this.playerAvatar.width/4, y:this.playerAvatar.height/2} 
+                sprite, avatar,
+                {x:avatar.width/4, y:avatar.height/2} 
                 );
 
         }
@@ -1507,8 +1519,6 @@ export class GameUX {
         }
 
         var clickFunction = () => {
-            console.log("game.stack is ");
-            console.log(game.stack);
             if (game.stack.length > 0 && game.stack[game.stack.length-1][0].move_type == "ATTACK") {
                 this.gameRoom.passForAttack(message)
             } else if (game.stack.length > 0) {
@@ -1546,8 +1556,6 @@ export class GameUX {
         if (game.stack.length > 0) {
             if (this.isActivePlayer(game)) {
                 title = "OK";
-                console.log("checking move type");
-                console.log(game.stack[game.stack.length-1][0])
                 if (game.stack[game.stack.length-1][0].move_type == "ATTACK") {
                     title = "OK"
                 }
@@ -1664,6 +1672,7 @@ export class GameUX {
         }
 
         if (player.damage_to_show > 0) {
+            console.log("damaging player")
            this.damageSprite(avatarSprite, player.username, player.damage_to_show);
         }
     }
@@ -1894,7 +1903,9 @@ function onDragStart(event, cardSprite, gameUX, game) {
     cardSprite.off('mouseover', cardSprite.onMouseover);
     cardSprite.off('mouseout', cardSprite.onMouseout);
     gameUX.onMouseout(cardSprite, gameUX);
+    cardSprite.filters = [];
     cardSprite.dragging = true;
+
     if (cardSprite.card.turn_played == -1) {
         if(cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
@@ -1928,10 +1939,7 @@ function onDragEnd(cardSprite, gameUX) {
     var playedMove = false;
     var bump = gameUX.bump;
     if (cardSprite.card.turn_played == -1) {
-        if(!bump.hit(cardSprite, gameUX.handContainer) && (cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact") && !cardSprite.card.needs_targets) {
-            gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
-            playedMove = true;
-        } else if(bump.hit(cardSprite, gameUX.inPlay) && cardSprite.card.card_type == "Mob" && cardSprite.card.can_be_clicked) {
+        if(!bump.hit(cardSprite, gameUX.handContainer) && (cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact" || cardSprite.card.card_type == "Mob") && !cardSprite.card.needs_targets) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
             playedMove = true;
         } else if(bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == "Spell" && gameUX.opponent(gameUX.game).can_be_clicked) {
@@ -1952,12 +1960,7 @@ function onDragEnd(cardSprite, gameUX) {
                         }
                     }
                     if (!inHand) {
-                        var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
-                        var boundsMob = [sprite.position.x, sprite.position.y, sprite.position.x+sprite.width, sprite.position.y+sprite.height]
-
-                        var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
-                        var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
-                        var newOverlapArea = x_overlap * y_overlap;
+                        var newOverlapArea = getOverlap(cardSprite, sprite);
                         if (newOverlapArea > overlapArea) {
                             overlapArea = newOverlapArea;
                             collidedSprite = sprite;
@@ -1989,13 +1992,8 @@ function onDragEnd(cardSprite, gameUX) {
             var spriteToHit = null;
             var overlapArea = 0;
             for (let opponentMob of gameUX.app.stage.children) {
-                if(opponentMob.card && opponentMob.card.id != cardSprite.card.id && opponentMob.card.can_be_clicked && bump.hit(cardSprite, opponentMob)) {
-                    var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
-                    var boundsMob = [opponentMob.position.x, opponentMob.position.y, opponentMob.position.x+opponentMob.width, opponentMob.position.y+opponentMob.height]
-
-                    var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
-                    var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
-                    var newOverlapArea = x_overlap * y_overlap;
+                if(opponentMob.card && opponentMob.card.id != cardSprite.card.id && opponentMob.card.can_be_clicked && bump.hit(cardSprite, opponentMob)) {                    
+                    var newOverlapArea = getOverlap(cardSprite, opponentMob);
                     if (newOverlapArea > overlapArea) {
                         overlapArea = newOverlapArea;
                         spriteToHit = opponentMob;
@@ -2024,100 +2022,132 @@ function onDragEnd(cardSprite, gameUX) {
 }
 
 
+function getOverlap(cardSprite, sprite) {
+    var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
+    var boundsMob = [sprite.position.x, sprite.position.y, sprite.position.x+sprite.width, sprite.position.y+sprite.height]
+
+    var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
+    var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
+    return x_overlap * y_overlap;
+}
+
+
 function onDragMove(cardSprite, gameUX, bump) {
-    if (cardSprite.dragging) {
-        var newPosition = cardSprite.data.getLocalPosition(cardSprite.parent);
-        cardSprite.position.x = newPosition.x;
-        cardSprite.position.y = newPosition.y;
-        var parent = cardSprite.parent;
-        parent.removeChild(cardSprite);
-        parent.addChild(cardSprite);
+    if (!cardSprite.dragging) {
+        return;
+    }
+    var newPosition = cardSprite.data.getLocalPosition(cardSprite.parent);
+    cardSprite.position.x = newPosition.x;
+    cardSprite.position.y = newPosition.y;
+    var parent = cardSprite.parent;
+    parent.removeChild(cardSprite);
+    parent.addChild(cardSprite);
 
-        let opponentCollision = bump.hit(cardSprite, gameUX.opponentAvatar);
-        let selfCollision = bump.hit(cardSprite, gameUX.playerAvatar);
-        let handCollision = bump.hit(cardSprite, gameUX.handContainer);
-        let inPlayCollision = bump.hit(cardSprite, gameUX.inPlay);
-        let artifactsCollision = bump.hit(cardSprite, gameUX.artifacts);
-        let cardInHand = cardSprite.card.turn_played == -1;
+    let opponentCollision = bump.hit(cardSprite, gameUX.opponentAvatar);
+    let selfCollision = bump.hit(cardSprite, gameUX.playerAvatar);
+    let handCollision = bump.hit(cardSprite, gameUX.handContainer);
+    let inPlayCollision = bump.hit(cardSprite, gameUX.inPlay);
+    let artifactsCollision = bump.hit(cardSprite, gameUX.artifacts);
+    let cardInHand = cardSprite.card.turn_played == -1;
 
-        let collidedMob = null;
-        var overlapArea = 0;
-        for (let mob of gameUX.app.stage.children) {
-            if (mob.card && cardSprite.card.id != mob.card.id) {
-                if (mob.card.can_be_clicked) {
-                    mob.filters = []
-                } else {
-                    mob.filters = [cantBeClickedFilter()];                                        
-                }  
-                // took this out of the if to support stack... does it break anything?
-                // mob.card.turn_played != -1 &&               
-                if(mob.card.id != cardSprite.card.id && mob.card.can_be_clicked && bump.hit(cardSprite, mob)) {
-                    var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
-                    var boundsMob = [mob.position.x, mob.position.y, mob.position.x+mob.width, mob.position.y+mob.height]
+    let collidedMob = null;
+    var overlapArea = 0;
+    for (let mob of gameUX.app.stage.children) {
+        if (mob.card && cardSprite.card.id != mob.card.id) {
+            var inHand = false;
+            for (let card of gameUX.thisPlayer(gameUX.game).hand) {
+                if (card.id == mob.card.id) {
+                    inHand = true;
+                }
+            }
 
-                    var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
-                    var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
-                    var newOverlapArea = x_overlap * y_overlap;
-                    if (newOverlapArea > overlapArea) {
-                        overlapArea = newOverlapArea;
-                        collidedMob = mob;
-                    }
+            if(!inHand && mob.card.id != cardSprite.card.id && mob.card.can_be_clicked && bump.hit(cardSprite, mob)) {
+                var newOverlapArea = getOverlap(cardSprite, mob);
+                if (newOverlapArea > overlapArea) {
+                    overlapArea = newOverlapArea;
+                    collidedMob = mob;
                 }
             }
         }
-
-        if(!handCollision && cardSprite.card.card_type == "Spell" && !cardSprite.card.needs_targets) {
-            cardSprite.filters = glowAndShadowFilters();
-            if (!cardSprite.card.can_be_clicked) {
-                cardSprite.filters.push(cantBeClickedFilter());                        
-            }
-        } else if(!bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == "Artifact" && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
-            cardSprite.filters = glowAndShadowFilters();
-        } else if((cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact") && opponentCollision && gameUX.opponent(gameUX.game).can_be_clicked) {
-            gameUX.opponentAvatar.filters = [targettableGlowFilter()];
-        } else if((cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact") && selfCollision && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-            gameUX.playerAvatar.filters = [targettableGlowFilter()];
-        } else if(cardInHand && inPlayCollision && cardSprite.card.card_type == "Mob") {
-            cardSprite.filters = glowAndShadowFilters();
-            if (!cardSprite.card.can_be_clicked) {
-                cardSprite.filters.push(cantBeClickedFilter());                        
-            }
-        } else if(cardInHand && artifactsCollision && cardSprite.card.card_type == "Artifact") {
-            cardSprite.filters = glowAndShadowFilters();
-        } else if(!cardInHand && opponentCollision && cardSprite.card.card_type == "Mob") {
-            cardSprite.filters = glowAndShadowFilters();
-            gameUX.opponentAvatar.filters = [targettableGlowFilter()];
-        } else if (collidedMob && collidedMob.card.can_be_clicked && ((cardSprite.card.card_type == "Artifact" && collidedMob.card.card_type == "Mob") || (cardSprite.card.card_type == "Mob" && collidedMob.card.card_type == "Mob") || (cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets))) {
-            cardSprite.filters = glowAndShadowFilters();
-            collidedMob.filters = [targettableGlowFilter()];
-        } else {
-            gameUX.inPlay.filters = [];
-            if (!cardSprite.card.can_be_clicked) {
-                cardSprite.filters = [dropshadowFilter(), cantBeClickedFilter()];
-            } else {
-                cardSprite.filters = [dropshadowFilter()];
-            }
-        }
-
-        if (!opponentCollision || !gameUX.opponent(gameUX.game).can_be_clicked) {
-            if (gameUX.opponent(gameUX.game).can_be_clicked) {
-                gameUX.opponentAvatar.filters = [];
-            } else {
-                gameUX.opponentAvatar.filters = [cantBeClickedFilter()]; 
-            }
-        }
-
-        if (!selfCollision || !gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-            if (gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-                gameUX.playerAvatar.filters = [];
-            } else {
-                gameUX.playerAvatar.filters = [cantBeClickedFilter()]; 
-            }
-        }
-
     }
+    let newFilters = glowAndShadowFilters();
+    if(!handCollision && cardSprite.card.card_type == "Spell" && !cardSprite.card.needs_targets) {
+        if (!cardSprite.card.can_be_clicked) {
+            newFilters.push(cantBeClickedFilter());                        
+        }
+    } else if (collidedMob && collidedMob.card.can_be_clicked) {
+        if (!filtersAreEqual(collidedMob.filters, [targettableGlowFilter()]) || collidedMob.filters.length == 0) {
+            collidedMob.filters = [targettableGlowFilter()];                
+        }
+    } else if(opponentCollision && gameUX.opponent(gameUX.game).can_be_clicked) {
+        gameUX.opponentAvatar.filters = [targettableGlowFilter()];
+    } else if(selfCollision && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+        gameUX.playerAvatar.filters = [targettableGlowFilter()];
+    // } else if(!handCollision && cardSprite.card.card_type == "Mob") {
+    } else if(!bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == "Artifact" && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
+    } else if(cardInHand && !handCollision && cardSprite.card.card_type == "Artifact") {
+    } else {
+        gameUX.inPlay.filters = [];
+        if (!cardSprite.card.can_be_clicked) {
+            newFilters = [dropshadowFilter(), cantBeClickedFilter()];
+        } else {
+            newFilters = [dropshadowFilter()];
+        }
+    }
+
+    if (!opponentCollision || !gameUX.opponent(gameUX.game).can_be_clicked) {
+        if (gameUX.opponent(gameUX.game).can_be_clicked) {
+            gameUX.opponentAvatar.filters = [];
+        } else {
+            gameUX.opponentAvatar.filters = [cantBeClickedFilter()]; 
+        }
+    }
+
+    if (!selfCollision || !gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+        if (gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+            gameUX.playerAvatar.filters = [];
+        } else {
+            gameUX.playerAvatar.filters = [cantBeClickedFilter()]; 
+        }
+    }
+    if (!filtersAreEqual(cardSprite.filters, newFilters) || cardSprite.filters.length == 0) {
+        cardSprite.filters = newFilters;
+    }
+
+    for (let mob of gameUX.app.stage.children) {
+        if (mob.card && cardSprite.card.id != mob.card.id && (!collidedMob || mob.card.id != collidedMob.card.id)) {
+            if (mob.card.can_be_clicked) {
+                mob.filters = [];                                                        
+            }  else {
+                mob.filters = [cantBeClickedFilter()];                                                        
+            }
+        }
+    }
+
+
 }
 
+
+function filtersAreEqual(a, b) {
+    let matches = true;
+    if (a.length == b.length) {
+        let index = 0;
+        for(let filter of a) {
+            if (filter.constructor.name != b[index].constructor.name) {
+                return false;
+            }
+            if (filter.constructor.name == "GlowFilter") {
+                if (filter.options != b[index].options) {
+                    return false;
+                }
+            }
+            index++;
+        }
+    } else {
+       return false; 
+    }
+    return true    
+}
 
 function glowAndShadowFilters() {
     return [
