@@ -277,8 +277,8 @@
 	},
 	{
 		"name": "Thought Sprite",
-		"race": "elf",
 		"card_type": "Mob",
+		"class": "wizard",
 		"race": "genie",
 		"power": 2,
 		"toughness": 3,
@@ -1003,6 +1003,7 @@
 	},
 	{
 		"name": "Make Spell+",
+		"class": "wizard",
 		"race": "genie",
 		"cost": 1,
 		"card_type": "Spell",
