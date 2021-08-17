@@ -10,8 +10,16 @@ const cardWidth = 80;
 const padding = 10;
 const avatarHeight = 128;
 const avatarWidth = 300;
+const blackColor = 0x000000;
+const whiteColor = 0xFFFFFF;
 const brownColor = 0x765C48;
+const redColor = 0xff0000;
+const blueColor = 0x0000ff;
+const lightRedColor = 0xff7b7b;
 const lightBrownColor = 0xDFBF9F;
+const yellowColor = 0xffff00;
+const darkGrayColor = 0xAAAAAA;
+const lightGrayColor = 0xEEEEEE;
 const cardContainerWidth = cardWidth * 7 + 12;
 
 export class GameUX {
@@ -23,7 +31,6 @@ export class GameUX {
         this.username = document.getElementById("data_store").getAttribute("username");
         this.oldOpponentHP = 30;
         this.oldSelfHP = 30;        
-
         this.spriteDamageCounts = {};
         this.arrows = []
         this.bump = new Bump(PIXI);
@@ -92,7 +99,7 @@ export class GameUX {
         scrollbox.position.y = this.handContainer.position.y + cardHeight + padding;
 
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        background.tint = 0xffffff
+        background.tint = whiteColor
         background.width = appWidth-4;
         background.height = cardHeight *1.25;
         this.scrollboxBackground = background;
@@ -100,7 +107,7 @@ export class GameUX {
         this.gameLogScrollbox = scrollbox;
         this.app.stage.addChild(scrollbox)
         scrollbox.content.filters = [
-          new OutlineFilter(1, 0x000000),
+          new OutlineFilter(1, blackColor),
         ]
 
     }
@@ -109,7 +116,7 @@ export class GameUX {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.width = appWidth;
         background.height = appHeight;
-        background.tint = 0xEEEEEE;
+        background.tint = lightGrayColor;
         return background;
     }
 
@@ -129,7 +136,7 @@ export class GameUX {
             .on('click', clickFunction)
             .on('tap', clickFunction)
 
-        let text = new PIXI.Text("New Game", {fontFamily : 'Arial', fontSize: 12, fill : 0x00000});
+        let text = new PIXI.Text("New Game", {fontFamily : 'Arial', fontSize: 12, fill : blackColor});
         text.position.x = 23;
         text.position.y = 13;
         b.addChild(text);
@@ -270,15 +277,6 @@ export class GameUX {
                 metadata: {
                     resourceOptions: {
                         scale: 1,
-                    }
-                }
-            });                       
-            this.app.loader.add(loaderID+"?inplay", loaderURL+"?inplay", { 
-                // resolution: window.devicePixelRatio || 1,
-                // resolution: 2,
-                metadata: {
-                    resourceOptions: {
-                        scale: 1.25,
                     }
                 }
             });                       
@@ -423,14 +421,14 @@ export class GameUX {
         background.height = modalHeight;
         container.position.x = this.opponentAvatar.position.x;
         container.position.y = this.opponentAvatar.position.y + this.opponentAvatar.height + padding;
-        background.tint = 0x000000;
+        background.tint = blackColor;
         background.alpha = .7;
         container.addChild(background);
 
         let options = this.textOptions();
         options.wordWrapWidth = 400
         options.fontSize = 32;
-        options.fill = 0xFFFFFF;
+        options.fill = whiteColor;
         options.align = "middle";
         let name = new PIXI.Text(this.activePlayer(game).username + "'s turn", options);
         name.position.x = modalWidth/2 - name.width/2;
@@ -454,7 +452,7 @@ export class GameUX {
 
     roundRectangle(sprite) {
         var graphics = new PIXI.Graphics();
-        graphics.beginFill(0x000000);
+        graphics.beginFill(blackColor);
         graphics.drawRoundedRect(
             0,
             0,
@@ -487,7 +485,7 @@ export class GameUX {
                         toSprite.position.y+toSprite.height/2 - 10];
 
         const bezierArrow = new PIXI.Graphics();
-        bezierArrow.tint = 0xff0000;
+        bezierArrow.tint = redColor;
         this.arrows.push(bezierArrow);
         this.app.stage.addChild(bezierArrow); 
         const normal = [
@@ -510,10 +508,10 @@ export class GameUX {
         bezierArrow.position.set(fromXY[0], fromXY[1], 0);
         
         bezierArrow
-            .lineStyle(4, 0xffffff, 1)
+            .lineStyle(4, whiteColor, 1)
             .bezierCurveTo(cpXY1[0],cpXY1[1],cpXY2[0],cpXY2[1],toXY[0],toXY[1])
-            .lineStyle(1, 0xffffff, 1)
-            .beginFill(0xFF0000, 1)
+            .lineStyle(1, whiteColor, 1)
+            .beginFill(redColor, 1)
             .moveTo(toXY[0] + normal[0] + tangent[0], toXY[1] + normal[1] + tangent[1])
             .lineTo(toXY[0] , toXY[1] )
             .lineTo(toXY[0] - normal[0] + tangent[0], toXY[1] - normal[1] + tangent[1])
@@ -632,14 +630,14 @@ export class GameUX {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.width = appWidth;
         background.height = appHeight;
-        background.tint = 0x000000;
+        background.tint = blackColor;
         background.alpha = .7;
         container.addChild(background);
 
         let options = this.textOptions();
         options.wordWrapWidth = 500
         options.fontSize = 24;
-        options.fill = 0xFFFFFF;
+        options.fill = whiteColor;
         options.align = "middle";
         let name = new PIXI.Text(title, options);
         name.position.x = appWidth/2 - name.width/2;
@@ -649,7 +647,6 @@ export class GameUX {
 
         const cardContainer = new PIXI.Container();
         this.selectCardInnerContainer = cardContainer
-        cardContainer.tint = 0xFF00FF;
         cardContainer.position.x = appWidth/2 - cardWidth*1.5;
         if (showFullDeck) {
             cardContainer.position.x = cardWidth;            
@@ -703,7 +700,7 @@ export class GameUX {
         }
 
         var cardSprite = this.baseCardSprite(card, cardTexture, game);
-        let imageSprite = PIXI.Sprite.from(this.fullImagePath(card)+"?inplay");
+        let imageSprite = this.framedSprite(card.name+"?large", 256);
         cardSprite.addChild(imageSprite);
         this.ellipsifyImageSprite(imageSprite, card, 38, 82)
 
@@ -800,6 +797,23 @@ export class GameUX {
         }
     }
 
+    framedSprite(loaderID, size) {
+        let imageSprite = PIXI.Sprite.from(loaderID);
+        let spriteWidth = imageSprite.width
+        const bgSprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        bgSprite.tint = blackColor;
+        bgSprite.width = size;
+        bgSprite.height = size;
+        const imageContainer = new PIXI.Container();
+        imageContainer.addChild(bgSprite);
+        imageContainer.addChild(imageSprite);
+        imageSprite.position.x = bgSprite.width/2 - imageSprite.width/2;
+        imageSprite.position.y = bgSprite.height/2 - imageSprite.height/2;
+        var texture = this.app.renderer.generateTexture(imageContainer)
+        imageSprite = new PIXI.Sprite(texture);
+        return imageSprite
+    }
+
     ellipsifyImageSprite(imageSprite, card, width, height) {
         if (card.image && card.image.endsWith(".jpg")) {
             // hax
@@ -816,7 +830,7 @@ export class GameUX {
         const ellipseW = width;
         const ellipseH = height;
         const background = new PIXI.Graphics();
-        background.beginFill(0xffffff, 1);
+        background.beginFill(whiteColor, 1);
         background.drawEllipse(0, 0, ellipseW, ellipseH - height/3)
         background.endFill();
         const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
@@ -869,68 +883,50 @@ export class GameUX {
     }
 
     cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
-        var cardTexture = (useLargeSize ? this.cardLargeTexture : this.cardTexture); 
-        var cardSprite = this.baseCardSprite(card, cardTexture, game);
-
-        cardSprite.card = card;
-        cardSprite.buttonMode = true;  // hand cursor
-        let loaderID = card.name;
-        if (useLargeSize) {
-            loaderID += '?large';
-        }
-        let imageSprite = PIXI.Sprite.from(loaderID);
-        let spriteWidth = imageSprite.width
-        const bgSprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        bgSprite.tint = 0x000000;
-        bgSprite.width = 128;
-        bgSprite.height = 128;
-        if (useLargeSize) {
-            bgSprite.width = 256;
-            bgSprite.height = 256;            
-        }
-
-        const imageContainer = new PIXI.Container();
-        imageContainer.addChild(bgSprite);
-        imageContainer.addChild(imageSprite);
-        imageSprite.position.x = bgSprite.width/2 - imageSprite.width/2;
-        imageSprite.position.y = bgSprite.height/2 - imageSprite.height/2;
-
-        var texture = this.app.renderer.generateTexture(imageContainer)
-        imageSprite = new PIXI.Sprite(texture);
-
-        if (card.card_type == "Mob" || card.card_type == "Artifact") {
-            if (useLargeSize) {
-                imageSprite.position.y = -60;
-                this.ellipsifyImageSprite(imageSprite, card, 48, 88)        
-            } else {
-                imageSprite.position.y = -30;
-                this.ellipsifyImageSprite(imageSprite, card, 24, 44)        
-            }
-        } else if (card.card_type == "Spell") {
-            if (useLargeSize) {
-                imageSprite.position.y = -56;
-                this.rectanglifyImageSprite(imageSprite, cardWidth*2-6, 110)                                    
-            } else {
-                imageSprite.position.y = -26;
-                this.rectanglifyImageSprite(imageSprite,cardWidth-6, 54)                                    
-            }
-        }
-        cardSprite.addChild(imageSprite);
-
+        let cw = cardWidth;
+        let ch = cardHeight;
+        let imageBackgroundSize = 128
+        let spellWidth = cardWidth-6;
+        let spellHeight = 54;
+        let portraitHeight = 44;
+        let portraitWidth = 24;
+        const largeImageSuffix = '?large';
+        let loaderId = card.name;
         let aFX = -8;
         let aFY = -9;
-
-        var cw = cardWidth;
-        var ch = cardHeight;
+        let cardTexture = this.cardTexture
         if (useLargeSize) {
             aFX = -cardWidth/4 + 16;
             aFY = -cardHeight/4;
             cw*= 2;
-            ch*= 2;            
+            ch*= 2; 
+            imageBackgroundSize *= 2;           
+            spellWidth = cardWidth*2-6;
+            spellHeight*=2;
+            portraitHeight*=2.2;
+            portraitWidth*=2;
+            loaderId = card.name + largeImageSuffix 
+            cardTexture = this.cardLargeTexture
         }
+        const mobCardType = "Mob";
+        const artifactCardType = "Artifact";
+        const spellCardType = "Spell";
+
+        let cardSprite = this.baseCardSprite(card, cardTexture, game);
+        cardSprite.card = card;
+        cardSprite.buttonMode = true;  // hand cursor
+        let imageSprite = this.framedSprite(loaderId, imageBackgroundSize);
+        if (card.card_type == mobCardType || card.card_type == artifactCardType) {
+            imageSprite.position.y = -imageSprite.height/4;
+            this.ellipsifyImageSprite(imageSprite, card, portraitWidth, portraitHeight)        
+        } else if (card.card_type == spellCardType) {
+            imageSprite.position.y = -spellHeight/2;
+            this.rectanglifyImageSprite(imageSprite, spellWidth, spellHeight)                                    
+        }
+        cardSprite.addChild(imageSprite);
 
         const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        nameBackground.tint = 0x000000;
+        nameBackground.tint = blackColor;
         nameBackground.width = cw - 6;
         nameBackground.height = 12;
         nameBackground.alpha = .7;
@@ -949,20 +945,19 @@ export class GameUX {
         }
         cardSprite.addChild(nameBackground);
 
-        nameOptions.fill = 0xffffff;
+        nameOptions.fill = whiteColor;
         let name = new PIXI.Text(card.name, nameOptions);
         cardSprite.addChild(name);
         name.position.x = nameBackground.position.x;
         name.position.y = nameBackground.position.y;
 
         const descriptionBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        descriptionBackground.tint = 0xffffff;
+        descriptionBackground.tint = whiteColor;
         descriptionBackground.alpha = .8;
         descriptionBackground.width = cw - 6;
         descriptionBackground.height = ch/2 - 10;
         descriptionBackground.position.y = descriptionBackground.height/2;
         cardSprite.addChild(descriptionBackground);
-
 
         let activatedEffects = [];
         let attackEffect = null;
@@ -983,7 +978,7 @@ export class GameUX {
             }
 
             imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "amethyst.svg"));
-            imageSprite.tint = 0x0000ff;
+            imageSprite.tint = blueColor;
             imageSprite.height = 15;
             imageSprite.width = 15;
             if (useLargeSize) {
@@ -995,9 +990,9 @@ export class GameUX {
             cardSprite.addChild(imageSprite);
 
             var ptOptions = this.textOptions()
-            ptOptions.stroke = 0x000000;
+            ptOptions.stroke = blackColor;
             ptOptions.strokeThickness = 2;
-            ptOptions.fill = 0xffffff;
+            ptOptions.fill = whiteColor;
             ptOptions.fontSize = 12;
             if (useLargeSize) {
                 ptOptions.fontSize = 17;
@@ -1021,12 +1016,12 @@ export class GameUX {
 
 
         var abilitiesText = "";
-        var color = 0xAAAAAA;
+        var color = darkGrayColor;
         for (let a of card.abilities) {
             if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
                 if (a.description) {
                     abilitiesText += a.description;
-                    color = 0x000000;
+                    color = blackColor;
                 } else {
                     if (a.name == "DamageDraw") {
                         continue;
@@ -1105,7 +1100,7 @@ export class GameUX {
                 typeY += 20;
             }
             var typeBG = new PIXI.Graphics();
-            typeBG.beginFill(0x444444);
+            typeBG.beginFill(darkGrayColor);
             typeBG.drawRoundedRect(
                 0,
                 0,
@@ -1120,7 +1115,7 @@ export class GameUX {
             cardSprite.addChild(typeBG);
 
             let typeOptions = this.textOptions();
-            typeOptions.fill = 0xffffff;
+            typeOptions.fill = whiteColor;
 
             var typeName = card.card_type;
             for (let a of card.abilities) {
@@ -1160,13 +1155,11 @@ export class GameUX {
         }
 
         this.setCardDragListeners(card, cardSprite, game);
-
         if (!useLargeSize) {
             this.setCardMouseoverListeners(cardSprite);
         }
-
         this.setCardAnchors(cardSprite);
-
+        
         return cardSprite;
     }
 
@@ -1176,10 +1169,10 @@ export class GameUX {
             filters.push(cantBeClickedFilter());                        
         }
         if (card.shielded && card.turn_played > -1) {
-            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0xFFFFFF}));                        
+            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: whiteColor}));                        
         }
         if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0x000000}));                        
+            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: blackColor}));                        
         }
 
         cardSprite.filters = filters;
@@ -1241,7 +1234,7 @@ export class GameUX {
     }
 
     textOptions() {
-        return {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 75};
+        return {fontFamily : 'Helvetica', fontSize: 8, fill : blackColor, wordWrap: true, wordWrapWidth: 75};
     }
 
     addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
@@ -1283,18 +1276,18 @@ export class GameUX {
         }
 
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "piercing-sword.svg"));
-        imageSprite.tint = 0xffff00;
+        imageSprite.tint = yellowColor;
         imageSprite.height = 17;
         imageSprite.width = 17;
         imageSprite.position.x = powerX;
         imageSprite.position.y = powerY;
         cardSprite.addChild(imageSprite);
 
-        this.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower, 0xffff00);
+        this.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower, yellowColor);
 
 
         imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "hearts.svg"));
-        imageSprite.tint = 0xff0000;
+        imageSprite.tint = redColor;
         imageSprite.height = 17;
         imageSprite.width = 17;
         imageSprite.position.x = defenseX;
@@ -1302,9 +1295,9 @@ export class GameUX {
         cardSprite.addChild(imageSprite);
 
 
-        ptOptions.stroke = 0x000000;
+        ptOptions.stroke = blackColor;
         ptOptions.strokeThickness = 2;
-        ptOptions.fill = 0xffffff;
+        ptOptions.fill = whiteColor;
         ptOptions.fontSize = 9;
         let defense = new PIXI.Text(cardToughness, ptOptions);
         defense.position.x = defenseX;
@@ -1318,9 +1311,9 @@ export class GameUX {
     }
 
     addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
-        options.stroke = 0x000000;
+        options.stroke = blackColor;
         options.strokeThickness = 2;
-        options.fill = 0xffffff;
+        options.fill = whiteColor;
         options.fontSize = 11;
 
         var circle = this.circleBackground(costX, costY);
@@ -1336,8 +1329,8 @@ export class GameUX {
         const circleRadius = 7;
         const background = new PIXI.Graphics();
         
-        background.beginFill(0x000000, 1);
-        background.lineStyle(2, 0x000000, 1); 
+        background.beginFill(blackColor, 1);
+        background.lineStyle(2, blackColor, 1); 
         background.drawCircle(0, 0, circleRadius);
         background.endFill();
 
@@ -1361,7 +1354,7 @@ export class GameUX {
         const rectangleW = width;
         const rectangleH = height;
         const background = new PIXI.Graphics();
-        background.beginFill(0xffffff, 1);
+        background.beginFill(whiteColor, 1);
         background.drawRect(-rectangleW/2, -rectangleH/2, rectangleW, rectangleH);
         background.endFill();
         const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
@@ -1377,7 +1370,7 @@ export class GameUX {
 
         const topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         cardSprite.addChild(topBG);
-        topBG.tint = 0xffff00;
+        topBG.tint = yellowColor;
         const textContainer = new PIXI.Container();
         cardSprite.addChild(textContainer);
         var yPosition = 0;
@@ -1583,7 +1576,7 @@ export class GameUX {
       var godray = new GodrayFilter();
       let sprite = new PIXI.Sprite.from(this.inPlayTexture);
       this.ropeSprite = sprite;
-      sprite.tint = 0xff0000;
+      sprite.tint = redColor;
       var lastElapsed = 0
       var totalElapsed = 0
       let ropeLength = 570;
@@ -1669,16 +1662,16 @@ export class GameUX {
             .on('tap', clickFunction)
 
         var title = "End Turn";
-        let textFillColor = 0xffffff;
+        let textFillColor = whiteColor;
         if (this.isActivePlayer(game)) {
             if (!this.activePlayerHasMoves(game) || game.stack.length > 0) {
-                b.tint = 0xff0000;
+                b.tint = redColor;
             } else {
-                b.tint = 0xff7b7b;
+                b.tint = lightRedColor;
             }
         } else {
             title = "Waiting...";
-            textFillColor = 0xAAAAAA;
+            textFillColor = darkGrayColor;
             b.interactive = false;
         }
         var positionX = 27;
@@ -1728,7 +1721,7 @@ export class GameUX {
 
 
     updatePlayer(game, player, avatarSprite) {
-        var props = {fontFamily : 'Arial', fontSize: 12, fill : 0x00000};
+        var props = {fontFamily : 'Arial', fontSize: 12, fill : blackColor};
         avatarSprite.children = []
         let avatar;
         let usernameText = player.username;
@@ -1811,14 +1804,14 @@ export class GameUX {
                 this.spriteDamageCounts[spriteId] += 1;
                 if (!this.spriteDamageCounts[spriteId] && this.spriteDamageCounts[spriteId] != 0) {
                     this.spriteDamageCounts[spriteId] = 0                    
-                    var godray = new GlowFilter({ distance: 8,  outerStrength: 8, innerStrength: 2 , color: 0xFF0000});
+                    var godray = new GlowFilter({ distance: 8,  outerStrength: 8, innerStrength: 2 , color: redColor});
                     spriteToDamage.filters = [godray];
                     this.damageSprite(spriteToDamage, spriteId, damage_to_show);                    
                 } else if (this.spriteDamageCounts[spriteId] >= damage_to_show*3) {
                     this.spriteDamageCounts[spriteId] = 0
                     spriteToDamage.filters = []; 
                 } else {
-                    var godray = new GlowFilter({ distance: 8,  outerStrength: 8, innerStrength: 2 , color: 0xFF0000});
+                    var godray = new GlowFilter({ distance: 8,  outerStrength: 8, innerStrength: 2 , color: redColor});
                     spriteToDamage.filters = [godray];
                     setTimeout(() => { 
                         spriteToDamage.filters = [];
@@ -1846,7 +1839,7 @@ export class GameUX {
         var gemSize = 12;
         for (var i=0;i<currentMana;i++) {
             let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "amethyst.svg"));
-            imageSprite.tint = 0x0000ff;
+            imageSprite.tint = blueColor;
             imageSprite.height = gemSize;
             imageSprite.width = gemSize;
             imageSprite.position.x = xPixels;
@@ -1856,7 +1849,7 @@ export class GameUX {
         }
         for (var i=0;i<maxMana-currentMana;i++) {
             let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from('/static/images/card-art/' + "amethyst.svg"));
-            imageSprite.tint = 0x0000ff;
+            imageSprite.tint = blueColor;
             imageSprite.height = gemSize;
             imageSprite.width = gemSize;
             imageSprite.position.x = xPixels;
@@ -2184,7 +2177,7 @@ function clearDragFilters(cardSprite) {
     let newFilters = []
     for (let filter of cardSprite.filters) {
         // retain Shield and Lurker filters
-        if (filter.constructor.name == "GlowFilter" && filter.outerStrength == 0 && filter.innerStrength == 3 && (filter.color == 0x000000 || filter.color == 0xFFFFFF)) {
+        if (filter.constructor.name == "GlowFilter" && filter.outerStrength == 0 && filter.innerStrength == 3 && (filter.color == blackColor || filter.color == whiteColor)) {
             newFilters.push(filter);
         }
     }
@@ -2262,10 +2255,10 @@ function cantBeClickedFilter() {
 
 
 function dropshadowFilter() {
-    return new GlowFilter({ distance: 5, outerStrength: 1 , color: 0x000000});
+    return new GlowFilter({ distance: 5, outerStrength: 1 , color: blackColor});
 }
 
 
 function targettableGlowFilter() {
-    return new GlowFilter({ distance: 15, outerStrength: 2 , color: 0xffff00});
+    return new GlowFilter({ distance: 15, outerStrength: 2 , color: yellowColor});
 }
