@@ -117,7 +117,6 @@ export class GameUX {
         const b = new PIXI.Sprite.from(this.newGameButtonTexture);
         b.position.x = x;
         b.position.y = y;
-        // b.anchor.set(0.5);
         if (this.isPlaying(game)) {
             b.buttonMode = true;
             b.interactive = true;
@@ -174,6 +173,120 @@ export class GameUX {
 
     refresh(game, message) {
         this.game = game;
+        this.loadImagesThenRefreshDisplay(game, message);        
+    }
+
+    loadImagesThenRefreshDisplay(game, message) {
+        let loadingImages = false;
+
+        if (!this.inPlayNameSet) {
+            this.inPlayNameSet = new Set()
+        }
+        let cards = this.thisPlayer(game).in_play.concat(this.opponent(game).in_play).concat(this.opponent(game).artifacts).concat(this.thisPlayer(game).artifacts)
+        loadingImages = this.loadCardImages(cards, 1) || loadingImages;
+
+        cards = this.thisPlayer(game).card_choice_info["cards"] ? this.thisPlayer(game).card_choice_info["cards"] : [];
+        cards = cards.concat(this.thisPlayer(game).hand);
+        loadingImages = this.loadCardImages(cards, 1) || loadingImages;
+
+        let stackSpells = []
+        for (let spell of game.stack) {
+            stackSpells.push(spell[1]);
+        }
+        loadingImages = this.loadCardImages(stackSpells, 1) || loadingImages;
+
+        if (this.thisPlayer(game)) {
+            if (message["show_spell"] && !this.thisPlayer(game).card_info_to_target["card_id"]) {
+                loadingImages = this.loadCardImages([message["show_spell"]], 1) || loadingImages;
+            }
+        }
+
+        if (loadingImages) {
+            this.app.loader.load(() => {
+                this.finishRefresh(message)
+                this.app.loader.reset()
+            });
+        } else {
+            this.finishRefresh(message)                        
+        }
+    }
+
+    loadCardImages(cards, scale) {
+        let loadingImages = false;
+        for (let card of cards) {
+            const loaderURL = this.fullImagePath(card);
+            if (this.inPlayNameSet.has(loaderURL)) {
+                continue;
+            }
+            const loaderID = card.name;
+            this.inPlayNameSet.add(loaderURL)
+            if (!PIXI.utils.TextureCache[loaderID]) {
+                loadingImages = true;
+                this.loadCardImage(
+                    card.card_type,
+                    loaderID,
+                    loaderURL,
+                    scale,
+                    );
+            }
+        }
+        return loadingImages;
+    }
+
+    // todo: svgs still blurry: https://github.com/pixijs/pixijs/issues/6113
+    loadCardImage(cardType, loaderID, loaderURL, scale) {
+        if (cardType == "Spell") {
+            this.app.loader.add(loaderID, loaderURL, { 
+                // resolution: window.devicePixelRatio || 1,
+                // resolution: 2,
+                metadata: {
+                    resourceOptions: {
+                        scale: .5,
+                    }
+                }
+            });                       
+            this.app.loader.add(loaderID+"?large", loaderURL+"?large", { 
+                // resolution: window.devicePixelRatio || 1,
+                // resolution: 2,
+                metadata: {
+                    resourceOptions: {
+                        scale: 1,
+                    }
+                }
+            });                       
+        } else {
+            this.app.loader.add(loaderID, loaderURL, { 
+                // resolution: window.devicePixelRatio || 1,
+                // resolution: 2,
+                metadata: {
+                    resourceOptions: {
+                        scale: .5,
+                    }
+                }
+            });                       
+            this.app.loader.add(loaderID+"?large", loaderURL+"?large", { 
+                // resolution: window.devicePixelRatio || 1,
+                // resolution: 2,
+                metadata: {
+                    resourceOptions: {
+                        scale: 1,
+                    }
+                }
+            });                       
+            this.app.loader.add(loaderID+"?inplay", loaderURL+"?inplay", { 
+                // resolution: window.devicePixelRatio || 1,
+                // resolution: 2,
+                metadata: {
+                    resourceOptions: {
+                        scale: 1.25,
+                    }
+                }
+            });                       
+        }
+    }
+
+    finishRefresh(message) {
+        const game = this.game;
         if (this.thisPlayer(game)) {
             if (message["show_spell"] && !this.thisPlayer(game).card_info_to_target["card_id"]) {
                 for (let sprite of this.app.stage.children) {
@@ -185,19 +298,18 @@ export class GameUX {
                 }
                 this.showCardThatWasCast(message["show_spell"], game, this.thisPlayer(game), message)
                 setTimeout(() => {   
-                    this.finishRefresh(message);
+                    this.refreshDisplay(message);
                 }, 1000);
                 return;
             }
         }
-        this.finishRefresh(game, message);
+        this.refreshDisplay(message);
     }
 
-    finishRefresh(message) {
+    refreshDisplay(message) {
         const game = this.game;
         this.clearArrows()
         this.removeCardsFromStage(game)
-
         if (this.thisPlayer(game)) {
             this.updateHand(game);
             this.updatePlayer(game, this.thisPlayer(game), this.playerAvatar);
@@ -222,27 +334,6 @@ export class GameUX {
 
         this.renderEndTurnButton(game, message);
 
-        if (this.thisPlayer(game).card_info_to_target["card_id"]) {
-            /*
-            var targettableSprites = [];
-            for (let sprite of this.app.stage.children) {
-                if (sprite.card && sprite.card.can_be_clicked && !sprite.dragging) {
-                    console.log("adding this a glow " + sprite.card.name)
-                    targettableSprites.push(sprite)
-                }
-            }
-            if (this.thisPlayer(game).can_be_clicked) {
-                targettableSprites.push(this.playerAvatar);
-            }
-            if (this.opponent(game).can_be_clicked) {
-                targettableSprites.push(this.opponentAvatar);
-            }
-            for (let sprite of targettableSprites) {
-                sprite.filters = [targettableGlowFilter()]
-            }
-            */
-        }
-
         this.game = game;
 
         if (this.opponent(game) && this.thisPlayer(game)) {
@@ -250,6 +341,35 @@ export class GameUX {
                 alert("GAME OVER");
             }
         }
+
+        this.showAttack(game);
+
+        if (!this.isShowingCastAnimation) {
+            this.showSelectionViews(game);
+            this.makeCardsInteractive(game)
+        } else {
+            this.needsToShowMakeViews = true;
+        }
+
+        if (game.show_rope) {
+            this.showRope();
+        }
+
+        // put arrows and spell being cast above other refreshed sprites
+        if (this.spellBeingCastSprite) {
+            this.app.stage.removeChild(this.spellBeingCastSprite);
+            this.app.stage.addChild(this.spellBeingCastSprite);
+        }
+        for (let arrow of this.arrows) {
+            this.app.stage.removeChild(arrow);
+            this.app.stage.addChild(arrow);
+        }
+        if (message["move_type"] == "END_TURN") {
+            this.showChangeTurnAnimation(game)
+        }
+    }
+
+    showAttack(game) {
         if (game.stack.length > 0 && game.stack[game.stack.length-1][0].move_type == "ATTACK") {
             var attack = game.stack[game.stack.length-1][0];
             var attacking_id = attack["card"];
@@ -289,31 +409,7 @@ export class GameUX {
                         );                                        
                 }
             }
-        }
-
-        if (!this.isShowingCastAnimation) {
-            this.showSelectionViews(game);
-            this.makeCardsInteractive(game)
-        } else {
-            this.needsToShowMakeViews = true;
-        }
-
-        if (game.show_rope) {
-            this.showRope();
-        }
-
-        // put arrows and spell being cast above other refreshed sprites
-        if (this.spellBeingCastSprite) {
-            this.app.stage.removeChild(this.spellBeingCastSprite);
-            this.app.stage.addChild(this.spellBeingCastSprite);
-        }
-        for (let arrow of this.arrows) {
-            this.app.stage.removeChild(arrow);
-            this.app.stage.addChild(arrow);
-        }
-        if (message["move_type"] == "END_TURN") {
-            this.showChangeTurnAnimation(game)
-        }
+        }        
     }
 
     showChangeTurnAnimation(game) {
@@ -354,8 +450,6 @@ export class GameUX {
         }
 
         myLoop();             
-
-       
     }
 
     roundRectangle(sprite) {
@@ -570,22 +664,25 @@ export class GameUX {
         cardContainer.position.y = 140;
         container.addChild(cardContainer);
 
-
-        var index = 0;
-        var self = this;
-        for (let card of cards) {
-            let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false);
-            cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
-            cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
-            cardContainer.addChild(cardSprite);
-
-            cardSprite
-                .on('click',        function (e) {
-                    this.onMouseout(cardSprite, self);
-                    card_on_click(card);
-                })
-            index += 1;
+        for (let i=0;i<cards.length;i++) {
+            this.addSelectViewCard(game, cards[i], cardContainer, card_on_click, i)
         }
+
+    }
+
+
+    addSelectViewCard(game, card, cardContainer, card_on_click, index) {
+        let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false);
+        cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
+        cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
+        cardContainer.addChild(cardSprite);
+        var self = this;
+        cardSprite
+            .on('click',        function (e) {
+                this.onMouseout(cardSprite, self);
+                card_on_click(card);
+            })
+
     }
 
     baseCardSprite(card, cardTexture, game) { 
@@ -606,12 +703,9 @@ export class GameUX {
         }
 
         var cardSprite = this.baseCardSprite(card, cardTexture, game);
-        let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
-        imageSprite.width = 70;
-        imageSprite.height = 98;
-        imageSprite.position.y = -8;
+        let imageSprite = PIXI.Sprite.from(this.fullImagePath(card)+"?inplay");
         cardSprite.addChild(imageSprite);
-        this.ellipsifyImageSprite(imageSprite, card)
+        this.ellipsifyImageSprite(imageSprite, card, 38, 82)
 
         if (card.name == "Mana Battery") {
             var currentBatteryMana = 0;
@@ -662,62 +756,73 @@ export class GameUX {
             cardSprite.addChild(powerCharges);
         }
 
-        var filters = []
-        if (!card.can_be_clicked) {
-            filters.push(cantBeClickedFilter());                        
-        }
-        if (card.shielded && card.turn_played > -1) {
-            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0xFFFFFF}));                        
-        }
-        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: 0x000000}));                        
-        }
-
-        cardSprite.filters = filters;
+        this.setCardFilters(card, cardSprite);
 
         if (dont_attach_listeners) {
             return cardSprite;
         }
 
-        if (card.can_be_clicked) {
-            if (this.thisPlayer(game).card_info_to_target["card_id"]) {
-                var self = this;
-                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card":card.id});})
-            } else {
-                var self = this;
-                cardSprite
-                    .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
-                    .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
-                    .on('mouseup',          function ()  {onDragEnd(this, self)})
-                    .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
-                    .on('touchend',         function ()  {onDragEnd(this, self)})
-                    .on('touchendoutside',  function ()  {onDragEnd(this, self)})
-                    .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
-                    .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
-            }
-        } else { 
-        }
-        var self = this;
-        cardSprite.onMouseover = function ()  {self.onMouseover(cardSprite)};
-        cardSprite.onMouseout = function ()  {self.onMouseout(cardSprite)};
-        cardSprite
-            .on('mouseover',        cardSprite.onMouseover)
-            .on('mouseout',        cardSprite.onMouseout)
+        this.setCardDragListeners(card, cardSprite, game);
+        this.setCardMouseoverListeners(cardSprite);
 
+        this.setCardAnchors(cardSprite);
 
          if (cardSprite.card.damage_to_show > 0) {
            this.damageSprite(imageSprite, cardSprite.card.id + '_pic', cardSprite.card.damage_to_show);
            this.damageSprite(cardSprite, cardSprite.card.id, cardSprite.card.damage_to_show);
         }
 
-        cardSprite.anchor.set(.5);
-        for (let child of cardSprite.children) {
-            if (child.anchor) {
-                child.anchor.set(.5);
-            }
-        }
-
         return cardSprite;
+    }
+
+    fullImagePath(card) {
+        let imageName = card.image;
+        if (!imageName) {
+            imageName = "uncertainty.svg"
+        }
+        return 'http://127.0.0.1:8000' + '/static/images/card-art/' + imageName;
+    }
+
+    updateHand(game, index=0) {
+        for (let i=index;i<this.thisPlayer(game).hand.length;i++) {
+            const card = this.thisPlayer(game).hand[i];
+            this.addHandCard(game, card, i)
+        }
+    }
+
+    addHandCard(game, card, index) {
+        let sprite = this.cardSprite(game, card, this.userOrP1(game), false);
+        sprite.position.x = (cardWidth)*index + cardWidth/2 + padding;
+        sprite.position.y = this.handContainer.position.y + cardHeight/2;
+        this.app.stage.addChild(sprite);                
+        if (this.thisPlayer(game).card_info_to_target && card.id == this.thisPlayer(game).card_info_to_target.card_id) {
+            sprite.alpha = .3;
+        }
+    }
+
+    ellipsifyImageSprite(imageSprite, card, width, height) {
+        if (card.image && card.image.endsWith(".jpg")) {
+            // hax
+            width *= 3.4;
+            height *= 3.4;
+        }
+        var bg = this.ellipseBackground(width, height, imageSprite.width);
+        imageSprite.mask = bg;
+        imageSprite.addChild(bg);        
+        return imageSprite
+    }
+
+    ellipseBackground(width, height, imageSpriteWidth) {
+        const ellipseW = width;
+        const ellipseH = height;
+        const background = new PIXI.Graphics();
+        background.beginFill(0xffffff, 1);
+        background.drawEllipse(0, 0, ellipseW, ellipseH - height/3)
+        background.endFill();
+        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        sprite.mask = background;
+        sprite.addChild(background);
+        return background;
     }
 
     onMouseover(cardSprite) {
@@ -726,39 +831,41 @@ export class GameUX {
             if (this.hovering) {
                 this.app.stage.removeChild(this.hoverCards);
                 this.hovering = false;
-                let sprite = this.cardSprite(this.game, cardSprite.card, this.thisPlayer(this.game), false, true);
-                sprite.position.x = cardSprite.position.x + cardWidth/2;
-                sprite.position.y = cardSprite.position.y - cardHeight*1.5;
-                if (sprite.position.y < cardHeight) {
-                    sprite.position.y = cardHeight;
-                    sprite.position.x = cardSprite.position.x + cardWidth*1.5 + 10;
+                const card = cardSprite.card
+                const loaderID = card.name+"?large"
+                const loaderURL = this.fullImagePath(card)+"?large";
+                if (!PIXI.utils.TextureCache[loaderURL]) {
+                    this.app.loader.reset()
+                    this.loadCardImage(
+                        card.card_type,
+                        loaderID,
+                        loaderURL,
+                        .9,
+                    );
+                    this.app.loader.load(() => {
+                        this.addHoverCard(cardSprite);
+                    });                     
+                } else {
+                    this.addHoverCard(cardSprite);
                 }
-                if (sprite.position.x >= 677) {
-                    sprite.position.x = cardSprite.position.x - cardWidth;
-                }
-                this.app.stage.addChild(sprite)
-                this.hoverCards = sprite;
             }
         }, 300);
 
     }
 
-    onMouseout(cardSprite) {
-        clearTimeout(this.hoverTimeout);
-        this.hovering = false
-        this.app.stage.removeChild(this.hoverCards);
-    }
-
-    imagePath(card) {
-        let imageName = card.image;
-        if (!imageName) {
-            imageName = "uncertainty.svg"
+    addHoverCard(cardSprite) {
+        let sprite = this.cardSprite(this.game, cardSprite.card, this.thisPlayer(this.game), false, true);
+        sprite.position.x = cardSprite.position.x + cardWidth/2;
+        sprite.position.y = cardSprite.position.y - cardHeight*1.5;
+        if (sprite.position.y < cardHeight) {
+            sprite.position.y = cardHeight;
+            sprite.position.x = cardSprite.position.x + cardWidth*1.5 + 10;
         }
-        return '/static/images/card-art/' + imageName;
-    }
-
-    textOptions() {
-        return {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 75};
+        if (sprite.position.x >= 677) {
+            sprite.position.x = cardSprite.position.x - cardWidth;
+        }
+        this.app.stage.addChild(sprite)
+        this.hoverCards = sprite;        
     }
 
     cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
@@ -767,28 +874,46 @@ export class GameUX {
 
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
-
-        let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(this.imagePath(card)));
-        imageSprite.height = 76;
-        imageSprite.width = 58;
-        imageSprite.position.y = -27;
+        let loaderID = card.name;
         if (useLargeSize) {
-            imageSprite.height = 110;
-            imageSprite.width  = 75;
-            imageSprite.position.y = -58;
+            loaderID += '?large';
         }
+        let imageSprite = PIXI.Sprite.from(loaderID);
+        let spriteWidth = imageSprite.width
+        const bgSprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        bgSprite.tint = 0x000000;
+        bgSprite.width = 128;
+        bgSprite.height = 128;
+        if (useLargeSize) {
+            bgSprite.width = 256;
+            bgSprite.height = 256;            
+        }
+
+        const imageContainer = new PIXI.Container();
+        imageContainer.addChild(bgSprite);
+        imageContainer.addChild(imageSprite);
+        imageSprite.position.x = bgSprite.width/2 - imageSprite.width/2;
+        imageSprite.position.y = bgSprite.height/2 - imageSprite.height/2;
+
+        var texture = this.app.renderer.generateTexture(imageContainer)
+        imageSprite = new PIXI.Sprite(texture);
+
         if (card.card_type == "Mob" || card.card_type == "Artifact") {
-            this.ellipsifyImageSprite(imageSprite, card)        
-        } else if (card.card_type == "Spell") {
-            imageSprite.height = 89;
-            imageSprite.width = cardWidth*2 - 20;
-            imageSprite.position.y = -28;
             if (useLargeSize) {
-                imageSprite.height = 125;
-                imageSprite.width  = cardWidth*4 - 20 - 8;
-                imageSprite.position.y = -57;
+                imageSprite.position.y = -60;
+                this.ellipsifyImageSprite(imageSprite, card, 48, 88)        
+            } else {
+                imageSprite.position.y = -30;
+                this.ellipsifyImageSprite(imageSprite, card, 24, 44)        
             }
-            this.rectanglifyImageSprite(imageSprite)                    
+        } else if (card.card_type == "Spell") {
+            if (useLargeSize) {
+                imageSprite.position.y = -56;
+                this.rectanglifyImageSprite(imageSprite, cardWidth*2-6, 110)                                    
+            } else {
+                imageSprite.position.y = -26;
+                this.rectanglifyImageSprite(imageSprite,cardWidth-6, 54)                                    
+            }
         }
         cardSprite.addChild(imageSprite);
 
@@ -943,8 +1068,7 @@ export class GameUX {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
             if ((card.card_type == "Mob" && activatedEffects.length == 0) ||
-                card.card_type != "Mob" ||
-                card.turn_played == -1) {
+                card.card_type != "Mob" || card.turn_played == -1) {
                 cardSprite.addChild(description);
             }
         }
@@ -1029,6 +1153,24 @@ export class GameUX {
             }
         }
 
+        this.setCardFilters(card, cardSprite);
+
+        if (dont_attach_listeners) {
+            return cardSprite;
+        }
+
+        this.setCardDragListeners(card, cardSprite, game);
+
+        if (!useLargeSize) {
+            this.setCardMouseoverListeners(cardSprite);
+        }
+
+        this.setCardAnchors(cardSprite);
+
+        return cardSprite;
+    }
+
+    setCardFilters(card, cardSprite) {
         var filters = []
         if (!card.can_be_clicked) {
             filters.push(cantBeClickedFilter());                        
@@ -1042,10 +1184,9 @@ export class GameUX {
 
         cardSprite.filters = filters;
 
-        if (dont_attach_listeners) {
-            return cardSprite;
-        }
+    }
 
+    setCardDragListeners(card, cardSprite, game) {
         if (card.can_be_clicked) {
             if (this.thisPlayer(game).card_info_to_target["card_id"]) {
                 var self = this;
@@ -1064,24 +1205,43 @@ export class GameUX {
             }
         } else { 
         }
-        var self = this;
-        if (!useLargeSize) {
-            cardSprite.onMouseover = function ()  {self.onMouseover(cardSprite)};
-            cardSprite.onMouseout = function ()  {self.onMouseout(cardSprite)};
-            cardSprite
-                .on('mouseover',        cardSprite.onMouseover)
-                .on('mouseout',        cardSprite.onMouseout)
-        }
+    }
 
+    setCardMouseoverListeners(cardSprite) {
+        var self = this;
+        cardSprite.onMouseover = function ()  {self.onMouseover(cardSprite)};
+        cardSprite.onMouseout = function ()  {self.onMouseout(cardSprite)};
+        cardSprite
+            .on('mouseover',        cardSprite.onMouseover)
+            .on('mouseout',        cardSprite.onMouseout)
+    }
+
+    setCardAnchors(cardSprite) {
         cardSprite.anchor.set(.5);
         for (let child of cardSprite.children) {
             // graphics we draw don't have an anchor, like the circle for costBackground
             if (child.anchor) {
                 child.anchor.set(.5);                
             }
-        }
+        }        
+    }
 
-        return cardSprite;
+    onMouseout(cardSprite) {
+        clearTimeout(this.hoverTimeout);
+        this.hovering = false
+        this.app.stage.removeChild(this.hoverCards);
+    }
+
+    imagePath(card) {
+        let imageName = card.image;
+        if (!imageName) {
+            imageName = "uncertainty.svg"
+        }
+        return '/static/images/card-art/' + imageName;
+    }
+
+    textOptions() {
+        return {fontFamily : 'Helvetica', fontSize: 8, fill : 0x00000, wordWrap: true, wordWrapWidth: 75};
     }
 
     addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
@@ -1191,42 +1351,14 @@ export class GameUX {
         return sprite;
     }
 
-    ellipsifyImageSprite(imageSprite, card) {
-        var width = imageSprite.width;
-        var height = imageSprite.height;
-        if (card.image && card.image.endsWith(".jpg")) {
-            // hax
-            width *= 3.4;
-            height *= 3.4;
-        }
-        var bg = this.ellipseBackground(width, height);
-        imageSprite.mask = bg;
-        imageSprite.addChild(bg);        
-    }
-
-    ellipseBackground(width, height) {
-        const ellipseW = width;
-        const ellipseH = height;
-        const background = new PIXI.Graphics();
-        background.beginFill(0xffffff, 1);
-        background.drawEllipse(0, 0, ellipseW, ellipseH - height/3)
-        background.endFill();
-        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        sprite.mask = background;
-        sprite.width = ellipseW;
-        sprite.height = ellipseH;
-        sprite.addChild(background);
-        return background;
-    }
-
-    rectanglifyImageSprite(imageSprite) {
-        var bg = this.rectangleBackground(imageSprite.width, imageSprite.height);
+    rectanglifyImageSprite(imageSprite, width, height) {
+        var bg = this.rectangleBackground(width, height);
         imageSprite.mask = bg;
         imageSprite.addChild(bg);        
     }
 
     rectangleBackground(width, height) {
-        const rectangleW = cardWidth;
+        const rectangleW = width;
         const rectangleH = height;
         const background = new PIXI.Graphics();
         background.beginFill(0xffffff, 1);
@@ -1234,8 +1366,6 @@ export class GameUX {
         background.endFill();
         const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         sprite.mask = background;
-        sprite.width = rectangleW;
-        sprite.height = rectangleH;
         sprite.addChild(background);
         return background;
     }
@@ -1342,9 +1472,9 @@ export class GameUX {
         godray.time += this.app.ticker.elapsedMS / 1000;
       }
       let sprite = this.cardSprite(game, card, player, false);
+      sprite.scale.set(1.5);
       sprite.position.x = 100;
       sprite.position.y = this.inPlay.position.y + padding;
-      sprite.scale.set(1.5);
       this.spellBeingCastSprite = sprite;
       this.app.stage.addChild(sprite)
       this.showArrowsForSpell(game, sprite, message, card);
@@ -1386,9 +1516,9 @@ export class GameUX {
             if (spell[0].move_type == "ATTACK") {
                 continue;
             }
+            sprite.scale.set(1.5);
             sprite.position.x = 100 + 20*index;
             sprite.position.y = this.inPlay.position.y + padding + 40*index;
-            sprite.scale.set(1.5);
             this.app.stage.addChild(sprite)
             this.spellStackSprites.push(sprite)
             var card = spell[1]
@@ -1672,7 +1802,6 @@ export class GameUX {
         }
 
         if (player.damage_to_show > 0) {
-            console.log("damaging player")
            this.damageSprite(avatarSprite, player.username, player.damage_to_show);
         }
     }
@@ -1739,17 +1868,6 @@ export class GameUX {
         return background
     }
 
-    updateHand(game) {
-        var index = 0;
-        for (let card of this.thisPlayer(game).hand) {
-            let sprite = this.cardSprite(game, card, this.userOrP1(game), false);
-            sprite.position.x = (cardWidth)*index + cardWidth/2 + padding;
-            sprite.position.y = this.handContainer.position.y + cardHeight/2;
-            this.app.stage.addChild(sprite);
-            index++;                
-        }
-    }
-
     updateThisPlayerInPlay(game) {
         this.updateInPlay(game, this.thisPlayer(game), this.inPlay);
     }
@@ -1768,9 +1886,6 @@ export class GameUX {
         }
 
         var inPlayLength = player.in_play.length;
-        if (cardIdToHide && player == this.thisPlayer(game)) {
-            inPlayLength -= 1;
-        }
 
         inPlaySprite.children = []
         var index = 0;
@@ -1781,23 +1896,31 @@ export class GameUX {
         } else if (inPlayLength == 5 || inPlayLength == 6) { 
             index = 1
         }
+
         for (let card of player.in_play) {
-            if (cardIdToHide && card.id == cardIdToHide && player == this.thisPlayer(game)) {
-                continue;
-            }
-
-            let sprite = this.cardSpriteInPlay(game, card, player, false);
-            sprite.position.x = (cardWidth)*index + cardWidth/2 + padding + 4;
-            sprite.position.y = inPlaySprite.position.y + cardHeight/2;
-
-            if (cardIdToHide && card.id == cardIdToHide && player == this.opponent(game)) {
-                sprite.filters = [targettableGlowFilter()];
-            }
-
-            this.app.stage.addChild(sprite);
+            this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
             index++;
         }
 
+
+
+        for (let card of player.in_play) {
+        }
+    }
+
+    addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
+        let sprite = this.cardSpriteInPlay(game, card, player, false);
+        sprite.position.x = (cardWidth)*index + cardWidth/2 + padding + 4;
+        sprite.position.y = inPlaySprite.position.y + cardHeight/2;
+
+        if (cardIdToHide && card.id == cardIdToHide) {
+            if (player == this.opponent(game)) {
+                sprite.filters = [targettableGlowFilter()];
+            } else {
+                sprite.alpha = .3;
+            }
+        }
+        this.app.stage.addChild(sprite);        
     }
 
     updateThisPlayerArtifacts(game) {
@@ -1808,9 +1931,7 @@ export class GameUX {
         this.updateArtifacts(game, this.opponent(game), this.artifactsOpponent);
     }
 
-
     updateArtifacts(game, player, artifactsSprite) {
-        // artifactsSprite.children = []
         var cardIdToHide = null
         for (let card of player.artifacts) {
             if (player.card_info_to_target["card_id"] && card.id == player.card_info_to_target["card_id"]) {
@@ -1903,13 +2024,12 @@ function onDragStart(event, cardSprite, gameUX, game) {
     cardSprite.off('mouseover', cardSprite.onMouseover);
     cardSprite.off('mouseout', cardSprite.onMouseout);
     gameUX.onMouseout(cardSprite, gameUX);
-    cardSprite.filters = [];
+
+    clearDragFilters(cardSprite)
     cardSprite.dragging = true;
 
     if (cardSprite.card.turn_played == -1) {
-        if(cardSprite.card.card_type == "Spell" && cardSprite.card.needs_targets) {
-            gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
-        } 
+        gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
     } else if (cardSprite.card.card_type == "Mob") {
         gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card":cardSprite.card.id});
     } else if (cardSprite.card.card_type == "Artifact") {
@@ -1928,7 +2048,7 @@ function onDragStart(event, cardSprite, gameUX, game) {
             }
         }
         if (!dragging) {
-            cardSprite.filters = [];
+            clearDragFilters(cardSprite)
             cardSprite.dragging = false; 
         }
     }
@@ -1937,37 +2057,18 @@ function onDragStart(event, cardSprite, gameUX, game) {
 
 function onDragEnd(cardSprite, gameUX) {
     var playedMove = false;
-    var bump = gameUX.bump;
+    var collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
     if (cardSprite.card.turn_played == -1) {
-        if(!bump.hit(cardSprite, gameUX.handContainer) && (cardSprite.card.card_type == "Spell" || cardSprite.card.card_type == "Artifact" || cardSprite.card.card_type == "Mob") && !cardSprite.card.needs_targets) {
-            gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
+        if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
+            gameUX.gameRoom.sendPlayMoveEvent("PLAY_CARD_IN_HAND", {"card":cardSprite.card.id});
             playedMove = true;
-        } else if(bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == "Spell" && gameUX.opponent(gameUX.game).can_be_clicked) {
+        } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == "Spell" && gameUX.opponent(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_OPPONENT", {});
             playedMove = true;
-        } else if(bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == "Spell" && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+        } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == "Spell" && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_SELF", {});
             playedMove = true;
         } else {
-            var collidedSprite;
-            var overlapArea = 0;
-            for (let sprite of gameUX.app.stage.children) {
-                if (bump.hit(cardSprite, sprite) && cardSprite.card && sprite.card && cardSprite.card.id != sprite.card.id) {
-                    var inHand = false;
-                    for (let card of gameUX.thisPlayer(gameUX.game).hand) {
-                        if (card.id == sprite.card.id) {
-                            inHand = true;
-                        }
-                    }
-                    if (!inHand) {
-                        var newOverlapArea = getOverlap(cardSprite, sprite);
-                        if (newOverlapArea > overlapArea) {
-                            overlapArea = newOverlapArea;
-                            collidedSprite = sprite;
-                        }
-                    }
-                }
-            }
             if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
                 if (collidedSprite.card.turn_played == -1) {
                     gameUX.gameRoom.sendPlayMoveEvent("SELECT_STACK_SPELL", {"card": collidedSprite.card.id});
@@ -1982,32 +2083,16 @@ function onDragEnd(cardSprite, gameUX) {
             }
         }
     } else {  // it's a mob or artifact already in play
-        if(bump.hit(cardSprite, gameUX.opponentAvatar)) {
+        if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar)) {
             gameUX.gameRoom.sendPlayMoveEvent("SELECT_OPPONENT", {});
             playedMove = true;
-        } else if(!bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == "Artifact" && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
+        } else if(!gameUX.bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == "Artifact" && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
             gameUX.gameRoom.sendPlayMoveEvent("ACTIVATE_ARTIFACT", {"card":cardSprite.card.id});
             playedMove = true;
-        } else {
-            var spriteToHit = null;
-            var overlapArea = 0;
-            for (let opponentMob of gameUX.app.stage.children) {
-                if(opponentMob.card && opponentMob.card.id != cardSprite.card.id && opponentMob.card.can_be_clicked && bump.hit(cardSprite, opponentMob)) {                    
-                    var newOverlapArea = getOverlap(cardSprite, opponentMob);
-                    if (newOverlapArea > overlapArea) {
-                        overlapArea = newOverlapArea;
-                        spriteToHit = opponentMob;
-                    }
-                }
-            }
-            if (spriteToHit) {
-                    console.log(`selecting mob with name ${spriteToHit.card.name} and id ${spriteToHit.card.id}`)
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": spriteToHit.card.id});
-                    playedMove = true;
-            }
-
+        } else if (collidedSprite) {
+            gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": collidedSprite.card.id});
+            playedMove = true;
         }
-
     }
     
     if(!playedMove) {
@@ -2016,20 +2101,11 @@ function onDragEnd(cardSprite, gameUX) {
 
     cardSprite.dragging = false;
     cardSprite.data = null;
-    cardSprite.filters = []
+    clearDragFilters(cardSprite)
     gameUX.inPlay.filters = [];
     gameUX.opponentAvatar.filters = [];
 }
 
-
-function getOverlap(cardSprite, sprite) {
-    var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
-    var boundsMob = [sprite.position.x, sprite.position.y, sprite.position.x+sprite.width, sprite.position.y+sprite.height]
-
-    var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
-    var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
-    return x_overlap * y_overlap;
-}
 
 
 function onDragMove(cardSprite, gameUX, bump) {
@@ -2050,81 +2126,103 @@ function onDragMove(cardSprite, gameUX, bump) {
     let artifactsCollision = bump.hit(cardSprite, gameUX.artifacts);
     let cardInHand = cardSprite.card.turn_played == -1;
 
-    let collidedMob = null;
-    var overlapArea = 0;
+    let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
+
+    let newFilters = glowAndShadowFilters();
+    if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
+    } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == "Spell" && gameUX.opponent(gameUX.game).can_be_clicked) {
+    } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == "Spell" && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+    } else if(collidedSprite && collidedSprite.can_be_clicked) {
+    } else {
+        newFilters = [dropshadowFilter(), cantBeClickedFilter()];
+    }
+
+    if (!filtersAreEqual(cardSprite.filters, newFilters) || cardSprite.filters.length == 0) {
+        clearDragFilters(cardSprite);
+        for (let filter of newFilters) {
+            cardSprite.filters.push(filter)
+        }
+    }
+
+    if(opponentCollision && gameUX.opponent(gameUX.game).can_be_clicked) {
+        gameUX.opponentAvatar.filters = [targettableGlowFilter()];
+    } else if (gameUX.opponent(gameUX.game).can_be_clicked) {
+        gameUX.opponentAvatar.filters = [];
+    } else {
+        gameUX.opponentAvatar.filters = [cantBeClickedFilter()]; 
+    }
+
+    if(selfCollision && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+        gameUX.playerAvatar.filters = [targettableGlowFilter()];
+    } else if (gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+        gameUX.playerAvatar.filters = [];
+    } else {
+        gameUX.thisPlayer.filters = [cantBeClickedFilter()]; 
+    }
+
+    if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
+        if (!filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]) || collidedSprite.filters.length == 0) {
+            clearDragFilters(collidedSprite);
+            collidedSprite.filters.push(targettableGlowFilter());                
+        }
+    }
+
     for (let mob of gameUX.app.stage.children) {
-        if (mob.card && cardSprite.card.id != mob.card.id) {
+        if (mob.card && cardSprite.card.id != mob.card.id && (!collidedSprite || mob.card.id != collidedSprite.card.id)) {
+            if (mob.card.can_be_clicked) {
+                clearDragFilters(mob);
+            }  else {
+                clearDragFilters(mob);
+                mob.filters.push(cantBeClickedFilter());                                                        
+            }
+        }
+    }
+}
+
+
+function clearDragFilters(cardSprite) {
+    let newFilters = []
+    for (let filter of cardSprite.filters) {
+        // retain Shield and Lurker filters
+        if (filter.constructor.name == "GlowFilter" && filter.outerStrength == 0 && filter.innerStrength == 3 && (filter.color == 0x000000 || filter.color == 0xFFFFFF)) {
+            newFilters.push(filter);
+        }
+    }
+
+    cardSprite.filters = newFilters;
+}
+
+
+function mostOverlappedNonInHandSprite(gameUX, cardSprite) {
+    var collidedSprite;
+    var overlapArea = 0;
+    for (let sprite of gameUX.app.stage.children) {
+        if (gameUX.bump.hit(cardSprite, sprite) && cardSprite.card && sprite.card && cardSprite.card.id != sprite.card.id) {
             var inHand = false;
             for (let card of gameUX.thisPlayer(gameUX.game).hand) {
-                if (card.id == mob.card.id) {
+                if (card.id == sprite.card.id) {
                     inHand = true;
                 }
             }
-
-            if(!inHand && mob.card.id != cardSprite.card.id && mob.card.can_be_clicked && bump.hit(cardSprite, mob)) {
-                var newOverlapArea = getOverlap(cardSprite, mob);
+            if (!inHand) {
+                var newOverlapArea = getOverlap(cardSprite, sprite);
                 if (newOverlapArea > overlapArea) {
                     overlapArea = newOverlapArea;
-                    collidedMob = mob;
+                    collidedSprite = sprite;
                 }
             }
         }
     }
-    let newFilters = glowAndShadowFilters();
-    if(!handCollision && cardSprite.card.card_type == "Spell" && !cardSprite.card.needs_targets) {
-        if (!cardSprite.card.can_be_clicked) {
-            newFilters.push(cantBeClickedFilter());                        
-        }
-    } else if (collidedMob && collidedMob.card.can_be_clicked) {
-        if (!filtersAreEqual(collidedMob.filters, [targettableGlowFilter()]) || collidedMob.filters.length == 0) {
-            collidedMob.filters = [targettableGlowFilter()];                
-        }
-    } else if(opponentCollision && gameUX.opponent(gameUX.game).can_be_clicked) {
-        gameUX.opponentAvatar.filters = [targettableGlowFilter()];
-    } else if(selfCollision && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-        gameUX.playerAvatar.filters = [targettableGlowFilter()];
-    // } else if(!handCollision && cardSprite.card.card_type == "Mob") {
-    } else if(!bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == "Artifact" && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
-    } else if(cardInHand && !handCollision && cardSprite.card.card_type == "Artifact") {
-    } else {
-        gameUX.inPlay.filters = [];
-        if (!cardSprite.card.can_be_clicked) {
-            newFilters = [dropshadowFilter(), cantBeClickedFilter()];
-        } else {
-            newFilters = [dropshadowFilter()];
-        }
-    }
+    return collidedSprite;
+}
 
-    if (!opponentCollision || !gameUX.opponent(gameUX.game).can_be_clicked) {
-        if (gameUX.opponent(gameUX.game).can_be_clicked) {
-            gameUX.opponentAvatar.filters = [];
-        } else {
-            gameUX.opponentAvatar.filters = [cantBeClickedFilter()]; 
-        }
-    }
+function getOverlap(cardSprite, sprite) {
+    var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
+    var boundsMob = [sprite.position.x, sprite.position.y, sprite.position.x+sprite.width, sprite.position.y+sprite.height]
 
-    if (!selfCollision || !gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-        if (gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-            gameUX.playerAvatar.filters = [];
-        } else {
-            gameUX.playerAvatar.filters = [cantBeClickedFilter()]; 
-        }
-    }
-    if (!filtersAreEqual(cardSprite.filters, newFilters) || cardSprite.filters.length == 0) {
-        cardSprite.filters = newFilters;
-    }
-
-    for (let mob of gameUX.app.stage.children) {
-        if (mob.card && cardSprite.card.id != mob.card.id && (!collidedMob || mob.card.id != collidedMob.card.id)) {
-            if (mob.card.can_be_clicked) {
-                mob.filters = [];                                                        
-            }  else {
-                mob.filters = [cantBeClickedFilter()];                                                        
-            }
-        }
-    }
-
-
+    var x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
+    var y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
+    return x_overlap * y_overlap;
 }
 
 
@@ -2148,6 +2246,7 @@ function filtersAreEqual(a, b) {
     }
     return true    
 }
+
 
 function glowAndShadowFilters() {
     return [
