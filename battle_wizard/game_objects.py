@@ -120,6 +120,9 @@ class Game:
             if not has_action_selected:
                 moves.append({"move_type": "END_TURN", "username": self.ai})
 
+        # print(player.selected_mob().name if player.selected_mob() else None)
+        # print(player.selected_artifact().name if player.selected_artifact() else None)
+        # print(player.selected_spell().name if player.selected_spell() else None)
         print("legal moves for AI: " + str(moves))
         return moves
 
@@ -231,7 +234,10 @@ class Game:
                 moves.append({"card":mob.id , "move_type": "SELECT_MOB", "username": self.ai})
         for card in self.current_player().hand:
             if card.can_be_clicked:
-                moves.append({"card":card.id , "move_type": "SELECT_CARD_IN_HAND", "username": self.ai})
+                if self.current_player().card_info_to_target["card_id"]:
+                    moves.append({"card":card.id , "move_type": "PLAY_CARD_IN_HAND", "username": self.ai})
+                else:
+                    moves.append({"card":card.id , "move_type": "SELECT_CARD_IN_HAND", "username": self.ai})
         if self.current_player().can_be_clicked:
             moves.append({"move_type": "SELECT_SELF", "username": self.ai})
         if self.opponent().can_be_clicked:
@@ -271,6 +277,8 @@ class Game:
             message = self.end_turn(message)
         elif move_type == 'SELECT_CARD_IN_HAND':
             message = self.select_card_in_hand(message)
+        elif move_type == 'PLAY_CARD_IN_HAND':
+            message = self.play_card_in_hand(message)
         elif move_type == 'SELECT_ARTIFACT':
             message = self.select_artifact(message)
         elif move_type == 'SELECT_STACK_SPELL':
@@ -322,7 +330,7 @@ class Game:
 
         return message
 
-    def unset_clickables(self, move_type):
+    def unset_clickables(self, move_type, cancel_damage=True):
         """
             unhighlight everything before highlighting possible attacks/spells
         """
@@ -344,7 +352,7 @@ class Game:
             card.effects_can_be_clicked = []
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
-        if move_type != "UNSELECT":
+        if move_type != "UNSELECT" and cancel_damage:
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
             for card in self.opponent().in_play + self.current_player().in_play:
@@ -575,12 +583,12 @@ class Game:
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
             did_target = False
             for card in self.opponent().in_play:
-                if card.power >= list(target_restrictions[0].values())[0]:
+                if card.power_with_tokens() >= list(target_restrictions[0].values())[0]:
                     if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
                         did_target = True
             for card in self.current_player().in_play:
-                if card.power >= list(target_restrictions[0].values())[0]:
+                if card.power_with_tokens() >= list(target_restrictions[0].values())[0]:
                     if not card.has_ability("Lurker"):
                         card.can_be_clicked = True
                         did_target = True
@@ -885,57 +893,64 @@ class Game:
         return message
 
     def select_card_in_hand(self, message):
-        # todo: what happens if you select a card then another card?
-        for card in self.current_player().hand:
-            if card.id == message["card"]:
-                message["card_name"] = card.name
-
-                has_mob_target = False
-                if len(self.current_player().in_play + self.opponent().in_play) > 0:
-                    for mob in self.current_player().in_play + self.opponent().in_play:
-                        if not mob.has_ability("Lurker"):
-                            has_mob_target = True
-
-                if card.needs_artifact_target() and len(self.current_player().artifacts) == 0 and len(self.opponent().artifacts) == 0 :
-                    print(f"can't select artifact targetting spell with no artifacts in play")
-                    return None
-                elif card.card_type == "Spell" and card.needs_mob_target() and not has_mob_target:
-                    print(f"can't select mob targetting spell with no entities without Lurker in play")
-                    return None
-                elif card.has_ability("Instrument Required") and not self.current_player().has_instrument():
-                    print(f"can't cast {card.name} without having an Instument")
-                    return None
-                elif card.cost <= self.current_player().current_mana():
-                    if self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id and card.needs_targets_for_spell():
-                        self.current_player().reset_card_info_to_target()
-                    elif self.current_player().selected_spell() and card.id == self.current_player().selected_spell().id:
-                        message["move_type"] = "PLAY_CARD"
-                        message = self.play_move(message)
-                        # play card
-                    elif card.card_type == "Spell" and not card.needs_targets_for_spell():
-                            message["move_type"] = "PLAY_CARD"
-                            message = self.play_move(message)
-                    elif card.card_type == "Mob":
-                        if self.current_player().can_summon():
-                            message["move_type"] = "PLAY_CARD"
-                            message = self.play_move(message)
-                        else:
-                            print(f"can't summon because of {self.current_player().abilities}")
-                    elif card.card_type == "Artifact":
-                        if self.current_player().can_play_artifact():
-                            message["move_type"] = "PLAY_CARD"
-                            message = self.play_move(message)
-                        else:
-                            print(f"can't play artifact")
-                    else:
-                        self.current_player().card_info_to_target["card_id"] = card.id
-                        self.current_player().card_info_to_target["effect_type"] = "spell_cast"
-                        # todo this is hardcoded, cant support multiple effects per card?
-                        self.current_player().card_info_to_target["effect_index"] = 0
-                else:
-                    print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().current_mana()}")                        
-                    return None
+        card = None
+        for card_in_hand in self.current_player().hand:
+            if card_in_hand.id == message["card"]:
+                card = card_in_hand
                 break
+        if not card:
+            print(f"can't select that Card, it's not in hand")
+            return None
+
+        message["card_name"] = card.name
+        has_mob_target = False
+        if len(self.current_player().in_play + self.opponent().in_play) > 0:
+            for mob in self.current_player().in_play + self.opponent().in_play:
+                if not mob.has_ability("Lurker"):
+                    has_mob_target = True
+
+        if card.needs_artifact_target() and len(self.current_player().artifacts) == 0 and len(self.opponent().artifacts) == 0 :
+            print(f"can't select artifact targetting spell with no artifacts in play")
+            return None
+        elif card.card_type == "Spell" and card.needs_mob_target() and not has_mob_target:
+            print(f"can't select mob targetting spell with no entities without Lurker in play")
+            return None
+        elif card.has_ability("Instrument Required") and not self.current_player().has_instrument():
+            print(f"can't cast {card.name} without having an Instument")
+            return None
+        elif card.card_type == "Artifact" and not self.current_player().can_play_artifact():
+            print(f"can't play artifact")
+            return None
+        elif card.card_type == "Mob" and not self.current_player().can_summon():
+            print(f"can't play Mob because can_summon is false")
+            return None
+        elif card.cost > self.current_player().current_mana():
+            print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_player().current_mana()}")                        
+            return None
+
+        self.current_player().card_info_to_target["card_id"] = card.id
+        self.current_player().card_info_to_target["effect_type"] = "spell_cast"
+        # todo this is hardcoded, cant support multiple effects per card?
+        self.current_player().card_info_to_target["effect_index"] = 0
+
+        self.unset_clickables(message["move_type"])
+        self.set_clickables()
+        return message
+
+    def play_card_in_hand(self, message):
+        card = None
+        for card_in_hand in self.current_player().hand:
+            if card_in_hand.id == message["card"]:
+                card = card_in_hand
+                break
+        if not card:
+            print(f"can't play that Card, it's not in hand")
+            return None
+
+        self.current_player().reset_card_info_to_target()
+        message["card_name"] = card.name
+        message["move_type"] = "PLAY_CARD"
+        message = self.play_move(message)
         return message
 
     def select_stack_spell(self, message):
@@ -1190,13 +1205,16 @@ class Game:
         card_id = message["card"]
         attacking_card = self.opponent().in_play_card(card_id)
 
+        self.stack.append([copy.deepcopy(message), attacking_card.as_dict()])
+
         self.unset_clickables(message["move_type"])
         self.set_clickables()
 
-        self.stack.append([copy.deepcopy(message), attacking_card.as_dict()])
-
         if not self.current_player().has_instants():
-            return self.attack(message)
+            message = self.attack(message)
+            self.unset_clickables(message["move_type"], cancel_damage=False)
+            self.set_clickables()
+            return message
 
         if "defending_card" in message:
             defending_card_id = message["defending_card"]
@@ -1347,11 +1365,8 @@ class Game:
         """
         card = None
         for c in self.current_player().deck:
-            print(c.id)
             if c.id == message['card']:
                 card = c
-        print("fetched card id us: " + str(message['card']))
-        print("fetched card is: " + str(card))
         if card_type == "Artifact":
             if into_play:
                 self.current_player().play_artifact(card)
@@ -1417,7 +1432,7 @@ class Game:
         # hax
         if new_card.name == "Rolling Thunder":
             new_card.effects[0].amount = card.effects[0].amount 
-        if new_card.name == "Fidget Spinner":
+        elif new_card.name == "Fidget Spinner":
             new_card.power = card.power
             new_card.toughness = card.toughness
         # hax - does this more belong in factory_reset_card?
@@ -1659,7 +1674,7 @@ class Game:
                 break
 
         effect_targets = []
-        effect_targets.append({"id": selected_card.id, "target_type":"being_cast_mob"})            
+        effect_targets.append({"id": selected_card.id})            
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name
@@ -2787,7 +2802,10 @@ class Player:
 
         if not self.game.current_player().has_instants():
             self.game.actor_turn += 1
-            return self.play_card(card.id, message)
+            message = self.play_card(card.id, message)
+            self.game.unset_clickables(message["move_type"], cancel_damage=False)
+            self.game.set_clickables()
+            return message
 
         message["log_lines"].append(f"{self.username} starts to play {card.name}.")
 
@@ -3459,6 +3477,8 @@ class Card:
         e = self.effects[0]
         for spell in game.stack:
             card = Card(spell[1])
+            if spell[0]["move_type"] == "ATTACK":
+                continue
             if e.target_type == "being_cast":
                 return True
             if e.target_type == "being_cast_mob" and card.card_type == "Mob":
@@ -3571,7 +3591,6 @@ class Card:
         for e in self.effects:
             if e.id == effect_id:
                 return e
-
 
 class CardEffect:
     def __init__(self, info, effect_id):

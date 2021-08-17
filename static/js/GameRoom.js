@@ -65,6 +65,8 @@ export class GameRoom {
                 let game = data["game"];
                 if (!data["game"]) {
                     console.log(data);                    
+                } else {
+                  self.gameUX.game = game;  
                 }
                 console.log(data);
                 self.gameUX.refresh(game, data);

@@ -279,6 +279,7 @@
 		"name": "Thought Sprite",
 		"race": "elf",
 		"card_type": "Mob",
+		"race": "genie",
 		"power": 2,
 		"toughness": 3,
 		"cost": 3,
