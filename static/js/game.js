@@ -23,7 +23,7 @@ const lightGrayColor = 0xEEEEEE;
 const cardContainerWidth = cardWidth * 7 + 12;
 const largeSpriteQueryString = "?large";
 const gameDivID = "new_game";
-const fontFamily = fontFamily;
+const defaultFontFamily = "Arial";
 const defaultFontSize = 12;
 
 export class GameUX {
@@ -178,7 +178,7 @@ export class GameUX {
             .on('click', clickFunction)
             .on('tap', clickFunction)
 
-        let text = new PIXI.Text("New Game", {fontFamily : fontFamily, fontSize: defaultFontSize, fill : blackColor});
+        let text = new PIXI.Text("New Game", {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : blackColor});
         text.anchor.set(.5);
         b.anchor.set(.5);
         b.addChild(text);
@@ -1230,7 +1230,7 @@ export class GameUX {
     }
 
     textOptions() {
-        return {fontFamily : 'Helvetica', fontSize: 8, fill : blackColor, wordWrap: true, wordWrapWidth: 75};
+        return {fontFamily : defaultFontFamily, fontSize: 8, fill : blackColor, wordWrap: true, wordWrapWidth: 75};
     }
 
     addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
@@ -1685,7 +1685,7 @@ export class GameUX {
 
             }
         }
-        let text = new PIXI.Text(title, {fontFamily : fontFamily, fontSize: defaultFontSize, fill : textFillColor});
+        let text = new PIXI.Text(title, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textFillColor});
         text.position.x = positionX;
         text.position.y = 14;
         b.addChild(text);
@@ -1694,7 +1694,7 @@ export class GameUX {
         this.endTurnButton = b;
         this.buttonMenu.addChild(this.endTurnButton)
 
-        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : fontFamily, fontSize: defaultFontSize, fill : textFillColor, align: "center"});
+        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textFillColor, align: "center"});
         turnText.position.x = this.buttonMenu.width/2;
         turnText.position.y = b.position.y + 60 + padding;
         turnText.anchor.set(0.5, 0.5);
@@ -1717,7 +1717,7 @@ export class GameUX {
 
 
     updatePlayer(game, player, avatarSprite) {
-        var props = {fontFamily : fontFamily, fontSize: defaultFontSize, fill : blackColor};
+        var props = {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : blackColor};
         avatarSprite.children = []
         let avatar;
         let usernameText = player.username;
