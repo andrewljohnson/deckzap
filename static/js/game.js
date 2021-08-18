@@ -809,11 +809,11 @@ export class GameUX {
             .endFill();
         
         var sprite = new PIXI.Sprite(this.app.renderer.generateTexture(bezierArrow,{resolution:PIXI.settings.FILTER_RESOLUTION}))
-        bezierArrow.filters = glowAndShadowFilters()
+        bezierArrow.filters = arrowFilters()
+
 
         return sprite;
     }
-
     makeCardsInteractive(game) {
         if (!this.isPlaying(game)) {
             return;
@@ -956,7 +956,7 @@ export class GameUX {
     }
 
     addSelectViewCard(game, card, cardContainer, card_on_click, index) {
-        let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false);
+        let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false, false, true);
         cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
         cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
         cardContainer.addChild(cardSprite);
@@ -968,7 +968,7 @@ export class GameUX {
             })
     }
 
-    cardSprite(game, card, player, dont_attach_listeners, useLargeSize) {
+    cardSprite(game, card, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
         let cw = cardWidth;
         let ch = cardHeight;
         let imageBackgroundSize = 128
@@ -1230,7 +1230,7 @@ export class GameUX {
             }
         }
 
-        this.setCardFilters(card, cardSprite);
+        this.setCardFilters(card, cardSprite, game, overrideClickable);
 
         if (dont_attach_listeners) {
             return cardSprite;
@@ -1306,7 +1306,7 @@ export class GameUX {
             cardSprite.addChild(powerCharges);
         }
 
-        this.setCardFilters(card, cardSprite);
+        this.setCardFilters(card, cardSprite, game);
 
         if (dont_attach_listeners) {
             return cardSprite;
@@ -1376,10 +1376,12 @@ export class GameUX {
         return background;
     }
 
-    setCardFilters(card, cardSprite) {
+    setCardFilters(card, cardSprite, game, overrideClickable) {
         var filters = []
-        if (card.can_be_clicked) {
-            filters.push(canBeClickedFilter());                                    
+        if (card.can_be_clicked || overrideClickable) {
+            if (!this.thisPlayer(game).card_info_to_target.effect_type || this.thisPlayer(game).card_info_to_target.card_id != card.id) {
+                filters.push(canBeClickedFilter());                                    
+            }
         } else {
             filters.push(cantBeClickedFilter());                        
         }
@@ -2100,7 +2102,6 @@ function onDragEnd(cardSprite, gameUX) {
 }
 
 
-
 function onDragMove(cardSprite, gameUX, bump) {
     if (!cardSprite.dragging) {
         return;
@@ -2125,15 +2126,17 @@ function onDragMove(cardSprite, gameUX, bump) {
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-    } else if(collidedSprite && collidedSprite.can_be_clicked) {
+    } else if(collidedSprite && collidedSprite.card.can_be_clicked) {
     } else {
-        newFilters = [dropshadowFilter(), cantBeClickedFilter()];
+        newFilters = [canBeClickedFilter(), dropshadowFilter()]
     }
 
     if (!filtersAreEqual(cardSprite.filters, newFilters) || cardSprite.filters.length == 0) {
-        clearDragFilters(cardSprite);
+        clearDragFilters(cardSprite, true);
         for (let filter of newFilters) {
-            cardSprite.filters.push(filter)
+            if (!filtersContainsFilter(cardSprite.filters, filter)) {
+                cardSprite.filters.push(filter)
+            }
         }
     }
 
@@ -2175,6 +2178,16 @@ function onDragMove(cardSprite, gameUX, bump) {
 }
 
 
+function filtersContainsFilter(filters, filter) {
+    for (let f of filters) {
+        if (filtersAreEqual([f], [filter])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 function filtersAreEqual(a, b) {
     let matches = true;
     if (a.length == b.length) {
@@ -2206,7 +2219,7 @@ function filtersAreEqual(a, b) {
 function hasCanBeClickedFilter(cardSprite) {
     let newFilters = []
     for (let filter of cardSprite.filters) {
-        if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 0 && filter.outerStrength == 1 && (filter.color == yellowColor)) {
+        if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 2 && filter.outerStrength == 0 && (filter.color == yellowColor)) {
             return true;
         }
     }
@@ -2217,10 +2230,12 @@ function hasCanBeClickedFilter(cardSprite) {
 function clearDragFilters(cardSprite) {
     let newFilters = []
     for (let filter of cardSprite.filters) {
-        
+        // retain can be clicked filter
+        if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 2 &&  filter.outerStrength == 0 && (filter.color == yellowColor) && cardSprite.card.can_be_clicked) {
+             newFilters.push(filter);
         // retain can be targetted filter
-        if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 0 &&  filter.outerStrength == 1 && (filter.color == yellowColor) && cardSprite.card.can_be_clicked) {
-            newFilters.push(filter);
+        } else if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 0 &&  filter.outerStrength == 1 && (filter.color == yellowColor) && cardSprite.card.can_be_clicked) {
+             newFilters.push(filter);
         // retain Shield and Lurker and can be targetted filters
         } else if (filter.constructor.name == "GlowFilter" && filter.outerStrength == 0 && filter.innerStrength == 3 && (filter.color == blackColor || filter.color == whiteColor)) {
             newFilters.push(filter);
@@ -2263,6 +2278,13 @@ function getOverlap(cardSprite, sprite) {
 }
 
 
+function arrowFilters() {
+    return [
+        arrowGlowFilter(),
+        dropshadowFilter()
+    ];
+}
+
 function glowAndShadowFilters() {
     return [
         targettableGlowFilter(),
@@ -2272,11 +2294,11 @@ function glowAndShadowFilters() {
 
 
 function canBeClickedFilter() {
-    return new GlowFilter({ innerStrength: 0, outerStrength: 1, color: yellowColor});
+    return new GlowFilter({ innerStrength: 2, outerStrength: 0, color: yellowColor});
 }
 
 function cantBeTargettedFilter() {
-    return new AdjustmentFilter({ alpha: .3});
+    return new AdjustmentFilter({ alpha: .5});
 }
 
 function cantBeClickedFilter() {
@@ -2288,7 +2310,10 @@ function dropshadowFilter() {
     return new GlowFilter({ outerStrength: 1 , color: blackColor});
 }
 
-
 function targettableGlowFilter() {
-    return new GlowFilter({ outerStrength: 2 , color: yellowColor});
+    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
+}
+
+function arrowGlowFilter() {
+    return new GlowFilter({ innerStrength: 0, outerStrength: 2, color: yellowColor});
 }
