@@ -59,7 +59,7 @@ export class GameRoom {
                 }
             } else if (data["move_type"] == "GET_TIME") {
                 if (data["turn_time"] >= data["max_turn_time"]) {
-                    self.gameUX.showRope();   
+                    self.gameUX.maybeShowRope();   
                 }
             } else {
                 let game = data["game"];

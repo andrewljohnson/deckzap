@@ -119,11 +119,6 @@ class Game:
             moves = self.add_attack_and_play_card_moves(moves)
             if not has_action_selected:
                 moves.append({"move_type": "END_TURN", "username": self.ai})
-
-        # print(player.selected_mob().name if player.selected_mob() else None)
-        # print(player.selected_artifact().name if player.selected_artifact() else None)
-        # print(player.selected_spell().name if player.selected_spell() else None)
-        print("legal moves for AI: " + str(moves))
         return moves
 
     def add_spell_response_moves(self, player, moves):
@@ -247,7 +242,7 @@ class Game:
     def play_move(self, message):
         move_type = message["move_type"]
         if message["move_type"] != "GET_TIME":
-            print(f"MOVE: {move_type}")
+            print(f"play_move: {move_type}")
         
         if move_type == 'GET_TIME':
             max_turn_time = 60
