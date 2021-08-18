@@ -66,11 +66,11 @@ class BattleWizardConsumer(WebsocketConsumer):
                     moves = self.game.legal_moves_for_ai(self.game.players[1])
                     if (time_for_next_move or len(moves) == 1) and not self.ai_running:
                         if self.game.players[0].hit_points > 0 and self.game.players[1].hit_points > 0: 
-                            print("RUN AI")
+                            # print(self.game.players[1].selected_mob().name if self.game.players[1].selected_mob() else None)
+                            # print(self.game.players[1].selected_artifact().name if self.game.players[1].selected_artifact() else None)
+                            # print(self.game.players[1].selected_spell().name if self.game.players[1].selected_spell() else None)
+                            print("running AI, choosing from moves: " + str(moves))
                             self.run_ai(moves)
-                    else:
-                        print("get time while ai running")
-
 
     def run_ai(self, moves):
         self.ai_running = True
@@ -126,8 +126,7 @@ class BattleWizardConsumer(WebsocketConsumer):
         else:
             print(f"Unknown AI bot: {self.ai}")
         chosen_move["log_lines"] = []
-        print("AI playing " + chosen_move["move_type"])
-        print(chosen_move)
+        print("AI playing " + str(chosen_move))
         message = self.game.play_move(chosen_move)    
         self.send_game_message(self.game.as_dict(), message)
         self.ai_running = False
@@ -152,8 +151,10 @@ class BattleWizardConsumer(WebsocketConsumer):
             del move_copy['game']
         if "log_lines" in move_copy:
             del move_copy['log_lines']
+        if "show_spell" in move_copy:
+            del move_copy['show_spell']
         self.moves.append(move_copy)
-        print(f"WIRE MOVE: {json.dumps(move_copy, indent=4)}")
+        print(f"send_game_message: {json.dumps(move_copy, indent=4)}")
 
     def game_message(self, event):
         '''
