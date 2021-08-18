@@ -33,6 +33,7 @@ const lightBrownColor = 0xDFBF9F;
 const yellowColor = 0xEAFF00;
 const darkGrayColor = 0xAAAAAA;
 const lightGrayColor = 0xEEEEEE;
+const menuGrayColor = 0x969696;
 
 // constants recognized by the game rules engine
 const artifactCardType = "Artifact";
@@ -43,8 +44,14 @@ const spellCardType = "Spell";
 const moveTypeActivateArtifact = "ACTIVATE_ARTIFACT";
 const moveTypeAttack = "ATTACK";
 const moveTypeEndTurn = "END_TURN";
+const moveTypePlayCardInHand = "PLAY_CARD_IN_HAND";
+const moveTypeSelectArtifact = "SELECT_ARTIFACT";
+const moveTypeSelectCardInHand = "SELECT_CARD_IN_HAND";
+const moveTypeSelectMob = "SELECT_MOB";
 const moveTypeSelectSelf = "SELECT_SELF";
 const moveTypeSelectOpponent = "SELECT_OPPONENT";
+const moveTypeSelectStackSpell = "SELECT_STACK_SPELL";
+const moveTypeUnselect = "UNSELECT";
 
 // strings shown to user (todo: localize)
 const gameOverMessage = "GAME OVER"
@@ -331,10 +338,10 @@ export class GameUX {
       var incrementGodrayTime = () => {
         godray.time += this.app.ticker.elapsedMS / oneThousandMS;
       }
-      let sprite = this.cardSprite(game, card, player, false);
-      sprite.scale.set(1.5);
+      let sprite = this.cardSprite(game, card, player);
+      sprite.scale.set(1.5)
       sprite.position.x = cardWidth + padding;
-      sprite.position.y = this.inPlay.position.y + padding;
+      sprite.position.y = this.inPlay.position.y;
       this.spellBeingCastSprite = sprite;
       this.app.stage.addChild(sprite)
       this.showArrowsForSpell(game, sprite, message, card);
@@ -618,7 +625,6 @@ export class GameUX {
                     attackingCardSprite = sprite;
                 }
             } 
-
             if (attackingCardSprite) {
                 var defending_id = null
                 var defendingCardSprite = null;
@@ -879,7 +885,7 @@ export class GameUX {
         });
     }
 
-   showRevealView(game) {
+    showRevealView(game) {
         this.showSelectCardView(game, "Opponent's Hand", null);
         var self = this;
 
@@ -933,7 +939,6 @@ export class GameUX {
         name.position.y = 80
         container.addChild(name);
 
-
         const cardContainer = new PIXI.Container();
         this.selectCardInnerContainer = cardContainer
         cardContainer.position.x = appWidth/2 - cardWidth*1.5;
@@ -957,7 +962,7 @@ export class GameUX {
 
     addSelectViewCard(game, card, cardContainer, card_on_click, index) {
         let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false, false, true);
-        cardSprite.position.x = (cardWidth + 5) *  (index % 8) + cardWidth/2;
+        cardSprite.position.x = (cardWidth + padding) *  (index % 8) + cardWidth/2;
         cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
         cardContainer.addChild(cardSprite);
         var self = this;
@@ -1155,7 +1160,6 @@ export class GameUX {
             description.position.y += 20 + 2;
         }
 
-
         var addedDescription = null;
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
@@ -1170,7 +1174,6 @@ export class GameUX {
             this.showAbilityPanels(cardSprite, card, cw, ch);
         }
 
-
         if (card.card_type == mobCardType) {
             this.addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize)
 
@@ -1182,7 +1185,7 @@ export class GameUX {
                 typeY += 20;
             }
             var typeBG = new PIXI.Graphics();
-            typeBG.beginFill(darkGrayColor);
+            typeBG.beginFill(blackColor);
             typeBG.drawRoundedRect(
                 0,
                 0,
@@ -1193,7 +1196,7 @@ export class GameUX {
             typeBG.position.x = typeX;
             typeBG.position.y = typeY;
             typeBG.endFill();
-            typeBG.alpha = .7;
+            typeBG.alpha = .5;
             cardSprite.addChild(typeBG);
 
             let typeOptions = this.textOptions();
@@ -1230,7 +1233,7 @@ export class GameUX {
             }
         }
 
-        this.setCardFilters(card, cardSprite, game, overrideClickable);
+        this.setCardFilters(card, cardSprite, game, overrideClickable, useLargeSize);
 
         if (dont_attach_listeners) {
             return cardSprite;
@@ -1344,8 +1347,8 @@ export class GameUX {
         const imageContainer = new PIXI.Container();
         imageContainer.addChild(bgSprite);
         imageContainer.addChild(imageSprite);
-        imageSprite.position.x = bgSprite.width/2 - imageSprite.width/2;
-        imageSprite.position.y = bgSprite.height/2 - imageSprite.height/2;
+        imageSprite.position.x = bgSprite.width / 2 - imageSprite.width / 2;
+        imageSprite.position.y = bgSprite.height / 2 - imageSprite.height / 2;
         var texture = this.app.renderer.generateTexture(imageContainer)
         imageSprite = new PIXI.Sprite(texture);
         return imageSprite
@@ -1376,20 +1379,26 @@ export class GameUX {
         return background;
     }
 
-    setCardFilters(card, cardSprite, game, overrideClickable) {
+    setCardFilters(card, cardSprite, game, overrideClickable, isStackCard) {
         var filters = []
         if (card.can_be_clicked || overrideClickable) {
             if (!this.thisPlayer(game).card_info_to_target.effect_type || this.thisPlayer(game).card_info_to_target.card_id != card.id) {
-                filters.push(canBeClickedFilter());                                    
+                if (this.thisPlayer(game).card_info_to_target.effect_type && ["mob_comes_into_play", "spell_cast"].includes(this.thisPlayer(game).card_info_to_target.effect_type)) {
+                    filters.push(targettableGlowFilter());                                    
+                } else {
+                    filters.push(canBeClickedFilter());                                    
+                }
             }
         } else {
-            filters.push(cantBeClickedFilter());                        
+            if (!isStackCard) {
+                filters.push(cantBeClickedFilter());                                        
+            }
         }
         if (card.shielded && card.turn_played > -1) {
-            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: whiteColor}));                        
+            filters.push(shieldFilter());                        
         }
         if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            filters.push(new GlowFilter({ outerStrength: 0, innerStrength: 3, color: blackColor}));                        
+            filters.push(lurkerFilter());                        
         }
 
         cardSprite.filters = filters;
@@ -1400,7 +1409,7 @@ export class GameUX {
         if (card.can_be_clicked) {
             if (this.thisPlayer(game).card_info_to_target.card_id) {
                 var self = this;
-                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card":card.id});})
+                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
             } else {
                 var self = this;
                 cardSprite
@@ -1429,7 +1438,7 @@ export class GameUX {
     setCardAnchors(cardSprite) {
         cardSprite.anchor.set(.5);
         for (let child of cardSprite.children) {
-            // graphics we draw don't have an anchor, like the circle for costBackground
+            // graphics don't have an anchor, such as the circle for costBackground
             if (child.anchor) {
                 child.anchor.set(.5);                
             }
@@ -1545,7 +1554,6 @@ export class GameUX {
 
         this.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower, yellowColor);
 
-
         imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + "hearts.svg"));
         imageSprite.tint = redColor;
         imageSprite.height = 17;
@@ -1553,7 +1561,6 @@ export class GameUX {
         imageSprite.position.x = defenseX;
         imageSprite.position.y = powerY;
         cardSprite.addChild(imageSprite);
-
 
         ptOptions.stroke = blackColor;
         ptOptions.strokeThickness = 2;
@@ -1588,7 +1595,6 @@ export class GameUX {
     circleBackground(x, y) {
         const circleRadius = 7;
         const background = new PIXI.Graphics();
-        
         background.beginFill(blackColor, 1);
         background.lineStyle(2, blackColor, 1); 
         background.drawCircle(0, 0, circleRadius);
@@ -1808,6 +1814,12 @@ export class GameUX {
             } else {
                 b.tint = lightRedColor;
             }
+
+            if (this.thisPlayer(game).card_info_to_target.effect_type) {
+                b.tint = menuGrayColor;
+                b.interactive = false;
+                title = "Choose Target";
+            }
         } else {
             title = "Waiting...";
             textFillColor = darkGrayColor;
@@ -1829,10 +1841,11 @@ export class GameUX {
             }
         }
         let text = new PIXI.Text(title, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textFillColor});
-        text.position.x = positionX;
-        text.position.y = 14;
+        text.anchor.set(.5);
+        b.anchor.set(.5);
         b.addChild(text);
-
+        b.position.x = this.buttonMenu.width / 2;
+        b.position.y = b.height;
 
         this.endTurnButton = b;
         this.buttonMenu.addChild(this.endTurnButton)
@@ -1864,11 +1877,11 @@ export class GameUX {
                 player = this.thisPlayer(game);
             }
 
-            let sprite = this.cardSprite(game, spell[1], player, false);
+            let sprite = this.cardSprite(game, spell[1], player);
             if (spell[0].move_type == moveTypeAttack) {
                 continue;
             }
-            sprite.scale.set(1.5);
+            sprite.scale.set(1.5)
             sprite.position.x = 100 + 20*index;
             sprite.position.y = this.inPlay.position.y + padding + 40*index;
             this.app.stage.addChild(sprite)
@@ -1912,17 +1925,6 @@ export class GameUX {
                     this.damageSprite(spriteToDamage, spriteId, damage_to_show);                    
                 }
             }, 200);   
-    }
-
-    manaString(maxMana, currentMana) {
-        var manaString = ""
-        for (var i=0;i<currentMana;i++) {
-            manaString += "✦"
-        }
-        for (var i=0;i<maxMana-currentMana;i++) {
-            manaString += "✧"
-        }
-        return manaString
     }
 
     manaGems(maxMana, currentMana) {
@@ -2020,15 +2022,14 @@ function onDragStart(event, cardSprite, gameUX, game) {
     cardSprite.off('mouseout', cardSprite.onMouseout);
     gameUX.onMouseout(cardSprite, gameUX);
 
-    clearDragFilters(cardSprite)
     cardSprite.dragging = true;
 
     if (cardSprite.card.turn_played == -1) {
-        gameUX.gameRoom.sendPlayMoveEvent("SELECT_CARD_IN_HAND", {"card":cardSprite.card.id});
+        gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":cardSprite.card.id});
     } else if (cardSprite.card.card_type == mobCardType) {
-        gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card":cardSprite.card.id});
+        gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":cardSprite.card.id});
     } else if (cardSprite.card.card_type == artifactCardType) {
-        gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card":cardSprite.card.id});
+        gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card":cardSprite.card.id});
         let enabled_effects = [];
         for (let e of cardSprite.card.effects) {
             if (e.effect_type == "activated" && e.enabled == true) {
@@ -2038,39 +2039,42 @@ function onDragStart(event, cardSprite, gameUX, game) {
         var dragging = true;
         for (let e of enabled_effects) {
             if (!["any", "any_enemy", "mob", "opponents_mob", "self_mob", "artifact", "any_player"].includes(e.target_type)) {
-                // e.target_type is in ["self", "opponent", artifactCardType, "all"]
-                dragging = false;
+               // e.target_type is in ["self", "opponent", artifactCardType, "all"]
+               cardSprite.dragging = false; 
             }
-        }
-        if (!dragging) {
-            clearDragFilters(cardSprite)
-            cardSprite.dragging = false; 
         }
     }
 
 }
 
+
 function onDragEnd(cardSprite, gameUX) {
     var playedMove = false;
     var collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
+    let opponentCollision = gameUX.bump.hit(cardSprite, gameUX.opponentAvatar);
+    let selfCollision = gameUX.bump.hit(cardSprite, gameUX.playerAvatar);
+    let handCollision = gameUX.bump.hit(cardSprite, gameUX.handContainer);
+    let inPlayCollision = gameUX.bump.hit(cardSprite, gameUX.inPlay);
+    let artifactsCollision = gameUX.bump.hit(cardSprite, gameUX.artifacts);
+
     if (cardSprite.card.turn_played == -1) {
-        if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
-            gameUX.gameRoom.sendPlayMoveEvent("PLAY_CARD_IN_HAND", {"card":cardSprite.card.id});
+        if(!handCollision && !cardSprite.card.needs_targets) {
+            gameUX.gameRoom.sendPlayMoveEvent(moveTypePlayCardInHand, {"card":cardSprite.card.id});
             playedMove = true;
-        } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
+        } else if(opponentCollision && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectOpponent, {});
             playedMove = true;
-        } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+        } else if(selfCollision && cardSprite.card.card_type == spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectSelf, {});
             playedMove = true;
         } else {
             if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
                 if (collidedSprite.card.turn_played == -1) {
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_STACK_SPELL", {"card": collidedSprite.card.id});
+                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectStackSpell, {"card": collidedSprite.card.id});
                 } else if (collidedSprite.card.card_type == mobCardType) {
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": collidedSprite.card.id});
+                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card": collidedSprite.card.id});
                 } else if (collidedSprite.card.card_type == artifactCardType) {
-                    gameUX.gameRoom.sendPlayMoveEvent("SELECT_ARTIFACT", {"card": collidedSprite.card.id});
+                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card": collidedSprite.card.id});
                 } else {
                     console.log("tried to select unknown card type: " + collidedSprite.card.card_type);
                 }
@@ -2078,50 +2082,48 @@ function onDragEnd(cardSprite, gameUX) {
             }
         }
     } else {  // it's a mob or artifact already in play
-        if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar)) {
+        if(opponentCollision) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectOpponent, {});
             playedMove = true;
-        } else if(!gameUX.bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == artifactCardType && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
+        } else if(!artifactsCollision && cardSprite.card.card_type == artifactCardType && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeActivateArtifact, {"card":cardSprite.card.id});
             playedMove = true;
         } else if (collidedSprite) {
-            gameUX.gameRoom.sendPlayMoveEvent("SELECT_MOB", {"card": collidedSprite.card.id});
+            gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card": collidedSprite.card.id});
             playedMove = true;
         }
     }
-    
     if(!playedMove) {
-        gameUX.gameRoom.sendPlayMoveEvent("UNSELECT", {});
+        gameUX.gameRoom.sendPlayMoveEvent(moveTypeUnselect, {});
     }
-
     cardSprite.dragging = false;
-    cardSprite.data = null;
-    clearDragFilters(cardSprite)
     gameUX.inPlay.filters = [];
     gameUX.opponentAvatar.filters = [];
 }
 
 
-function onDragMove(cardSprite, gameUX, bump) {
-    if (!cardSprite.dragging) {
+function onDragMove(dragSprite, gameUX, bump) {
+    if (!dragSprite.dragging) {
         return;
     }
-    var newPosition = cardSprite.data.getLocalPosition(cardSprite.parent);
-    cardSprite.position.x = newPosition.x;
-    cardSprite.position.y = newPosition.y;
-    var parent = cardSprite.parent;
-    parent.removeChild(cardSprite);
-    parent.addChild(cardSprite);
 
-    let opponentCollision = bump.hit(cardSprite, gameUX.opponentAvatar);
-    let selfCollision = bump.hit(cardSprite, gameUX.playerAvatar);
-    let handCollision = bump.hit(cardSprite, gameUX.handContainer);
-    let inPlayCollision = bump.hit(cardSprite, gameUX.inPlay);
-    let artifactsCollision = bump.hit(cardSprite, gameUX.artifacts);
-    let cardInHand = cardSprite.card.turn_played == -1;
+    // take sprite out of the hand container so it can collide with other sprites when dragged
+    var newPosition = dragSprite.data.getLocalPosition(dragSprite.parent);
+    dragSprite.position.x = newPosition.x;
+    dragSprite.position.y = newPosition.y;
+    var parent = dragSprite.parent;
+    parent.removeChild(dragSprite);
+    parent.addChild(dragSprite);
 
+    let collidedSprite = updateDraggedCardFilters(gameUX, dragSprite);
+    updatePlayerAvatarFilters(bump.hit(dragSprite, gameUX.opponentAvatar), gameUX.opponent(gameUX.game), gameUX.opponentAvatar);
+    updatePlayerAvatarFilters(bump.hit(dragSprite, gameUX.playerAvatar), gameUX.thisPlayer(gameUX.game), gameUX.playerAvatar);
+    updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite);
+}
+
+
+function updateDraggedCardFilters(gameUX, cardSprite){
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
-
     let newFilters = glowAndShadowFilters();
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
@@ -2130,32 +2132,36 @@ function onDragMove(cardSprite, gameUX, bump) {
     } else {
         newFilters = [canBeClickedFilter(), dropshadowFilter()]
     }
-
     if (!filtersAreEqual(cardSprite.filters, newFilters) || cardSprite.filters.length == 0) {
-        clearDragFilters(cardSprite, true);
+        clearDragFilters(cardSprite);
         for (let filter of newFilters) {
             if (!filtersContainsFilter(cardSprite.filters, filter)) {
                 cardSprite.filters.push(filter)
             }
         }
     }
+    return collidedSprite;
+}
 
-    if(opponentCollision && gameUX.opponent(gameUX.game).can_be_clicked) {
-        gameUX.opponentAvatar.filters = [targettableGlowFilter()];
-    } else if (gameUX.opponent(gameUX.game).can_be_clicked) {
-        gameUX.opponentAvatar.filters = [canBeClickedFilter()];
+
+function updatePlayerAvatarFilters(hasCollision, player, playerAvatar) {
+    if(hasCollision && player.can_be_clicked) {
+        if (!filtersAreEqual(playerAvatar.filters, [targettableGlowFilter()]) || playerAvatar.filters.length == 0) {
+            playerAvatar.filters = [targettableGlowFilter()];
+        }
+    } else if (player.can_be_clicked) {
+        if (!filtersAreEqual(playerAvatar.filters, [canBeClickedFilter()]) || playerAvatar.filters.length == 0) {
+            playerAvatar.filters = [canBeClickedFilter()];
+        }
     } else {
-        gameUX.opponentAvatar.filters = [cantBeClickedFilter()]; 
+        if (!filtersAreEqual(playerAvatar.filters, [cantBeClickedFilter()]) || playerAvatar.filters.length == 0) {
+            playerAvatar.filters = [cantBeClickedFilter()];
+        }
     }
+}
 
-    if(selfCollision && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-        gameUX.playerAvatar.filters = [targettableGlowFilter()];
-    } else if (gameUX.thisPlayer(gameUX.game).can_be_clicked) {
-        gameUX.playerAvatar.filters = [canBeClickedFilter()];
-    } else {
-        gameUX.thisPlayer.filters = [cantBeClickedFilter()]; 
-    }
 
+function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
     if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
         if (!filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]) || collidedSprite.filters.length == 0) {
             clearDragFilters(collidedSprite);
@@ -2164,14 +2170,17 @@ function onDragMove(cardSprite, gameUX, bump) {
     }
 
     for (let mob of gameUX.app.stage.children) {
-        if (mob.card && cardSprite.card.id != mob.card.id && (!collidedSprite || mob.card.id != collidedSprite.card.id)) {
-            clearDragFilters(mob);
+        if (mob.card && dragSprite.card.id != mob.card.id && (!collidedSprite || mob.card.id != collidedSprite.card.id)) {
             if (mob.card.can_be_clicked) {
-                if (!hasCanBeClickedFilter(mob)) {
+                if (!hasCanBeClickedFilter(mob) || hasCantBeTargettedFilter(mob)) {
+                    clearDragFilters(mob);
                     mob.filters.push(canBeClickedFilter());                                                        
                 }
             }  else {
-                mob.filters.push(cantBeTargettedFilter());                                                        
+                if (!hasCantBeTargettedFilter(mob) || hasCanBeClickedFilter(mob)) {
+                    clearDragFilters(mob);
+                    mob.filters.push(cantBeTargettedFilter());                                                        
+                }
             }
         }
     }
@@ -2207,6 +2216,11 @@ function filtersAreEqual(a, b) {
                     return false;
                 }
             }
+            if (filter.constructor.name == "AdjustmentFilter") {
+                if (filter.alpha != b[index].alpha) {
+                    return false;
+                }
+            }
             index++;
         }
     } else {
@@ -2218,8 +2232,21 @@ function filtersAreEqual(a, b) {
 
 function hasCanBeClickedFilter(cardSprite) {
     let newFilters = []
+    const cbcf = canBeClickedFilter()
     for (let filter of cardSprite.filters) {
-        if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 2 && filter.outerStrength == 0 && (filter.color == yellowColor)) {
+        if (filter.constructor.name == cbcf.constructor.name && filter.innerStrength == cbcf.innerStrength && filter.outerStrength == cbcf.outerStrength && (filter.color == cbcf.color)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+function hasCantBeTargettedFilter(cardSprite) {
+    let newFilters = []
+    const cbtf = cantBeTargettedFilter()
+    for (let filter of cardSprite.filters) {
+        if (filter.constructor.name == cbtf.constructor.name && filter.alpha == cbtf.alpha) {
             return true;
         }
     }
@@ -2230,14 +2257,11 @@ function hasCanBeClickedFilter(cardSprite) {
 function clearDragFilters(cardSprite) {
     let newFilters = []
     for (let filter of cardSprite.filters) {
-        // retain can be clicked filter
-        if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 2 &&  filter.outerStrength == 0 && (filter.color == yellowColor) && cardSprite.card.can_be_clicked) {
-             newFilters.push(filter);
-        // retain can be targetted filter
-        } else if (filter.constructor.name == "GlowFilter" && filter.innerStrength == 0 &&  filter.outerStrength == 1 && (filter.color == yellowColor) && cardSprite.card.can_be_clicked) {
-             newFilters.push(filter);
-        // retain Shield and Lurker and can be targetted filters
-        } else if (filter.constructor.name == "GlowFilter" && filter.outerStrength == 0 && filter.innerStrength == 3 && (filter.color == blackColor || filter.color == whiteColor)) {
+        const lf = lurkerFilter();
+        const sf = shieldFilter();
+        if (filter.constructor.name == lf.constructor.name && filter.outerStrength == lf.outerStrength && filter.innerStrength == lf.innerStrength && filter.color == lf.color) {
+            newFilters.push(filter);
+        } else if (filter.constructor.name == sf.constructor.name && filter.outerStrength == sf.outerStrength && filter.innerStrength == sf.innerStrength && filter.color == sf.color) {
             newFilters.push(filter);
         }
     }
@@ -2268,6 +2292,7 @@ function mostOverlappedNonInHandSprite(gameUX, cardSprite) {
     return collidedSprite;
 }
 
+
 function getOverlap(cardSprite, sprite) {
     var bounds = [cardSprite.position.x, cardSprite.position.y, cardSprite.position.x+cardSprite.width, cardSprite.position.y+cardSprite.height]
     var boundsMob = [sprite.position.x, sprite.position.y, sprite.position.x+sprite.width, sprite.position.y+sprite.height]
@@ -2285,6 +2310,7 @@ function arrowFilters() {
     ];
 }
 
+
 function glowAndShadowFilters() {
     return [
         targettableGlowFilter(),
@@ -2294,12 +2320,14 @@ function glowAndShadowFilters() {
 
 
 function canBeClickedFilter() {
-    return new GlowFilter({ innerStrength: 2, outerStrength: 0, color: yellowColor});
+    return new GlowFilter({ innerStrength: 1, outerStrength: 0, color: yellowColor});
 }
+
 
 function cantBeTargettedFilter() {
     return new AdjustmentFilter({ alpha: .5});
 }
+
 
 function cantBeClickedFilter() {
     return new AdjustmentFilter({ brightness: .7});
@@ -2310,10 +2338,22 @@ function dropshadowFilter() {
     return new GlowFilter({ outerStrength: 1 , color: blackColor});
 }
 
+
 function targettableGlowFilter() {
     return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
 }
 
+
 function arrowGlowFilter() {
     return new GlowFilter({ innerStrength: 0, outerStrength: 2, color: yellowColor});
+}
+
+
+function lurkerFilter() {
+    return new GlowFilter({ outerStrength: 0, innerStrength: 3, color: blackColor});
+}
+
+
+function shieldFilter() {
+    return new GlowFilter({ outerStrength: 0, innerStrength: 3, color: whiteColor});
 }
