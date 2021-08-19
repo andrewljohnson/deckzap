@@ -2165,6 +2165,10 @@ function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
     if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
         console.log("collided");
         console.log(collidedSprite.filters);
+        console.log("comparing filters")
+        console.log(collidedSprite.filters)
+        console.log([targettableGlowFilter()])
+        console.log("filters are equal: " + filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]))
         if (!filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]) || collidedSprite.filters.length == 0) {
             clearDragFilters(collidedSprite);
             console.log("Adding targettableGlowFilter to collidedSprite")
@@ -2201,41 +2205,35 @@ function filtersContainsFilter(filters, filter) {
 
 
 function filtersAreEqual(a, b) {
+
     let matches = true;
     if (a.length == b.length) {
         let index = 0;
         for(let filter of a) {
             if (filter.constructor.name != b[index].constructor.name) {
-                console.log("not same")
                 return false;
             }
             if (filter.constructor.name == "GlowFilter") {
                 if (filter.color != b[index].color) {
-                console.log("not same")
                     return false;
                 }
                 if (filter.innerStrength != b[index].innerStrength) {
-                console.log("not same")
                     return false;
                 }
                 if (filter.outerStrength != b[index].outerStrength) {
-                console.log("not same")
                     return false;
                 }
             }
             if (filter.constructor.name == "AdjustmentFilter") {
                 if (filter.alpha != b[index].alpha) {
-                console.log("not same")
                     return false;
                 }
             }
             index++;
         }
     } else {
-                console.log("not same")
        return false; 
     }
-                console.log("same")
     return true    
 }
 
