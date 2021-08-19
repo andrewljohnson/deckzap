@@ -187,4 +187,4 @@ var t=arguments[3];Object.defineProperty(exports,"__esModule",{value:!0}),export
 },{}],"ElCy":[function(require,module,exports) {
 "use strict";var e=require("../js/game"),m=require("../js/GameRoom"),r=new e.GameUX,a=new m.GameRoom(r);a.connect();
 },{"../js/game":"RIZA","../js/GameRoom":"c5hG"}]},{},["ElCy"], null)
-//# sourceMappingURL=/main.js.map
+//# sourceMappingURL=main.js.map
