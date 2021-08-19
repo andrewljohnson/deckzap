@@ -2124,6 +2124,7 @@ function onDragMove(dragSprite, gameUX, bump) {
 
 function updateDraggedCardFilters(gameUX, cardSprite){
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
+    console.log(collidedSprite);
     let newFilters = glowAndShadowFilters();
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
