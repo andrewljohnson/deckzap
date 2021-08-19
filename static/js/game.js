@@ -2163,15 +2163,8 @@ function updatePlayerAvatarFilters(hasCollision, player, playerAvatar) {
 
 function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
     if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
-        console.log("collided");
-        console.log(collidedSprite.filters);
-        console.log("comparing filters")
-        console.log(collidedSprite.filters)
-        console.log([targettableGlowFilter()])
-        console.log("filters are equal: " + filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]))
         if (!filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]) || collidedSprite.filters.length == 0) {
             clearDragFilters(collidedSprite);
-            console.log("Adding targettableGlowFilter to collidedSprite")
             collidedSprite.filters.push(targettableGlowFilter());                
         }
     }
@@ -2213,7 +2206,7 @@ function filtersAreEqual(a, b) {
             if (filter.constructor.name != b[index].constructor.name) {
                 return false;
             }
-            if (filter.constructor.name == "GlowFilter") {
+            if (filter.constructor.name == targettableGlowFilter().constructor.name) {
                 if (filter.color != b[index].color) {
                     return false;
                 }
@@ -2224,7 +2217,7 @@ function filtersAreEqual(a, b) {
                     return false;
                 }
             }
-            if (filter.constructor.name == "AdjustmentFilter") {
+            if (filter.constructor.name == cantBeTargettedFilter().constructor.name) {
                 if (filter.alpha != b[index].alpha) {
                     return false;
                 }
