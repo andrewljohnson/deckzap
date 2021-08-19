@@ -2200,33 +2200,43 @@ function filtersContainsFilter(filters, filter) {
 
 function filtersAreEqual(a, b) {
     let matches = true;
+    console.log(`comparing filters`)
+    console.log(a)
+    console.log(b)
     if (a.length == b.length) {
         let index = 0;
         for(let filter of a) {
             if (filter.constructor.name != b[index].constructor.name) {
+                console.log("not same")
                 return false;
             }
             if (filter.constructor.name == "GlowFilter") {
                 if (filter.color != b[index].color) {
+                console.log("not same")
                     return false;
                 }
                 if (filter.innerStrength != b[index].innerStrength) {
+                console.log("not same")
                     return false;
                 }
                 if (filter.outerStrength != b[index].outerStrength) {
+                console.log("not same")
                     return false;
                 }
             }
             if (filter.constructor.name == "AdjustmentFilter") {
                 if (filter.alpha != b[index].alpha) {
+                console.log("not same")
                     return false;
                 }
             }
             index++;
         }
     } else {
+                console.log("not same")
        return false; 
     }
+                console.log("same")
     return true    
 }
 
