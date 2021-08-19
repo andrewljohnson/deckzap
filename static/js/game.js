@@ -2124,7 +2124,6 @@ function onDragMove(dragSprite, gameUX, bump) {
 
 function updateDraggedCardFilters(gameUX, cardSprite){
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
-    console.log(collidedSprite);
     let newFilters = glowAndShadowFilters();
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
@@ -2164,8 +2163,11 @@ function updatePlayerAvatarFilters(hasCollision, player, playerAvatar) {
 
 function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
     if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
+        console.log("collided");
+        console.log(collidedSprite.filters);
         if (!filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]) || collidedSprite.filters.length == 0) {
             clearDragFilters(collidedSprite);
+            console.log("Adding targettableGlowFilter to collidedSprite")
             collidedSprite.filters.push(targettableGlowFilter());                
         }
     }
@@ -2200,9 +2202,6 @@ function filtersContainsFilter(filters, filter) {
 
 function filtersAreEqual(a, b) {
     let matches = true;
-    console.log(`comparing filters`)
-    console.log(a)
-    console.log(b)
     if (a.length == b.length) {
         let index = 0;
         for(let filter of a) {
