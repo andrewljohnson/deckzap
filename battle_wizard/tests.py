@@ -829,7 +829,7 @@ class GameObjectTests(TestCase):
 
     def test_multishot_guard(self):
         """
-            Test Multishot Bow obeys Guard on entities
+            Test Multishot Bow obeys Guard on mobs
         """
         dbName, game = self.game_for_decks([["Multishot Bow"], ["Air Elemental", "Orc"]])
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})

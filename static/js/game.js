@@ -763,7 +763,7 @@ export class GameUX {
             0,
             sprite.width,
             sprite.height,
-            1
+            2
         );
         graphics.endFill();
         sprite.mask = graphics;
@@ -850,6 +850,8 @@ export class GameUX {
         }
         if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make") {
             this.showMakeView(game);
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make_with_option") {
+            this.showMakeWithChoiceView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make_from_deck") {
             this.showMakeFromDeckView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
@@ -858,7 +860,9 @@ export class GameUX {
             this.showChooseCardView(game, "FETCH_CARD");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
-       } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_play") {
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_into_hand_from_played_pile") {
+            this.showChooseFromPlayedPileView(game, "FETCH_CARD_FROM_PLAYED_PILE");
+        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_play") {
             this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
             this.showRevealView(game);
@@ -868,56 +872,65 @@ export class GameUX {
     }
 
     showMakeView(game) {
-        var self = this;
-        this.showSelectCardView(game, "Make a Card", function(card) {
+        this.showSelectCardView(game, "Make a Card", card => {
                 if (card.global_effect) {
-                    self.gameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
+                    this.gameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
                 } else {
-                    self.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
+                    this.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
                 }
             });
     }
 
+    showMakeWithChoiceView(game) {
+        this.showSelectCardView(game, "Make a Card", card => {
+            this.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
+            },
+            "Or Keep Song of Patience");
+    }
+
     showMakeFromDeckView(game) {
-        var self = this;
-        this.showSelectCardView(game, "Make from Deck", function(card) {
-            self.gameRoom.sendPlayMoveEvent("FETCH_CARD", {"card":card.id});
+        this.showSelectCardView(game, "Make from Deck", card => {
+            this.gameRoom.sendPlayMoveEvent("FETCH_CARD", {"card":card.id});
         });
     }
 
     showRevealView(game) {
         this.showSelectCardView(game, "Opponent's Hand", null);
-        var self = this;
-
-        document.getElementById("make_selector").onclick = function() {
-            self.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
-            self.showGame();
-            this.onclick = null
+        let makeDiv = document.getElementById("make_selector");
+        makeDiv.onclick = () => {
+            this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+            this.showGame();
+            makeDiv.onclick = null
         }
-
         this.selectCardContainer
-                .on('click',        function (e) {
-                    self.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+                .on('click',        e => {
+                    this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
                 })        
     }
 
     showChooseCardView(game, event_name) {
-        var self = this;
-        this.showSelectCardView(game, "Your Deck", function (card) {
-                self.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
-            }, true);
+        this.showSelectCardView(game, "Your Deck", card => {
+                this.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
+            });
+        
+    }
+
+    showChooseFromPlayedPileView(game, event_name) {
+        this.showSelectCardView(game, "Your Played Pile", card => {
+                this.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
+            });
         
     }
 
     showRiffleView(game, event_name) {
         var self = this;
-        this.showSelectCardView(game, "Top 3 Cards", function (card) {
-                self.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
+        this.showSelectCardView(game, "Top 3 Cards", card => {
+                this.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
             });
         
     }
 
-    showSelectCardView(game, title, card_on_click, showFullDeck) {
+    showSelectCardView(game, title, card_on_click, cancelTitle=null) {
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         this.selectCardContainer = container;
@@ -942,12 +955,11 @@ export class GameUX {
         const cardContainer = new PIXI.Container();
         this.selectCardInnerContainer = cardContainer
         cardContainer.position.x = appWidth/2 - cardWidth*1.5;
-        if (showFullDeck) {
-            cardContainer.position.x = cardWidth;            
-        }
 
         var cards = this.thisPlayer(game).card_choice_info.cards;
-
+        if (cards.length >= 6) {
+            cardContainer.position.x = cardWidth;            
+        }
         // make global effect has 5 cards
         if (cards.length == 5) {
             cardContainer.position.x = appWidth/2 - cardWidth*2.5;            
@@ -956,7 +968,40 @@ export class GameUX {
         container.addChild(cardContainer);
 
         for (let i=0;i<cards.length;i++) {
-            this.addSelectViewCard(game, cards[i], cardContainer, card_on_click, i)
+            console.log(cards[i].id);
+            console.log(this.thisPlayer(game).card_choice_info.effect_card_id);
+            if (cards[i].id != this.thisPlayer(game).card_choice_info.effect_card_id) {
+                this.addSelectViewCard(game, cards[i], cardContainer, card_on_click, i)                
+            }
+        }
+
+        if (cancelTitle) {
+            let text = new PIXI.Text(cancelTitle, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : whiteColor});
+            text.position.x = padding * 2;
+            text.position.y = text.height;
+            const b = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+            this.roundRectangle(b)
+            b.width = text.width + padding * 4;
+            b.height = text.height*3;
+            b.tint = blueColor;
+            b.buttonMode = true;
+            b.interactive = true;
+            const clickFunction = () => {
+                this.gameRoom.sendPlayMoveEvent("CANCEL_MAKE", {});
+            };
+            b
+                .on("click", clickFunction)
+                .on("tap", clickFunction)
+            const cage = new PIXI.Container();
+            cage.position.x = appWidth / 2 - b.width/2;
+            cage.position.y = cardContainer.position.y + cardContainer.height + b.height;
+            cage.addChild(b);
+            cage.addChild(text);
+            cage.name = "button";
+            cage.text = text;
+            console.log(text);
+            cage.buttonSprite = b;
+            container.addChild(cage);
         }
     }
 
@@ -1355,11 +1400,6 @@ export class GameUX {
     }
 
     ellipsifyImageSprite(imageSprite, card, width, height) {
-        if (card.image && card.image.endsWith(".jpg")) {
-            // hax
-            width *= 3.4;
-            height *= 3.4;
-        }
         var bg = this.ellipseBackground(width, height, imageSprite.width);
         imageSprite.mask = bg;
         imageSprite.addChild(bg);        
@@ -1514,7 +1554,7 @@ export class GameUX {
             for (let c of card.tokens) {
                 if (c.multiplier == "self_artifacts" && player.artifacts) {
                     cardPower += c.power_modifier * player.artifacts.length;                        
-                } else if (c.multiplier == "self_entities_and_artifacts") {
+                } else if (c.multiplier == "self_mobs_and_artifacts") {
                     if (player.artifacts) {
                         cardPower += c.power_modifier * player.artifacts.length;                        
                     }

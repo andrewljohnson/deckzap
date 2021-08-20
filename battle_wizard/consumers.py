@@ -95,7 +95,7 @@ class BattleWizardConsumer(WebsocketConsumer):
                     being_cast, _ = self.game.get_in_play_for_id(move["card"])
                     target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
                     if target in self.game.current_player().in_play: 
-                        if being_cast.name in ["Faerie War Chant", "Faerie's Blessing"]:
+                        if being_cast.name in ["Faerie War Chant", "Mayor's Brandy"]:
                             chosen_move = move
 
                 if move["move_type"] == "RESOLVE_MOB_EFFECT":
