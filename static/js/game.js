@@ -36,9 +36,9 @@ const lightGrayColor = 0xEEEEEE;
 const menuGrayColor = 0x969696;
 
 // constants recognized by the game rules engine
-const artifactCardType = "Artifact";
-const mobCardType = "Mob";
-const spellCardType = "Spell";
+const artifactCardType = "artifact";
+const mobCardType = "mob";
+const spellCardType = "spell";
 
 // move types recognized by the game rules engine
 const moveTypeActivateArtifact = "ACTIVATE_ARTIFACT";
@@ -56,6 +56,7 @@ const moveTypeUnselect = "UNSELECT";
 // strings shown to user (todo: localize)
 const gameOverMessage = "GAME OVER"
 const newGameString = "New Game";
+const menuString = "Menu";
 
 export class GameUX {
 
@@ -90,7 +91,6 @@ export class GameUX {
         this.handTexture = PIXI.Texture.from("/static/images/hand.png");
         this.inPlayTexture = PIXI.Texture.from("/static/images/in_play.png");
         this.menuTexture = PIXI.Texture.from("/static/images/menu.png");
-        this.newGameButtonTexture = PIXI.Texture.from("/static/images/menu-button.png");
         this.tigerTexture = PIXI.Texture.from("/static/images/tiger.png");        
     }
 
@@ -193,25 +193,95 @@ export class GameUX {
         return background;
     }
 
-    newGameButton(game) {
-        const b = new PIXI.Sprite.from(this.newGameButtonTexture);
-        if (this.isPlaying(game)) {
-            b.buttonMode = true;
-            b.interactive = true;
+    menuButton(game) {
+        let button = this.button(
+            menuString, 
+            whiteColor, 
+            blackColor, 
+            0, 
+            0,
+            () => { this.showMenu() }, 
+        );
+        if (!this.isPlaying(game)) {
+            button.buttonSprite.buttonMode = false;
+            button.buttonSprite.interactive = false;
         }
-        let self = this;
-        let clickFunction = function() {
-            self.gameRoom.nextRoom()
-        };
-        b
+        return button;
+    }
+
+    showMenu() {
+        const container = new PIXI.Container();
+        this.app.stage.addChild(container);
+
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        background.width = appWidth;
+        background.height = appHeight;
+        background.tint = blackColor;
+        background.alpha = .7;
+        container.addChild(background);
+
+        let options = this.textOptions();
+        options.wordWrapWidth = 500
+        options.fontSize = 24;
+        options.fill = whiteColor;
+        options.align = "middle";
+        let name = new PIXI.Text(menuString, options);
+        name.position.x = appWidth/2 - name.width/2;
+        name.position.y = 170
+        container.addChild(name);
+
+        let cage = this.button(
+            newGameString, 
+            redColor, 
+            whiteColor, 
+            appWidth / 2, 
+            name.position.y + name.height,
+            () => { this.gameRoom.nextRoom()}, 
+            container
+        );
+
+        let cancelCage = this.button(
+            "Return to Game", 
+            darkGrayColor, 
+            whiteColor, 
+            appWidth / 2, 
+            cage.position.y + cage.height,
+            () => { this.app.stage.removeChild(container);}, 
+            container,
+        );
+
+    }
+
+    button(title, color, textColor, x, y, clickFunction, container=null, width=null) {
+        const buttonBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        this.roundRectangle(buttonBG)
+        let textSprite = new PIXI.Text(title, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textColor});
+        textSprite.position.y = textSprite.height;
+        buttonBG.width = textSprite.width + padding * 8;
+        textSprite.position.x = buttonBG.width/2 - textSprite.width/2;
+        if (width != null) {
+            buttonBG.width = width;
+            textSprite.position.x = width/2 - textSprite.width/2;
+        }        
+        buttonBG.height = textSprite.height * 3;
+        buttonBG.tint = color;
+        buttonBG.buttonMode = true;
+        buttonBG.interactive = true;
+        buttonBG
             .on("click", clickFunction)
             .on("tap", clickFunction)
-
-        let text = new PIXI.Text(newGameString, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : blackColor});
-        text.anchor.set(.5);
-        b.anchor.set(.5);
-        b.addChild(text);
-        return b;
+        const cage = new PIXI.Container();
+        cage.position.x = x - buttonBG.width/2;
+        cage.position.y = y + buttonBG.height;
+        cage.addChild(buttonBG);
+        cage.addChild(textSprite);
+        cage.name = "button";
+        cage.text = textSprite;
+        cage.buttonSprite = buttonBG;
+        if (container) {
+            container.addChild(cage);            
+        }
+        return cage;
     }
 
     // render images that aren't in the cache, then refresh display
@@ -599,12 +669,12 @@ export class GameUX {
     }
 
     addNewGameButton(game) {
-        if (!this.newGameButtonAdded) {
-            let newGameButton = this.newGameButton(game);
-            newGameButton.position.x = this.buttonMenu.width / 2;
-            newGameButton.position.y = this.buttonMenu.height - newGameButton.height;
-            this.buttonMenu.addChild(newGameButton);
-            this.newGameButtonAdded = true;
+        if (!this.menuButtonAdded) {
+            let menuButton = this.menuButton(game);
+            menuButton.position.x = this.buttonMenu.width / 2 - menuButton.width/2;
+            menuButton.position.y = this.buttonMenu.height - menuButton.height * 1.5;
+            this.buttonMenu.addChild(menuButton);
+            this.menuButtonAdded = true;
         }
     }
 
@@ -826,7 +896,7 @@ export class GameUX {
             return;
         }
 
-        // hax: prevents spurious onMousover events from firing during rendering all the cards
+        // hax: prevents spurious onMouseover events from firing during rendering all the cards
         setTimeout(() => { 
             for (let sprite of this.app.stage.children) {
                 if (sprite.card) {
@@ -948,7 +1018,7 @@ export class GameUX {
         options.align = "middle";
         let name = new PIXI.Text(title, options);
         name.position.x = appWidth/2 - name.width/2;
-        name.position.y = 80
+        name.position.y = 170
         container.addChild(name);
 
         const cardContainer = new PIXI.Container();
@@ -963,7 +1033,7 @@ export class GameUX {
         if (cards.length == 5) {
             cardContainer.position.x = appWidth/2 - cardWidth*2.5;            
         }
-        cardContainer.position.y = 140;
+        cardContainer.position.y = name.position.y + 60;
         container.addChild(cardContainer);
 
         for (let i=0;i<cards.length;i++) {
@@ -1272,7 +1342,7 @@ export class GameUX {
                 }
             }
 
-            let type = new PIXI.Text(typeName, typeOptions);
+            let type = new PIXI.Text(typeName.charAt(0).toUpperCase() + typeName.slice(1), typeOptions);
             type.position.x = typeX + 20;
             type.position.y = typeY + 6
             cardSprite.addChild(type);
@@ -1304,7 +1374,7 @@ export class GameUX {
 
         this.setCardDragListeners(card, cardSprite, game);
         if (!useLargeSize) {
-            this.setCardMouseoverListeners(cardSprite);
+            this.setCardMouseoverListeners(cardSprite, game);
         }
         this.setCardAnchors(cardSprite);
         
@@ -1379,7 +1449,7 @@ export class GameUX {
         }
 
         this.setCardDragListeners(card, cardSprite, game);
-        this.setCardMouseoverListeners(cardSprite);
+        this.setCardMouseoverListeners(cardSprite, game);
 
         this.setCardAnchors(cardSprite);
 
@@ -1484,9 +1554,9 @@ export class GameUX {
         }
     }
 
-    setCardMouseoverListeners(cardSprite) {
+    setCardMouseoverListeners(cardSprite, game) {
         let self = this;
-        cardSprite.onMouseover = function ()  {self.onMouseover(cardSprite)};
+        cardSprite.onMouseover = function ()  {self.onMouseover(cardSprite, game)};
         cardSprite.onMouseout = function ()  {self.onMouseout(cardSprite)};
         cardSprite
             .on('mouseover',        cardSprite.onMouseover)
@@ -1503,7 +1573,7 @@ export class GameUX {
         }        
     }
 
-    onMouseover(cardSprite) {
+    onMouseover(cardSprite, game) {
         this.hovering = true;
         this.hoverTimeout = setTimeout(() => { 
             if (this.hovering) {
@@ -1521,17 +1591,17 @@ export class GameUX {
                         .9,
                     );
                     this.app.loader.load(() => {
-                        this.addHoverCard(cardSprite);
+                        this.addHoverCard(cardSprite, game);
                     });                     
                 } else {
-                    this.addHoverCard(cardSprite);
+                    this.addHoverCard(cardSprite, game);
                 }
             }
         }, 300);
 
     }
 
-    addHoverCard(cardSprite) {
+    addHoverCard(cardSprite, game) {
         let sprite = this.cardSprite(this.game, cardSprite.card, this.thisPlayer(this.game), false, true);
         sprite.position.x = cardSprite.position.x + cardWidth/2;
         sprite.position.y = cardSprite.position.y - cardHeight*1.5;
@@ -1539,9 +1609,14 @@ export class GameUX {
             sprite.position.y = cardHeight;
             sprite.position.x = cardSprite.position.x + cardWidth*1.5 + 10;
         }
+        // hax - because cards are in an unusual container?
+        if (this.thisPlayer(game).card_choice_info.cards.length) {
+            sprite.position.x += cardWidth * 2.5 + padding * 2;
+        }
         if (sprite.position.x >= 677) {
             sprite.position.x = cardSprite.position.x - cardWidth;
         }
+
         this.app.stage.addChild(sprite)
         this.hoverCards = sprite;        
     }
@@ -1847,14 +1922,6 @@ export class GameUX {
             this.buttonMenu.removeChild(this.endTurnButton)
         }
 
-        const b = new PIXI.Sprite.from(this.newGameButtonTexture);
-        b.position.x = 23;
-        b.position.y = 17;
-        if (this.isPlaying(game)) {
-            b.buttonMode = true;
-            b.interactive = true;
-        }
-
         let clickFunction = () => {
             if (game.stack.length > 0 && game.stack[game.stack.length-1][0].move_type == moveTypeAttack) {
                 this.gameRoom.passForAttack(message)
@@ -1871,53 +1938,60 @@ export class GameUX {
                 this.ropeSprite = null;
             }
         };
-        b
-            .on('click', clickFunction)
-            .on('tap', clickFunction)
 
         let title = "End Turn";
         let textFillColor = whiteColor;
+        let buttonColor = null;
+        
         if (this.isActivePlayer(game)) {
             if (!this.activePlayerHasMoves(game) || game.stack.length > 0) {
-                b.tint = redColor;
+                buttonColor = redColor;
             } else {
-                b.tint = lightRedColor;
+                buttonColor = lightRedColor;
             }
 
             if (this.thisPlayer(game).card_info_to_target.effect_type) {
-                b.tint = menuGrayColor;
-                b.interactive = false;
+                buttonColor = menuGrayColor;
                 title = "Choose Target";
             }
         } else {
             title = "Waiting...";
             textFillColor = darkGrayColor;
-            b.interactive = false;
         }
-        let positionX = 27;
 
         if (game.stack.length > 0) {
             if (this.isActivePlayer(game)) {
                 title = "OK";
-                if (game.stack[game.stack.length-1][0].move_type == moveTypeAttack) {
-                    title = "OK"
-                }
-                positionX = 45;
             } else {    
                 title = "Waiting...";
-                positionX = 28;
-
             }
         }
-        let text = new PIXI.Text(title, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textFillColor});
-        text.anchor.set(.5);
-        b.anchor.set(.5);
-        b.addChild(text);
-        b.position.x = this.buttonMenu.width / 2;
-        b.position.y = b.height;
+
+        let b = this.button(
+            title, 
+            buttonColor, 
+            textFillColor, 
+            23, 
+            17,
+            clickFunction, 
+            this.buttonMenu,
+        );
+        b.position.x = b.parent.width/2 - b.width/2;
+        b.position.y = b.height / 2;
+
+        if (this.isActivePlayer(game)) {
+            if (this.thisPlayer(game).card_info_to_target.effect_type) {
+                b.interactive = false;
+            }
+        } else {
+            b.interactive = false;
+        }
+        if (!this.isPlaying(game)) {
+            b.buttonSprite.buttonMode = false;
+            b.buttonSprite.interactive = false;
+        }
 
         this.endTurnButton = b;
-        this.buttonMenu.addChild(this.endTurnButton)
 
         let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textFillColor, align: "center"});
         turnText.position.x = this.buttonMenu.width/2;

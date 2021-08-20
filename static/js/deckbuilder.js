@@ -1,3 +1,9 @@
+// constants recognized by the game rules engine
+const artifactCardType = "artifact";
+const mobCardType = "mob";
+const spellCardType = "spell";
+
+
 class DeckBuilder {
 
 	constructor(deck) {
@@ -58,7 +64,7 @@ class DeckBuilder {
 				}
 				if (!(card.name in self.deck["cards"])) {
 					self.deck["cards"][card.name] = 1
-				} else if (self.deck["cards"][card.name] == 1 && card.card_type == "Artifact") {
+				} else if (self.deck["cards"][card.name] == 1 && card.card_type == artifactCardType) {
 					console.log("can't add more than 1 artifact")
 					return;
 				} else if (self.deck["cards"][card.name] == 1 && isUnique) {
@@ -98,7 +104,7 @@ class DeckBuilder {
 			descriptionDiv.innerHTML = card.description;
 			cardRow.appendChild(descriptionDiv);
 		}
-		if (card.card_type != "Spell" && card.card_type != "Artifact" ) {
+		if (card.card_type != spellCardType && card.card_type != artifactCardType ) {
 			let powerToughnessDiv = document.createElement("div");
 			powerToughnessDiv.innerHTML = card.power + "/" + card.toughness;
             powerToughnessDiv.style.position = "absolute";

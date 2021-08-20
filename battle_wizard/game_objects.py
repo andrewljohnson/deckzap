@@ -9,6 +9,11 @@ from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tin
 from battle_wizard.jsonDB import JsonDB
 
 
+spellCardType = "spell"
+mobCardType = "mob"
+artifactCardType = "artifact"
+
+
 class Game:
     def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None, hs_style=True):
 
@@ -305,9 +310,9 @@ class Game:
         elif move_type == 'FETCH_CARD_FROM_PLAYED_PILE':
             message = self.fetch_card_from_played_pile(message)        
         elif move_type == 'FETCH_CARD':
-            message = self.fetch_card(message, "Artifact")        
+            message = self.fetch_card(message, artifactCardType)        
         elif move_type == 'FETCH_CARD_INTO_PLAY':
-            message = self.fetch_card(message, "Artifact", into_play=True)        
+            message = self.fetch_card(message, artifactCardType, into_play=True)        
         elif move_type == 'FINISH_RIFFLE':
             message = self.finish_riffle(message)        
         # moves that get triggered indirectly from game UX actions (e.g. SELECT_MOB twice could be an ATTACK)
@@ -468,21 +473,21 @@ class Game:
             card.needs_targets = card.needs_targets_for_spell()
             if cp.current_mana() >= card.cost:
                 card.can_be_clicked = True
-                if card.card_type == "Artifact":
+                if card.card_type == artifactCardType:
                     card.can_be_clicked = len(cp.artifacts) != 3
-                if card.card_type == "Spell" and card.needs_mob_target():
+                if card.card_type == spellCardType and card.needs_mob_target():
                     card.can_be_clicked = False
                     if len(cp.in_play + opp.in_play) > 0:
                         for mob in cp.in_play + opp.in_play:
                             if not mob.has_ability("Lurker"):
                                 card.can_be_clicked = True
-                if card.card_type == "Spell" and card.needs_artifact_target():
+                if card.card_type == spellCardType and card.needs_artifact_target():
                     card.can_be_clicked = False if len(cp.artifacts) == 0 and len(opp.artifacts) == 0 else True
-                if card.card_type == "Spell" and card.needs_stack_target():
+                if card.card_type == spellCardType and card.needs_stack_target():
                     card.can_be_clicked = card.has_stack_target(self)
-                if card.card_type == "Mob" and not cp.can_summon():
+                if card.card_type == mobCardType and not cp.can_summon():
                     card.can_be_clicked = False
-                if card.card_type != "Spell" and len(self.stack) > 0:
+                if card.card_type != spellCardType and len(self.stack) > 0:
                     card.can_be_clicked = False
                     if card.has_ability("Superfast"):
                         card.can_be_clicked = True
@@ -630,13 +635,13 @@ class Game:
     def set_targets_for_being_cast_spell_effect(self):
         for spell in self.stack:
             card = spell[1]
-            if card["card_type"] == "Spell":
+            if card["card_type"] == spellCardType:
                 card["can_be_clicked"] = True
 
     def set_targets_for_being_cast_mob_effect(self):
         for spell in self.stack:
             card = spell[1]
-            if card["card_type"] == "Mob":
+            if card["card_type"] == mobCardType:
                 card["can_be_clicked"] = True
 
     def set_targets_for_opponents_mob_effect(self, target_restrictions):
@@ -888,7 +893,7 @@ class Game:
                 if effect.name == "spell_from_yard":
                     spells = []
                     for card in self.current_player().played_pile:
-                        if card.card_type == "Spell":
+                        if card.card_type == spellCardType:
                             spells.append(card)
                     if len(spells) == 0:
                         continue
@@ -924,16 +929,16 @@ class Game:
         if card.needs_artifact_target() and len(self.current_player().artifacts) == 0 and len(self.opponent().artifacts) == 0 :
             print(f"can't select artifact targetting spell with no artifacts in play")
             return None
-        elif card.card_type == "Spell" and card.needs_mob_target() and not has_mob_target:
+        elif card.card_type == spellCardType and card.needs_mob_target() and not has_mob_target:
             print(f"can't select mob targetting spell with no mobs without Lurker in play")
             return None
         elif card.has_ability("Instrument Required") and not self.current_player().has_instrument():
             print(f"can't cast {card.name} without having an Instument")
             return None
-        elif card.card_type == "Artifact" and not self.current_player().can_play_artifact():
+        elif card.card_type == artifactCardType and not self.current_player().can_play_artifact():
             print(f"can't play artifact")
             return None
-        elif card.card_type == "Mob" and not self.current_player().can_summon():
+        elif card.card_type == mobCardType and not self.current_player().can_summon():
             print(f"can't play Mob because can_summon is false")
             return None
         elif card.cost > self.current_player().current_mana():
@@ -977,7 +982,7 @@ class Game:
             if spell[1]["id"] == message["card"]:
                 stack_spell = spell
         stack_spell_card = Card(stack_spell[1])
-        if effect.target_type == "being_cast_mob" and stack_spell_card.card_type != "Mob":
+        if effect.target_type == "being_cast_mob" and stack_spell_card.card_type != mobCardType:
             print(f"can't select non-mob with mob-counterspell")
             return None
 
@@ -1185,7 +1190,7 @@ class Game:
                     return None                
             if effect.name == "attack":
                 if target_player.has_guard():
-                    print(f"can't attack {target_player.username} because an Mob has Guard")
+                    print(f"can't attack {target_player.username} because a Mob has Guard")
                     return None                
             using_artifact = True
             message = self.select_player_target_for_artifact_effect(target_player.username, self.current_player().selected_artifact(), message)
@@ -1306,7 +1311,7 @@ class Game:
             elif e.target_type == "all":
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
             # todo unhardcode for other fetch types if we can fetch more than Artifacts
-            elif e.target_type == "Artifact":
+            elif e.target_type == artifactCardType:
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": message["username"], "target_type": e.target_type}], 0)
             elif e.target_type == "self_mob":
                 message = self.select_mob_target_for_artifact_activated_effect(artifact, message)
@@ -1388,13 +1393,14 @@ class Game:
         for c in self.current_player().deck:
             if c.id == message['card']:
                 card = c
-        if card_type == "Artifact":
+        if card_type == artifactCardType:
             if into_play:
                 self.current_player().play_artifact(card)
             else:
                 self.current_player().hand.append(card)
             self.current_player().deck.remove(card)
-        message["log_lines"].append(f"{message['username']} chose {card.name}.")
+        if into_play:
+            message["log_lines"].append(f"{message['username']} chose {card.name}.")
 
         self.current_player().reset_card_choice_info()
         return message
@@ -1903,6 +1909,8 @@ class Player:
         for c in Game.all_cards():
             if c.name == card_name:
                 card = c
+        if not card:
+            print("Error: couldn't add_to_deck " + card_name)
         for x in range(0, count):
             new_card = copy.deepcopy(card)
             if card_cost is not None:
@@ -2214,7 +2222,7 @@ class Player:
 
             mobs = []
             for c in target_player.deck:
-                if c.card_type == "Mob":
+                if c.card_type == mobCardType:
                     mobs.append(c)
 
             if len(mobs) > 0:
@@ -2230,7 +2238,7 @@ class Player:
         elif e.target_type == "all_players" and e.amount == -1:
             mobs = []
             for c in Game.all_cards():
-                if c.card_type == "Mob":
+                if c.card_type == mobCardType:
                     mobs.append(c)
             for p in self.game.players:
                 while len(p.in_play) < 7:
@@ -2253,7 +2261,7 @@ class Player:
 
             artifacts = []
             for c in target_player.deck:
-                if c.card_type == "Artifact":
+                if c.card_type == artifactCardType:
                     artifacts.append(c)
 
             if len(artifacts) > 0:
@@ -2498,7 +2506,7 @@ class Player:
         return target_player.riffle(amount)
 
     def do_fetch_card_effect_on_player(self, card, target_player_username, card_type, target_restrictions, choice_type=None):
-        if card_type == "Artifact":
+        if card_type == artifactCardType:
             target_player = self.game.players[0]
             if target_player.username != target_player_username:
                 target_player = self.game.players[1]
@@ -2732,13 +2740,13 @@ class Player:
             return
 
         requiredMobCost = None
-        if self.game.turn <= 10 and make_type == "Mob":
+        if self.game.turn <= 10 and make_type == mobCardType:
             requiredMobCost = math.floor(self.game.turn / 2) + 1
 
         all_cards = Game.all_cards(require_images=True, include_tokens=False)
         banned_cards = ["Make Spell", "Make Spell+", "Make Mob", "Make Mob+"]
         card1 = None 
-        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == "Mob" and card1.cost != requiredMobCost):  #or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
+        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == mobCardType and card1.cost != requiredMobCost):  #or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
             card1 = random.choice(all_cards)
         card2 = None
         while not card2 or card2.name in banned_cards or (make_type != "any" and card2.card_type != make_type) or card2 == card1: #or (self.race != None and card2.race != None and self.race not in [card2.race, f"{card2.race}_{card2.card_class}"]):
@@ -2754,7 +2762,7 @@ class Player:
             self.card_choice_info["effect_card_id"] = card.id
        
         # todo: hax for Find Artifact
-        if make_type == "Artifact":
+        if make_type == artifactCardType:
             for c in self.card_choice_info["cards"]:
                 c.cost = 3
         
@@ -2791,7 +2799,7 @@ class Player:
         all_cards = Game.all_cards()
         artifacts = []
         for card in self.deck:
-            if card.card_type == "Artifact":
+            if card.card_type == artifactCardType:
                 if len(target_restrictions) == 0 or \
                     (list(target_restrictions[0].keys())[0] == "needs_weapon" and card.has_ability("Weapon")) or \
                     (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
@@ -2902,7 +2910,7 @@ class Player:
             caster = self.game.players[0]
         nonspells = []
         for card in target.hand:
-            if card.card_type != "Spell":
+            if card.card_type != spellCardType:
                 nonspells.append(card)
         if len(nonspells) > 0:
             to_summon = random.choice(nonspells)
@@ -2934,10 +2942,10 @@ class Player:
 
         spell_to_resolve = self.play_mob_or_artifact(card, spell_to_resolve)
 
-        if card.card_type == "Mob" and card.has_ability("Shield"):
+        if card.card_type == mobCardType and card.has_ability("Shield"):
             card.shielded = True
 
-        if len(card.effects) > 0 and card.card_type != "Mob":
+        if len(card.effects) > 0 and card.card_type != mobCardType:
             if not "effect_targets" in spell_to_resolve:
                 spell_to_resolve["effect_targets"] = []
            
@@ -2966,7 +2974,7 @@ class Player:
                     card.level += 1
                     card.level = min(card.level, len(card.effects[0].card_names)-1)
 
-        if card.card_type == "Spell":
+        if card.card_type == spellCardType:
             self.played_pile.append(card)            
 
         spell_to_resolve["card_name"] = card.name
@@ -2975,7 +2983,7 @@ class Player:
         return spell_to_resolve
 
     def play_mob_or_artifact(self, card, spell_to_resolve, do_effects=True):
-        if card.card_type == "Mob":
+        if card.card_type == mobCardType:
             if len(card.effects) > 0 and do_effects:
                 self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
             for c in self.in_play:
@@ -2995,7 +3003,7 @@ class Player:
                                         self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
                                 spell_to_resolve["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {mob.name}.")
             self.play_mob(card)
-        elif card.card_type == "Artifact":
+        elif card.card_type == artifactCardType:
             self.play_artifact(card)
             if card.has_ability("Slow Artifact"):
                 card.effects_exhausted.append(card.effects[0].name)
@@ -3117,13 +3125,13 @@ class Player:
         return spell_to_resolve
 
     def modify_new_card(self, game, card):
-        if card.card_type == "Spell":            
+        if card.card_type == spellCardType:            
             if 'spells_cost_more' in game.global_effects:
                 card.cost += game.global_effects.count('spells_cost_more')
             if 'spells_cost_less' in game.global_effects:
                 card.cost -= game.global_effects.count('spells_cost_less')
                 card.cost = max(0, card.cost)
-        elif card.card_type == "Mob":            
+        elif card.card_type == mobCardType:            
             if 'mobs_cost_more' in game.global_effects:
                 card.cost += game.global_effects.count('mobs_cost_more')
             if 'mobs_cost_less' in game.global_effects:
@@ -3378,7 +3386,7 @@ class Card:
         self.attacked = info["attacked"] if "attacked" in info else False
         self.can_activate_abilities = info["can_activate_abilities"] if "can_activate_abilities" in info else True
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
-        self.card_type = info["card_type"] if "card_type" in info else "Mob"
+        self.card_type = info["card_type"] if "card_type" in info else mobCardType
         self.card_class = info["class"] if "class" in info else None
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
@@ -3565,11 +3573,11 @@ class Card:
                 continue
             if e.target_type == "being_cast":
                 return True
-            if e.target_type == "being_cast_mob" and card.card_type == "Mob":
+            if e.target_type == "being_cast_mob" and card.card_type == mobCardType:
                 return True
-            if e.target_type == "being_cast_spell" and card.card_type == "Spell":
+            if e.target_type == "being_cast_spell" and card.card_type == spellCardType:
                 return True
-            if e.target_type == "being_cast_artifact" and card.card_type == "Artifact":
+            if e.target_type == "being_cast_artifact" and card.card_type == artifactCardType:
                 return True
         return False
 
@@ -3593,7 +3601,7 @@ class Card:
     def needs_target_for_activated_effect(self, effect_index):
         e = self.enabled_activated_effects()[effect_index]
         # todo: Artifact target_type because of fetch_card, maybe refactor:
-        if e.target_type in ["self", "opponent", "Artifact", "all"]: 
+        if e.target_type in ["self", "opponent", artifactCardType, "all"]: 
             return False
         return True
 
