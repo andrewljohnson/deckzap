@@ -864,8 +864,6 @@ export class GameUX {
             this.showChooseFromPlayedPileView(game, "FETCH_CARD_FROM_PLAYED_PILE");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_play") {
             this.showChooseCardView(game, "FETCH_CARD_INTO_PLAY");
-        } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "view_hand") {
-            this.showRevealView(game);
         } else {
             // not a choose cards view
         }                           
@@ -968,8 +966,6 @@ export class GameUX {
         container.addChild(cardContainer);
 
         for (let i=0;i<cards.length;i++) {
-            console.log(cards[i].id);
-            console.log(this.thisPlayer(game).card_choice_info.effect_card_id);
             if (cards[i].id != this.thisPlayer(game).card_choice_info.effect_card_id) {
                 this.addSelectViewCard(game, cards[i], cardContainer, card_on_click, i)                
             }
@@ -999,7 +995,6 @@ export class GameUX {
             cage.addChild(text);
             cage.name = "button";
             cage.text = text;
-            console.log(text);
             cage.buttonSprite = b;
             container.addChild(cage);
         }
@@ -1077,6 +1072,33 @@ export class GameUX {
         }
         cardSprite.addChild(nameBackground);
 
+        for (let e of card.effects) {
+            // hax, don't reference card name
+            if (e.name == "evolve" && card.name != "Warty Evolver") {
+                let evolveLabelOptions = this.textOptions();
+                evolveLabelOptions.fill = whiteColor;
+                evolveLabelOptions.fontSize = 6;
+                const evolveLabel = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+                evolveLabel.tint = blueColor;
+                evolveLabel.height = 6;
+                evolveLabel.alpha = .7;
+                evolveLabel.position.x = aFX + 8;
+                evolveLabel.position.y = aFY + 2 - evolveLabel.height - padding;
+                if (useLargeSize) {
+                    evolveLabelOptions.fontSize = defaultFontSize;
+                    evolveLabel.position.x -= 4
+                    evolveLabel.height = 12;
+                    evolveLabel.position.y += evolveLabel.height
+                }
+                cardSprite.addChild(evolveLabel);
+                let evolveText = new PIXI.Text("Evolved", evolveLabelOptions);
+                evolveLabel.width = evolveText.width + padding;
+                cardSprite.addChild(evolveText);
+                evolveText.position.x = evolveLabel.position.x;
+                evolveText.position.y = evolveLabel.position.y;
+            }
+        }
+
         nameOptions.fill = whiteColor;
         let name = new PIXI.Text(card.name, nameOptions);
         cardSprite.addChild(name);
@@ -1136,17 +1158,6 @@ export class GameUX {
 
         }            
 
-        let descriptionOptions = this.textOptions();
-        if (useLargeSize) {
-            descriptionOptions.wordWrapWidth = 142;
-            descriptionOptions.fontSize = defaultFontSize;
-        }
-
-        if (card.description && card.description.length > 120) {
-            descriptionOptions.fontSize = 6; 
-        }
-
-
         var abilitiesText = "";
         var color = darkGrayColor;
         for (let a of card.abilities) {
@@ -1175,7 +1186,7 @@ export class GameUX {
            }
         }
 
-        var baseDescription =  card.description;
+        var baseDescription =  card.description ? card.description : "";
         if (card.name == "Tame Shop Demon") {
            baseDescription = card.effects[0].card_descriptions[card.level];
         }
@@ -1184,6 +1195,21 @@ export class GameUX {
            baseDescription = `Deal ${damage} damage. Improves when cast.`;
         }
 
+        if (card.added_descriptions.length) {
+            for (let d of card.added_descriptions) {
+                baseDescription += " " + d
+            }
+        }
+        let descriptionOptions = this.textOptions();
+        if ((abilitiesText + ". " + baseDescription).length > 95) {
+            descriptionOptions.fontSize = 6; 
+        }
+        if (useLargeSize) {
+            descriptionOptions.wordWrapWidth = 142;
+            descriptionOptions.fontSize = defaultFontSize;
+        }
+
+
         let description = new PIXI.Text(abilitiesText + ". " + baseDescription, descriptionOptions);
         if (abilitiesText.length == 0) {
             description = new PIXI.Text(baseDescription, descriptionOptions);
@@ -1191,6 +1217,7 @@ export class GameUX {
         if (abilitiesText.length != 0 && !baseDescription) {
             description = new PIXI.Text(abilitiesText + ". ", descriptionOptions);
         }
+
         if (baseDescription || abilitiesText.length) {
             // todo don't hardcode hide description for Infernus
             // todo don't hardcode hide description for Winding One
@@ -1203,16 +1230,6 @@ export class GameUX {
         description.position.y = name.position.y + 28;
         if (useLargeSize) {
             description.position.y += 20 + 2;
-        }
-
-        var addedDescription = null;
-        if (card.added_descriptions.length) {
-            for (let d of card.added_descriptions) {
-                addedDescription = new PIXI.Text(d, this.textOptions());
-                addedDescription.position.x = name.position.x;
-                addedDescription.position.y = description.position.y + description.height;
-                cardSprite.addChild(description);
-            }
         }
 
         if (useLargeSize) {
@@ -1734,6 +1751,17 @@ export class GameUX {
                 textContainer.addChild(abilityText);
             }
         }
+        for (let e of card.effects) {
+            if (e.name == "evolve") {
+                let effectText = new PIXI.Text("", options);
+                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
+                effectText.position.x -= cw/2 - 4;
+                effectText.position.y = yPosition - ch/2 + 2;
+                yPosition += effectText.height + 10;
+                textContainer.addChild(effectText);
+            }                    
+        }
+
         if (yPosition == 0) {
             cardSprite.removeChild(topBG);
             cardSprite.removeChild(textContainer);

@@ -54,7 +54,7 @@ def build_deck(request):
         for d in decks:
             if d["id"] == int(deck_id):
                 deck = d
-    all_cards = JsonDB().all_cards()
+    all_cards = JsonDB().all_cards(require_images=True, include_tokens=False)
     all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     return render(request, "build_deck.html", 
         {

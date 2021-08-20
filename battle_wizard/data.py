@@ -55,6 +55,7 @@ def default_deck_dwarf_bard():
             "Song of Patience": 1,
             "Study the Music": 1,
             "Town Council": 1,
-            "Song of Rebirth": 1
+            "Song of Rebirth": 1,
+            "Warty Evolver": 1,
         }
     }

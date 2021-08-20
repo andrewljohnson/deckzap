@@ -102,9 +102,15 @@ class JsonDB:
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
 
-    def all_cards(self):
+    def all_cards(self, require_images=False, include_tokens=True):
         json_data = open('battle_wizard/battle_wizard_cards.json')
-        return json.load(json_data)  
+        all_cards = json.load(json_data)
+        subset = []
+        for c in all_cards:
+            if include_tokens or ("is_token" not in c or c["is_token"] == False):
+                if "image" in c or not require_images:
+                    subset.append(c)
+        return subset
 
     def player_database(self):
         try:

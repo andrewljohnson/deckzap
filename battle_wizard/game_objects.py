@@ -68,16 +68,17 @@ class Game:
         }
 
     @staticmethod
-    def all_cards():
+    def all_cards(require_images=False, include_tokens=True):
         """
             Returns a list of all possible cards in the game. 
         """
         all_cards = [Card(c_info) for c_info in JsonDB().all_cards()]
-        all_cards_with_images = []
+        subset = []
         for c in all_cards:
-            if c.image:
-                all_cards_with_images.append(c)
-        return all_cards_with_images
+            if include_tokens or not c.is_token:
+                if c.image or not require_images:
+                    subset.append(c)
+        return subset
 
     def current_player(self):
         return self.players[self.actor_turn % 2]
@@ -97,6 +98,9 @@ class Game:
             moves = self.add_resolve_mob_effects_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "make":
             moves = self.add_resolve_make_moves(player, moves)
+        elif player.card_choice_info["choice_type"] == "make_with_option":
+            moves = self.add_resolve_make_moves(player, moves)
+            moves.append({"move_type": "CANCEL_MAKE", "username": self.ai})              
             # todo add make_with_option moves
         elif player.card_choice_info["choice_type"] == "make_from_deck":
             moves = self.add_resolve_make_from_deck_moves(player, moves)
@@ -108,16 +112,13 @@ class Game:
             moves = self.add_resolve_fetch_artifact_into_play_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_into_hand":
             moves = self.add_resolve_fetch_card_moves(player, moves)
-            # todo add fetch_into_hand_from_played_pile moves
+        elif player.card_choice_info["choice_type"] == "fetch_into_hand_from_played_pile":
+            moves = self.add_resolve_fetch_card_from_played_pile_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "select_mob_for_ice_prison":
             moves = self.add_select_mob_for_ice_prison_moves(moves)
             if len(moves) == 0:
                 moves = self.add_attack_and_play_card_moves(moves)
                 moves.append({"move_type": "END_TURN", "username": self.ai})                
-        elif player.card_choice_info["choice_type"] == "view_hand":
-            moves.append({
-                "move_type": "HIDE_REVEALED_CARDS", 
-                "username": self.ai})
         elif len(self.stack) > 0 and self.stack[-1][0]["move_type"] == "ATTACK" and not has_action_selected:
             moves = self.add_attack_response_moves(player, moves)
         elif len(self.stack) > 0 and not has_action_selected:
@@ -186,6 +187,11 @@ class Game:
     def add_resolve_fetch_card_moves(self, player, moves):
         for c in player.card_choice_info["cards"]:
             moves.append({"card":c.id , "move_type": "FETCH_CARD", "username": self.ai})              
+        return moves 
+
+    def add_resolve_fetch_card_from_played_pile_moves(self, player, moves):
+        for c in player.card_choice_info["cards"]:
+            moves.append({"card":c.id , "move_type": "FETCH_CARD_FROM_PLAYED_PILE", "username": self.ai})              
         return moves 
 
     def add_resolve_make_from_deck_moves(self, player, moves):
@@ -1361,8 +1367,6 @@ class Game:
 
     def cancel_make(self, message):
         for card in self.current_player().played_pile:
-            print(card.name)
-            print(card.id)
             print(self.current_player().card_choice_info["effect_card_id"])
             if card.id == self.current_player().card_choice_info["effect_card_id"]:
                 self.current_player().hand.append(card)
@@ -1460,15 +1464,29 @@ class Game:
                 player = self.opponent()
             else:
                 player = self.current_player()
-        new_card = self.factory_reset_card(card, player)
-        # hax
-        if new_card.name in ["Rolling Thunder", "Gnome Council"]:
-            new_card.effects[0].amount = card.effects[0].amount 
-        elif new_card.name == "Fidget Spinner":
-            new_card.power = card.power
-            new_card.toughness = card.toughness
-        # hax - does this more belong in factory_reset_card?
-        new_card.level = card.level
+
+        # hax - Warty Evolver and maybe other cards that evolve on death
+        did_evolve = card.has_effect("evolve")
+
+        new_card = card
+        if not did_evolve:
+            new_card = self.factory_reset_card(card, player)
+            # hax
+            if new_card.name in ["Rolling Thunder", "Gnome Council"]:
+                new_card.effects[0].amount = card.effects[0].amount 
+            elif new_card.name == "Fidget Spinner":
+                new_card.power = card.power
+                new_card.toughness = card.toughness
+            # hax - does this more belong in factory_reset_card?
+            new_card.level = card.level
+        else:
+            new_card.attacked = False
+            new_card.damage = 0
+            new_card.damage_to_show = 0
+            new_card.damage_this_turn = 0
+            new_card.turn_played = -1
+            new_card.added_descriptions = ["Evolves."]
+
 
         if not card.is_token:
             player.played_pile.append(new_card)
@@ -1546,13 +1564,23 @@ class Game:
 
     def factory_reset_card(self, card, player):
         new_card = None
+        # hax
+        evolved = card.has_effect("evolve")
         for c in Game.all_cards():
             if c.name == card.name:
                 new_card = copy.deepcopy(c)
-        new_card.id = card.id
-        new_card.owner_username = player.username
-        new_card = player.modify_new_card(self, new_card)
-        return new_card
+        if evolved:
+            card.attacked = False
+            card.damage = 0
+            card.damage_to_show = 0
+            card.damage_this_turn = 0
+            card.turn_played = -1
+            return card
+        else:
+            new_card.id = card.id
+            new_card.owner_username = player.username
+            new_card = player.modify_new_card(self, new_card)
+            return new_card
 
     def resolve_combat(self, attacking_card, defending_card):
         if attacking_card.shielded:
@@ -1871,7 +1899,6 @@ class Player:
         return mana
 
     def add_to_deck(self, card_name, count, add_to_hand=False, card_cost=None, reduce_cost=0):
-        print(card_name)
         card = None
         for c in Game.all_cards():
             if c.name == card_name:
@@ -2101,8 +2128,6 @@ class Player:
                     if token.id == card.id:
                         equipped_mob = mob
             self.deactivate_equipment(card, equipped_mob)
-        elif e.name == "view_hand":
-            self.do_view_hand_effect()
         elif e.name == "gain_for_toughness":
             self.do_gain_for_toughness_effect(effect_targets[target_index]["id"])
         elif e.name == "make":
@@ -2330,10 +2355,6 @@ class Player:
                 }, artifact_to_equip.id)
         artifact_to_equip.effects.append(effect)
         artifact_to_equip.description = e.description
-
-    def do_view_hand_effect(self):
-        self.card_choice_info["cards"] = copy.deepcopy(self.game.opponent().hand)
-        self.card_choice_info["choice_type"] = "view_hand"
 
     def do_mana_effect_on_player(self, card, target_player_username, amount):
         target_player = self.game.players[0]
@@ -2714,7 +2735,7 @@ class Player:
         if self.game.turn <= 10 and make_type == "Mob":
             requiredMobCost = math.floor(self.game.turn / 2) + 1
 
-        all_cards = Game.all_cards()
+        all_cards = Game.all_cards(require_images=True, include_tokens=False)
         banned_cards = ["Make Spell", "Make Spell+", "Make Mob", "Make Mob+"]
         card1 = None 
         while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == "Mob" and card1.cost != requiredMobCost):  #or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
@@ -2825,6 +2846,7 @@ class Player:
 
     def can_select_for_attack(self, card_id):
         for card in self.in_play:
+            print(f"{card.name} {card.attacked}")
             if card.id == card_id:
                 if card.attacked:
                     return False
@@ -3581,6 +3603,12 @@ class Card:
             toughness += t.toughness_modifier
         return toughness
 
+    def has_effect(self, effect_name):
+        for e in self.effects:
+            if e.name == effect_name:
+                return True
+        return False
+
     def has_ability(self, ability_name):
         for a in self.abilities:
             if a.descriptive_id == ability_name and a.enabled:
@@ -3630,6 +3658,28 @@ class Card:
                 player.do_remove_tokens_effect(self, e)
             if e.name == "remove_player_abilities":
                 player.remove_abilities(self, e)
+            if e.name == "evolve" and did_kill:
+                evolve_cards = []
+                evolver_card = None
+                previous_card = None
+                for c in Game.all_cards():
+                    if c.name == "Warty Evolver":
+                        evolver_card = c
+                    if self.name.startswith(c.name):
+                        previous_card = c
+                for c in Game.all_cards():
+                    if not c.is_token and c.cost > previous_card.cost and c.cost < previous_card.cost + 2 and c.card_type == self.card_type:
+                        evolve_cards.append(c)
+                if len(evolve_cards) > 0:
+                    evolved_card = random.choice(evolve_cards)
+                    self.name = evolved_card.name
+                    self.image = evolved_card.image
+                    self.description = evolved_card.description
+                    self.effects = evolved_card.effects
+                    self.effects.append(evolver_card.effects[0])
+                    self.abilities = evolved_card.abilities
+                    self.power = evolved_card.power
+                    self.toughness = evolved_card.toughness
 
     def effects_leave_play(self):
         return [e for e in self.effects if e.effect_type == "leave_play"]

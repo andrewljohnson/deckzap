@@ -1,18 +1,5 @@
 [		
 	{
-		"name": "Crystal Spyglass",
-		"race": "elf",
-		"image": "spyglass.svg",
-		"card_type": "Artifact",
-		"description": "0: View Opponent's hand once on your turn.",
-		"cost": 1,
-		"effects": [{
-			"name": "view_hand",
-			"effect_type": "activated",
-			"target_type": "opponent"
-		}]
-	},
-	{
 		"name": "Fountain of Youth",
 		"race": "elf",
 		"image": "water-fountain.svg",
@@ -1097,7 +1084,7 @@
 		"card_type": "Mob",
 		"power": 3,
 		"toughness": 4,
-		"cost": 3
+		"cost": 2
 	},
 	{
 		"name": "Common Bunger",
@@ -1433,7 +1420,7 @@
 		"race": "gnome",
 		"class": "bard",
 		"image": "round-table.svg",
-		"description": "Each other Mob you control gets +1/+1 for every 2 mobs you control, rounded down.",
+		"description": "Your other Mobs get +1/+1 for every 2 mobs you control, rounded down.",
 		"card_type": "Mob",
 		"power": 2,
 		"toughness": 4,
@@ -2669,6 +2656,7 @@
 		"name": "WIP: Stage 1",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"is_token": true,
 		"image": "fish-monster.svg",
 		"card_type": "Mob",
 		"description": "Improves when Kept.",
@@ -2687,6 +2675,7 @@
 		"name": "WIP: Stage 2",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"is_token": true,
 		"image": "angler-fish.svg",
 		"card_type": "Mob",
 		"description": "Improves when Kept.",
@@ -2711,6 +2700,7 @@
 		"name": "WIP: Stage 3",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"is_token": true,
 		"image": "piranha.svg",
 		"card_type": "Mob",
 		"description": "Improves when Kept.",
@@ -2740,6 +2730,7 @@
 		"name": "WIP: Stage 4",
 		"race": "dwarf",
 		"class": "tinkerer",
+		"is_token": true,
 		"image": "helicoprion.svg",
 		"card_type": "Mob",
 		"power": 5,
@@ -2828,7 +2819,7 @@
 					"effect_type": "activated",
 					"description": "Remove a counter: Add a Townie to your hand",
 					"target_type": "self",
-					"amount": 2,
+					"amount": 1,
 					"counters": 2,
 					"cost": 0,
 					"power": 0,
@@ -3073,7 +3064,6 @@
 	{
 		"name": "Townie",
 		"is_token": true,
-		"is_token": true,
 		"image": "pig-face.svg",
 		"race": "gnome",
 		"class": "bard",
@@ -3121,6 +3111,22 @@
 			"effect_type": "spell",
 			"target_type": "self",
 			"name": "take_extra_turn"
+		}]
+	},
+	{ 
+		"name": "Warty Evolver",
+		"race": "dwarf",
+		"class": "bard",
+		"card_type": "Mob",
+		"image": "shambling-mound.svg",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Evolves.",
+		"effects": [{
+			"name": "evolve",
+			"effect_type": "leave_play",
+			"target_type": "self"
 		}]
 	}
 ]
