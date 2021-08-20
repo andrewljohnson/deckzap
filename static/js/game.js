@@ -197,10 +197,14 @@ export class GameUX {
         let button = this.button(
             menuString, 
             whiteColor, 
-            blackColor, 
+            darkGrayColor, 
             0, 
             0,
             () => { this.showMenu() }, 
+            null,
+            null,
+            true,
+            6
         );
         if (!this.isPlaying(game)) {
             button.buttonSprite.buttonMode = false;
@@ -237,7 +241,8 @@ export class GameUX {
             appWidth / 2, 
             name.position.y + name.height,
             () => { this.gameRoom.nextRoom()}, 
-            container
+            container,
+            120
         );
 
         let cancelCage = this.button(
@@ -248,14 +253,19 @@ export class GameUX {
             cage.position.y + cage.height,
             () => { this.app.stage.removeChild(container);}, 
             container,
+            120
         );
 
     }
 
-    button(title, color, textColor, x, y, clickFunction, container=null, width=null) {
+    button(title, color, textColor, x, y, clickFunction, container=null, width=null, short=false, fontSize=null) {
         const buttonBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         this.roundRectangle(buttonBG)
-        let textSprite = new PIXI.Text(title, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textColor});
+        let options = {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textColor};
+        if (fontSize != null) {
+            options.fontSize = fontSize;
+        }
+        let textSprite = new PIXI.Text(title, options);
         textSprite.position.y = textSprite.height;
         buttonBG.width = textSprite.width + padding * 8;
         textSprite.position.x = buttonBG.width/2 - textSprite.width/2;
@@ -264,6 +274,11 @@ export class GameUX {
             textSprite.position.x = width/2 - textSprite.width/2;
         }        
         buttonBG.height = textSprite.height * 3;
+        if (short) {
+            buttonBG.height = textSprite.height * 2;            
+            textSprite.position.y = buttonBG.height/2 - textSprite.height/2 - 1;
+            textSprite.height = options.fontSize*2;
+        }
         buttonBG.tint = color;
         buttonBG.buttonMode = true;
         buttonBG.interactive = true;
@@ -448,9 +463,11 @@ export class GameUX {
             this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
-            this.addNewGameButton(game);
         }
         this.renderEndTurnButton(game, message);
+        if (this.opponent(game)) {
+            this.addMenuButton(game, this.endTurnButton.width);
+        }
         this.maybeShowSpellStack(game);
         this.maybeShowGameOver(game);
         this.maybeShowAttack(game);
@@ -668,11 +685,12 @@ export class GameUX {
         this.app.stage.addChild(sprite);        
     }
 
-    addNewGameButton(game) {
+    addMenuButton(game, width) {
         if (!this.menuButtonAdded) {
             let menuButton = this.menuButton(game);
+            menuButton.width = width;
             menuButton.position.x = this.buttonMenu.width / 2 - menuButton.width/2;
-            menuButton.position.y = this.buttonMenu.height - menuButton.height * 1.5;
+            menuButton.position.y = this.buttonMenu.height - menuButton.height * 1.5 - padding;
             this.buttonMenu.addChild(menuButton);
             this.menuButtonAdded = true;
         }
@@ -1975,6 +1993,7 @@ export class GameUX {
             17,
             clickFunction, 
             this.buttonMenu,
+            this.buttonMenu.width - padding * 6
         );
         b.position.x = b.parent.width/2 - b.width/2;
         b.position.y = b.height / 2;
