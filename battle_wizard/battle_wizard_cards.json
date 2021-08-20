@@ -1571,7 +1571,7 @@
 		"class": "fighter",
 		"cost": 2,
 		"card_type": "spell",
-		"description": "Deal 3 damage to an mob and your Opponent.",
+		"description": "Deal 3 damage to a mob and your Opponent.",
 		"effects": [
 			{
 				"name": "damage",
@@ -3022,7 +3022,7 @@
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
-		"description": "Make an mob.",
+		"description": "Make a mob.",
 		"effects": [{
 			"name": "make",
 			"effect_type": "enter_play",
