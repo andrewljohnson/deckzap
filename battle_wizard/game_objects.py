@@ -1905,7 +1905,7 @@ class Player:
                 card = c
         for x in range(0, count):
             new_card = copy.deepcopy(card)
-            if card_cost:
+            if card_cost is not None:
                 new_card.cost = card_cost
             new_card.cost = max(0, new_card.cost-reduce_cost)
             new_card.owner_username = self.username
