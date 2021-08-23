@@ -240,7 +240,10 @@ class Game:
                 moves.append({"card":mob.id , "move_type": "SELECT_MOB", "username": self.ai})
         for card in self.current_player().hand:
             if card.can_be_clicked:
-                if self.current_player().card_info_to_target["card_id"]:
+                # todo: cleaner if/then for Duplication/Upgrade Chambers
+                if self.current_player().card_info_to_target["effect_type"] == "artifact_activated":
+                    moves.append({"card":card.id , "move_type": "SELECT_CARD_IN_HAND", "username": self.ai})
+                elif self.current_player().card_info_to_target["card_id"]:
                     moves.append({"card":card.id , "move_type": "PLAY_CARD_IN_HAND", "username": self.ai})
                 else:
                     moves.append({"card":card.id , "move_type": "SELECT_CARD_IN_HAND", "username": self.ai})
@@ -464,6 +467,13 @@ class Game:
                 card.can_be_clicked = True
                 if card.card_type == artifactCardType:
                     card.can_be_clicked = len(cp.artifacts) != 3
+                if card.card_type == spellCardType and card.needs_mob_or_artifact_target():
+                    card.can_be_clicked = False
+                    if len(cp.in_play + opp.in_play) > 0:
+                        for mob in cp.in_play + opp.in_play:
+                            if not mob.has_ability("Lurker"):
+                                card.can_be_clicked = True
+                    card.can_be_clicked = card.can_be_clicked if len(cp.artifacts) == 0 and len(opp.artifacts) == 0 else True
                 if card.card_type == spellCardType and card.needs_mob_target():
                     card.can_be_clicked = False
                     if len(cp.in_play + opp.in_play) > 0:
@@ -3656,6 +3666,14 @@ class Card:
         if e.target_type in ["any", "any_enemy", "mob", "opponents_mob", "self_mob", "artifact", "any_player", "being_cast", "being_cast_artifact", "being_cast_spell", "being_cast_mob", "mob_or_artifact"]:
             return True
         return False 
+
+    def needs_mob_or_artifact_target(self):
+        if len(self.effects) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type  in ["mob_or_artifact"]:
+            return True
+        return False
 
     def needs_mob_target(self):
         if len(self.effects) == 0:

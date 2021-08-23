@@ -1550,7 +1550,14 @@ export class GameUX {
 
     setCardDragListeners(card, cardSprite, game) {
         if (card.can_be_clicked) {
-            if (this.thisPlayer(game).card_info_to_target.card_id) {
+            let isHandCard = false;
+            for (let c of this.thisPlayer(game).hand) {
+                if (c.id == card.id) {
+                    isHandCard = true;
+                }
+            }
+            //  todo: cleaner if/then for Duplication/Upgrade Chambers
+            if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
                 cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
             } else if (this.thisPlayer(game).card_info_to_target.card_id) {
                 cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
