@@ -50,7 +50,7 @@ def default_deck_dwarf_bard():
         "cards": {
             "Lute": 1,
             "Mana Shrub": 1,
-            "Gnome Council": 1,
+            "Dwarf Council": 1,
             "Mayor's Brandy": 1,
             "Song of Patience": 1,
             "Study the Music": 1,
@@ -64,7 +64,5 @@ def default_deck_dwarf_bard():
             "Fine War Music": 1,
             "Dwarves' Revenge": 1,
             "Song of Fire": 1,
-            "Siz Pop": 1,
-            "Stiff Wind": 1,
         }
     }

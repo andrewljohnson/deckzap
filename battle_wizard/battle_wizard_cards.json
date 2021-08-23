@@ -75,7 +75,7 @@
 		"image": "enlightenment.svg",
 		"card_type": "artifact",
 		"cost": 3,
-		"description": "✦: Draw a card once on your turn.",
+		"description": "Ability: pay 1, draw a card once on your turn.",
 		"effects": [{
 			"name": "draw",
 			"effect_type": "activated",
@@ -90,7 +90,7 @@
 		"image": "mirror-mirror.svg",
 		"card_type": "artifact",
 		"cost": 6,
-		"description": "✦✦✦✦✦✦: Switch hit points with your opponent. Sacrifice this.",
+		"description": "Ability: pay 6, switch hit points with your opponent. Sacrifice this.",
 		"effects": [{
 			"name": "switch_hit_points",
 			"effect_type": "activated",
@@ -105,7 +105,7 @@
 		"image": "lunar-wand.svg",
 		"card_type": "artifact",
 		"cost": 4,
-		"description": "✦: Prevent a mob from attacking, once on your turn.",
+		"description": "Ability: pay 1, prevent a mob from attacking, once on your turn.",
 		"effects": [{
 				"name": "add_tokens",
 				"effect_type": "activated",
@@ -528,7 +528,7 @@
 		"name": "Infernus",
 		"race": "genie",
 		"card_type": "mob",
-		"description": "✦: +1/+0",
+		"description": "Ability: pay 1, give this +1/+0",
 		"power": 5,
 		"toughness": 5,
 		"cost": 5,
@@ -1144,8 +1144,8 @@
 		"card_type": "artifact",
 		"image": "bone-knife.svg",
 		"cost": 1,
-		"description": "✦✦: Make this a 1 power weapon with 2 charges.",
-		"original_description": "✦✦: Make this a 1 power weapon with 2 charges.",
+		"description": "Pay 2, make this a 1 power weapon with 2 charges.",
+		"original_description": "Pay 2, make this a 1 power weapon with 2 charges.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -1178,7 +1178,7 @@
 		"image": "bow-arrow.svg",
 		"card_type": "artifact",
 		"cost": 1,
-		"description": "✦✦: Deal 2 damage to your opponent.",
+		"description": "Pay 2, deal 2 damage to your opponent.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -1198,7 +1198,7 @@
 		"card_type": "artifact",
 		"image": "orb-wand.svg",
 		"cost": 1,
-		"description": "✦✦: Deal 1 damage to anything.",
+		"description": "Pay 2, deal 1 damage to anything.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -1218,7 +1218,7 @@
 		"card_type": "artifact",
 		"image": "prayer-beads.svg",
 		"cost": 1,
-		"description": "✦✦: Heal 2 hit points",
+		"description": "Pay 2, heal 2 hit points",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -1238,7 +1238,7 @@
 		"card_type": "artifact",
 		"image": "moebius-star.svg",
 		"cost": 1,
-		"description": "✦✦: draw a card and lose 2 life.",
+		"description": "Pay 2, draw a card and lose 2 life.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -2797,8 +2797,8 @@
 		"card_type": "artifact",
 		"image": "lyre.svg",
 		"cost": 1,
-		"description": "✦: Make this an instrument with 2 charges that fetches Townies.",
-		"original_description": "✦: Make this an instrument with 2 charges that fetches Townies.",
+		"description": "Ability: pay 1, make this an instrument with 2 charges that fetches Townies.",
+		"original_description": "Ability: pay 1, make this an instrument with 2 charges that fetches Townies.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -2853,7 +2853,7 @@
 		]
 	},
 	{
-		"name": "Gnome Council",
+		"name": "Dwarf Council",
 		"image": "viking-longhouse.svg",
 		"race": "dwarf",
 		"class": "bard",
@@ -3106,7 +3106,8 @@
 		"image": "pocket-watch.svg",
 		"cost": 2,
 		"card_type": "spell",
-		"description": "Take an extra turn right away.",
+		"card_subtype": "turn-only",
+		"description": "Take an extra turn. Cast this only on your turn.",
 		"effects": [{
 			"effect_type": "spell",
 			"target_type": "self",
@@ -3136,7 +3137,7 @@
 		"card_type": "artifact",
 		"image": "box-unpacking.svg",
 		"cost": 2,
-		"description": "✦: Add a card to this. Next turn, get it back with a copy.",
+		"description": "Ability: pay 1, add a card to this. Next turn, get it back with a copy.",
 		"effects": [{
 			"name": "duplicate_card_next_turn",
 			"effect_type": "activated",
@@ -3157,14 +3158,14 @@
 		"card_type": "artifact",
 		"image": "ring-box.svg",
 		"cost": 2,
-		"description": "✦: Add a card to this. Next turn, get it back upgraded.",
+		"description": "Ability: pay 1, add a card to this. Next turn, get it back upgraded.",
 		"effects": [{
 			"name": "upgrade_card_next_turn",
 			"effect_type": "activated",
 			"target_type": "hand_card",
 			"cost": 1,
 			"amount": 1
-		},
+		}, 
 		{
 			"name": "upgrade_card_next_turn",
 			"effect_type": "triggered",

@@ -497,6 +497,8 @@ class Game:
                             card.can_be_clicked = True
                 if card.has_ability("Instrument Required") and not cp.has_instrument():
                     card.can_be_clicked = False
+                if card.card_type == spellCardType and len(self.stack) > 0 and card.card_subtype == "turn-only":
+                    card.can_be_clicked = False                    
 
 
     def set_targets_for_target_type(self, target_type, target_restrictions, effect=None):
@@ -1534,7 +1536,7 @@ class Game:
         if not did_evolve:
             new_card = self.factory_reset_card(card, player)
             # hax
-            if new_card.name in ["Rolling Thunder", "Gnome Council"]:
+            if new_card.name in ["Rolling Thunder", "Dwarf Council"]:
                 new_card.effects[0].amount = card.effects[0].amount 
             elif new_card.name == "Fidget Spinner":
                 new_card.power = card.power
@@ -3103,7 +3105,7 @@ class Player:
                     # hack for Rolling Thunder
                     card.effects[0].amount += 1
                 if card.effects[1].name == "improve_effect_amount_when_cast":
-                    # hack for Gnome Council
+                    # hack for Dwarf Council
                     card.effects[0].amount += 1
                 if card.effects[1].name == "improve_effect_when_cast":
                     # hack for Tame Shop Demon
@@ -3534,6 +3536,7 @@ class Card:
         self.can_activate_abilities = info["can_activate_abilities"] if "can_activate_abilities" in info else True
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
+        self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
         self.card_type = info["card_type"] if "card_type" in info else mobCardType
         self.card_class = info["class"] if "class" in info else None
         self.cost = info["cost"] if "cost" in info else 0
@@ -3568,6 +3571,7 @@ class Card:
                  can_activate_abilities: {self.can_activate_abilities})\n \
                  can_be_clicked: {self.can_be_clicked}\n \
                  card_for_effect: {self.card_for_effect}\n \
+                 card_subtype: {self.card_type}\n \
                  card_type: {self.card_type}\n \
                  damage: {self.damage}\n \
                  damage_this_turn: {self.damage_this_turn}\n \
@@ -3593,6 +3597,7 @@ class Card:
             "can_be_clicked": self.can_be_clicked,
             "card_class": self.card_class,
             "card_for_effect": self.card_for_effect.as_dict() if self.card_for_effect else None,
+            "card_subtype": self.card_subtype,
             "card_type": self.card_type,
             "cost": self.cost,
             "damage": self.damage,
