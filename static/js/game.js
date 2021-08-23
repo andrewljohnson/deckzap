@@ -1280,6 +1280,13 @@ export class GameUX {
            let damage = card.effects[0].amount;
            baseDescription = `Deal ${damage} damage. Improves when cast.`;
         }
+        if (card.card_for_effect && card.name == "Upgrade Chamber") {
+           baseDescription = `Get ${card.card_for_effect.name} back next turn, upgraded.`;
+        }
+        if (card.card_for_effect && card.name == "Duplication Chamber") {
+           baseDescription = `Get two copies of ${card.card_for_effect.name} back next turn.`;
+        }
+
 
         if (card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
@@ -1320,6 +1327,14 @@ export class GameUX {
 
         if (useLargeSize) {
             this.showAbilityPanels(cardSprite, card, cw, ch);
+            if (card.card_for_effect) {
+                var subcard = this.cardSprite(game, card.card_for_effect, player, true, true);
+                this.setCardAnchors(subcard);
+                subcard.height *=.75;
+                subcard.width *=.75;
+                subcard.position.x = cardWidth*1.75;
+                cardSprite.addChild(subcard)            
+            }
         }
 
         if (card.card_type == mobCardType) {
@@ -1373,8 +1388,7 @@ export class GameUX {
             let countersX = powerX + cw - 16;
             let attackEffectOptions = this.textOptions() 
             if (attackEffect.name == "make_random_townie") {
-                this.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
-                this.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.amount);
+                this.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
             } else {
                 this.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power);
                 this.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
@@ -1421,6 +1435,41 @@ export class GameUX {
             gems.position.y = cardHeight/2 - 7 - gems.height;
             cardSprite.addChild(gems);
         }
+
+        let effect = null;
+        if (card.effects.length > 0 && card.effects[0].enabled && card.effects[0].effect_type == "activated") {
+            effect = card.effects[0];
+        } else if (card.effects.length > 1 && card.effects[1].enabled && card.effects[1].effect_type == "activated") { 
+            effect = card.effects[1];
+        }
+
+        if (effect) {
+            let gems = this.manaGems(effect.cost, effect.cost);
+            if (effect.cost == 0) {
+                gems = this.manaGems(1, 1, "power-button.svg", blackColor);
+                if (card.name == "Lute") {
+                    gems = this.manaGems(1, 1, "musical-notes.svg", blackColor);                    
+                }
+            }
+            let color = greenColor;
+            if (!card.can_be_clicked) {
+                color = darkGrayColor;
+            }
+            let b = this.button(
+                "", 
+                color, 
+                null, 
+                0, 
+                -padding,
+                () => {}, 
+                null,
+                gems.width*2, true
+            );
+            b.addChild(gems);
+            gems.position.x = gems.width/2;
+            gems.position.y = gems.height*.75;
+            cardSprite.addChild(b);
+        }
         
         let options = this.textOptions();
         
@@ -1450,11 +1499,22 @@ export class GameUX {
         if (attackEffect) {
             let powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
             if (attackEffect.name == "make_random_townie") {
-                powerCharges = new PIXI.Text(attackEffect.counters + "/" + attackEffect.amount, options);
+                let attackEffectOptions = this.textOptions() 
+                this.addCircledLabel(aFX + cardWidth - 14, aFY + cardHeight - 18, cardSprite, attackEffectOptions, attackEffect.counters);
+            } else {
+                powerCharges.position.x = aFX + cardWidth - 14;
+                powerCharges.position.y = aFY + cardHeight - 18;
+                cardSprite.addChild(powerCharges);                
             }
-            powerCharges.position.x = aFX + cardWidth - 14;
-            powerCharges.position.y = aFY + cardHeight - 18;
-            cardSprite.addChild(powerCharges);
+        }
+
+        if (card.card_for_effect) {
+            var subcard = this.cardSprite(game, card.card_for_effect, player, true);
+            this.setCardAnchors(subcard);
+            subcard.height = cardHeight/2
+            subcard.width = cardWidth/2
+            subcard.position.y += 20
+            cardSprite.addChild(subcard)            
         }
 
         this.setCardFilters(card, cardSprite, game);
@@ -2094,13 +2154,20 @@ export class GameUX {
             }, 200);   
     }
 
-    manaGems(maxMana, currentMana) {
+    manaGems(maxMana, currentMana, icon, iconColor) {
         const background = new PIXI.Container();
         let xPixels = 0;
         let gemSize = defaultFontSize;
+        if (!icon) {
+            icon = "amethyst.svg";
+        }
         for (let i=0;i<currentMana;i++) {
-            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + "amethyst.svg"));
-            imageSprite.tint = blueColor;
+            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + icon));
+            if (iconColor) {
+                imageSprite.tint = iconColor;                
+            } else {
+                imageSprite.tint = blueColor;                
+            }
             imageSprite.height = gemSize;
             imageSprite.width = gemSize;
             imageSprite.position.x = xPixels;
@@ -2109,8 +2176,12 @@ export class GameUX {
             xPixels += gemSize + 1;
         }
         for (let i=0;i<maxMana-currentMana;i++) {
-            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + "amethyst.svg"));
-            imageSprite.tint = blueColor;
+            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + icon));
+            if (iconColor) {
+                imageSprite.tint = iconColor;                
+            } else {
+                imageSprite.tint = blueColor;                
+            }
             imageSprite.height = gemSize;
             imageSprite.width = gemSize;
             imageSprite.position.x = xPixels;
