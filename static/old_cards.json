@@ -17,4 +17,1249 @@
 				"target_type": "MOB",
 				"cost": 3
 		}]
-	}
+	},
+
+	// no images and unusued
+
+		{
+		"name": "Pine Treant",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 3,
+		"cost": 3,
+		"description": "Get a 2/1 dryad token when this dies.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Pine Dryad",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Pine Dryad",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1
+	},
+	{
+		"name": "Oak Treant",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 3,
+		"toughness": 5,
+		"cost": 5,
+		"description": "Get a 1/2 dryad token with Guard when this dies.",
+		"abilities": [
+				{"name": "Guard", "descriptive_id": "Guard"}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Oak Dryad",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Oak Dryad",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
+	},
+	{
+		"name": "Summon-Happy Genie",
+		"race": "genie",
+		"card_type": "mob",
+		"power": 6,
+		"toughness": 2,
+		"cost": 5,
+		"description": "Your opponent gets two 1/1 elemental tokens.",
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Elemental",
+			"target_type": "opponent",
+			"effect_type": "enter_play",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Elemental",
+		"is_token": true,
+		"race": "genie",
+		"card_type": "mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
+	},
+	{
+		"name": "Porcupine",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Your opponent takes 2 damage when this leaves play.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "leave_play",
+			"target_type": "opponent",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Thought Sprite",
+		"card_type": "mob",
+		"class": "wizard",
+		"race": "genie",
+		"power": 2,
+		"toughness": 3,
+		"cost": 3,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Sniper Elf",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 5,
+		"cost": 6,
+		"description": "Destroy an enemy mob with Guard.",
+		"effects": [{
+			"name": "kill",
+			"effect_type": "enter_play",
+			"target_type": "opponents_mob",
+			"target_restrictions": [{"needs_guard": null}]
+		}]
+	},
+	{
+		"name": "Dragonslayer Elf",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 2,
+		"cost": 3,
+		"description": "Destroy a mob power 6 or greater.",
+		"effects": [{
+			"name": "kill",
+			"effect_type": "enter_play",
+			"target_type": "mob",
+			"target_restrictions": [{"power": 6}]
+		}]
+	},
+	{
+		"name": "Mana Tree",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 0,
+		"toughness": 4,
+		"cost": 3,
+		"description": "You have an extra mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"amount": 1
+		},
+		{	"name": "decrease_max_mana",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+		{
+		"name": "Unstable Tempest",
+		"race": "genie",
+		"card_type": "mob",
+		"power": 3,
+		"description": "Take 2 damage.",
+		"toughness": 2,
+		"cost": 1,
+		"effects": [{
+			"name": "damage",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"amount": 3
+		}]
+	},
+	{
+		"name": "Energizer",
+		"race": "genie",
+		"card_type": "mob",
+		"power": 1,
+		"description": "Give a mob gets +2/+0 this turn.",
+		"toughness": 1,
+		"cost": 1,
+		"effects": [{
+			"name": "add_tokens",
+			"effect_type": "enter_play",
+			"target_type": "mob",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 2,
+				"toughness_modifier": 0
+			}]
+		}]
+	},
+	{
+		"name": "Elven Vanguard",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 3,
+		"description": "Give a mob gets +1/+1 this turn.",
+		"toughness": 2,
+		"cost": 2,
+		"effects": [{
+			"name": "add_tokens",
+			"effect_type": "enter_play",
+			"target_type": "mob",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 1,
+				"toughness_modifier": 1
+			}]
+		}]
+	},
+	{
+		"name": "Mist Elemental",
+		"race": "genie",
+		"card_type": "mob",
+		"power": 1,
+		"toughness": 3,
+		"cost": 1,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
+	},
+	{
+		"name": "Largest Gorilla in the Forest",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 8,
+		"toughness": 8,
+		"cost": 9,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{
+		"name": "Tame-ish Sabretooth",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 7,
+		"toughness": 7,
+		"cost": 8,
+		"abilities": [
+			{
+				"name": "Ambush",
+				"descriptive_id": "Ambush"
+			}
+		]
+	},
+	{
+		"name": "Centaur",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 3,
+		"toughness": 5,
+		"cost": 4,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
+	},
+
+	{
+		"name": "Gold Dragon",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 6,
+		"toughness": 6,
+		"cost": 5,
+		"description": "Draw a card.",
+		"effects": [{
+			"name": "draw",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"amount": 1
+		}]	
+	},
+	{
+		"name": "Rainbow Dragon",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 6,
+		"toughness": 6,
+		"cost": 5,
+		"description": "Make a spell.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "spell",
+			"amount": 1
+		}]	
+	},
+		{
+		"name": "Faerie Queen",
+		"image": "fairy.svg",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 6,
+		"description": "Draw 4 cards.",
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		],
+		"effects": [{
+			"name": "draw",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"amount": 4
+		}]	
+	},
+	{
+		"name": "Infernus",
+		"race": "genie",
+		"card_type": "mob",
+		"description": "Ability: pay 1, give this +1/+0",
+		"power": 5,
+		"toughness": 5,
+		"cost": 5,
+		"abilities": [
+			{"name": "Evade Guard", "descriptive_id": "Evade Guard"}
+		],
+		"effects": [{
+				"name": "pump_power",
+				"effect_type": "activated",
+				"target_type": "this",
+				"cost": 1,
+				"amount": 1		
+		}]
+	},
+	{
+		"name": "Nature's Guardian",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 8,
+		"toughness": 8,
+		"cost": 6,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
+	},
+	{
+		"name": "Make Mob+",
+		"race": "elf",
+		"cost": 1,
+		"card_type": "spell",
+		"description": "Choose 1 of 3 mobs to make and add to your deck. Draw a card.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "spell",
+			"target_type": "self",
+			"make_type": "mob",
+			"amount": 1
+		}, 
+		{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Faerie War Chant",
+		"race": "elf",
+		"cost": 1,
+		"card_type": "spell",
+		"description": "Give a mob gets +3/+3 this turn.",
+		"effects": [{
+			"name": "add_tokens",
+			"effect_type": "spell",
+			"target_type": "mob",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 3,
+				"toughness_modifier": 3
+			}]
+		}]
+	},
+	{
+		"name": "Nature's Blessing",
+		"race": "elf",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "All your mobs provide a mana each turn",
+		"effects": [{
+			"name": "add_effects",
+			"target_type": "self_mobs",
+			"effects": [{
+				"name": "increase_max_mana",
+				"effect_type": "spell",
+				"description": "You have an extra mana each turn.",
+				"amount": 1,
+				"activate_on_add": true
+			},
+			{
+				"name": "decrease_max_mana",
+				"amount": 1,
+				"effect_type": "leave_play"
+			}]
+		}]
+	},
+	{
+		"name": "Nature Rises",
+		"race": "elf",
+		"cost": 6,
+		"card_type": "spell",
+		"description": "All your mobs get +4/+4 this turn.",
+		"effects": [{
+			"name": "add_tokens",
+			"effect_type": "spell",
+			"target_type": "self_mobs",
+			"tokens": [{
+				"turns": 1,
+				"power_modifier": 4,
+				"toughness_modifier": 4}
+			]
+		}]
+	},
+	{
+		"name": "Offering to Nature",
+		"race": "elf",
+		"cost": 3,
+		"card_type": "spell",
+		"description": "Summon a random mob from your deck.",
+		"effects": [{
+			"effect_type": "spell",
+			"target_type": "self",
+			"name": "summon_from_deck",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Mana Storm",
+		"race": "genie",
+		"cost": 5,
+		"card_type": "spell",
+		"description": "All players lose all mana.",
+		"effects": [{
+			"target_type": "all_players",
+			"effect_type": "spell",
+			"name": "set_max_mana",
+			"amount": 0
+		}]
+	},
+	{
+		"name": "Mana Shatter",
+		"race": "genie",
+		"cost": 3,
+		"card_type": "spell",
+		"description": "Target player loses a mana.",
+		"effects": [{
+			"target_type": "any_player",
+			"effect_type": "spell",
+			"name": "reduce_mana",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Mass Unwind",
+		"race": "genie",
+		"cost": 5,
+		"card_type": "spell",
+		"description": "Return all mobs to their owners' hands.",
+		"effects": [{
+			"name": "unwind",
+			"effect_type": "spell",
+			"target_type": "all_mobs"
+		}]
+	},
+	{
+		"name": "Entwine",
+		"race": "genie",
+		"cost": 4,
+		"card_type": "spell",
+		"description": "Each player shuffles together hand/deck/discard and draws 3 cards.",
+		"effects": [{
+			"name": "entwine",
+			"effect_type": "spell",
+			"target_type": "all_players"
+		}]
+	},
+		{
+		"name": "Kill Artifact",
+		"race": "genie",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "Kill an artifact.",
+		"effects": [{
+			"name": "kill",
+			"effect_type": "spell",
+			"target_type": "artifact"
+		}]
+	},
+	{
+		"name": "Lightning Storm",
+		"race": "genie",
+		"cost": 4,
+		"card_type": "spell",
+		"description": "Deal 2 damage to all mobs.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "all_mobs",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Blast",
+		"race": "genie",
+		"cost": 4,
+		"card_type": "spell",
+		"description": "Deal 6 damage.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "any",
+			"amount": 6
+		}]
+	},
+	{
+		"name": "Trickster",
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "mob",
+		"power": 1,
+		"toughness": 3,
+		"cost": 3,
+		"abilities": [
+			{
+				"name": "Shield",
+				"descriptive_id": "Shield"
+			},
+			{
+				"name": "DamageDraw",
+				"description": "Draw a card when this deals damage to your opponent.",
+				"descriptive_id": "DamageDraw",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Fire Elemental",
+		"race": "genie",
+		"card_type": "mob",
+		"power": 3,
+		"toughness": 3,
+		"cost": 4,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+		{
+		"name": "Lord of the Storm",
+		"race": "genie",
+		"card_type": "mob",
+		"description": "Return all other mobs to their owners' hands.",
+		"power": 3,
+		"toughness": 3,
+		"cost": 6,
+		"abilities": [
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		],
+		"effects": [{
+			"name": "unwind",
+			"effect_type": "enter_play",
+			"target_type": "all_mobs"
+		}]	
+	},
+	{
+		"name": "Make Spell+",
+		"class": "wizard",
+		"race": "genie",
+		"cost": 1,
+		"card_type": "spell",
+		"description": "Choose 1 of 3 spells to make and add to your deck. Draw a card.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "spell",
+			"target_type": "self",
+			"make_type": "spell",
+			"amount": 1
+		},
+		{
+			"name": "draw",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Stiff Wind",
+		"race": "genie",
+		"cost": 1,
+		"card_type": "spell",
+		"description": "Target mob can't attack. Draw a card.",
+		"effects": [ 
+			{
+				"name": "add_tokens",
+				"effect_type": "spell",
+				"target_type": "mob",
+				"tokens": [{
+					"turns": 2,
+					"set_can_act": false
+				}]
+			},
+			{
+				"name": "draw",
+				"target_type": "self",
+				"effect_type": "spell",
+				"amount": 1
+			}
+		]
+	},
+		{
+		"name": "Master Time",
+		"race": "genie",
+		"cost": 8,
+		"card_type": "spell",
+		"description": "All your mobs get Fast (attack turn summoned).",
+		"effects": [{
+			"name": "add_player_abilities",
+			"effect_type": "spell",
+			"target_type": "new_self_mobs",
+			"abilities": [
+				{
+					"name": "Fast",
+					"description": "Fast",
+					"descriptive_id": "Fast"
+				}
+			]				
+		}]
+	},
+	{
+		"name": "Quiet Nature",
+		"race": "genie",
+		"cost": 5,
+		"card_type": "spell",
+		"description": "mobs can't be summoned next turn.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"effect_type": "spell",
+			"target_type": "opponent",
+			"abilities": [
+				{
+					"name": "Can't Summon",
+					"description": "Can't Summon",
+					"descriptive_id": "Can't Summon",
+					"turns": 1
+				}
+			]				
+		}]
+	},
+	{
+		"name": "Storm Surge",
+		"race": "genie",
+		"cost": 10,
+		"card_type": "spell",
+		"description": "Fill each player's board with mobs.",
+		"effects": [{
+			"name": "summon_from_deck",
+			"effect_type": "spell",
+			"target_type": "all_players",
+			"amount": -1
+		}]
+	},
+	{
+		"name": "Orc",
+		"card_type": "mob",
+		"power": 3,
+		"toughness": 4,
+		"cost": 2
+	},
+	{
+		"name": "Common Bunger",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 5,
+		"cost": 4
+	},
+	{
+		"name": "Make Mob",
+		"cost": 0,
+		"card_type": "spell",
+		"description": "Choose 1 of 3 mobs to make and add to your deck.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "spell",
+			"target_type": "self",
+			"make_type": "mob",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Make Spell",
+		"cost": 0,
+		"card_type": "spell",
+		"description": "Choose 1 of 3 spells to make and add to your deck.",
+		"effects": [{
+			"name": "make",
+			"effect_type": "spell",
+			"target_type": "self",
+			"make_type": "spell",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Make Global Effect",
+		"cost": 0,
+		"card_type": "spell",
+		"description": "Choose 1 of 3 global effects to affect all players",
+		"effects": [{
+			"name": "make",
+			"effect_type": "spell",
+			"target_type": "self",
+			"make_type": "Global",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "The Biggest One",
+		"card_type": "mob",
+		"power": 15,
+		"toughness": 15,
+		"cost": 10
+	},
+		{
+		"name": "Feral Shroom Dance",
+		"race": "elf",
+		"card_type": "spell",
+		"cost": 7,
+		"description": "Fill your board with 1/1 mushrooms.",
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Mushroom",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 7
+		}]
+	},
+	{
+		"name": "Mushroom",
+		"is_token": true,
+		"race": "elf",
+		"card_type": "mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 0
+	},
+	{
+		"name": "Kano from Barias",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 0,
+		"toughness": 2,
+		"cost": 4,
+		"description": "You can't be reduced to less than 1 life.",
+		"effects": [{
+			"name": "add_player_abilities",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"abilities": [
+				{
+					"name": "Can't Die",
+					"description": "Can't Die",
+					"descriptive_id": "Can't Die"
+				}
+			]
+		},				
+		{
+			"name": "remove_player_abilities",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"abilities": [
+				{
+					"descriptive_id": "Can't Die"
+				}
+			]				
+		}]
+	},
+	{
+		"name": "Gnomish Minstrel",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 1,
+		"cost": 1,
+		"abilities": [
+			{
+				"name": "DamageTakeControl",
+				"description": "Take control of anything this damages.",
+				"descriptive_id": "DamageTakeControl",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "Gnomish Mayor",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"description": "Summon a Townie.",
+		"effects": [{
+			"amount": 1,
+			"name": "make_token",
+			"card_name": "Townie",
+			"effect_type": "enter_play",
+			"target_type": "self"
+		}],
+		"abilities": [
+			{
+				"name": "Townie",
+				"descriptive_id": "Townie"
+			}
+		]
+	},
+	{
+		"name": "Gnomish Press Gang",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 2,
+		"description": "Add a Townie to your hand.",
+		"effects": [{
+			"name": "make_random_townie",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"amount": 1
+		},
+		{
+			"name": "Townie",
+			"descriptive_id": "Townie"
+		}
+		]
+	},
+	{
+		"name": "Gnomish Soundsmith",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+		"description": "Select an instrument from your deck.",
+		"effects": [{
+			"name": "fetch_card",
+			"effect_type": "enter_play",
+			"target_type": "artifact",
+			"target_restrictions": [{"needs_instrument": null}],
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Bewitching Lights",
+		"race": "elf",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 3,
+		"abilities": [
+				{
+					"name": "discard_random",
+					"descriptive_id": "discard_random",
+					"amount": 1
+				}
+		]
+	},
+
+	{
+		"name": "Riffle",
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "spell",
+		"cost": 1,
+		"description": "Draw one of the top 3 cards of your deck. Put the others in your played pile.",
+		"effects": [
+			{
+				"name": "riffle",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 3
+			}
+		]
+	},
+		{
+		"name": "Life Guardian",
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "mob",
+		"power": 7,
+		"toughness": 7,
+		"cost": 1,
+		"description": "Get a 7/7 mob with Syphon when this dies.",
+		"abilities": [			
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Life Guardian Reborn",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Life Guardian Reborn",
+		"is_token": true,
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "mob",
+		"power": 7,
+		"toughness": 7,
+		"cost": 7,
+		"abilities": [			
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			}
+		]
+	},
+	{
+		"name": "Great Guardian",
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "mob",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"description": "Get an 8/8 mob with Guard when this dies.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		],
+		"effects": [{
+			"name": "make_token",
+			"card_name": "Great Guardian Reborn",
+			"effect_type": "leave_play",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Great Guardian Reborn",
+		"is_token": true,
+		"race": "elf",
+		"class": "sorcerer",
+		"card_type": "mob",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		]
+	},
+	{
+		"name": "Gnomish Piper",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 4,
+		"description": "Gain control of a mob this turn. It gets Ambush.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		],
+		"effects": [
+			{
+				"name": "add_effects",
+				"target_type": "opponents_mob",
+				"effect_type": "enter_play",
+				"effects": [{
+					"name": "take_control",
+					"effect_type": "enter_play",
+					"effect_type": "effects",
+					"turns": 1
+				}]
+			},
+			{
+				"name": "add_mob_abilities",
+				"effect_type": "enter_play",
+				"target_type": "opponents_mob",
+				"abilities": [{"name": "Ambush", "descriptive_id": "Ambush", "enabled": true}],
+				"turns": 1
+			}
+		]
+	},
+	{
+		"name": "Gnomish Militia",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 5,
+		"toughness": 5,
+		"cost": 5,
+		"description": "Add 2 Town Rangers to your hand.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			}
+		],
+		"effects": [{
+				"name": "create_card",
+				"card_name": "Town Ranger",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"amount": 2
+		}]
+	},
+	{
+		"name": "Resonant Frequency",
+		"race": "gnome",
+		"class": "bard",
+		"cost": 6,
+		"card_type": "spell",
+		"description": "Destroy all mobs and non-instrument artifacts that cost between 2 and 5 mana.",
+		"abilities": [
+				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
+		],
+		"effects": [{
+			"name": "kill",
+			"effect_type": "spell",
+			"target_type": "all",
+			"target_restrictions": [{"min_cost": 2}, {"max_cost": 5}, {"instruments": false}]
+		}]
+	},
+	{
+		"name": "Song Dragon",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 9,
+		"cost": 7,
+		"description": "Gain control of a random mob at the beginning of your turn.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			},
+			{
+				"name": "Instrument Required",
+				"descriptive_id": "Instrument Required"
+			}
+		],
+		"effects": [{
+				"name": "take_control",
+				"trigger": "start_turn",
+				"effect_type": "triggered",
+				"target_type": "opponents_mob_random"
+			}
+		]
+	},
+	{
+		"name": "Jubilee",
+		"race": "gnome",
+		"class": "bard",
+		"cost": 7,
+		"card_type": "spell",
+		"description": "Draw a card for each mob you control.",
+		"abilities": [
+				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
+		],
+		"effects": [{
+			"name": "draw",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 1,
+			"multiplier": "self_mobs"
+		}]
+	},
+	{
+		"name": "Avatar of Song",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 8,
+		"toughness": 8,
+		"cost": 8,
+		"description": "Draw 2 cards. Draw an extra card each turn. As long as you control an instrument, you can't be reduced to less than 1 hit point.",
+		"abilities": [			
+			{
+				"name": "Guard",
+				"descriptive_id": "Guard"
+			},
+			{
+				"name": "Instrument Required",
+				"descriptive_id": "Instrument Required"
+			}
+		],
+		"effects": [{
+				"name": "draw",
+				"trigger": "start_turn",
+				"effect_type": "triggered",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "draw",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"amount": 2
+			},		
+			{
+				"name": "add_player_abilities",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"abilities": [
+					{
+						"name": "Can't Die",
+						"description": "Can't Die",
+						"descriptive_id": "Can't Die"
+					}
+				]
+			},				
+			{
+				"name": "remove_player_abilities",
+				"effect_type": "leave_play",
+				"target_type": "self",
+				"abilities": [
+					{
+						"descriptive_id": "Can't Die"
+					}
+				]				
+			}
+		]
+	},
+	{
+		"name": "Ilra, Lady of Wind and Music",
+		"race": "gnome",
+		"class": "bard",
+		"card_type": "mob",
+		"power": 6,
+		"toughness": 6,
+		"cost": 9,
+		"description": "All your other mobs get +3/+3 and may attack again.",
+		"abilities": [			
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			},
+			{
+				"name": "Instrument Required",
+				"descriptive_id": "Instrument Required"
+			}
+		],
+		"effects": [
+			{
+				"name": "add_tokens",
+				"effect_type": "enter_play",
+				"target_type": "self_mobs",
+				"tokens": [{
+					"turns": 1,
+					"power_modifier": 3,
+					"toughness_modifier": 3
+				}]
+			},
+			{
+				"name": "set_can_attack",
+				"effect_type": "enter_play",
+				"target_type": "self_mobs"
+			}
+		]
+	},
+	{
+		"name": "Dazzling Solo",
+		"race": "gnome",
+		"class": "bard",
+		"cost": 10,
+		"card_type": "spell",
+		"description": "Gain control of all artifacts and mobs this turn. All of your mobs and artifacts get Fast.",
+		"abilities": [
+				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
+		],
+		"effects": [{
+			"name": "take_control",
+			"effect_type": "spell",
+			"target_type": "all",
+			"abilities": [
+				{
+					"name": "Fast",
+					"descriptive_id": "Fast"
+			}]
+		}]
+	},
+	{ 
+		"name": "Game Maker",
+		"race": "genie",
+		"class": "wizard",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 4,
+		"description": "Make a card from your deck.",
+		"effects": [{
+			"name": "make_from_deck",
+			"effect_type": "enter_play",
+			"target_type": "self",
+			"make_type": "deck_card",
+			"amount": 1
+		}]
+	},
+
+	
+
+
+
+
+
+

@@ -3113,7 +3113,8 @@ class Player:
                     card.level = min(card.level, len(card.effects[0].card_names)-1)
 
         if card.card_type == spellCardType:
-            self.played_pile.append(card)            
+            if not card.has_ability("Disappear"):
+                self.played_pile.append(card)            
 
         spell_to_resolve["card_name"] = card.name
         spell_to_resolve["show_spell"] = card.as_dict()

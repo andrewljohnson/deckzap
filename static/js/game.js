@@ -1903,6 +1903,9 @@ export class GameUX {
             if (a.name == "Keep") {
                 abilityText.text = "Keep - Cards with Keep can be Kept by races (dwarves) that discard their hand each turn.";
             }                    
+            if (a.name == "Disappear") {
+                abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile whe  played, they are removed instead.";
+            }                    
             if (abilityText.text) {
                 abilityText.position.x -= cw/2 - 4;
                 abilityText.position.y = yPosition - ch/2 + 2;
