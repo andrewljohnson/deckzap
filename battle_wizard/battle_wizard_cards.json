@@ -794,7 +794,7 @@
 			}
 		]
 	},	{
-		"name": "Kill artifact",
+		"name": "Kill Artifact",
 		"race": "genie",
 		"cost": 2,
 		"card_type": "spell",
@@ -1825,9 +1825,9 @@
 		"cost": 4,
 		"description": "1: sacrifice this, kill all artifacts and mobs.",
 		"abilities": [
-				{"name": "Slow artifact", 
+				{"name": "Slow Artifact", 
 				"description": "Can't be used the turn this comes into play.",
-				"descriptive_id": "Slow artifact"}
+				"descriptive_id": "Slow Artifact"}
 		],
 		"effects": [{
 				"name": "kill",
@@ -2881,7 +2881,7 @@
 		"class": "bard",
 		"cost": 1,
 		"card_type": "spell",
-		"description": "Give a mob +2/+2 permanently.",
+		"description": "Give a mob +2/+2.",
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "spell",
@@ -3127,6 +3127,141 @@
 			"name": "evolve",
 			"effect_type": "leave_play",
 			"target_type": "self"
+		}]
+	},
+	{
+		"name": "Duplication Chamber",
+		"race": "dwarf",
+		"class": "bard",
+		"card_type": "artifact",
+		"image": "box-unpacking.svg",
+		"cost": 2,
+		"description": "✦: Add a card to this. Next turn, get it back with a copy.",
+		"effects": [{
+			"name": "duplicate_card_next_turn",
+			"effect_type": "activated",
+			"target_type": "hand_card",
+			"cost": 1,
+			"amount": 1
+		},
+		{
+			"name": "duplicate_card_next_turn",
+			"effect_type": "triggered",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Upgrade Chamber",
+		"race": "dwarf",
+		"class": "bard",
+		"card_type": "artifact",
+		"image": "ring-box.svg",
+		"cost": 2,
+		"description": "✦: Add a card to this. Next turn, get it back upgraded.",
+		"effects": [{
+			"name": "upgrade_card_next_turn",
+			"effect_type": "activated",
+			"target_type": "hand_card",
+			"cost": 1,
+			"amount": 1
+		},
+		{
+			"name": "upgrade_card_next_turn",
+			"effect_type": "triggered",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Study the Masters",
+		"race": "dwarf",
+		"class": "bard",
+		"card_type": "spell",
+		"cost": 2,
+		"description": "You get an extrea mana each turn.",
+		"effects": [{
+			"name": "increase_max_mana",
+			"effect_type": "spell",
+			"target_type": "self",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Sabotage",
+		"race": "dwarf",
+		"class": "bard",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "Destroy something that costs more than 3 mana.",
+		"effects": [{
+			"name": "kill",
+			"effect_type": "spell",
+			"target_type": "mob_or_artifact",
+			"target_restrictions": [{"min_cost": 3}]
+		}]
+	},
+	{
+		"name": "Fine War Music",
+		"race": "dwarf",
+		"class": "bard",
+		"cost": 3,
+		"card_type": "spell",
+		"description": "Give all your mobs a random ability and +1/+1.",
+		"effects": [{
+			"name": "add_tokens",
+			"effect_type": "spell",
+			"target_type": "self_mobs",
+			"tokens": [{
+				"power_modifier": 1,
+				"toughness_modifier": 1
+			}]
+		},
+		{
+				"name": "add_random_mob_ability",
+				"effect_type": "spell",
+				"target_type": "self_mobs"
+		}]
+	},
+	{
+		"name": "Dwarves' Revenge",
+		"race": "dwarf",
+		"class": "bard",
+		"cost": 5,
+		"card_type": "spell",
+		"description": "Kill a Mob or Artifact. Reduce the cost of this when drawn.",
+		"effects": [{
+			"name": "kill",
+			"effect_type": "spell",
+			"target_type": "mob_or_artifact"
+		}, 
+		{
+			"name": "reduce_cost",
+			"trigger": "draw",
+			"effect_type": "triggered"
+		}]
+	},
+	{
+		"name": "Song of Fire",
+		"race": "dwarf",
+		"class": "bard",
+		"cost": 1,
+		"card_type": "spell",
+		"description": "Reduce the cost of this when drawn. Deal 5 damage to all enemies.",
+		"effects": [{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "opponent",
+			"amount": 5
+		},
+		{
+			"name": "damage",
+			"effect_type": "spell",
+			"target_type": "opponents_mobs",
+			"amount": 5
+		},
+		{
+			"name": "reduce_cost",
+			"trigger": "draw",
+			"effect_type": "triggered"
 		}]
 	}
 ]

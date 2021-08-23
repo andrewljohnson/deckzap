@@ -57,5 +57,14 @@ def default_deck_dwarf_bard():
             "Town Council": 1,
             "Song of Rebirth": 1,
             "Warty Evolver": 1,
+            "Duplication Chamber": 1,
+            "Upgrade Chamber": 1,
+            "Study the Masters": 1,
+            "Sabotage": 1,
+            "Fine War Music": 1,
+            "Dwarves' Revenge": 1,
+            "Song of Fire": 1,
+            "Siz Pop": 1,
+            "Stiff Wind": 1,
         }
     }

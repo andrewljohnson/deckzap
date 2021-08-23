@@ -31,6 +31,7 @@ const blueColor = 0x0000ff;
 const lightRedColor = 0xff7b7b;
 const lightBrownColor = 0xDFBF9F;
 const yellowColor = 0xEAFF00;
+const greenColor = 0x00FF00;
 const darkGrayColor = 0xAAAAAA;
 const lightGrayColor = 0xEEEEEE;
 const menuGrayColor = 0x969696;
@@ -623,17 +624,13 @@ export class GameUX {
         let index = 0;
 
         for (let card of player.artifacts) {
-            if (cardIdToHide && card.id == cardIdToHide && player == this.thisPlayer(game)) {
-                continue;
-            }
-
             let sprite = this.cardSpriteInPlay(game, card, player, false);
             sprite.position.y = artifactsSprite.position.y + cardHeight/2;
             sprite.position.x = artifactsSprite.position.x + cardWidth*index + cardWidth/2;
             this.app.stage.addChild(sprite);
             index++;
             if (cardIdToHide && card.id == cardIdToHide) {
-                sprite.filters = [targettableGlowFilter()];
+                sprite.filters = [targettingGlowFilter()];
             }
         }
     }
@@ -1529,7 +1526,7 @@ export class GameUX {
         let filters = []
         if (card.can_be_clicked || overrideClickable) {
             if (!this.thisPlayer(game).card_info_to_target.effect_type || this.thisPlayer(game).card_info_to_target.card_id != card.id) {
-                if (this.thisPlayer(game).card_info_to_target.effect_type && ["mob_comes_into_play", "spell_cast"].includes(this.thisPlayer(game).card_info_to_target.effect_type)) {
+                if (this.thisPlayer(game).card_info_to_target.effect_type && ["mob_comes_into_play", "spell_cast", "artifact_activated"].includes(this.thisPlayer(game).card_info_to_target.effect_type)) {
                     filters.push(targettableGlowFilter());                                    
                 } else {
                     filters.push(canBeClickedFilter());                                    
@@ -1554,8 +1551,9 @@ export class GameUX {
     setCardDragListeners(card, cardSprite, game) {
         if (card.can_be_clicked) {
             if (this.thisPlayer(game).card_info_to_target.card_id) {
-                let self = this;
-                cardSprite.on('click',        function (e) {self.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
+                cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+            } else if (this.thisPlayer(game).card_info_to_target.card_id) {
+                cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
             } else {
                 let self = this;
                 cardSprite
@@ -2289,7 +2287,7 @@ function updateDraggedCardFilters(gameUX, cardSprite){
     } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
     } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
     } else {
-        newFilters = [canBeClickedFilter(), dropshadowFilter()]
+        newFilters = [dropshadowFilter()]
     }
     if (!filtersAreEqual(cardSprite.filters, newFilters) || cardSprite.filters.length == 0) {
         clearDragFilters(cardSprite);
@@ -2365,7 +2363,7 @@ function filtersAreEqual(a, b) {
             if (filter.constructor.name != b[index].constructor.name) {
                 return false;
             }
-            if (filter.constructor.name == targettableGlowFilter().constructor.name) {
+            if ([canBeClickedFilter().constructor.name, targettableGlowFilter().constructor.name, targettingGlowFilter()].includes(filter.constructor.name)) {
                 if (filter.color != b[index].color) {
                     return false;
                 }
@@ -2490,7 +2488,7 @@ function glowAndShadowFilters() {
 
 
 function canBeClickedFilter() {
-    return new GlowFilter({ innerStrength: 1, outerStrength: 0, color: yellowColor});
+    return new GlowFilter({ innerStrength: 1, outerStrength: 1, color: greenColor});
 }
 
 
@@ -2509,8 +2507,12 @@ function dropshadowFilter() {
 }
 
 
-function targettableGlowFilter() {
+function targettingGlowFilter() {
     return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
+}
+
+function targettableGlowFilter() {
+    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: greenColor});
 }
 
 
