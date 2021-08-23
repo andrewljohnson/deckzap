@@ -1616,7 +1616,7 @@ export class GameUX {
                     isHandCard = true;
                 }
             }
-            //  todo: cleaner if/then for Duplication/Upgrade Chambers
+            //  todo: cleaner if/then for Duplication Chamber/Upgrade Chamber/Mana Coffin
             if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
                 cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
             } else if (this.thisPlayer(game).card_info_to_target.card_id) {
@@ -1904,7 +1904,7 @@ export class GameUX {
                 abilityText.text = "Keep - Cards with Keep can be Kept by races (dwarves) that discard their hand each turn.";
             }                    
             if (a.name == "Disappear") {
-                abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile whe  played, they are removed instead.";
+                abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
             }                    
             if (abilityText.text) {
                 abilityText.position.x -= cw/2 - 4;

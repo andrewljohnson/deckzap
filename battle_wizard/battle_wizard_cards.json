@@ -2042,5 +2042,26 @@
 			"trigger": "draw",
 			"effect_type": "triggered"
 		}]
+	},
+	{
+		"name": "Mana Coffin",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "artifact",
+		"image": "coffin.svg",
+		"cost": 2,
+		"description": "Ability: add a card to this. Next turn, get it back costing 1 less.",
+		"effects": [{
+			"name": "decost_card_next_turn",
+			"effect_type": "activated",
+			"target_type": "hand_card",
+			"cost": 0,
+			"amount": 1
+		}, 
+		{
+			"name": "decost_card_next_turn",
+			"effect_type": "triggered",
+			"amount": 1
+		}]
 	}
 ]

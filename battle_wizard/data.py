@@ -50,7 +50,7 @@ def default_deck_dwarf_bard():
         "cards": {
             "Lute": 1,
             "Mana Shrub": 1,
-            "Dwarf Council": 1,
+            "Gnome Council": 1,
             "Mayor's Brandy": 1,
             "Song of Patience": 1,
             "Study the Music": 1,
@@ -64,5 +64,17 @@ def default_deck_dwarf_bard():
             "Fine War Music": 1,
             "Dwarves' Revenge": 1,
             "Song of Fire": 1,
+        }
+    }
+
+def default_deck_vampire_lich():
+    return {
+        "name": "Vampire Lich",
+        "race": "vampire",
+        "class": "lich",
+        "cards": {
+            "Mana Coffin": 1,
+            "Orpheus Krustal": 1,
+           
         }
     }

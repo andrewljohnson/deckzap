@@ -5,7 +5,7 @@ import math
 import random
 import time
 
-from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer, default_deck_dwarf_bard
+from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer, default_deck_dwarf_bard, default_deck_vampire_lich
 from battle_wizard.jsonDB import JsonDB
 
 
@@ -817,7 +817,7 @@ class Game:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
 
-                deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard()])
+                deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
                 card_names = []
                 for key in deck_to_use["cards"]:
                     for _ in range(0, deck_to_use["cards"][key]):
@@ -957,7 +957,7 @@ class Game:
 
         if self.current_player().card_info_to_target["effect_type"] == "artifact_activated":
             artifact = self.current_player().selected_artifact()
-            if artifact.effects[self.current_player().card_info_to_target["effect_index"]].name in ["duplicate_card_next_turn", "upgrade_card_next_turn"]:
+            if artifact.effects[self.current_player().card_info_to_target["effect_index"]].name in ["duplicate_card_next_turn", "upgrade_card_next_turn", "decost_card_next_turn"]:
                 message = self.activate_artifact_on_hand_card(message, self.current_player().selected_artifact(), card, self.current_player().card_info_to_target["effect_index"])
                 self.unset_clickables(message["move_type"])
                 self.set_clickables()
@@ -2262,10 +2262,8 @@ class Player:
             message = self.do_summon_from_hand_effect(effect_targets[target_index]["id"], message)
         elif e.name == "buff_power_toughness_from_mana":
             message = self.do_buff_power_toughness_from_mana_effect(card, message)
-        elif e.name == "duplicate_card_next_turn":
-            self.do_duplicate_card_next_turn_effect(card, effect_targets[target_index]['id'])
-        elif e.name == "upgrade_card_next_turn":
-            self.do_upgrade_card_next_turn_effect(card, effect_targets[target_index]['id'])
+        elif e.name in ["duplicate_card_next_turn", "upgrade_card_next_turn", "decost_card_next_turn"]:
+            self.do_store_card_for_next_turn_effect(card, effect_targets[target_index]['id'])
 
         self.spend_mana(e.cost)
         self.hit_points -= e.cost_hp
@@ -2439,14 +2437,7 @@ class Player:
         artifact_to_equip.effects.append(effect)
         artifact_to_equip.description = e.description
 
-    def do_duplicate_card_next_turn_effect(self, chamber_artifact, target_card_id):
-        for c in self.hand:
-            if c.id == target_card_id:
-                chamber_artifact.card_for_effect = c
-                self.hand.remove(c)
-                break
-
-    def do_upgrade_card_next_turn_effect(self, chamber_artifact, target_card_id):
+    def do_store_card_for_next_turn_effect(self, chamber_artifact, target_card_id):
         for c in self.hand:
             if c.id == target_card_id:
                 chamber_artifact.card_for_effect = c
@@ -3386,6 +3377,10 @@ class Player:
                             previous_card = c
                     previous_card.evolve(previous_card)
                     self.hand.append(previous_card)
+                    r.card_for_effect = None
+                elif effect.name == "decost_card_next_turn" and r.card_for_effect:                    
+                    r.card_for_effect.cost = max(0, r.card_for_effect.cost - 1)
+                    self.hand.append(r.card_for_effect)
                     r.card_for_effect = None
 
         if self.game.is_under_ice_prison():
