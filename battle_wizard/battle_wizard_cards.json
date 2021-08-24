@@ -2063,5 +2063,80 @@
 			"effect_type": "triggered",
 			"amount": 1
 		}]
+	},
+	{
+		"name": "Make Metal",
+		"image": "stone-bust.svg",
+		"race": "vampire",
+		"class": "lich",
+		"cost": 1,
+		"card_type": "spell",
+		"description": "Turn a Mob into an Artifact.",
+		"effects": [{
+			"name": "mob_to_artifact",
+			"effect_type": "spell",
+			"target_type": "mob"
+		}]
+	},
+	{ 
+		"name": "Bright Child Vamp",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "mob",
+		"image": "female-vampire.svg",
+		"description": "When you draw, gain 1 HP, or deal 1 damage to an enemy (random).",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"effects": [{
+			"name": "hp_damage_random",
+			"target_type": "any",
+			"trigger": "draw",
+			"effect_type": "triggered"
+		}]
+	},
+	{ 
+		"name": "Studious Child Vamp",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "mob",
+		"image": "vampire-dracula.svg",
+		"description": "Draw a card at the beginning of your turn.",
+		"power": 1,
+		"toughness": 1,
+		"cost": 1,
+		"effects": [{
+			"name": "draw",
+			"target_type": "self",
+			"trigger": "start_turn",
+			"effect_type": "triggered",
+			"amount": 1
+		}]
+	},
+	{
+		"name": "Send Minion",
+		"image": "pointing.svg",
+		"race": "vampire",
+		"class": "lich",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "Summon a 2/3. Change a spell being cast to target it.",
+		"effects": [{
+			"name": "redirect_mob_spell",
+			"effect_type": "spell",
+			"target_type": "being_cast_spell",
+			"target_restrictions": [{"target": "mob"}]
+		}]
+	},
+	{
+		"name": "Willing Villager",
+		"image": "star-struck.svg",
+		"race": "vampire",
+		"class": "lich",
+		"is_token": true,
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 3,
+		"cost": 2
 	}
 ]

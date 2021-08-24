@@ -50,7 +50,7 @@ def default_deck_dwarf_bard():
         "cards": {
             "Lute": 1,
             "Mana Shrub": 1,
-            "Gnome Council": 1,
+            "Dwarf Council": 1,
             "Mayor's Brandy": 1,
             "Song of Patience": 1,
             "Study the Music": 1,
@@ -75,6 +75,9 @@ def default_deck_vampire_lich():
         "cards": {
             "Mana Coffin": 1,
             "Orpheus Krustal": 1,
-           
+            "Make Metal": 2,
+            "Bright Child Vamp": 2,
+            "Studious Child Vamp": 2,
+            "Send Minion": 2,
         }
     }
