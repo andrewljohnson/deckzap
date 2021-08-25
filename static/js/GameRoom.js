@@ -144,11 +144,13 @@ export class GameRoom {
     }
 
     passForAttack(message) {
-        this.sendPlayMoveEvent("ALLOW_ATTACK", message);
+        this.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
+        // this.sendPlayMoveEvent("ALLOW_ATTACK", message);
     }
 
     passForSpellResolution(message) {
-        this.sendPlayMoveEvent("RESOLVE_CARD", message);
+        this.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
+        // this.sendPlayMoveEvent("RESOLVE_CARD", message);
     }
 }
 

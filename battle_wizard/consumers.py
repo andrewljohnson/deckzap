@@ -153,6 +153,9 @@ class BattleWizardConsumer(WebsocketConsumer):
             del move_copy['log_lines']
         if "show_spell" in move_copy:
             del move_copy['show_spell']
+        if "defending_card" in move_copy:
+            del move_copy['defending_card']
+
         self.moves.append(move_copy)
         print(f"send_game_message: {json.dumps(move_copy, indent=4)}")
 

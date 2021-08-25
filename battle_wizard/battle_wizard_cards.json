@@ -1086,8 +1086,12 @@
 				"descriptive_id": "Fast"
 			},
 			{
-				"name": "Superfast",
-				"descriptive_id": "Superfast"
+				"name": "Instant Attack",
+				"descriptive_id": "Instant Attack"
+			},
+			{
+				"name": "Conjure",
+				"descriptive_id": "Conjure"
 			}
 		]
 	},
@@ -1145,8 +1149,12 @@
 				"descriptive_id": "Fast"
 			},
 			{
-				"name": "Superfast",
-				"descriptive_id": "Superfast"
+				"name": "Instant Attack",
+				"descriptive_id": "Instant Attack"
+			},
+			{
+				"name": "Conjure",
+				"descriptive_id": "Conjure"
 			}
 		]
 	},
@@ -1173,7 +1181,7 @@
 		"image": "whistle.svg",
 		"cost": 9,
 		"card_type": "spell",
-		"description": "Make 3/3s with Superfast.",
+		"description": "Make 3/3s with Conjure and Instant Attack.",
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Nonapug Decon",
@@ -1198,8 +1206,12 @@
 				"descriptive_id": "Fast"
 			},
 			{
-				"name": "Superfast",
-				"descriptive_id": "Superfast"
+				"name": "Instant Attack",
+				"descriptive_id": "Instant Attack"
+			},
+			{
+				"name": "Conjure",
+				"descriptive_id": "Conjure"
 			}
 		]
 	},
@@ -1291,7 +1303,7 @@
 			"amount": 2
 		},
 		{
-			"name": "improve_damage_when_cast",
+			"name": "improve_damage_when_used",
 			"effect_type": "spell",
 			"amount": 1
 		}]
@@ -1310,9 +1322,9 @@
 				"card_names": ["Leprechaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
 				"card_descriptions": [
 					"Make a 1/1. Improves when cast.", 
-					"Make a 2/2 Superfast. Improves when cast.", 
-					"Make a 4/4 Superfast. Improves when cast.", 
-					"Make a 6/6 Superfast that draws you a card when it deals damage." 
+					"Make a 2/2 Fast Instant Attack. Improves when cast.", 
+					"Make a 4/4 Fast Instant Attack. Improves when cast.", 
+					"Make a 6/6 Fast Instant Attack that draws you a card when it deals damage." 
 				],
 				"effect_type": "spell",
 				"target_type": "self",
@@ -1352,8 +1364,8 @@
 				"descriptive_id": "Fast"
 			},
 			{
-				"name": "Superfast",
-				"descriptive_id": "Superfast"
+				"name": "Instant Attack",
+				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1373,8 +1385,8 @@
 				"descriptive_id": "Fast"
 			},
 			{
-				"name": "Superfast",
-				"descriptive_id": "Superfast"
+				"name": "Instant Attack",
+				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1398,8 +1410,8 @@
 				"descriptive_id": "Fast"
 			},
 			{
-				"name": "Superfast",
-				"descriptive_id": "Superfast"
+				"name": "Instant Attack",
+				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1517,13 +1529,18 @@
 				"descriptive_id": "Keep"
 			},
 			{
+				"name": "Instant Attack",
+				"descriptive_id": "Instant Attack",
+				"amount": 1
+			},
+			{
 				"name": "Fast",
 				"descriptive_id": "Fast",
 				"amount": 1
 			},
 			{
-				"name": "Superfast",
-				"descriptive_id": "Superfast",
+				"name": "Conjure",
+				"descriptive_id": "Conjure",
 				"amount": 1
 			}
 		]
@@ -2138,5 +2155,248 @@
 		"power": 2,
 		"toughness": 3,
 		"cost": 2
+	},
+	{
+		"name": "Flock of Bats",
+		"image": "moon-bats.svg",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 4,
+		"cost": 2,
+		"abilities": [
+			{
+				"name": "Defend",
+				"descriptive_id": "Defend"
+			}
+		]
+	},
+	{
+		"name": "OG Vamp",
+		"image": "resting-vampire.svg",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "mob",
+		"power": 3,
+		"toughness": 3,
+		"cost": 2,
+		"abilities": [
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			},
+			{
+				"name": "Fast",
+				"descriptive_id": "Fast"
+			}
+		]
+	},
+	{ 
+		"name": "Enthralled Maker",
+		"race": "vampire",
+		"class": "lich",
+		"image": "diamonds-smile.svg",
+		"card_type": "mob",
+		"power": 3,
+		"toughness": 4,
+		"cost": 3,
+		"description": "Replace your normal draw with a choice of 3 cards.",
+		"effects": [{
+			"name": "replace_draw_with_make",
+			"trigger": "draw",
+			"effect_type": "triggered"
+		}]
+	},
+	{
+		"name": "Solid Vamp Minion",
+		"race": "vampire",
+		"class": "lich",
+		"image": "muscle-fat.svg",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 3,
+		"description": "Gain 2 HP at the start of your turn.",
+		"effects": [{
+			"name": "gain_hp",
+			"target_type": "self",
+			"effect_type": "triggered",
+			"trigger": "start_turn",
+			"amount": 2
+		}]
+	},
+	{
+		"name": "Vamp Leader",
+		"race": "vampire",
+		"class": "lich",
+		"image": "conqueror.svg",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 4,
+		"cost": 4,
+		"description": "Your other Mobs get +1/+1.",
+		"effects": [
+			{
+				"name": "add_tokens",
+				"effect_type": "enter_play",
+				"target_type": "self_mobs",
+				"tokens": [{
+					"power_modifier": 1,
+					"toughness_modifier": 1,
+					"multiplier": "self_artifacts"
+				}]
+			},
+			{
+				"name": "remove_tokens",
+				"effect_type": "leave_play",
+				"target_type": "self_mobs"
+			}
+		,
+			{
+				"name": "set_token",
+				"effect_type": "triggered",
+				"target_type": "self_mobs",
+				"trigger": "mob_changes_zones",
+				"tokens": [{
+					"power_modifier": 1,
+					"toughness_modifier": 1,
+					"multiplier": "self_artifacts"
+				}]
+			}
+		]
+	},
+	{
+		"name": "Blood Boy Ogre",
+		"image": "fat.svg",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "mob",
+		"power": 5,
+		"toughness": 5,
+		"cost": 4,
+		"abilities": [
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			},
+			{
+				"name": "Defend",
+				"descriptive_id": "Defend"
+			}
+		]
+	},
+	{
+		"name": "Elite Guardgoyle",
+		"image": "gargoyle.svg",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "mob",
+		"power": 7,
+		"toughness": 7,
+		"cost": 6,
+		"abilities": [
+			{
+				"name": "Defend",
+				"descriptive_id": "Defend"
+			}
+		]
+	},
+	{
+		"name": "Blood Shriek",
+		"image": "energy-breath.svg",
+		"race": "vampire",
+		"class": "lich",
+		"cost": 7,
+		"card_type": "spell",
+		"description": "Discard your hand. All enemies take damage equal to your hand size.",
+		"effects": [{
+				"name": "damage",
+				"effect_type": "spell",
+				"target_type": "opponent",
+				"amount_id": "hand"
+			},
+			{
+				"name": "damage",
+				"effect_type": "spell",
+				"target_type": "opponents_mobs",
+				"amount_id": "hand"
+			},
+			{
+				"name": "discard_random",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount_id": "hand"
+			}
+		]
+	},
+	{
+		"name": "Doomer",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "artifact",
+		"image": "extra-time.svg",
+		"cost": 8,
+		"description": "Syphon. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
+		"effects": [{
+				"name": "damage",
+				"target_type": "opponent",
+				"trigger": "end_turn",
+				"effect_type": "triggered",
+				"amount": 1
+			}, 
+			{
+				"name": "damage",
+				"target_type": "opponents_mobs",
+				"trigger": "end_turn",
+				"effect_type": "triggered",
+				"amount": 1
+			},
+			{
+				"name": "improve_damage_when_used",
+				"effect_type": "triggered",
+				"amount": 1
+			}
+		]
+	},
+	{
+		"name": "The Ancient",
+		"image": "fanged-skull.svg",
+		"race": "vampire",
+		"class": "lich",
+		"card_type": "mob",
+		"power": 4,
+		"toughness": 12,
+		"cost": 9,
+		"abilities": [
+			{
+				"name": "Syphon",
+				"descriptive_id": "Syphon"
+			},
+			{
+				"name": "Conjure",
+				"descriptive_id": "Conjure"
+			},
+			{
+				"name": "Defend",
+				"descriptive_id": "Defend"
+			}
+		]
+	},
+	{
+		"name": "Ritual of the Night",
+		"image": "night-vision.svg",
+		"race": "vampire",
+		"class": "lich",
+		"cost": 0,
+		"card_type": "spell",
+		"description": "Spend all of your mana. For each mana, draw a card or resurrect a friendly mob (random).",
+		"effects": [{
+				"name": "draw_or_resurrect",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount_id": "mana"
+			}
+		]
 	}
 ]
