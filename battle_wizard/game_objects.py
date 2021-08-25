@@ -3064,7 +3064,7 @@ class Player:
         # todo: hax for Find Artifact
         if make_type == artifactCardType:
             for c in self.card_choice_info["cards"]:
-                c.cost = 3
+                c.cost = min(3, c.cost)
         
         for c in self.card_choice_info["cards"]:
             c.cost = max(0, c.cost-reduce_cost)
@@ -3567,8 +3567,8 @@ class Player:
                     counters = effect.counters or 0
                     counters += self.mana
                     effect.counters = min(3, counters)
-            self.mana = 0
-
+        
+        self.mana = 0
         self.mana += self.max_mana
         self.mana = min(self.max_max_mana(), self.mana)
 

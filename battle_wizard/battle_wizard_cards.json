@@ -1237,7 +1237,7 @@
 		"image": "chest.svg",
 		"cost": 0,
 		"card_type": "spell",
-		"description": "Choose 1 of 3 artifacts to make and add to your deck. It costs 3.",
+		"description": "Choose 1 of 3 artifacts to make and add to your deck. It costs at most 3.",
 		"effects": [{
 			"name": "make",
 			"effect_type": "spell",
@@ -2390,7 +2390,7 @@
 		"class": "lich",
 		"cost": 0,
 		"card_type": "spell",
-		"description": "Spend all of your mana. For each mana, draw a card or resurrect a friendly mob (random).",
+		"description": "Spend all of your mana. For each, draw a card or resurrect a friendly mob.",
 		"effects": [{
 				"name": "draw_or_resurrect",
 				"effect_type": "spell",
