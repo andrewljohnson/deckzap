@@ -2,7 +2,7 @@ import json
 import random
 import string
 
-from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer
+from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer, default_deck_dwarf_bard, default_deck_vampire_lich
 from battle_wizard.jsonDB import JsonDB
 from battle_wizard.forms import SignUpForm
 from django.contrib.auth import login, authenticate 
@@ -38,6 +38,8 @@ def add_initial_decks(username):
     decks_db = JsonDB().decks_database()
     JsonDB().save_to_decks_database(username, default_deck_genie_wizard(), decks_db)
     JsonDB().save_to_decks_database(username, default_deck_dwarf_tinkerer(), decks_db)
+    JsonDB().save_to_decks_database(username, default_deck_dwarf_bard(), decks_db)
+    JsonDB().save_to_decks_database(username, default_deck_vampire_lich(), decks_db)
    
 def logout(request):
     logout_django(request)
@@ -53,7 +55,7 @@ def build_deck(request):
         for d in decks:
             if d["id"] == int(deck_id):
                 deck = d
-    all_cards = JsonDB().all_cards()
+    all_cards = JsonDB().all_cards(require_images=True, include_tokens=False)
     all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     return render(request, "build_deck.html", 
         {

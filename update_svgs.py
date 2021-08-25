@@ -19,5 +19,11 @@ for filename in os.listdir(directory):
 		# minidom adds an xml tag that breaks the svg
 		with open(full_path, 'r') as fin:
 			data = fin.readlines()[1:]
+			new_data = []
+			for line in data:
+				line = line.replace('\t', '')
+				line = line.replace('\n', '')
+				line = line.replace('\r', '')	
+				new_data.append(line)		
 		with open(full_path, 'w') as fout:
-			fout.writelines(data)
+			fout.writelines(new_data)
