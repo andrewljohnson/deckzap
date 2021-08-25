@@ -26,6 +26,31 @@ def default_deck_genie_wizard():
         }
     }
 
+def default_deck_vampire_lich():
+    return {
+        "name": "Vampire Lich",
+        "race": "vampire",
+        "class": "lich",
+        "cards": {
+            "Mana Coffin": 1,
+            "Orpheus Krustal": 1,
+            "Make Metal": 2,
+            "Bright Child Vamp": 2,
+            "Studious Child Vamp": 2,
+            "Send Minion": 2,
+            "Flock of Bats": 2,
+            "Enthralled Maker": 2,
+            "OG Vamp": 2,
+            "Solid Vamp Minion": 2,
+            "Blood Boy Ogre": 2,
+            "Elite Guardgoyle": 2,
+            "Blood Shriek": 2,
+            "Doomer": 1,
+            "The Ancient": 2,
+            "Ritual of the Night": 2,
+        }
+    }
+
 def default_deck_dwarf_tinkerer():
     return {
         "name": "Dwarf Tinkerer",
@@ -64,20 +89,5 @@ def default_deck_dwarf_bard():
             "Fine War Music": 1,
             "Dwarves' Revenge": 1,
             "Song of Fire": 1,
-        }
-    }
-
-def default_deck_vampire_lich():
-    return {
-        "name": "Vampire Lich",
-        "race": "vampire",
-        "class": "lich",
-        "cards": {
-            "Mana Coffin": 1,
-            "Orpheus Krustal": 1,
-            "Make Metal": 2,
-            "Bright Child Vamp": 2,
-            "Studious Child Vamp": 2,
-            "Send Minion": 2,
         }
     }

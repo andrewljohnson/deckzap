@@ -722,21 +722,23 @@ export class GameUX {
                         }
                     } 
                 }
-                if(defending_id && defendingCardSprite) {
-                    this.showArrow(
-                        attackingCardSprite,
-                        defendingCardSprite, 
-                        );                    
-                } else {
-                    let avatar = this.opponentAvatar;
-                    if (this.activePlayer(game).username != this.opponent(game).username) {                        
-                        avatar = this.playerAvatar;
+                if (attackingCardSprite.card.card_type == "mob") { // check if attacker and defender got turned into an artifact mid-attack
+                    if(defending_id && defendingCardSprite && defendingCardSprite.card.card_type == "mob") {
+                        this.showArrow(
+                            attackingCardSprite,
+                            defendingCardSprite, 
+                            );                    
+                    } else {
+                        let avatar = this.opponentAvatar;
+                        if (this.activePlayer(game).username != this.opponent(game).username) {                        
+                            avatar = this.playerAvatar;
+                        }
+                        this.showArrow(
+                            attackingCardSprite,
+                            avatar,
+                            {x:avatar.width / 4, y: avatar.height / 2} 
+                        );                                        
                     }
-                    this.showArrow(
-                        attackingCardSprite,
-                        avatar,
-                        {x:avatar.width / 4, y: avatar.height / 2} 
-                    );                                        
                 }
             }
         }        
@@ -1275,6 +1277,10 @@ export class GameUX {
         let baseDescription =  card.description ? card.description : "";
         if (card.name == "Tame Shop Demon") {
            baseDescription = card.effects[0].card_descriptions[card.level];
+        }
+        if (card.name == "Doomer") {
+           let damage = card.effects[0].amount;
+           baseDescription = `All enemies take ${damage} damage end of your turn. Increase this each turn.`;
         }
         if (card.name == "Rolling Thunder") {
            let damage = card.effects[0].amount;
@@ -1870,8 +1876,11 @@ export class GameUX {
             if (a.name == "Fast") {
                 abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
             }                    
-            if (a.name == "Superfast") {
-                abilityText.text = "Superfast - Superfast mobs may be played and attack as instants.";
+            if (a.name == "Conjure") {
+                abilityText.text = "Conjure - Conjure mobs may be played as instants.";
+            }                    
+            if (a.name == "Instant Attack") {
+                abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
             }                    
             if (a.name == "Ambush") {
                 abilityText.text = "Ambush - Ambush mobs may attack other mobs the turn they come into play.";
@@ -1905,6 +1914,9 @@ export class GameUX {
             }                    
             if (a.name == "Disappear") {
                 abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
+            }                    
+            if (a.name == "Defend") {
+                abilityText.text = "Defend - Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.";
             }                    
             if (abilityText.text) {
                 abilityText.position.x -= cw/2 - 4;
