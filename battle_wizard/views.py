@@ -45,6 +45,19 @@ def logout(request):
     logout_django(request)
     return redirect('/')
 
+def find_match(request):
+    if not request.user.is_authenticated:
+        return redirect('/signup')
+    all_cards = JsonDB().all_cards(require_images=True, include_tokens=False)
+    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
+    return render(request, "find_match.html", 
+        {
+            "all_cards": json.dumps(all_cards),
+            "decks": JsonDB().decks_database()[request.user.username]["decks"],
+            "json_decks": json.dumps(JsonDB().decks_database()[request.user.username]["decks"])
+        }
+    )
+
 def build_deck(request):
     if not request.user.is_authenticated:
         return redirect('/signup')

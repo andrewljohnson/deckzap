@@ -1237,7 +1237,7 @@
 		"image": "chest.svg",
 		"cost": 0,
 		"card_type": "spell",
-		"description": "Choose 1 of 3 artifacts to make and add to your deck. It costs at most 3.",
+		"description": "Choose 1 of 3 artifacts to make and add to your deck.",
 		"effects": [{
 			"name": "make",
 			"effect_type": "spell",

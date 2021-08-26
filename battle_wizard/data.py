@@ -1,7 +1,7 @@
 
 def default_deck_genie_wizard():
     return {
-        "name": "Genie Wizard",
+        "name": "Draw Go",
         "race": "genie",
         "class": "wizard",
         "cards": {
@@ -28,7 +28,7 @@ def default_deck_genie_wizard():
 
 def default_deck_vampire_lich():
     return {
-        "name": "Vampire Lich",
+        "name": "The Coven",
         "race": "vampire",
         "class": "lich",
         "cards": {
@@ -53,7 +53,7 @@ def default_deck_vampire_lich():
 
 def default_deck_dwarf_tinkerer():
     return {
-        "name": "Dwarf Tinkerer",
+        "name": "Keeper",
         "race": "dwarf",
         "class": "tinkerer",
         "cards": {
@@ -69,7 +69,7 @@ def default_deck_dwarf_tinkerer():
 
 def default_deck_dwarf_bard():
     return {
-        "name": "Dwarf Bard",
+        "name": "Townies",
         "race": "dwarf",
         "class": "bard",
         "cards": {

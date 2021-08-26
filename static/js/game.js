@@ -1,45 +1,18 @@
 import * as PIXI from 'pixi.js'
 import { Bump } from './lib/bump.js';
-import { RGBSplitFilter, AdjustmentFilter, DropShadowFilter, GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
+import { Card } from './Card.js';
+import * as Constants from './constants.js';
+import { GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 
 const appWidth = 840;
 const appHeight = 803;
-const cardHeight = 114;
-const cardWidth = 80;
-const padding = 5;
 const avatarHeight = 128;
 const avatarWidth = 300;
-const cardContainerWidth = cardWidth * 7 + 12;
-const largeSpriteQueryString = "?large";
+const cardContainerWidth = Card.cardWidth * 7 + 12;
 const gameDivID = "new_game";
-const defaultFontFamily = "Arial";
-const defaultFontSizeSmall = 8;
-const defaultFontSize = 12;
-const unknownCardImage = "uncertainty.svg";
-const cardImagesPath = "/static/images/card-art/";
 const oneThousandMS = 1000;
-const beingCastCardAlpha = .3;
 const ropeHeight = 8;
-
-// colors
-const blackColor = 0x000000;
-const whiteColor = 0xFFFFFF;
-const brownColor = 0x765C48;
-const redColor = 0xff0000;
-const blueColor = 0x0000ff;
-const lightRedColor = 0xff7b7b;
-const lightBrownColor = 0xDFBF9F;
-const yellowColor = 0xEAFF00;
-const greenColor = 0x00FF00;
-const darkGrayColor = 0xAAAAAA;
-const lightGrayColor = 0xEEEEEE;
-const menuGrayColor = 0x969696;
-
-// constants recognized by the game rules engine
-const artifactCardType = "artifact";
-const mobCardType = "mob";
-const spellCardType = "spell";
 
 // move types recognized by the game rules engine
 const moveTypeActivateArtifact = "ACTIVATE_ARTIFACT";
@@ -62,7 +35,7 @@ const menuString = "Menu";
 export class GameUX {
 
     constructor() {
-        // arrows that get temporaily drawn when attacking ans casting spells
+        // arrows that get temporarily drawn when attacking ans casting spells
         this.arrows = []
         // keys for images that have been rendered to the cache already
         this.loadedImageKeys = new Set()
@@ -85,10 +58,6 @@ export class GameUX {
         this.artifactsTexture = PIXI.Texture.from("/static/images/relics.png");
         this.avatarTexture = PIXI.Texture.from("/static/images/avatar.png");
         this.bearTexture = PIXI.Texture.from("/static/images/bear.png");
-        this.cardTexture = PIXI.Texture.from("/static/images/card.png");
-        this.cardLargeTexture = PIXI.Texture.from("/static/images/card-large.png");
-        this.cardTextureInPlay = PIXI.Texture.from("/static/images/in play mob.png");
-        this.cardTextureInPlayGuard = PIXI.Texture.from("/static/images/in play guard mob.png");
         this.handTexture = PIXI.Texture.from("/static/images/hand.png");
         this.inPlayTexture = PIXI.Texture.from("/static/images/in_play.png");
         this.menuTexture = PIXI.Texture.from("/static/images/menu.png");
@@ -111,19 +80,19 @@ export class GameUX {
     renderStaticGameElements() {
         this.app.stage.addChild(this.background());
         const centerOfMobs = cardContainerWidth/2 - avatarWidth/2;
-        const artifactX = cardContainerWidth/2 + avatarWidth/2 + padding;
-        this.opponentAvatar = this.avatar(centerOfMobs, padding);
-        const playerBoxHeight = avatarHeight + padding * 2;  // magic numbers includes top and bottom padding
-        this.artifactsOpponent = this.artifacts(artifactX, playerBoxHeight/2 - cardHeight/2);
-        const topOfMiddle = this.opponentAvatar.position.y + avatarHeight + padding
-        this.inPlayOpponent = this.inPlayContainer(padding, topOfMiddle);
-        const middleOfMiddle = this.inPlayOpponent.position.y + cardHeight + padding
-        this.inPlay = this.inPlayContainer(padding, middleOfMiddle);
-        this.buttonMenu = this.menu(cardContainerWidth + padding * 2, topOfMiddle);
-        const playerOneY = middleOfMiddle + cardHeight + padding;
+        const artifactX = cardContainerWidth/2 + avatarWidth/2 + Constants.padding;
+        this.opponentAvatar = this.avatar(centerOfMobs, Constants.padding);
+        const playerBoxHeight = avatarHeight + Constants.padding * 2;  // magic numbers includes top and bottom padding
+        this.artifactsOpponent = this.artifacts(artifactX, playerBoxHeight/2 - Card.cardHeight/2);
+        const topOfMiddle = this.opponentAvatar.position.y + avatarHeight + Constants.padding
+        this.inPlayOpponent = this.inPlayContainer(Constants.padding, topOfMiddle);
+        const middleOfMiddle = this.inPlayOpponent.position.y + Card.cardHeight + Constants.padding
+        this.inPlay = this.inPlayContainer(Constants.padding, middleOfMiddle);
+        this.buttonMenu = this.menu(cardContainerWidth + Constants.padding * 2, topOfMiddle);
+        const playerOneY = middleOfMiddle + Card.cardHeight + Constants.padding;
         this.playerAvatar = this.avatar(centerOfMobs, playerOneY);
-        this.artifacts = this.artifacts(artifactX, playerOneY + padding);
-        this.handContainer = this.hand(padding, playerOneY + avatarHeight + padding);
+        this.artifacts = this.artifacts(artifactX, playerOneY + Constants.padding);
+        this.handContainer = this.hand(Constants.padding, playerOneY + avatarHeight + Constants.padding);
         this.gameLogScrollbox = this.scrollbox()
     }
 
@@ -168,19 +137,19 @@ export class GameUX {
     }
 
     scrollbox() {
-        const scrollboxHeight = cardHeight * 1.25;
-        const scrollBoxWidth = appWidth - padding * 2;
+        const scrollboxHeight = Card.cardHeight * 1.25;
+        const scrollBoxWidth = appWidth - Constants.padding * 2;
         const scrollbox = new Scrollbox({ boxWidth: scrollBoxWidth, boxHeight: scrollboxHeight, clampWheel: false, passiveWheel: false})
-        scrollbox.position.x = padding;
-        scrollbox.position.y = this.handContainer.position.y + cardHeight + padding;
+        scrollbox.position.x = Constants.padding;
+        scrollbox.position.y = this.handContainer.position.y + Card.cardHeight + Constants.padding;
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        background.tint = whiteColor
+        background.tint = Constants.whiteColor
         background.width = scrollBoxWidth;
         background.height = scrollboxHeight;
         scrollbox.content.addChild(background);
         this.scrollboxBackground = background;
         scrollbox.content.filters = [
-          new OutlineFilter(1, blackColor),
+          new OutlineFilter(1, Constants.blackColor),
         ]
         this.app.stage.addChild(scrollbox);
         return scrollbox;
@@ -190,15 +159,15 @@ export class GameUX {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.width = appWidth;
         background.height = appHeight;
-        background.tint = lightGrayColor;
+        background.tint = Constants.lightGrayColor;
         return background;
     }
 
     menuButton(game) {
         let button = this.button(
             menuString, 
-            whiteColor, 
-            darkGrayColor, 
+            Constants.whiteColor, 
+            Constants.darkGrayColor, 
             0, 
             0,
             () => { this.showMenu() }, 
@@ -221,14 +190,14 @@ export class GameUX {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.width = appWidth;
         background.height = appHeight;
-        background.tint = blackColor;
+        background.tint = Constants.blackColor;
         background.alpha = .7;
         container.addChild(background);
 
-        let options = this.textOptions();
+        let options = Constants.textOptions();
         options.wordWrapWidth = 500
         options.fontSize = 24;
-        options.fill = whiteColor;
+        options.fill = Constants.whiteColor;
         options.align = "middle";
         let name = new PIXI.Text(menuString, options);
         name.position.x = appWidth/2 - name.width/2;
@@ -237,8 +206,8 @@ export class GameUX {
 
         let cage = this.button(
             newGameString, 
-            redColor, 
-            whiteColor, 
+            Constants.redColor, 
+            Constants.whiteColor, 
             appWidth / 2, 
             name.position.y + name.height,
             () => { this.gameRoom.nextRoom()}, 
@@ -248,8 +217,8 @@ export class GameUX {
 
         let cancelCage = this.button(
             "Return to Game", 
-            darkGrayColor, 
-            whiteColor, 
+            Constants.darkGrayColor, 
+            Constants.whiteColor, 
             appWidth / 2, 
             cage.position.y + cage.height,
             () => { this.app.stage.removeChild(container);}, 
@@ -262,23 +231,23 @@ export class GameUX {
     button(title, color, textColor, x, y, clickFunction, container=null, width=null, short=false, fontSize=null) {
         const buttonBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         this.roundRectangle(buttonBG)
-        let options = {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textColor};
+        let options = {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : textColor};
         if (fontSize != null) {
             options.fontSize = fontSize;
         }
         let textSprite = new PIXI.Text(title, options);
         textSprite.position.y = textSprite.height;
-        buttonBG.width = textSprite.width + padding * 8;
-        textSprite.position.x = buttonBG.width/2 - textSprite.width/2;
+        buttonBG.width = textSprite.width + Constants.padding * 8;
+        textSprite.position.x = buttonBG.width / 2 - textSprite.width / 2;
         if (width != null) {
             buttonBG.width = width;
-            textSprite.position.x = width/2 - textSprite.width/2;
+            textSprite.position.x = width / 2 - textSprite.width / 2;
         }        
         buttonBG.height = textSprite.height * 3;
         if (short) {
             buttonBG.height = textSprite.height * 2;            
-            textSprite.position.y = buttonBG.height/2 - textSprite.height/2 - 1;
-            textSprite.height = options.fontSize*2;
+            textSprite.position.y = buttonBG.height / 2 - textSprite.height / 2 - 1;
+            textSprite.height = options.fontSize * 2;
         }
         buttonBG.tint = color;
         buttonBG.buttonMode = true;
@@ -287,7 +256,7 @@ export class GameUX {
             .on("click", clickFunction)
             .on("tap", clickFunction)
         const cage = new PIXI.Container();
-        cage.position.x = x - buttonBG.width/2;
+        cage.position.x = x - buttonBG.width / 2;
         cage.position.y = y + buttonBG.height;
         cage.addChild(buttonBG);
         cage.addChild(textSprite);
@@ -373,9 +342,9 @@ export class GameUX {
     fullImagePath(card) {
         let imageName = card.image;
         if (!imageName) {
-            imageName = unknownCardImage;
+            imageName = "uncertainty.svg";
         }
-        return window.location.protocol + "//" + window.location.host + cardImagesPath + imageName;
+        return window.location.protocol + "//" + window.location.host + Constants.cardImagesPath + imageName;
     }
 
     loadCardImage(cardType, loaderID, loaderURL) {
@@ -389,7 +358,7 @@ export class GameUX {
                 }
             }
         });                       
-        this.app.loader.add(loaderID + largeSpriteQueryString, loaderURL + largeSpriteQueryString, { 
+        this.app.loader.add(loaderID + Constants.largeSpriteQueryString, loaderURL + Constants.largeSpriteQueryString, { 
             metadata: {
                 resourceOptions: {
                     scale: 1,
@@ -424,9 +393,9 @@ export class GameUX {
       let incrementGodrayTime = () => {
         godray.time += this.app.ticker.elapsedMS / oneThousandMS;
       }
-      let sprite = this.cardSprite(game, card, player);
+      let sprite = Card.sprite(game, card, player, this);
       sprite.scale.set(1.5)
-      sprite.position.x = cardWidth + padding;
+      sprite.position.x = Card.cardWidth + Constants.padding;
       sprite.position.y = this.inPlay.position.y;
       this.spellBeingCastSprite = sprite;
       this.app.stage.addChild(sprite)
@@ -515,17 +484,17 @@ export class GameUX {
     }
 
     addHandCard(game, card, index) {
-        let sprite = this.cardSprite(game, card, this.userOrP1(game), false);
-        sprite.position.x = (cardWidth)*index + cardWidth / 2 + padding;
-        sprite.position.y = this.handContainer.position.y + cardHeight / 2;
+        let sprite = Card.sprite(game, card, this.userOrP1(game), this, false);
+        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth / 2 + Constants.padding;
+        sprite.position.y = this.handContainer.position.y + Card.cardHeight / 2;
         this.app.stage.addChild(sprite);                
         if (this.thisPlayer(game).card_info_to_target && card.id == this.thisPlayer(game).card_info_to_target.card_id) {
-            sprite.alpha = beingCastCardAlpha;
+            sprite.alpha = Constants.beingCastCardAlpha;
         }
     }
 
     updatePlayer(game, player, avatarSprite) {
-        let props = {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : blackColor};
+        let props = {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.blackColor};
         avatarSprite.player = player;
         avatarSprite.children = []
         let avatar;
@@ -537,57 +506,57 @@ export class GameUX {
             avatar = new PIXI.Sprite.from(this.tigerTexture);
         }
         avatar.scale.set(.5);
-        avatar.position.x = padding;
-        avatar.position.y = padding;
+        avatar.position.x = Constants.padding;
+        avatar.position.y = Constants.padding;
         avatarSprite.addChild(avatar);
 
         let username = new PIXI.Text(usernameText, props);
-        username.position.x = padding + avatar.position.x + avatar.width;
-        username.position.y = padding;
+        username.position.x = Constants.padding + avatar.position.x + avatar.width;
+        username.position.y = Constants.padding;
         avatarSprite.addChild(username);
 
         let hp = new PIXI.Text(player.hit_points + " hp", props);
-        hp.position.x = padding + avatar.position.x + avatar.width;
+        hp.position.x = Constants.padding + avatar.position.x + avatar.width;
         hp.position.y = username.height + username.position.y
         avatarSprite.addChild(hp);
 
         let hand = hp;
         if (player == this.opponent(game)) {
             hand = new PIXI.Text("Hand: " + player.hand.length, props);
-            hand.position.x = padding + avatar.position.x + avatar.width;
+            hand.position.x = Constants.padding + avatar.position.x + avatar.width;
             hand.position.y = hp.height + hp.position.y;
             avatarSprite.addChild(hand);        
         }
 
         let deck = new PIXI.Text("Deck: " + player.deck.length, props);
-        deck.position.x = padding + avatar.position.x + avatar.width;
+        deck.position.x = Constants.padding + avatar.position.x + avatar.width;
         deck.position.y = hand.height + hand.position.y;
         avatarSprite.addChild(deck);
 
         let playedPile = new PIXI.Text("Played Pile: " + player.played_pile.length, props);
-        playedPile.position.x = padding + avatar.position.x + avatar.width;
+        playedPile.position.x = Constants.padding + avatar.position.x + avatar.width;
         playedPile.position.y = deck.height + deck.position.y;
         avatarSprite.addChild(playedPile);
 
         let mana = new PIXI.Text("Mana", props);
-        mana.position.x = padding + avatar.position.x + avatar.width;
-        mana.position.y = playedPile.height + playedPile.position.y + padding;
+        mana.position.x = Constants.padding + avatar.position.x + avatar.width;
+        mana.position.y = playedPile.height + playedPile.position.y + Constants.padding;
         avatarSprite.addChild(mana);
 
-        let manaGems = this.manaGems(player.max_mana, player.mana);
+        let manaGems = Constants.manaGems(player.max_mana, player.mana);
         manaGems.position.x = mana.position.x;
         manaGems.position.y = mana.position.y + mana.height;        
         avatarSprite.addChild(manaGems);
 
         if (!player.can_be_clicked) {
-            avatarSprite.filters = [cantBeClickedFilter()];                        
+            avatarSprite.filters = [Constants.cantBeClickedFilter()];                        
             avatarSprite.on("click", function (e) {})
             avatarSprite.interactive = false;
             avatarSprite.buttonMode = true;
        } else {
             avatarSprite.interactive = true;
             avatarSprite.buttonMode = true;
-            avatarSprite.filters = [canBeClickedFilter()];                                   
+            avatarSprite.filters = [Constants.canBeClickedFilter()];                                   
             if (this.activePlayer(game).card_info_to_target.card_id) {
                 let eventString = moveTypeSelectOpponent;
                 if (player == this.thisPlayer(game)) {
@@ -624,13 +593,13 @@ export class GameUX {
         let index = 0;
 
         for (let card of player.artifacts) {
-            let sprite = this.cardSpriteInPlay(game, card, player, false);
-            sprite.position.y = artifactsSprite.position.y + cardHeight/2;
-            sprite.position.x = artifactsSprite.position.x + cardWidth*index + cardWidth/2;
+            let sprite = Card.spriteInPlay(game, card, player, this, false);
+            sprite.position.y = artifactsSprite.position.y + Card.cardHeight/2;
+            sprite.position.x = artifactsSprite.position.x + Card.cardWidth*index + Card.cardWidth/2;
             this.app.stage.addChild(sprite);
             index++;
             if (cardIdToHide && card.id == cardIdToHide) {
-                sprite.filters = [targettingGlowFilter()];
+                sprite.filters = [Constants.targettingGlowFilter()];
             }
         }
     }
@@ -668,15 +637,15 @@ export class GameUX {
     }
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
-        let sprite = this.cardSpriteInPlay(game, card, player, false);
-        sprite.position.x = (cardWidth)*index + cardWidth/2 + padding + 4;
-        sprite.position.y = inPlaySprite.position.y + cardHeight/2;
+        let sprite = Card.spriteInPlay(game, card, player, this, false);
+        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding + 4;
+        sprite.position.y = inPlaySprite.position.y + Card.cardHeight/2;
 
         if (cardIdToHide && card.id == cardIdToHide) {
             if (player == this.opponent(game)) {
-                sprite.filters = [targettableGlowFilter()];
+                sprite.filters = [Constants.targettableGlowFilter()];
             } else {
-                sprite.alpha = beingCastCardAlpha;
+                sprite.alpha = Constants.beingCastCardAlpha;
             }
         }
         this.app.stage.addChild(sprite);        
@@ -687,7 +656,7 @@ export class GameUX {
             let menuButton = this.menuButton(game);
             menuButton.width = width;
             menuButton.position.x = this.buttonMenu.width / 2 - menuButton.width/2;
-            menuButton.position.y = this.buttonMenu.height - menuButton.height * 1.5 - padding;
+            menuButton.position.y = this.buttonMenu.height - menuButton.height * 1.5 - Constants.padding;
             this.buttonMenu.addChild(menuButton);
             this.menuButtonAdded = true;
         }
@@ -760,7 +729,7 @@ export class GameUX {
         let godray = new GodrayFilter();
         let sprite = new PIXI.Sprite.from(this.inPlayTexture);
         this.ropeSprite = sprite;
-        sprite.tint = redColor;
+        sprite.tint = Constants.redColor;
         let lastElapsed = 0
         let totalElapsed = 0
         let ropeLength = 570;
@@ -784,8 +753,8 @@ export class GameUX {
             sprite.width -= ropeLength/ropeTime;
             sprite.position.x += ropeLength/ropeTime;
         }
-        sprite.position.x = padding;
-        sprite.position.y = this.inPlay.position.y - padding + 1;
+        sprite.position.x = Constants.padding;
+        sprite.position.y = this.inPlay.position.y - Constants.padding + 1;
         sprite.height = ropeHeight; 
         this.app.stage.addChild(sprite)
         this.app.ticker.add(this.ropeGodrayTimeTicker)
@@ -810,20 +779,20 @@ export class GameUX {
         this.app.stage.addChild(container);
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         let modalWidth = this.opponentAvatar.width;
-        let modalHeight = this.inPlay.height * 2 + padding;
+        let modalHeight = this.inPlay.height * 2 + Constants.padding;
         this.roundRectangle(background)
         background.width = modalWidth;
         background.height = modalHeight;
         container.position.x = this.opponentAvatar.position.x;
-        container.position.y = this.opponentAvatar.position.y + this.opponentAvatar.height + padding;
-        background.tint = blackColor;
+        container.position.y = this.opponentAvatar.position.y + this.opponentAvatar.height + Constants.padding;
+        background.tint = Constants.blackColor;
         background.alpha = .7;
         container.addChild(background);
 
-        let options = this.textOptions();
+        let options = Constants.textOptions();
         options.wordWrapWidth = 400
         options.fontSize = 32;
-        options.fill = whiteColor;
+        options.fill = Constants.whiteColor;
         options.align = "middle";
         let name = new PIXI.Text(this.activePlayer(game).username + "'s turn", options);
         name.position.x = modalWidth/2 - name.width/2;
@@ -845,7 +814,7 @@ export class GameUX {
 
     roundRectangle(sprite) {
         let graphics = new PIXI.Graphics();
-        graphics.beginFill(blackColor);
+        graphics.beginFill(Constants.blackColor);
         graphics.drawRoundedRect(
             0,
             0,
@@ -866,10 +835,10 @@ export class GameUX {
         let toXYArc = [toSprite.position.x-fromSprite.position.x+toSprite.width/4,
                         toSprite.position.y-fromSprite.position.y+toSprite.height/2];
         let toXYArrow = [toSprite.position.x+toSprite.width/4,
-                        toSprite.position.y+toSprite.height/2 - padding];
+                        toSprite.position.y+toSprite.height/2 - Constants.padding];
 
         const bezierArrow = new PIXI.Graphics();
-        bezierArrow.tint = redColor;
+        bezierArrow.tint = Constants.redColor;
         this.arrows.push(bezierArrow);
         this.app.stage.addChild(bezierArrow); 
         const normal = [
@@ -892,10 +861,10 @@ export class GameUX {
         bezierArrow.position.set(fromXY[0], fromXY[1], 0);
         
         bezierArrow
-            .lineStyle(4, whiteColor, 1)
+            .lineStyle(4, Constants.whiteColor, 1)
             .bezierCurveTo(cpXY1[0],cpXY1[1],cpXY2[0],cpXY2[1],toXY[0],toXY[1])
-            .lineStyle(1, whiteColor, 1)
-            .beginFill(redColor, 1)
+            .lineStyle(1, Constants.whiteColor, 1)
+            .beginFill(Constants.redColor, 1)
             .moveTo(toXY[0] + normal[0] + tangent[0], toXY[1] + normal[1] + tangent[1])
             .lineTo(toXY[0] , toXY[1] )
             .lineTo(toXY[0] - normal[0] + tangent[0], toXY[1] - normal[1] + tangent[1])
@@ -903,17 +872,21 @@ export class GameUX {
             .endFill();
         
         let sprite = new PIXI.Sprite(this.app.renderer.generateTexture(bezierArrow,{resolution:PIXI.settings.FILTER_RESOLUTION}))
-        bezierArrow.filters = arrowFilters()
+        bezierArrow.filters = [
+            new GlowFilter({ innerStrength: 0, outerStrength: 2, color: Constants.yellowColor}),
+            Constants.dropshadowFilter()
+        ];
 
 
         return sprite;
     }
+
+    // hax: prevents spurious onMouseover events from firing during rendering all the cards
     makeCardsInteractive(game) {
         if (!this.isPlaying(game)) {
             return;
         }
 
-        // hax: prevents spurious onMouseover events from firing during rendering all the cards
         setTimeout(() => { 
             for (let sprite of this.app.stage.children) {
                 if (sprite.card) {
@@ -1024,14 +997,14 @@ export class GameUX {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.width = appWidth;
         background.height = appHeight;
-        background.tint = blackColor;
+        background.tint = Constants.blackColor;
         background.alpha = .7;
         container.addChild(background);
 
-        let options = this.textOptions();
+        let options = Constants.textOptions();
         options.wordWrapWidth = 500
         options.fontSize = 24;
-        options.fill = whiteColor;
+        options.fill = Constants.whiteColor;
         options.align = "middle";
         let name = new PIXI.Text(title, options);
         name.position.x = appWidth/2 - name.width/2;
@@ -1040,15 +1013,15 @@ export class GameUX {
 
         const cardContainer = new PIXI.Container();
         this.selectCardInnerContainer = cardContainer
-        cardContainer.position.x = appWidth/2 - cardWidth*1.5;
+        cardContainer.position.x = appWidth/2 - Card.cardWidth*1.5;
 
         let cards = this.thisPlayer(game).card_choice_info.cards;
         if (cards.length >= 6) {
-            cardContainer.position.x = cardWidth;            
+            cardContainer.position.x = Card.cardWidth;            
         }
         // make global effect has 5 cards
         if (cards.length == 5) {
-            cardContainer.position.x = appWidth/2 - cardWidth*2.5;            
+            cardContainer.position.x = appWidth/2 - Card.cardWidth*2.5;            
         }
         cardContainer.position.y = name.position.y + 60;
         container.addChild(cardContainer);
@@ -1060,14 +1033,14 @@ export class GameUX {
         }
 
         if (cancelTitle) {
-            let text = new PIXI.Text(cancelTitle, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : whiteColor});
-            text.position.x = padding * 2;
+            let text = new PIXI.Text(cancelTitle, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.whiteColor});
+            text.position.x = Constants.padding * 2;
             text.position.y = text.height;
             const b = new PIXI.Sprite.from(PIXI.Texture.WHITE);
             this.roundRectangle(b)
-            b.width = text.width + padding * 4;
+            b.width = text.width + Constants.padding * 4;
             b.height = text.height*3;
-            b.tint = blueColor;
+            b.tint = Constants.blueColor;
             b.buttonMode = true;
             b.interactive = true;
             const clickFunction = () => {
@@ -1089,9 +1062,9 @@ export class GameUX {
     }
 
     addSelectViewCard(game, card, cardContainer, card_on_click, index) {
-        let cardSprite = this.cardSprite(game, card, this.userOrP1(game), false, false, true);
-        cardSprite.position.x = (cardWidth + padding) *  (index % 8) + cardWidth/2;
-        cardSprite.position.y = cardHeight/2 + (cardHeight + 5) * Math.floor(index / 8);            
+        let cardSprite = Card.sprite(game, card, this.userOrP1(game), this, false, false, true);
+        cardSprite.position.x = (Card.cardWidth + Constants.padding) *  (index % 8) + Card.cardWidth/2;
+        cardSprite.position.y = Card.cardHeight/2 + (Card.cardHeight + 5) * Math.floor(index / 8);            
         cardContainer.addChild(cardSprite);
         let self = this;
         cardSprite
@@ -1099,519 +1072,6 @@ export class GameUX {
                 this.onMouseout(cardSprite, self);
                 card_on_click(card);
             })
-    }
-
-    cardSprite(game, card, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
-        let cw = cardWidth;
-        let ch = cardHeight;
-        let imageBackgroundSize = 128
-        let spellWidth = cardWidth-6;
-        let spellHeight = 54;
-        let portraitHeight = 44;
-        let portraitWidth = 24;
-        let loaderId = card.name;
-        let aFX = -8;
-        let aFY = -9;
-        let cardTexture = this.cardTexture
-        if (useLargeSize) {
-            aFX = -cardWidth/4 + 16;
-            aFY = -cardHeight/4;
-            cw*= 2;
-            ch*= 2; 
-            imageBackgroundSize *= 2;           
-            spellWidth = cardWidth*2-6;
-            spellHeight*=2;
-            portraitHeight*=2.2;
-            portraitWidth*=2;
-            loaderId = card.name + largeSpriteQueryString 
-            cardTexture = this.cardLargeTexture
-        }
-
-        let cardSprite = this.baseCardSprite(card, cardTexture, game);
-        cardSprite.card = card;
-        cardSprite.buttonMode = true;  // hand cursor
-        let imageSprite = this.framedSprite(loaderId, imageBackgroundSize);
-        if (card.card_type == mobCardType || card.card_type == artifactCardType) {
-            imageSprite.position.y = -imageSprite.height/4;
-            this.ellipsifyImageSprite(imageSprite, card, portraitWidth, portraitHeight)        
-        } else if (card.card_type == spellCardType) {
-            imageSprite.position.y = -spellHeight/2;
-            this.rectanglifyImageSprite(imageSprite, spellWidth, spellHeight)                                    
-        }
-        cardSprite.addChild(imageSprite);
-
-        const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        nameBackground.tint = blackColor;
-        nameBackground.width = cw - 6;
-        nameBackground.height = defaultFontSize;
-        nameBackground.alpha = .7;
-        nameBackground.position.x = aFX + 8;
-        nameBackground.position.y = aFY + 2;
-        let nameOptions = this.textOptions();
-        if (card.name.length >= 22) {
-            nameOptions.fontSize --;
-        }
-        if (useLargeSize) {
-            nameOptions.fontSize = defaultFontSize;
-            nameOptions.wordWrapWidth = 142;
-            nameBackground.position.x -= 4
-            nameBackground.position.y += 19
-            nameBackground.height = 16;
-        }
-        cardSprite.addChild(nameBackground);
-
-        for (let e of card.effects) {
-            // hax, don't reference card name
-            if (e.name == "evolve" && card.name != "Warty Evolver") {
-                let evolveLabelOptions = this.textOptions();
-                evolveLabelOptions.fill = whiteColor;
-                evolveLabelOptions.fontSize = 6;
-                const evolveLabel = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-                evolveLabel.tint = blueColor;
-                evolveLabel.height = 6;
-                evolveLabel.alpha = .7;
-                evolveLabel.position.x = aFX + 8;
-                evolveLabel.position.y = aFY + 2 - evolveLabel.height - padding;
-                if (useLargeSize) {
-                    evolveLabelOptions.fontSize = defaultFontSize;
-                    evolveLabel.position.x -= 4
-                    evolveLabel.height = 12;
-                    evolveLabel.position.y += evolveLabel.height
-                }
-                cardSprite.addChild(evolveLabel);
-                let evolveText = new PIXI.Text("Evolved", evolveLabelOptions);
-                evolveLabel.width = evolveText.width + padding;
-                cardSprite.addChild(evolveText);
-                evolveText.position.x = evolveLabel.position.x;
-                evolveText.position.y = evolveLabel.position.y;
-            }
-        }
-
-        nameOptions.fill = whiteColor;
-        let name = new PIXI.Text(card.name, nameOptions);
-        cardSprite.addChild(name);
-        name.position.x = nameBackground.position.x;
-        name.position.y = nameBackground.position.y;
-
-        const descriptionBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        descriptionBackground.tint = whiteColor;
-        descriptionBackground.alpha = .8;
-        descriptionBackground.width = cw - 6;
-        descriptionBackground.height = ch/2 - 10;
-        descriptionBackground.position.y = descriptionBackground.height/2;
-        cardSprite.addChild(descriptionBackground);
-
-        let activatedEffects = [];
-        let attackEffect = null;
-        for (let e of card.effects) {
-            if (e.effect_type == "activated" && e.enabled) {
-                activatedEffects.push(e)
-                if (e.name == "attack" || e.name == "make_random_townie") {
-                    attackEffect = e;
-                }
-            }
-        }
-        if (card.card_type != "Effect") {
-            let costX = aFX - 23;
-            let costY = aFX - 38;
-            if (useLargeSize) {
-                costX -= cw/4;
-                costY -= ch/4;
-            }
-
-            imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + "amethyst.svg"));
-            imageSprite.tint = blueColor;
-            imageSprite.height = 15;
-            imageSprite.width = 15;
-            if (useLargeSize) {
-                imageSprite.height = 25;
-                imageSprite.width = 25;
-            }
-            imageSprite.position.x = costX;
-            imageSprite.position.y = costY;
-            cardSprite.addChild(imageSprite);
-
-            let ptOptions = this.textOptions()
-            ptOptions.stroke = blackColor;
-            ptOptions.strokeThickness = 2;
-            ptOptions.fill = whiteColor;
-            ptOptions.fontSize = defaultFontSize;
-            if (useLargeSize) {
-                ptOptions.fontSize = 17;
-            }
-            let cost = new PIXI.Text(card.cost, ptOptions);
-            cost.position.x = costX;
-            cost.position.y = costY;
-            cardSprite.addChild(cost);
-
-        }            
-
-        let abilitiesText = "";
-        let color = darkGrayColor;
-        for (let a of card.abilities) {
-            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
-                if (a.description) {
-                    abilitiesText += a.description;
-                    color = blackColor;
-                } else {
-                    if (a.name == "DamageDraw") {
-                        continue;
-                    }
-                    abilitiesText += a.name;
-                    if (a != card.abilities[card.abilities.length-1]) {                
-                           abilitiesText += ", ";
-                    }               
-                }
-            }
-        }
-
-        for (let c of card.tokens) {
-           if (c.set_can_act == false) {
-            if (abilitiesText.length) {
-                abilitiesText += ", ";
-            }
-            abilitiesText += "Can't Attack";
-           }
-        }
-
-        let baseDescription =  card.description ? card.description : "";
-        if (card.name == "Tame Shop Demon") {
-           baseDescription = card.effects[0].card_descriptions[card.level];
-        }
-        if (card.name == "Doomer") {
-           let damage = card.effects[0].amount;
-           baseDescription = `All enemies take ${damage} damage end of your turn. Increase this each turn.`;
-        }
-        if (card.name == "Rolling Thunder") {
-           let damage = card.effects[0].amount;
-           baseDescription = `Deal ${damage} damage. Improves when cast.`;
-        }
-        if (card.card_for_effect && card.name == "Upgrade Chamber") {
-           baseDescription = `Get ${card.card_for_effect.name} back next turn, upgraded.`;
-        }
-        if (card.card_for_effect && card.name == "Duplication Chamber") {
-           baseDescription = `Get two copies of ${card.card_for_effect.name} back next turn.`;
-        }
-
-
-        if (card.added_descriptions.length) {
-            for (let d of card.added_descriptions) {
-                baseDescription += " " + d
-            }
-        }
-        let descriptionOptions = this.textOptions();
-        if ((abilitiesText + ". " + baseDescription).length > 95) {
-            descriptionOptions.fontSize = 6; 
-        }
-        if (useLargeSize) {
-            descriptionOptions.wordWrapWidth = 142;
-            descriptionOptions.fontSize = defaultFontSize;
-        }
-
-
-        let description = new PIXI.Text(abilitiesText + ". " + baseDescription, descriptionOptions);
-        if (abilitiesText.length == 0) {
-            description = new PIXI.Text(baseDescription, descriptionOptions);
-        }
-        if (abilitiesText.length != 0 && !baseDescription) {
-            description = new PIXI.Text(abilitiesText + ". ", descriptionOptions);
-        }
-
-        if (baseDescription || abilitiesText.length) {
-            // todo don't hardcode hide description for Infernus
-            // todo don't hardcode hide description for Winding One
-            if ((card.card_type == mobCardType && activatedEffects.length == 0) ||
-                card.card_type != mobCardType || card.turn_played == -1) {
-                cardSprite.addChild(description);
-            }
-        }
-        description.position.x = name.position.x;
-        description.position.y = name.position.y + 28;
-        if (useLargeSize) {
-            description.position.y += 20 + 2;
-        }
-
-        if (useLargeSize) {
-            this.showAbilityPanels(cardSprite, card, cw, ch);
-            if (card.card_for_effect) {
-                var subcard = this.cardSprite(game, card.card_for_effect, player, true, true);
-                this.setCardAnchors(subcard);
-                subcard.height *=.75;
-                subcard.width *=.75;
-                subcard.position.x = cardWidth*1.75;
-                cardSprite.addChild(subcard)            
-            }
-        }
-
-        if (card.card_type == mobCardType) {
-            this.addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize)
-
-        } else if (card.turn_played == -1) {
-            let typeX = aFX + cw/4 - 33;
-            let typeY = aFY + ch/2 - 5;
-            if (useLargeSize) {
-                typeX -= 20;
-                typeY += 20;
-            }
-            let typeBG = new PIXI.Graphics();
-            typeBG.beginFill(blackColor);
-            typeBG.drawRoundedRect(
-                0,
-                0,
-                42,
-                defaultFontSize,
-                30
-            );
-            typeBG.position.x = typeX;
-            typeBG.position.y = typeY;
-            typeBG.endFill();
-            typeBG.alpha = .5;
-            cardSprite.addChild(typeBG);
-
-            let typeOptions = this.textOptions();
-            typeOptions.fill = whiteColor;
-
-            let typeName = card.card_type;
-            for (let a of card.abilities) {
-                if ("Weapon" == a.descriptive_id) {
-                    typeName = a.descriptive_id;
-                }
-            }
-
-            let type = new PIXI.Text(typeName.charAt(0).toUpperCase() + typeName.slice(1), typeOptions);
-            type.position.x = typeX + 20;
-            type.position.y = typeY + 6
-            cardSprite.addChild(type);
-        }
-
-        if (attackEffect) {
-            let powerX = aFX - 24;
-            let powerY = aFY + ch/2;
-            if (useLargeSize) {
-                powerX -= 44;
-                powerY += 20;
-            }
-            let countersX = powerX + cw - 16;
-            let attackEffectOptions = this.textOptions() 
-            if (attackEffect.name == "make_random_townie") {
-                this.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
-            } else {
-                this.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power);
-                this.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
-            }
-        }
-
-        this.setCardFilters(card, cardSprite, game, overrideClickable, useLargeSize);
-
-        if (dont_attach_listeners) {
-            return cardSprite;
-        }
-
-        this.setCardDragListeners(card, cardSprite, game);
-        if (!useLargeSize) {
-            this.setCardMouseoverListeners(cardSprite, game);
-        }
-        this.setCardAnchors(cardSprite);
-        
-        return cardSprite;
-    }
-
-    cardSpriteInPlay(game, card, player, dont_attach_listeners) {
-        let cardTexture = this.cardTextureInPlay;
-        for (let a of card.abilities) {
-            if (a.name == "Guard") {
-                cardTexture = this.cardTextureInPlayGuard;
-            }                    
-        }
-
-        let cardSprite = this.baseCardSprite(card, cardTexture, game);
-        let imageSprite = this.framedSprite(card.name+largeSpriteQueryString, 256);
-        cardSprite.addChild(imageSprite);
-        this.ellipsifyImageSprite(imageSprite, card, 38, 82)
-
-        if (card.name == "Mana Battery") {
-            let currentBatteryMana = 0;
-            for (let effect of card.effects) {
-                if (effect.name == "store_mana") {
-                    currentBatteryMana = effect.counters;
-                }
-            }
-            let gems = this.manaGems(3, currentBatteryMana);
-            gems.position.x = -gems.width/2;
-            gems.position.y = cardHeight/2 - 7 - gems.height;
-            cardSprite.addChild(gems);
-        }
-
-        let effect = null;
-        if (card.effects.length > 0 && card.effects[0].enabled && card.effects[0].effect_type == "activated") {
-            effect = card.effects[0];
-        } else if (card.effects.length > 1 && card.effects[1].enabled && card.effects[1].effect_type == "activated") { 
-            effect = card.effects[1];
-        }
-
-        if (effect) {
-            let gems = this.manaGems(effect.cost, effect.cost);
-            if (effect.cost == 0) {
-                gems = this.manaGems(1, 1, "power-button.svg", blackColor);
-                if (card.name == "Lute") {
-                    gems = this.manaGems(1, 1, "musical-notes.svg", blackColor);                    
-                }
-            }
-            let color = greenColor;
-            if (!card.can_be_clicked) {
-                color = darkGrayColor;
-            }
-            let b = this.button(
-                "", 
-                color, 
-                null, 
-                0, 
-                -padding,
-                () => {}, 
-                null,
-                gems.width*2, true
-            );
-            b.addChild(gems);
-            gems.position.x = gems.width/2;
-            gems.position.y = gems.height*.75;
-            cardSprite.addChild(b);
-        }
-        
-        let options = this.textOptions();
-        
-        let aFX = -cardWidth / 2;
-        let aFY = -cardHeight / 2;
-
-        let activatedEffects = [];
-        let attackEffect = null;
-        for (let e of card.effects) {
-            if (e.effect_type == "activated" && e.enabled) {
-                activatedEffects.push(e)
-                if (e.name == "attack" || e.name == "make_random_townie") {
-                    attackEffect = e;
-                }
-            }
-        }
-
-        if (card.card_type == mobCardType) {
-            this.addStats(card, cardSprite, player, -8, -14, cardWidth-16, cardHeight, false)
-        } else if (card.turn_played == -1 && !attackEffect) {
-            let type = new PIXI.Text(card.card_type, options);
-            type.position.x = aFX + cardWidth - 28;
-            type.position.y = aFY + cardHeight - 18;
-            cardSprite.addChild(type);
-        }
-
-        if (attackEffect) {
-            let powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
-            if (attackEffect.name == "make_random_townie") {
-                let attackEffectOptions = this.textOptions() 
-                this.addCircledLabel(aFX + cardWidth - 14, aFY + cardHeight - 18, cardSprite, attackEffectOptions, attackEffect.counters);
-            } else {
-                powerCharges.position.x = aFX + cardWidth - 14;
-                powerCharges.position.y = aFY + cardHeight - 18;
-                cardSprite.addChild(powerCharges);                
-            }
-        }
-
-        if (card.card_for_effect) {
-            var subcard = this.cardSprite(game, card.card_for_effect, player, true);
-            this.setCardAnchors(subcard);
-            subcard.height = cardHeight/2
-            subcard.width = cardWidth/2
-            subcard.position.y += 20
-            cardSprite.addChild(subcard)            
-        }
-
-        this.setCardFilters(card, cardSprite, game);
-
-        if (dont_attach_listeners) {
-            return cardSprite;
-        }
-
-        this.setCardDragListeners(card, cardSprite, game);
-        this.setCardMouseoverListeners(cardSprite, game);
-
-        this.setCardAnchors(cardSprite);
-
-         if (cardSprite.card.damage_to_show > 0) {
-           this.damageSprite(imageSprite, cardSprite.card.id + '_pic', cardSprite.card.damage_to_show);
-           this.damageSprite(cardSprite, cardSprite.card.id, cardSprite.card.damage_to_show);
-        }
-
-        return cardSprite;
-    }
-
-    baseCardSprite(card, cardTexture, game) { 
-        let cardSprite = new PIXI.Sprite.from(cardTexture);
-        cardSprite.card = card;
-        if (this.isPlaying(game)) {
-            cardSprite.buttonMode = true;  // hand cursor
-        }
-        return cardSprite;
-    }
-
-    framedSprite(loaderID, size) {
-        let imageSprite = PIXI.Sprite.from(loaderID);
-        let spriteWidth = imageSprite.width
-        const bgSprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        bgSprite.tint = blackColor;
-        bgSprite.width = size;
-        bgSprite.height = size;
-        const imageContainer = new PIXI.Container();
-        imageContainer.addChild(bgSprite);
-        imageContainer.addChild(imageSprite);
-        imageSprite.position.x = bgSprite.width / 2 - imageSprite.width / 2;
-        imageSprite.position.y = bgSprite.height / 2 - imageSprite.height / 2;
-        let texture = this.app.renderer.generateTexture(imageContainer)
-        imageSprite = new PIXI.Sprite(texture);
-        return imageSprite
-    }
-
-    ellipsifyImageSprite(imageSprite, card, width, height) {
-        let bg = this.ellipseBackground(width, height, imageSprite.width);
-        imageSprite.mask = bg;
-        imageSprite.addChild(bg);        
-        return imageSprite
-    }
-
-    ellipseBackground(width, height, imageSpriteWidth) {
-        const ellipseW = width;
-        const ellipseH = height;
-        const background = new PIXI.Graphics();
-        background.beginFill(whiteColor, 1);
-        background.drawEllipse(0, 0, ellipseW, ellipseH - height/3)
-        background.endFill();
-        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        sprite.mask = background;
-        sprite.addChild(background);
-        return background;
-    }
-
-    setCardFilters(card, cardSprite, game, overrideClickable, isStackCard) {
-        let filters = []
-        if (card.can_be_clicked || overrideClickable) {
-            if (!this.thisPlayer(game).card_info_to_target.effect_type || this.thisPlayer(game).card_info_to_target.card_id != card.id) {
-                if (this.thisPlayer(game).card_info_to_target.effect_type && ["mob_comes_into_play", "spell_cast", "artifact_activated"].includes(this.thisPlayer(game).card_info_to_target.effect_type)) {
-                    filters.push(targettableGlowFilter());                                    
-                } else {
-                    filters.push(canBeClickedFilter());                                    
-                }
-            }
-        } else {
-            if (!isStackCard) {
-                filters.push(cantBeClickedFilter());                                        
-            }
-        }
-        if (card.shielded && card.turn_played > -1) {
-            filters.push(shieldFilter());                        
-        }
-        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            filters.push(lurkerFilter());                        
-        }
-
-        cardSprite.filters = filters;
-
     }
 
     setCardDragListeners(card, cardSprite, game) {
@@ -1652,16 +1112,6 @@ export class GameUX {
             .on('mouseout',        cardSprite.onMouseout)
     }
 
-    setCardAnchors(cardSprite) {
-        cardSprite.anchor.set(.5);
-        for (let child of cardSprite.children) {
-            // graphics don't have an anchor, such as the circle for costBackground
-            if (child.anchor) {
-                child.anchor.set(.5);                
-            }
-        }        
-    }
-
     onMouseover(cardSprite, game) {
         this.hovering = true;
         this.hoverTimeout = setTimeout(() => { 
@@ -1669,8 +1119,8 @@ export class GameUX {
                 this.app.stage.removeChild(this.hoverCards);
                 this.hovering = false;
                 const card = cardSprite.card
-                const loaderID = card.name+largeSpriteQueryString
-                const loaderURL = this.fullImagePath(card)+largeSpriteQueryString;
+                const loaderID = card.name+Constants.largeSpriteQueryString
+                const loaderURL = this.fullImagePath(card)+Constants.largeSpriteQueryString;
                 if (!PIXI.utils.TextureCache[loaderURL]) {
                     this.app.loader.reset()
                     this.loadCardImage(
@@ -1691,19 +1141,19 @@ export class GameUX {
     }
 
     addHoverCard(cardSprite, game) {
-        let sprite = this.cardSprite(this.game, cardSprite.card, this.thisPlayer(this.game), false, true);
-        sprite.position.x = cardSprite.position.x + cardWidth/2;
-        sprite.position.y = cardSprite.position.y - cardHeight*1.5;
-        if (sprite.position.y < cardHeight) {
-            sprite.position.y = cardHeight;
-            sprite.position.x = cardSprite.position.x + cardWidth*1.5 + 10;
+        let sprite = Card.sprite(this.game, cardSprite.card, this.thisPlayer(this.game), this, false, true);
+        sprite.position.x = cardSprite.position.x + Card.cardWidth/2;
+        sprite.position.y = cardSprite.position.y - Card.cardHeight*1.5;
+        if (sprite.position.y < Card.cardHeight) {
+            sprite.position.y = Card.cardHeight;
+            sprite.position.x = cardSprite.position.x + Card.cardWidth*1.5 + 10;
         }
         // hax - because cards are in an unusual container?
         if (this.thisPlayer(game).card_choice_info.cards.length) {
-            sprite.position.x += cardWidth * 2.5 + padding * 2;
+            sprite.position.x += Card.cardWidth * 2.5 + Constants.padding * 2;
         }
         if (sprite.position.x >= 677) {
-            sprite.position.x = cardSprite.position.x - cardWidth;
+            sprite.position.x = cardSprite.position.x - Card.cardWidth;
         }
 
         this.app.stage.addChild(sprite)
@@ -1714,239 +1164,6 @@ export class GameUX {
         clearTimeout(this.hoverTimeout);
         this.hovering = false
         this.app.stage.removeChild(this.hoverCards);
-    }
-
-    imagePath(card) {
-        let imageName = card.image;
-        if (!imageName) {
-            imageName = "uncertainty.svg"
-        }
-        return cardImagesPath + imageName;
-    }
-
-    textOptions() {
-        return {fontFamily : defaultFontFamily, fontSize: defaultFontSizeSmall, fill : blackColor, wordWrap: true, wordWrapWidth: 75};
-    }
-
-    addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
-        let cardPower = card.power;
-        let cardToughness = card.toughness - card.damage;
-        if (card.tokens) {
-            // todo does this code need to be clientside?
-            for (let c of card.tokens) {
-                if (c.multiplier == "self_artifacts" && player.artifacts) {
-                    cardPower += c.power_modifier * player.artifacts.length;                        
-                } else if (c.multiplier == "self_mobs_and_artifacts") {
-                    if (player.artifacts) {
-                        cardPower += c.power_modifier * player.artifacts.length;                        
-                    }
-                    if (player.in_play) {
-                        cardPower += c.power_modifier * (player.in_play.length - 1);                        
-                    }
-                } else {
-                    cardPower += c.power_modifier;                        
-                }
-            }
-            for (let c of card.tokens) {
-                cardToughness += c.toughness_modifier;
-            }
-        }
-
-        let ptOptions = this.textOptions()
-
-        let centerOfEllipse = 16
-
-        let powerX = aFX - cw/2 + centerOfEllipse;
-        let powerY = aFY + ch/2;
-        let defenseX = aFX + cw/2;
-
-        if (useLargeSize) {
-            powerY += 20;
-            powerX -= 5;
-            defenseX -= 5;
-        }
-
-        let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + "piercing-sword.svg"));
-        imageSprite.tint = yellowColor;
-        imageSprite.height = 17;
-        imageSprite.width = 17;
-        imageSprite.position.x = powerX;
-        imageSprite.position.y = powerY;
-        cardSprite.addChild(imageSprite);
-
-        this.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower, yellowColor);
-
-        imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + "hearts.svg"));
-        imageSprite.tint = redColor;
-        imageSprite.height = 17;
-        imageSprite.width = 17;
-        imageSprite.position.x = defenseX;
-        imageSprite.position.y = powerY;
-        cardSprite.addChild(imageSprite);
-
-        ptOptions.stroke = blackColor;
-        ptOptions.strokeThickness = 2;
-        ptOptions.fill = whiteColor;
-        ptOptions.fontSize = 9;
-        let defense = new PIXI.Text(cardToughness, ptOptions);
-        defense.position.x = defenseX;
-        defense.position.y = powerY;
-        cardSprite.addChild(defense);        
-
-        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
-        cardId.position.x = defenseX - cardWidth/4 - 5;
-        cardId.position.y = powerY;
-        cardSprite.addChild(cardId);        
-    }
-
-    addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
-        options.stroke = blackColor;
-        options.strokeThickness = 2;
-        options.fill = whiteColor;
-        options.fontSize = 11;
-
-        let circle = this.circleBackground(costX, costY);
-        circle.tint = fillColor
-        cardSprite.addChild(circle);
-        let cost = new PIXI.Text(value, options);
-        cost.position.x = -4;
-        cost.position.y = -8;
-        circle.addChild(cost);
-    }
-
-    circleBackground(x, y) {
-        const circleRadius = 7;
-        const background = new PIXI.Graphics();
-        background.beginFill(blackColor, 1);
-        background.lineStyle(2, blackColor, 1); 
-        background.drawCircle(0, 0, circleRadius);
-        background.endFill();
-
-        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        sprite.position.x = x;
-        sprite.position.y = y;
-        sprite.mask = background;
-        sprite.width = circleRadius * 2;
-        sprite.height = circleRadius * 2;
-        sprite.addChild(background);
-        return sprite;
-    }
-
-    rectanglifyImageSprite(imageSprite, width, height) {
-        let bg = this.rectangleBackground(width, height);
-        imageSprite.mask = bg;
-        imageSprite.addChild(bg);        
-    }
-
-    rectangleBackground(width, height) {
-        const rectangleW = width;
-        const rectangleH = height;
-        const background = new PIXI.Graphics();
-        background.beginFill(whiteColor, 1);
-        background.drawRect(-rectangleW/2, -rectangleH/2, rectangleW, rectangleH);
-        background.endFill();
-        const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        sprite.mask = background;
-        sprite.addChild(background);
-        return background;
-    }
-
-    showAbilityPanels(cardSprite, card, cw, ch) {
-        let options = this.textOptions();
-        options.fontSize = 10;
-        options.wordWrapWidth = cw - 8;
-
-        const topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        cardSprite.addChild(topBG);
-        topBG.tint = yellowColor;
-        const textContainer = new PIXI.Container();
-        cardSprite.addChild(textContainer);
-        let yPosition = 0;
-        for (let a of card.abilities) {
-            let abilityText = new PIXI.Text("", options);
-            if (a.name == "Shield") {
-                abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
-            }                    
-            if (a.name == "Guard") {
-                abilityText.text = "Guard - Guard mobs must be attacked before anything else.";
-            }                    
-            if (a.name == "Syphon") {
-                abilityText.text = "Syphon - Gain hit points when this deals damage.";
-            }                    
-            if (a.name == "Fast") {
-                abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
-            }                    
-            if (a.name == "Conjure") {
-                abilityText.text = "Conjure - Conjure mobs may be played as instants.";
-            }                    
-            if (a.name == "Instant Attack") {
-                abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
-            }                    
-            if (a.name == "Ambush") {
-                abilityText.text = "Ambush - Ambush mobs may attack other mobs the turn they come into play.";
-            }                    
-            if (a.name == "Instrument Required") {
-                abilityText.text = "Instrument Required - You must have an Instrument in play to play this.";
-            }                    
-            if (a.name == "Townie") {
-                abilityText.text = "Townie - Townies have a little ability.";
-            }                    
-            if (a.name == "Unique") {
-                abilityText.text = "Unique - only one Unique card is allowed per deck.";
-            }                    
-            if (a.name == "Weapon") {
-                abilityText.text = "Weapon - Weapons can be used to attack players and mobs.";
-            }                    
-            if (a.name == "Instrument") {
-                abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
-            } 
-            if (a.name == "Fade") {
-                abilityText.text = "Fade - Fade mobs get -1/-1 at the beginning of the turn.";
-            }                    
-            if (a.name == "Stomp") {
-                abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
-            }                    
-            if (a.name == "Lurker") {
-                abilityText.text = "Lurker - Lurker mobs can't be targetted until they attack.";
-            }                    
-            if (a.name == "Keep") {
-                abilityText.text = "Keep - Cards with Keep can be Kept by races (dwarves) that discard their hand each turn.";
-            }                    
-            if (a.name == "Disappear") {
-                abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
-            }                    
-            if (a.name == "Defend") {
-                abilityText.text = "Defend - Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.";
-            }                    
-            if (abilityText.text) {
-                abilityText.position.x -= cw/2 - 4;
-                abilityText.position.y = yPosition - ch/2 + 2;
-                yPosition += abilityText.height + 10;
-                textContainer.addChild(abilityText);
-            }
-        }
-        for (let e of card.effects) {
-            if (e.name == "evolve") {
-                let effectText = new PIXI.Text("", options);
-                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
-                effectText.position.x -= cw/2 - 4;
-                effectText.position.y = yPosition - ch/2 + 2;
-                yPosition += effectText.height + 10;
-                textContainer.addChild(effectText);
-            }                    
-        }
-
-        if (yPosition == 0) {
-            cardSprite.removeChild(topBG);
-            cardSprite.removeChild(textContainer);
-        }
-        topBG.width = cw;
-        topBG.height = ch;
-        topBG.position.x = cw + 5;
-        topBG.position.y = 0;
-        textContainer.position.x = topBG.position.x;
-        textContainer.position.y = topBG.position.y;
-
     }
 
     showArrowsForSpell(game, sprite, spellMessage, card) {
@@ -2038,23 +1255,23 @@ export class GameUX {
         };
 
         let title = "End Turn";
-        let textFillColor = whiteColor;
+        let textFillColor = Constants.whiteColor;
         let buttonColor = null;
         
         if (this.isActivePlayer(game)) {
             if (!this.activePlayerHasMoves(game) || game.stack.length > 0) {
-                buttonColor = redColor;
+                buttonColor = Constants.redColor;
             } else {
-                buttonColor = lightRedColor;
+                buttonColor = Constants.lightRedColor;
             }
 
             if (this.thisPlayer(game).card_info_to_target.effect_type) {
-                buttonColor = menuGrayColor;
+                buttonColor = Constants.menuGrayColor;
                 title = "Choose Target";
             }
         } else {
             title = "Waiting...";
-            textFillColor = darkGrayColor;
+            textFillColor = Constants.darkGrayColor;
         }
 
         if (game.stack.length > 0) {
@@ -2073,7 +1290,7 @@ export class GameUX {
             17,
             clickFunction, 
             this.buttonMenu,
-            this.buttonMenu.width - padding * 6
+            this.buttonMenu.width - Constants.padding * 6
         );
         b.position.x = b.parent.width/2 - b.width/2;
         b.position.y = b.height / 2;
@@ -2092,9 +1309,9 @@ export class GameUX {
 
         this.endTurnButton = b;
 
-        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : defaultFontFamily, fontSize: defaultFontSize, fill : textFillColor, align: "center"});
+        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : textFillColor, align: "center"});
         turnText.position.x = this.buttonMenu.width/2;
-        turnText.position.y = b.position.y + 60 + padding;
+        turnText.position.y = b.position.y + 60 + Constants.padding;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;
         this.buttonMenu.addChild(turnText);
@@ -2119,13 +1336,13 @@ export class GameUX {
                 player = this.thisPlayer(game);
             }
 
-            let sprite = this.cardSprite(game, spell[1], player);
+            let sprite = Card.sprite(game, spell[1], player, this);
             if (spell[0].move_type == moveTypeAttack) {
                 continue;
             }
             sprite.scale.set(1.5)
             sprite.position.x = 100 + 20*index;
-            sprite.position.y = this.inPlay.position.y + padding + 40*index;
+            sprite.position.y = this.inPlay.position.y + Constants.padding + 40*index;
             this.app.stage.addChild(sprite)
             this.spellStackSprites.push(sprite)
             let card = spell[1]
@@ -2151,14 +1368,14 @@ export class GameUX {
                 this.spriteDamageCounts[spriteId] += 1;
                 if (!this.spriteDamageCounts[spriteId] && this.spriteDamageCounts[spriteId] != 0) {
                     this.spriteDamageCounts[spriteId] = 0                    
-                    let godray = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: redColor});
+                    let godray = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: Constants.redColor});
                     spriteToDamage.filters = [godray];
                     this.damageSprite(spriteToDamage, spriteId, damage_to_show);                    
                 } else if (this.spriteDamageCounts[spriteId] >= damage_to_show*3) {
                     this.spriteDamageCounts[spriteId] = 0
                     spriteToDamage.filters = []; 
                 } else {
-                    let godray = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: redColor});
+                    let godray = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: Constants.redColor});
                     spriteToDamage.filters = [godray];
                     setTimeout(() => { 
                         spriteToDamage.filters = [];
@@ -2167,45 +1384,6 @@ export class GameUX {
                     this.damageSprite(spriteToDamage, spriteId, damage_to_show);                    
                 }
             }, 200);   
-    }
-
-    manaGems(maxMana, currentMana, icon, iconColor) {
-        const background = new PIXI.Container();
-        let xPixels = 0;
-        let gemSize = defaultFontSize;
-        if (!icon) {
-            icon = "amethyst.svg";
-        }
-        for (let i=0;i<currentMana;i++) {
-            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + icon));
-            if (iconColor) {
-                imageSprite.tint = iconColor;                
-            } else {
-                imageSprite.tint = blueColor;                
-            }
-            imageSprite.height = gemSize;
-            imageSprite.width = gemSize;
-            imageSprite.position.x = xPixels;
-            imageSprite.position.y = 0;
-            background.addChild(imageSprite)
-            xPixels += gemSize + 1;
-        }
-        for (let i=0;i<maxMana-currentMana;i++) {
-            let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(cardImagesPath + icon));
-            if (iconColor) {
-                imageSprite.tint = iconColor;                
-            } else {
-                imageSprite.tint = blueColor;                
-            }
-            imageSprite.height = gemSize;
-            imageSprite.width = gemSize;
-            imageSprite.position.x = xPixels;
-            imageSprite.position.y = 0;
-            imageSprite.alpha = beingCastCardAlpha;
-            background.addChild(imageSprite)
-            xPixels += gemSize + 1;
-        }
-        return background
     }
 
     thisPlayer(game) {
@@ -2248,7 +1426,7 @@ export class GameUX {
             let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 10});
             textSprite.position.x = 5;
             textSprite.position.y = this.messageNumber * 16 + 5;
-            this.scrollboxBackground.height = Math.max(cardHeight*1.25, (this.messageNumber + 1) * 16);
+            this.scrollboxBackground.height = Math.max(Card.cardHeight*1.25, (this.messageNumber + 1) * 16);
             this.gameLogScrollbox.content.addChild(textSprite);
         }
         this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
@@ -2279,9 +1457,9 @@ function onDragStart(event, cardSprite, gameUX, game) {
 
     if (cardSprite.card.turn_played == -1) {
         gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":cardSprite.card.id});
-    } else if (cardSprite.card.card_type == mobCardType) {
+    } else if (cardSprite.card.card_type == Constants.mobCardType) {
         gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":cardSprite.card.id});
-    } else if (cardSprite.card.card_type == artifactCardType) {
+    } else if (cardSprite.card.card_type == Constants.artifactCardType) {
         gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card":cardSprite.card.id});
         let enabled_effects = [];
         for (let e of cardSprite.card.effects) {
@@ -2292,7 +1470,7 @@ function onDragStart(event, cardSprite, gameUX, game) {
         let dragging = true;
         for (let e of enabled_effects) {
             if (!["any", "any_enemy", "mob", "opponents_mob", "self_mob", "artifact", "any_player"].includes(e.target_type)) {
-               // e.target_type is in ["self", "opponent", artifactCardType, "all"]
+               // e.target_type is in ["self", "opponent", Constants.artifactCardType, "all"]
                cardSprite.dragging = false; 
             }
         }
@@ -2309,19 +1487,19 @@ function onDragEnd(cardSprite, gameUX) {
         if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypePlayCardInHand, {"card":cardSprite.card.id});
             playedMove = true;
-        } else if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
+        } else if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectOpponent, {});
             playedMove = true;
-        } else if(collidedSprite == gameUX.playerAvatar && cardSprite.card.card_type == spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+        } else if(collidedSprite == gameUX.playerAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectSelf, {});
             playedMove = true;
         } else {
             if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
                 if (collidedSprite.card.turn_played == -1) {
                     gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectStackSpell, {"card": collidedSprite.card.id});
-                } else if (collidedSprite.card.card_type == mobCardType) {
+                } else if (collidedSprite.card.card_type == Constants.mobCardType) {
                     gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card": collidedSprite.card.id});
-                } else if (collidedSprite.card.card_type == artifactCardType) {
+                } else if (collidedSprite.card.card_type == Constants.artifactCardType) {
                     gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card": collidedSprite.card.id});
                 } else {
                     console.log("tried to select unknown card type: " + collidedSprite.card.card_type);
@@ -2333,7 +1511,7 @@ function onDragEnd(cardSprite, gameUX) {
         if(collidedSprite == gameUX.opponentAvatar) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectOpponent, {});
             playedMove = true;
-        } else if(!gameUX.bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == artifactCardType && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
+        } else if(!gameUX.bump.hit(cardSprite, gameUX.artifacts) && cardSprite.card.card_type == Constants.artifactCardType && cardSprite.card.effects[0] && cardSprite.card.effects[0].target_type == "all") {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeActivateArtifact, {"card":cardSprite.card.id});
             playedMove = true;
         } else if(collidedSprite == gameUX.playerAvatar) {
@@ -2374,13 +1552,13 @@ function onDragMove(dragSprite, gameUX, bump) {
 
 function updateDraggedCardFilters(gameUX, cardSprite){
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
-    let newFilters = glowAndShadowFilters();
+    let newFilters = Constants.glowAndShadowFilters();
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
-    } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
-    } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+    } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
+    } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
     } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
     } else {
-        newFilters = [dropshadowFilter()]
+        newFilters = [Constants.dropshadowFilter()]
     }
     if (!filtersAreEqual(cardSprite.filters, newFilters) || cardSprite.filters.length == 0) {
         clearDragFilters(cardSprite);
@@ -2396,16 +1574,16 @@ function updateDraggedCardFilters(gameUX, cardSprite){
 
 function updatePlayerAvatarFilters(collidedSprite, player, playerAvatar) {
     if(collidedSprite == playerAvatar && player.can_be_clicked) {
-        if (!filtersAreEqual(playerAvatar.filters, [targettableGlowFilter()]) || playerAvatar.filters.length == 0) {
-            playerAvatar.filters = [targettableGlowFilter()];
+        if (!filtersAreEqual(playerAvatar.filters, [Constants.targettableGlowFilter()]) || playerAvatar.filters.length == 0) {
+            playerAvatar.filters = [Constants.targettableGlowFilter()];
         }
     } else if (player.can_be_clicked) {
-        if (!filtersAreEqual(playerAvatar.filters, [canBeClickedFilter()]) || playerAvatar.filters.length == 0) {
-            playerAvatar.filters = [canBeClickedFilter()];
+        if (!filtersAreEqual(playerAvatar.filters, [Constants.canBeClickedFilter()]) || playerAvatar.filters.length == 0) {
+            playerAvatar.filters = [Constants.canBeClickedFilter()];
         }
     } else {
-        if (!filtersAreEqual(playerAvatar.filters, [cantBeClickedFilter()]) || playerAvatar.filters.length == 0) {
-            playerAvatar.filters = [cantBeClickedFilter()];
+        if (!filtersAreEqual(playerAvatar.filters, [Constants.cantBeClickedFilter()]) || playerAvatar.filters.length == 0) {
+            playerAvatar.filters = [Constants.cantBeClickedFilter()];
         }
     }
 }
@@ -2413,9 +1591,9 @@ function updatePlayerAvatarFilters(collidedSprite, player, playerAvatar) {
 
 function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
     if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
-        if (!filtersAreEqual(collidedSprite.filters, [targettableGlowFilter()]) || collidedSprite.filters.length == 0) {
+        if (!filtersAreEqual(collidedSprite.filters, [Constants.targettableGlowFilter()]) || collidedSprite.filters.length == 0) {
             clearDragFilters(collidedSprite);
-            collidedSprite.filters.push(targettableGlowFilter());                
+            collidedSprite.filters.push(Constants.targettableGlowFilter());                
         }
     }
 
@@ -2424,12 +1602,12 @@ function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
             if (mob.card.can_be_clicked) {
                 if (!hasCanBeClickedFilter(mob) || hasCantBeTargettedFilter(mob)) {
                     clearDragFilters(mob);
-                    mob.filters.push(canBeClickedFilter());                                                        
+                    mob.filters.push(Constants.canBeClickedFilter());                                                        
                 }
             }  else {
                 if (!hasCantBeTargettedFilter(mob) || hasCanBeClickedFilter(mob)) {
                     clearDragFilters(mob);
-                    mob.filters.push(cantBeTargettedFilter());                                                        
+                    mob.filters.push(Constants.cantBeTargettedFilter());                                                        
                 }
             }
         }
@@ -2456,7 +1634,7 @@ function filtersAreEqual(a, b) {
             if (filter.constructor.name != b[index].constructor.name) {
                 return false;
             }
-            if ([canBeClickedFilter().constructor.name, targettableGlowFilter().constructor.name, targettingGlowFilter()].includes(filter.constructor.name)) {
+            if ([Constants.canBeClickedFilter().constructor.name, Constants.targettableGlowFilter().constructor.name, Constants.targettingGlowFilter()].includes(filter.constructor.name)) {
                 if (filter.color != b[index].color) {
                     return false;
                 }
@@ -2467,7 +1645,7 @@ function filtersAreEqual(a, b) {
                     return false;
                 }
             }
-            if (filter.constructor.name == cantBeTargettedFilter().constructor.name) {
+            if (filter.constructor.name == Constants.cantBeTargettedFilter().constructor.name) {
                 if (filter.alpha != b[index].alpha) {
                     return false;
                 }
@@ -2483,7 +1661,7 @@ function filtersAreEqual(a, b) {
 
 function hasCanBeClickedFilter(cardSprite) {
     let newFilters = []
-    const cbcf = canBeClickedFilter()
+    const cbcf = Constants.canBeClickedFilter()
     for (let filter of cardSprite.filters) {
         if (filter.constructor.name == cbcf.constructor.name && filter.innerStrength == cbcf.innerStrength && filter.outerStrength == cbcf.outerStrength && (filter.color == cbcf.color)) {
             return true;
@@ -2495,7 +1673,7 @@ function hasCanBeClickedFilter(cardSprite) {
 
 function hasCantBeTargettedFilter(cardSprite) {
     let newFilters = []
-    const cbtf = cantBeTargettedFilter()
+    const cbtf = Constants.cantBeTargettedFilter()
     for (let filter of cardSprite.filters) {
         if (filter.constructor.name == cbtf.constructor.name && filter.alpha == cbtf.alpha) {
             return true;
@@ -2508,8 +1686,8 @@ function hasCantBeTargettedFilter(cardSprite) {
 function clearDragFilters(cardSprite) {
     let newFilters = []
     for (let filter of cardSprite.filters) {
-        const lf = lurkerFilter();
-        const sf = shieldFilter();
+        const lf = Constants.lurkerFilter();
+        const sf = Constants.shieldFilter();
         if (filter.constructor.name == lf.constructor.name && filter.outerStrength == lf.outerStrength && filter.innerStrength == lf.innerStrength && filter.color == lf.color) {
             newFilters.push(filter);
         } else if (filter.constructor.name == sf.constructor.name && filter.outerStrength == sf.outerStrength && filter.innerStrength == sf.innerStrength && filter.color == sf.color) {
@@ -2561,64 +1739,4 @@ function getOverlap(cardSprite, sprite) {
     let x_overlap = Math.max(0, Math.min(bounds[2], boundsMob[2]) - Math.max(bounds[0], boundsMob[0]));
     let y_overlap = Math.max(0, Math.min(bounds[3], boundsMob[3]) - Math.max(bounds[1], boundsMob[1]));
     return x_overlap * y_overlap;
-}
-
-
-function arrowFilters() {
-    return [
-        arrowGlowFilter(),
-        dropshadowFilter()
-    ];
-}
-
-
-function glowAndShadowFilters() {
-    return [
-        targettableGlowFilter(),
-        dropshadowFilter()
-    ];
-}
-
-
-function canBeClickedFilter() {
-    return new GlowFilter({ innerStrength: 1, outerStrength: 1, color: greenColor});
-}
-
-
-function cantBeTargettedFilter() {
-    return new AdjustmentFilter({ alpha: .5});
-}
-
-
-function cantBeClickedFilter() {
-    return new AdjustmentFilter({ brightness: .7});
-}
-
-
-function dropshadowFilter() {
-    return new GlowFilter({ outerStrength: 1 , color: blackColor});
-}
-
-
-function targettingGlowFilter() {
-    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
-}
-
-function targettableGlowFilter() {
-    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: greenColor});
-}
-
-
-function arrowGlowFilter() {
-    return new GlowFilter({ innerStrength: 0, outerStrength: 2, color: yellowColor});
-}
-
-
-function lurkerFilter() {
-    return new GlowFilter({ outerStrength: 0, innerStrength: 3, color: blackColor});
-}
-
-
-function shieldFilter() {
-    return new GlowFilter({ outerStrength: 0, innerStrength: 3, color: whiteColor});
 }

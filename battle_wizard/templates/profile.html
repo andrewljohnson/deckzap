@@ -8,22 +8,16 @@
 <div class="wrapper" style="max-width:1024px">
   <h1>{{username}}</h1>
   <p>{{username}} was the #{{account_number}} signup on deckzap.com.</p>
-  {% if decks|length == 0 %} 
-    <p>You don't have any decks yet. Build a deck or play a game without deckbuilding.</p>
+  {% if user.is_authenticated and user.username in request.path %}
+    <a class=button href=/find_match>Find Match</a> 
     <a class=button href=/build_deck>Build Deck</a>
-  {% else %}
-  		<h2>Decks</h2>
   {% endif %}
+  <hr style="margin-top:25px">
+  <h2 style="margin-bottom:0">Decks</h2>
+  <ul style="padding:0;margin-top:0">
   {% for deck in decks %}
-	    <h3 style="margin-bottom:5px">{% firstof deck.name deck.id 'My Deck' %}: <a href="/play/pvp/constructed?deck_id={{deck.id}}">Find Match</a> - <a href="/play/pvai/constructed?deck_id={{deck.id}}&ai=aggro_bot">Play vs. Aggrobot</a> - <a href="/play/pvai/constructed?deck_id={{deck.id}}&ai=random_bot">Play vs. RandomBot</a> (<a href="/build_deck?deck_id={{deck.id}}">Edit</a>)</h3>
-	    {% for card_name, count in deck.cards.items %}
-	     {{card_name}} {{count}} |
-	    {% endfor %}
-	    <hr>
+	    <li>{% if user.is_authenticated and user.username in request.path %}<a class="button button-small" href=/build_deck?deck_id={{deck.id}}>Edit</a>{% endif %} {% firstof deck.name deck.id 'My Deck' %} ({{ deck.race }})</li>
   {% endfor %}
-  {% if decks|length > 0 %} 
-    <a class=button href=/build_deck>Build Deck</a>
-  {% endif %}
 </div>
 
 <style>
