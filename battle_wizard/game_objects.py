@@ -15,13 +15,10 @@ artifactCardType = "artifact"
 
 
 class Game:
-    def __init__(self, websocket_consumer, ai_type, db_name, game_type, info=None, player_decks=None, ai=None):
-
-        # constructed or test_stacked_deck
-        self.game_type = game_type
+    def __init__(self, websocket_consumer, player_type, db_name, info=None, player_decks=None, ai=None):
 
         self.ai = ai
-        self.ai_type = info["ai_type"] if info and "ai_type" in info else ai_type
+        self.player_type = info["player_type"] if info and "player_type" in info else player_type
 
         # support 2 players
         self.players = [Player(self, u) for u in info["players"]] if info else []
@@ -43,7 +40,7 @@ class Game:
         # the websocket consumer instance the game gets updated by
         self.websocket_consumer = websocket_consumer
 
-        # use for test_stacked_deck game_type (for unit testing)
+        # stack decks for unit testing
         self.player_decks = player_decks
 
         self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()
@@ -60,7 +57,7 @@ class Game:
             "next_card_id": self.next_card_id, 
             "global_effects": self.global_effects, 
             "db_name": self.db_name, 
-            "ai_type": self.ai_type, 
+            "player_type": self.player_type, 
             "turn_start_time": self.turn_start_time.__str__() if self.turn_start_time else None, 
             "show_rope": self.show_rope, 
         }
@@ -90,6 +87,7 @@ class Game:
         """
         if len(self.players) < 2:
             return [{"move_type": "JOIN", "username": self.ai}]
+
         moves = []
         has_action_selected = player.selected_mob() or player.selected_artifact() or player.selected_spell()
         if player.card_info_to_target["effect_type"] in ["mob_activated", "mob_comes_into_play"]:
@@ -823,10 +821,10 @@ class Game:
             self.players.append(Player(self, {"username":message["username"]}, new=True))            
             self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
-            if self.ai_type == "pvai":
+            if self.player_type == "pvai":
                 message["log_lines"].append(f"{self.ai} joined the game.")
                 self.players.append(Player(self, {"username":self.ai}, new=True, bot=self.ai))
-                self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
+                self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
             self.players.append(Player(self, {"username":message["username"]}, new=True))
@@ -836,7 +834,7 @@ class Game:
             join_occured = False
 
         if len(self.players) == 2 and join_occured:
-            self.start_game(message, self.game_type)
+            self.start_game(message)
         return message
 
     def choose_race(self, message):
@@ -847,17 +845,14 @@ class Game:
         player.race = message["race"]
 
         if self.players[0].race and len(self.players) == 2 and self.players[1].race:
-            self.start_game(message, self.game_type)
+            self.start_game(message)
         return message
 
-    def start_game(self, message, game_type):
-        print(f"START GAME FOR {game_type}")
-        if game_type == "test_stacked_deck":
+    def start_game(self, message):
+        if len(self.player_decks[0]) > 0 or len(self.player_decks[1]) > 0 :
             self.start_test_stacked_deck_game(message)
-        elif game_type == "constructed":
-            self.start_constructed_game(message)
         else:
-            print(f"unknown game type: {game_type}")
+            self.start_constructed_game(message)
 
     def start_test_stacked_deck_game(self, message):
         if self.players[0].max_mana == 0: 
@@ -881,7 +876,16 @@ class Game:
                 for d in decks:
                     if d["id"] == self.players[x].deck_id:
                         deck_to_use = d
-                deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
+                if self.players[x].deck_id == "the_coven":
+                    deck_to_use = default_deck_vampire_lich()
+                elif self.players[x].deck_id == "keeper":
+                    deck_to_use = default_deck_dwarf_tinkerer()
+                elif self.players[x].deck_id == "townies":
+                    deck_to_use = default_deck_dwarf_bard()
+                elif self.players[x].deck_id == "draw_go":
+                    deck_to_use = default_deck_genie_wizard()
+                else:
+                    deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
                 card_names = []
                 for key in deck_to_use["cards"]:
                     for _ in range(0, deck_to_use["cards"][key]):
@@ -1971,7 +1975,6 @@ class Player:
         self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.bot = bot
 
-        JsonDB().add_to_player_database(self.username, JsonDB().player_database())
         self.game = game
         if new:
             self.hit_points = 30
@@ -3077,12 +3080,12 @@ class Player:
         if len(self.deck) > 0:
             while not card1:
                 card1 = random.choice(self.deck)
+        card2 = None
         if len(self.deck) > 1:
-            card2 = None
             while not card2 or card2 == card1:
                 card2 = random.choice(self.deck)
+        card3 = None
         if len(self.deck) > 2:
-            card3 = None
             while not card3 or card3 in [card1, card2]:
                 card3 = random.choice(self.deck)
         

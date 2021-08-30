@@ -4,7 +4,7 @@
 {% block javascript %}
 <script src = "{% static 'js/deckbuilder.js' %}"></script>
 <script type="text/javascript">
-	  var deckBuilder = new DeckBuilder(document.getElementById("data_store").getAttribute("deck"), document.getElementById("data_store").getAttribute("all_cards"));
+	  let deckBuilder = new DeckBuilder(document.getElementById("data_store").getAttribute("deck"), document.getElementById("data_store").getAttribute("all_cards"));
     deckBuilder.loadAllCards();
     deckBuilder.redisplayDeck();
     document.getElementById("deck_name").onkeyup = function() {

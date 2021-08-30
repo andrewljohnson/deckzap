@@ -13,8 +13,8 @@
 
     <div id=new_game></div>
 
-    <div id="data_store" ai_type = {{ai_type}} game_type = {{game_type}} room_code = {{room_code}} username = {{request.user.username}} ai = {{ai}} is_custom = {{is_custom}} custom_game_id = {{custom_game_id}}></div>
+    <div id="data_store" player_type = {{player_type}} room_code = {{room_code}} username = {{request.user.username}} ai = {{ai}} is_custom = {{is_custom}} custom_game_id = {{custom_game_id}}></div>
 
-    <div id="card_store" deck_id = {{deck_id}} all_cards = '{{all_cards}}' ></div>
+    <div id="card_store" deck_id = {{deck_id}} opponent_deck_id = {{opponent_deck_id}} all_cards = '{{all_cards}}' ></div>
 
 {% endblock content %}

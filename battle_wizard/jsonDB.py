@@ -66,41 +66,20 @@ class JsonDB:
             json_data = open("database/queue_database.json")
             queue_database = json.load(json_data) 
         except:
-            queue_database = {"pvai": {},
-                              "pvp": {}
+            queue_database = {"pvai": {"starting_id":0},
+                              "pvp": {"waiting_players":[], "starting_id":0}
             }
-            game_types = ["constructed"]
-            for gt in game_types:
-                queue_database["pvai"][gt] = {"starting_id":0} 
-                queue_database["pvp"][gt] = {"open_games":[], "starting_id":0}
-
         return queue_database
     
-    def join_game_in_queue_database(self, ai_type, game_type, queue_database):
-        return self.room_code_for_type(ai_type, game_type, queue_database)
-
-    def room_code_for_type(self, ai_type, game_type, queue_database):
+    def join_ai_game_in_queue_database(self, player_type, queue_database):
         is_new_room = True
-        if ai_type == "pvai":
-            room_code = queue_database[ai_type][game_type]["starting_id"]
-            queue_database[ai_type][game_type]["starting_id"] += 1
-        elif ai_type == "pvp":
-            if len(queue_database[ai_type][game_type]["open_games"]) > 0:
-                room_code = queue_database[ai_type][game_type]["open_games"].pop()
-                is_new_room = False
-            else:
-                room_code = queue_database[ai_type][game_type]["starting_id"]
-                queue_database[ai_type][game_type]["starting_id"] += 1
-                queue_database[ai_type][game_type]["open_games"].append(room_code)
+        print(f"player_type is {player_type}")
+        if player_type == "pvai":
+            room_code = queue_database[player_type]["starting_id"]
+            queue_database[player_type]["starting_id"] += 1
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
         return room_code, is_new_room
-
-    def remove_from_queue_database(self, game_type, room_code, queue_database):
-        if room_code in queue_database["pvp"][game_type]["open_games"]:
-            queue_database["pvp"][game_type]["open_games"].remove(room_code)
-        with open("database/queue_database.json", 'w') as outfile:
-            json.dump(queue_database, outfile)
 
     def all_cards(self, require_images=False, include_tokens=True):
         json_data = open('battle_wizard/battle_wizard_cards.json')
@@ -111,23 +90,3 @@ class JsonDB:
                 if "image" in c or not require_images:
                     subset.append(c)
         return subset
-
-    def player_database(self):
-        try:
-            json_data = open("database/player_database.json")
-            player_db = json.load(json_data) 
-        except:
-            player_db = {}
-        return player_db
-
-    def add_to_player_database(self, username, player_db):
-        if username not in player_db:
-            player_db[username] = {"card_counts": {}}
-        with open("database/player_database.json", 'w') as outfile:
-            json.dump(player_db, outfile)
-
-    def update_deck_in_player_database(self, username, deck, player_db):
-        player_db[username]["card_counts"] = deck
-        with open("database/player_database.json", 'w') as outfile:
-            json.dump(player_db, outfile)
-        return player_db

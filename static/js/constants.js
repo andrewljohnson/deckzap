@@ -1,13 +1,15 @@
 import * as PIXI from 'pixi.js'
 import { AdjustmentFilter, DropShadowFilter, GlowFilter } from 'pixi-filters';
 
-// file system
-export const cardImagesPath = "/static/images/card-art/";
 
 // constants recognized by the game rules engine
 export const artifactCardType = "artifact";
 export const mobCardType = "mob";
 export const spellCardType = "spell";
+
+// file/networking
+export const cardImagesPath = "/static/images/card-art/";
+export const largeSpriteQueryString = "?large";
 
 // colors
 export const blackColor = 0x000000;
@@ -38,10 +40,6 @@ export function textOptions() {
     	wordWrapWidth: 75
     };
 }
-
-// networking
-export const largeSpriteQueryString = "?large";
-
 
 // filters
 export function glowAndShadowFilters() {
@@ -84,9 +82,7 @@ export function shieldFilter() {
 }
 
 // Game UX
-
 export const beingCastCardAlpha = .3;
-
 
 export function manaGems(maxMana, currentMana, icon, iconColor) {
     const background = new PIXI.Container();
@@ -125,5 +121,21 @@ export function manaGems(maxMana, currentMana, icon, iconColor) {
         xPixels += gemSize + 1;
     }
     return background
+}
+
+
+export function roundRectangle(sprite) {
+    let graphics = new PIXI.Graphics();
+    graphics.beginFill(blackColor);
+    graphics.drawRoundedRect(
+        0,
+        0,
+        sprite.width,
+        sprite.height,
+        .2
+    );
+    graphics.endFill();
+    sprite.mask = graphics;
+    sprite.addChild(graphics)
 }
 

@@ -15,12 +15,17 @@ export class GameRoom {
         if (this.gameSocket.readyState == WebSocket.OPEN) {
             const deck_id = document.getElementById("card_store").getAttribute("deck_id");
             if (deck_id) {
-                this.sendPlayMoveEvent("JOIN", { deck_id });                
+               const opponent_deck_id = document.getElementById("card_store").getAttribute("opponent_deck_id");
+                if (opponent_deck_id) {
+                    this.sendPlayMoveEvent("JOIN", { deck_id, opponent_deck_id });                
+                } else {
+                    this.sendPlayMoveEvent("JOIN", { deck_id });                
+                }
             }
             this.sendHeartbeatRequest()
             console.log('WebSockets connection created.');
         } else {
-            var self = this;
+            let self = this;
             setTimeout(function () {
                 self.connect();
             }, 100);
@@ -28,7 +33,7 @@ export class GameRoom {
     }
 
     sendHeartbeatRequest() {
-        var self = this;
+        let self = this;
         setTimeout(function () {
             self.sendPlayMoveEvent( "GET_TIME", {});
             self.sendHeartbeatRequest();
@@ -38,7 +43,7 @@ export class GameRoom {
     setupSocket() {
         this.gameSocket = new WebSocket(this.roomSocketUrl());
 
-        var self = this;
+        let self = this;
         this.gameSocket.onclose = function (e) {
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
             setTimeout(function () {
@@ -49,7 +54,7 @@ export class GameRoom {
         this.gameSocket.onmessage = function (e) {
             let data = JSON.parse(e.data)["payload"];
             if (data["move_type"] == "NEXT_ROOM") {
-                var usernameParameter = getSearchParameters()["username"];
+                let usernameParameter = getSearchParameters()["username"];
                 if (data["username"] == usernameParameter) {
                    window.location.href = self.nextRoomUrl();
                 } else {
@@ -80,8 +85,8 @@ export class GameRoom {
     roomSocketUrl() {
         const roomCode = document.getElementById("data_store").getAttribute("room_code");
         const url = new URL(window.location.href);
-        var protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
-        var connectionString = protocol + window.location.host + '/ws/play/' + this.gameUX.aiType + '/' + this.gameUX.gameType + '/' + roomCode + '/';
+        let protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
+        let connectionString = protocol + window.location.host + '/ws/play/' + this.gameUX.playerType + '/' + roomCode + '/';
         const ai = document.getElementById("data_store").getAttribute("ai");
         if (ai && ai != "None") {
             connectionString += ai + '/';
@@ -95,22 +100,27 @@ export class GameRoom {
     }
 
     nextRoomUrl() {
-        var url = location.host + location.pathname;
-        var basePath = "play";
-        if (url.includes("play_new")) {
-            basePath = "play_new";            
-        }
-        var roomNumber = parseInt(url.split( '/' ).pop()) + 1;
-        var usernameParameter = getSearchParameters()["username"];
-        var nextRoomUrl = `/${basePath}/` + this.gameUX.aiType + "/" + this.gameUX.gameType + '/' + roomNumber;
-        var getParams =  "?new_game_from_button=true";
         const ai = document.getElementById("data_store").getAttribute("ai");
+        let url = location.host + location.pathname;
+        if (!ai || ai == "None") {
+            const deckID = document.getElementById("card_store").getAttribute("deck_id");
+            return `/find_match?deck_id=${deckID}`;
+        }
+        let basePath = "play";
+        let roomNumber = parseInt(url.split( '/' ).pop()) + 1;
+        let usernameParameter = getSearchParameters()["username"];
+        let nextRoomUrl = `/${basePath}/` + this.gameUX.playerType + '/' + roomNumber;
+        let getParams =  "?new_game_from_button=true";
         if (ai && ai != "None") {
             getParams += '&ai=' + ai;
         }
         const deck_id = document.getElementById("card_store").getAttribute("deck_id");
         if (deck_id && deck_id != "None") {
             getParams += '&deck_id=' + deck_id;
+        }
+        const opponent_deck_id = document.getElementById("card_store").getAttribute("opponent_deck_id");
+        if (opponent_deck_id && opponent_deck_id != "None") {
+            getParams += '&opponent_deck_id=' + opponent_deck_id;
         }
         nextRoomUrl +=  getParams;
         const isCustom = document.getElementById("data_store").getAttribute("is_custom");
@@ -143,27 +153,22 @@ export class GameRoom {
         this.sendPlayMoveEvent("END_TURN", {});
     }
 
-    passForAttack(message) {
+    pass(message) {
         this.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
-        // this.sendPlayMoveEvent("ALLOW_ATTACK", message);
     }
 
-    passForSpellResolution(message) {
-        this.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
-        // this.sendPlayMoveEvent("RESOLVE_CARD", message);
-    }
 }
 
 function getSearchParameters() {
-    var prmstr = window.location.search.substr(1);
+    let prmstr = window.location.search.substr(1);
     return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
 }
 
 function transformToAssocArray( prmstr ) {
-    var params = {};
-    var prmarr = prmstr.split("&");
-    for ( var i = 0; i < prmarr.length; i++) {
-        var tmparr = prmarr[i].split("=");
+    let params = {};
+    let prmarr = prmstr.split("&");
+    for ( let i = 0; i < prmarr.length; i++) {
+        let tmparr = prmarr[i].split("=");
         params[tmparr[0]] = tmparr[1];
     }
     return params;

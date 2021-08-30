@@ -1,33 +1,27 @@
 import { DeckViewer } from '../js/DeckViewer';
 import { GameRoom } from '../js/GameRoom';
 import { GameUX } from '../js/game';
+import { MatchFinder } from '../js/MatchFinder';
+import { OpponentPicker } from '../js/OpponentPicker';
 
-if (window.location.pathname.startsWith("/play/")) {
+if (window.location.pathname.startsWith("/play")) {
 	const gameUX = new GameUX();
 	const gameRoom = new GameRoom(gameUX);
 	gameRoom.connect();
-} else {
-    function changeDeck() {
-        const chosenDeckID = document.getElementById("decks").value;
-        const decks = JSON.parse(document.getElementById("data_store").getAttribute("json_decks"));
-        let chosenDeck = null;
-        for (let deck of decks) {
-            if (deck.id == chosenDeckID) {
-                chosenDeck = deck;
-            }
-        }
-        var deckViewer = new DeckViewer(chosenDeck, JSON.parse(document.getElementById("data_store").getAttribute("all_cards")), "deck_container");
-        deckViewer.redisplayDeck();
-        if (chosenDeck.race == "dwarf") {
-            document.getElementById("deckInfo").innerHTML = 
-                "<ul><li>three mana per turn</li><li>new hand of five cards each turn</li><li>15 card deck</li></ul>"
-        } else {
-            document.getElementById("deckInfo").innerHTML = 
-                "<ul><li>get more mana each turn</li><li>start with 4 cards, draw a card per turn</li><li>30 card deck</li></ul>"          
-        }
-  	}
-  	changeDeck();
+} else if (window.location.pathname.startsWith("/choose_deck_for_match")) {
+    const decks = JSON.parse(document.getElementById("data_store").getAttribute("json_decks"));
+    const allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"))
+    let deckViewer = new DeckViewer(decks, allCards, "app");
+    deckViewer.redisplayDeck();
+} else if (window.location.pathname.startsWith("/choose_opponent")) {
+    const opponentDecks = JSON.parse(document.getElementById("data_store").getAttribute("json_opponent_decks"));
+    const deckID = JSON.parse(document.getElementById("data_store").getAttribute("deck_id"));
+    const allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"))
+    let opponentPicker = new OpponentPicker(opponentDecks, allCards, "app", deckID);
+} else if (window.location.pathname.startsWith("/find_match")) {
+    const deckID = JSON.parse(document.getElementById("data_store").getAttribute("deck_id"));
+    const username = document.getElementById("data_store").getAttribute("username");
+    let opponentPicker = new MatchFinder("app", deckID, username);
 }
-
 
 // import './scss/index.scss';

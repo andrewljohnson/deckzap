@@ -13,21 +13,21 @@ class DeckBuilder {
 	}
 
 	loadAllCards() {
-		for(var c of this.allCards) {
+		for(let c of this.allCards) {
 			this.addCardToContainer(c, "all_cards_container");
 		}   
 	}
 
 	deckSize() {
-		var count = 0;		
-		for (var dcName in this.deck["cards"]) {
+		let count = 0;		
+		for (let dcName in this.deck["cards"]) {
 			count += this.deck["cards"][dcName];
 		}
 		return count;
 	}
 
 	cardFCorName(cardName) {
-		for (var c of this.allCards) {
+		for (let c of this.allCards) {
 			if (c.name == cardName) {
 				return c;
 			}
@@ -35,7 +35,7 @@ class DeckBuilder {
 	}
 
 	addCardToContainer(card, containerId) {
-		var cardRow = document.createElement("div");
+		let cardRow = document.createElement("div");
 		cardRow.id = card.name;
 		cardRow.style.height = "80px";
 		cardRow.style.width = "94%";
@@ -47,7 +47,7 @@ class DeckBuilder {
 		cardRow.style.padding = "5px";
 		cardRow.style.position = "relative";
 
-		var self = this;
+		let self = this;
 		if (containerId == "all_cards_container") {
 			cardRow.onclick = function() {
 				if (self.deckSize() == 30) {
@@ -88,7 +88,7 @@ class DeckBuilder {
 			}		 	
 		}
 
-		var nameBold = document.createElement("b"); 
+		let nameBold = document.createElement("b"); 
 		nameBold.innerHTML = card.name;
 		cardRow.appendChild(nameBold);
 
@@ -132,7 +132,7 @@ class DeckBuilder {
         }
 
 		if (this.deck["cards"][card.name] == 2 && containerId == "new_deck_container") {
-			var countBold = document.createElement("b"); 
+			let countBold = document.createElement("b"); 
 			countBold.innerHTML = this.deck["cards"][card.name];
 			cardRow.appendChild(countBold);
 			countBold.style.position = "absolute";
@@ -143,7 +143,6 @@ class DeckBuilder {
 			countBold.style.width = "16px";
 			countBold.style.textAlign = "center";
 			countBold.style.borderRadius = "8px";
-
 		}
 
 
@@ -151,12 +150,12 @@ class DeckBuilder {
 	}
 
 	manaString(maxMana, currentMana) {
-		var manaString = "";
+		let manaString = "";
 
-		for (var i=0;i<currentMana;i++) {
+		for (let i=0;i<currentMana;i++) {
 			manaString += "✦"
 		}
-		for (var i=0;i<maxMana-currentMana;i++) {
+		for (let i=0;i<maxMana-currentMana;i++) {
 			manaString += "✧"
 		}
 		return manaString
@@ -166,8 +165,8 @@ class DeckBuilder {
 		document.getElementById("deck_count").innerHTML = this.deckSize() + "/30";
 		document.getElementById("new_deck_container").style = "min-height:1224px";;
 		document.getElementById("new_deck_container").innerHTML = null;
-		for (var dcName in this.deck["cards"]) {
-			for(var ac of this.allCards) {
+		for (let dcName in this.deck["cards"]) {
+			for(let ac of this.allCards) {
 				if (ac.name == dcName) {
 					this.addCardToContainer(ac, "new_deck_container");
 				}
@@ -178,7 +177,7 @@ class DeckBuilder {
 			document.getElementById("save_button").disabled = false;
 			document.getElementById("save_button").style.backgroundColor = "green";
 			document.getElementById("save_button").style.color = "white";
-			var self = this;
+			let self = this;
 			document.getElementById("save_button").onclick = function() {
 				self.saveDeck()
 			}
