@@ -105,9 +105,9 @@ def choose_opponent(request, deck_id):
         A view to choose a human or AI opponent for a match, part of the main matching flow.
     """
     if not request.user.is_authenticated:
-        return redirect('/signup')True, include_tokens=False)
-    all_cards = sorted(all_ca
-    all_cards = JsonDB().all_cards(require_images=rds, key = lambda i: (i['cost'], i['card_type'], i['name']))
+        return redirect('/signup')
+    all_cards = JsonDB().all_cards(require_images=True, include_tokens=False)
+    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     json_opponent_decks = [
         default_deck_vampire_lich(),
         default_deck_genie_wizard(),
