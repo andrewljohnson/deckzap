@@ -10,8 +10,10 @@
 	{% endblock %}
 </head>
 <body>
-	{% if not "play" in request.path %}
-		<h1 style="background-color:blue;margin:0;padding:5px;line-height:.6;padding-top:15px;padding-bottom:10px;"><a style="color:white;text-decoration:none" href=/{% if user.is_authenticated %}u/{{user.username}}{% endif %}>DeckZap</a><br/><span style="color:#CCC;font-size:12px;margin:0;padding:0">Uncollectible Card Games</span></h1>
+	{% if not "play" in request.path and not "/u/" in request.path %}
+		<h1 style="background-color:blue;margin:0;padding:10px;line-height:.6;padding-top:15px;padding-bottom:10px;"><a style="color:white;text-decoration:none" href=/{% if user.is_authenticated %}u/{{user.username}}{% endif %}>DeckZap</a><br/><span style="color:#CCC;font-size:12px;margin:0;padding:0">Uncollectible Card Games</span></h1>
+	{% elif "/u/" in request.path %}
+		<h3 style="background-color:blue;margin:0;padding:10px;line-height:.6;padding-top:5px;padding-bottom:5px;"><a style="color:white;text-decoration:none" href=/{% if user.is_authenticated %}u/{{user.username}}{% endif %}>D</a><br/></h1>
 	{% endif %}
 	{% block content %}
 	{% endblock content %}
@@ -21,10 +23,6 @@
 				{% if request.path != '/signup' and request.path != '/login' %}
 					{% if not user.is_authenticated %}
 						<li><a href=/login>Log In</a></li>
-					{% endif %}
-					{% if request.path != '/'%}
-						<li>{% if user.is_authenticated %}<li><b><a style="color:white;" href=/u/{{user.username}}>My Decks</a></b></li>{% else %}<a href=/>Home</a>{% endif %}</li>
-						<li><a href=/build_deck>Build Deck</a></li>
 					{% endif %}
 					{% if user.is_authenticated %}
 						<li><a style="color: #A9A9A9" href=/logout>Logout</a></li>
@@ -43,7 +41,7 @@
 		  margin: 0;
 		  padding: 0;
 		  overflow: hidden;
-		  background-color: #1167b1;
+		  background-color: blue;
 		}
 
 		#footer li {

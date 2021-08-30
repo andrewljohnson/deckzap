@@ -3,10 +3,10 @@ body {
     }
 
 .wrapper {
-	margin:5px;	
+	margin:10px;	
 }
 
-.wrapper a.button {
+a.button {
 	background-color: blue;
 	color:white;
 	width:150px;
@@ -20,5 +20,29 @@ body {
 	margin-right: 20px;
 	display: inline-block;
 	text-align: center;
-	padding-top:15px;
+	padding-top:17px;
+}
+
+a.button-small {
+	width:48px;
+	height:25px;
+	font-size:14px;
+	padding-top:10px;
+}
+
+a.button-top-right {	
+	float:right;
+	margin: 0;
+	margin-top:-15px;
+}
+
+h1.title-with-button {
+	margin-top:35px;
+	margin-bottom:40px;
+}
+
+
+
+select {
+	width:  290px;
 }

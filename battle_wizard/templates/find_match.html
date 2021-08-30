@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block css %}
+<link rel="stylesheet" href="/static/css/nongame.css">
+{% endblock %}
+
+
+{% block javascript %}
+{% if request.META.HTTP_HOST == "127.0.0.1:8000" %}
+    <script src="http://localhost:1234/main.js"></script>
+{% else %}
+    <script src="{% static 'dist/main.js' %}"></script>
+{% endif %}
+{% endblock javascript %}
+
+
+{% block content %}
+<div class="wrapper">
+    <h1 class=title-with-button>
+        <a class="button button-top-right" href=/find_match>Find Match</a> 
+        Choose Deck
+    </h1>
+    <select name="decks" id="decks" onchange="changeDeck()">
+        {% for deck in decks %}
+            <option value={{deck.id}}>{% firstof deck.name deck.id 'My Deck' %} ({{deck.race}})</option>
+        {% endfor %}
+    </select>
+    
+    <div id=deckInfo></div>
+    
+    <div id=deck_container></div>
+</div>
+
+<div id="data_store" json_decks="{{json_decks}}" all_cards="{{all_cards}}"></div>
+{% endblock content %}

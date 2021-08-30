@@ -22,7 +22,7 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 
 # Set up on Digital Ocean
 
-The deckzap.com setup is based on: https://github.com/mitchtabian/HOWTO-django-channels-daphne/blob/master/README.md
+The deckzap.com setup is based on this repo: [HOWTO-django-channels-daphne](https://github.com/mitchtabian/HOWTO-django-channels-daphne/blob/master/README.md)
 
 I had to change the nginx config recommended to this code to get it to work for me:
 
@@ -55,3 +55,11 @@ I had to change the nginx config recommended to this code to get it to work for 
 # Graphics
 
 Graphics from: https://game-icons.net/
+
+# Working Docs
+
+[Latest card ideas](https://docs.google.com/spreadsheets/d/1QwQofwkO4v2PjAuxQv9dMr1k491FDIUTkObtUcRrdBE/edit#gid=0)
+
+[Figma Assets](https://www.figma.com/file/eSJ5urEoWnWos8uHb5ZsbG/DeckZap-Assets?node-id=0%3A1)
+
+[ToDo](https://docs.google.com/document/d/1XD804l5Vr6fjHL8jLJNQEK_Lt83r0QRgQe9mmT93BJ0/edit?usp=sharing)
