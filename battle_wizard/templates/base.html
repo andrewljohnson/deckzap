@@ -25,6 +25,7 @@
 						<li><a href=/login>Log In</a></li>
 					{% endif %}
 					{% if user.is_authenticated %}
+						<li><a href=/u/{{user.username}}>My Decks</a></li>
 						<li><a style="color: #A9A9A9" href=/logout>Logout</a></li>
 					{% endif %}
 						<li style="float:right"><a href=https://github.com/andrewljohnson/deckzap target=_new>GitHub</a>

@@ -9,7 +9,7 @@
   <h1>{{username}}</h1>
   <p>{{username}} was the #{{account_number}} signup on deckzap.com.</p>
   {% if user.is_authenticated and user.username in request.path %}
-    <a class=button href=/find_match>Find Match</a> 
+    <a class=button href=/choose_deck_for_match>Find Match</a> 
     <a class=button href=/build_deck>Build Deck</a>
   {% endif %}
   <hr style="margin-top:25px">

@@ -11,15 +11,72 @@ from battle_wizard.jsonDB import JsonDB
 
 DEBUG = True
 
+class BattleWizardMatchFinderConsumer(WebsocketConsumer):
+
+    def connect(self):
+        print(f"Connected to Match Finder")
+        self.room_group_name = 'match_finder'
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+        self.accept()
+
+    def disconnect(self, close_code):
+        queue_database = JsonDB().queue_database()
+        queue_database["pvp"]["waiting_players"].remove(self.username)
+        with open("database/queue_database.json", 'w') as outfile:
+            json.dump(queue_database, outfile)
+        print("Disconnected from Match Finder")
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    def receive(self, text_data):
+        message = json.loads(text_data)
+        print(message)
+
+        self.username = message["username"]
+
+        queue_database = JsonDB().queue_database()
+        if not self.username in queue_database["pvp"]["waiting_players"]:
+            queue_database["pvp"]["waiting_players"].append(self.username)
+
+        if len(queue_database["pvp"]["waiting_players"]) == 2:
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'matchfinder_message',
+                    'message': {"message_type": "start_match", "room_id": queue_database["pvp"]["starting_id"]}
+                }
+            )
+            queue_database["pvp"]["starting_id"] += 1
+            queue_database["pvp"]["waiting_players"] = []
+        else:
+            print("waiting for match")
+
+        with open("database/queue_database.json", 'w') as outfile:
+            json.dump(queue_database, outfile)
+
+    def matchfinder_message(self, event):
+        message = event['message']
+
+        # Send message to WebSocket
+        self.send(text_data=json.dumps({
+            'payload': message
+        }))
+
+
 class BattleWizardConsumer(WebsocketConsumer):
 
     def connect(self):
-        self.ai_type = self.scope['url_route']['kwargs']['ai_type']
+        self.player_type = self.scope['url_route']['kwargs']['player_type']
         self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
-        self.game_type = self.scope['url_route']['kwargs']['game_type']
         self.room_name = self.scope['url_route']['kwargs']['room_code']
         self.room_group_name = 'room_%s' % self.room_name
-        self.db_name = f"standard-{self.ai_type}-{self.game_type}-{self.room_name}"
+        self.db_name = f"standard-{self.player_type}-{self.room_name}"
         self.moves = []
         self.ai_running = False
         self.last_move_time = None
@@ -33,17 +90,14 @@ class BattleWizardConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         print("Disconnected")
-        JsonDB().remove_from_queue_database(self.game_type, int(self.room_name), JsonDB().queue_database())
+        JsonDB().remove_from_queue_database(int(self.room_name), JsonDB().queue_database())
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name
         )
 
     def receive(self, text_data):
-        if self.game_type == "constructed":
-            self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name), ai=self.ai, player_decks=self.decks)        
-        else:
-            self.game = Game(self, self.ai_type, self.db_name, self.game_type, info=JsonDB().game_database(self.db_name), ai=self.ai)        
+        self.game = Game(self, self.player_type, self.db_name, info=JsonDB().game_database(self.db_name), ai=self.ai, player_decks=self.decks)        
         message = json.loads(text_data)
 
         if message["move_type"] == 'NEXT_ROOM':
@@ -57,7 +111,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
             if message["move_type"] == "GET_TIME":
                 # run AI if it's the AI's move or if the other player just chose their race
-                if self.ai_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
+                if self.player_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
                     (self.game.players[0].race != None and self.game.players[1].race == None)):                     
                     time_for_next_move = False
                     if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
@@ -181,11 +235,9 @@ class BattleWizardCustomConsumer(BattleWizardConsumer):
         self.moves = []
 
         cgd = JsonDB().custom_game_database()
-        self.game_type = None
         for game in cgd["games"]:
             if game["id"] == int(self.custom_game_id):
-                self.game_type = game["game_type"]            
-                self.ai_type = game["ai_type"]   
+                self.player_type = game["player_type"]   
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,

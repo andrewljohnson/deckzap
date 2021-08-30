@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js'
 import * as Constants from './constants.js';
 
+
 export class Card {
 
 	static cardHeight = 114;
@@ -10,11 +11,11 @@ export class Card {
     static cardTextureInPlay = PIXI.Texture.from("/static/images/in play mob.png");
     static cardTextureInPlayGuard = PIXI.Texture.from("/static/images/in play guard mob.png");
 
-	static sprite(game, card, player, gameUX, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
+	static sprite(card, pixiUX, game, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
         let cw = Card.cardWidth;
         let ch = Card.cardHeight;
         let imageBackgroundSize = 128
-        let spellWidth = Card.cardWidth-6;
+        let spellWidth = Card.cardWidth - 6;
         let spellHeight = 54;
         let portraitHeight = 44;
         let portraitWidth = 24;
@@ -23,15 +24,15 @@ export class Card {
         let aFY = -9;
         let cardTexture = Card.cardTexture
         if (useLargeSize) {
-            aFX = -Card.cardWidth/4 + 16;
-            aFY = -Card.cardHeight/4;
-            cw*= 2;
-            ch*= 2; 
+            aFX = -Card.cardWidth / 4 + 16;
+            aFY = -Card.cardHeight / 4;
+            cw *= 2;
+            ch *= 2; 
             imageBackgroundSize *= 2;           
-            spellWidth = Card.cardWidth*2-6; 
-            spellHeight*=2;
-            portraitHeight*=2.2;
-            portraitWidth*=2;
+            spellWidth = Card.cardWidth * 2 - 6;
+            spellHeight *= 2;
+            portraitHeight *= 2.2;
+            portraitWidth *= 2;
             loaderId = card.name + Constants.largeSpriteQueryString 
             cardTexture = Card.cardLargeTexture
         }
@@ -39,12 +40,12 @@ export class Card {
         let cardSprite = Card.baseSprite(card, cardTexture, game);
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
-        let imageSprite = Card.framedSprite(loaderId, imageBackgroundSize, gameUX.app);
+        let imageSprite = Card.framedSprite(loaderId, imageBackgroundSize, pixiUX.app);
         if (card.card_type == Constants.mobCardType || card.card_type == Constants.artifactCardType) {
-            imageSprite.position.y = -imageSprite.height/4;
+            imageSprite.position.y = -imageSprite.height / 4;
             Card.ellipsifyImageSprite(imageSprite, card, portraitWidth, portraitHeight)        
         } else if (card.card_type == Constants.spellCardType) {
-            imageSprite.position.y = -spellHeight/2;
+            imageSprite.position.y = -spellHeight / 2;
             Card.rectanglifyImageSprite(imageSprite, spellWidth, spellHeight)                                    
         }
         cardSprite.addChild(imageSprite);
@@ -69,32 +70,34 @@ export class Card {
         }
         cardSprite.addChild(nameBackground);
 
-        for (let e of card.effects) {
-            // hax, don't reference card name
-            if (e.name == "evolve" && card.name != "Warty Evolver") {
-                let evolveLabelOptions = Constants.textOptions();
-                evolveLabelOptions.fill = Constants.whiteColor;
-                evolveLabelOptions.fontSize = 6;
-                const evolveLabel = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-                evolveLabel.tint = Constants.blueColor;
-                evolveLabel.height = 6;
-                evolveLabel.alpha = .7;
-                evolveLabel.position.x = aFX + 8;
-                evolveLabel.position.y = aFY + 2 - evolveLabel.height - Constants.padding;
-                if (useLargeSize) {
-                    evolveLabelOptions.fontSize = Constants.defaultFontSize;
-                    evolveLabel.position.x -= 4
-                    evolveLabel.height = 12;
-                    evolveLabel.position.y += evolveLabel.height
-                }
-                cardSprite.addChild(evolveLabel);
-                let evolveText = new PIXI.Text("Evolved", evolveLabelOptions);
-                evolveLabel.width = evolveText.width + Constants.padding;
-                cardSprite.addChild(evolveText);
-                evolveText.position.x = evolveLabel.position.x;
-                evolveText.position.y = evolveLabel.position.y;
-            }
-        }
+        if ("effects" in card) {
+	        for (let e of card.effects) {
+	            // hax, don't reference card name
+	            if (e.name == "evolve" && card.name != "Warty Evolver") {
+	                let evolveLabelOptions = Constants.textOptions();
+	                evolveLabelOptions.fill = Constants.whiteColor;
+	                evolveLabelOptions.fontSize = 6;
+	                const evolveLabel = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+	                evolveLabel.tint = Constants.blueColor;
+	                evolveLabel.height = 6;
+	                evolveLabel.alpha = .7;
+	                evolveLabel.position.x = aFX + 8;
+	                evolveLabel.position.y = aFY + 2 - evolveLabel.height - Constants.padding;
+	                if (useLargeSize) {
+	                    evolveLabelOptions.fontSize = Constants.defaultFontSize;
+	                    evolveLabel.position.x -= 4
+	                    evolveLabel.height = 12;
+	                    evolveLabel.position.y += evolveLabel.height
+	                }
+	                cardSprite.addChild(evolveLabel);
+	                let evolveText = new PIXI.Text("Evolved", evolveLabelOptions);
+	                evolveLabel.width = evolveText.width + Constants.padding;
+	                cardSprite.addChild(evolveText);
+	                evolveText.position.x = evolveLabel.position.x;
+	                evolveText.position.y = evolveLabel.position.y;
+	            }
+	        }
+		}
 
         nameOptions.fill = Constants.whiteColor;
         let name = new PIXI.Text(card.name, nameOptions);
@@ -106,20 +109,23 @@ export class Card {
         descriptionBackground.tint = Constants.whiteColor;
         descriptionBackground.alpha = .8;
         descriptionBackground.width = cw - 6;
-        descriptionBackground.height = ch/2 - 10;
+        descriptionBackground.height = ch / 2 - 10;
         descriptionBackground.position.y = descriptionBackground.height/2;
         cardSprite.addChild(descriptionBackground);
 
         let activatedEffects = [];
         let attackEffect = null;
-        for (let e of card.effects) {
-            if (e.effect_type == "activated" && e.enabled) {
-                activatedEffects.push(e)
-                if (e.name == "attack" || e.name == "make_random_townie") {
-                    attackEffect = e;
-                }
-            }
-        }
+        if ("effects" in card) {
+	        for (let e of card.effects) {
+	            if (e.effect_type == "activated" && e.enabled) {
+	                activatedEffects.push(e)
+	                if (e.name == "attack" || e.name == "make_random_townie") {
+	                    attackEffect = e;
+	                }
+	            }
+	        }
+	    }
+
         if (card.card_type != "Effect") {
             let costX = aFX - 23;
             let costY = aFX - 38;
@@ -157,30 +163,34 @@ export class Card {
 
         let abilitiesText = "";
         let color = Constants.darkGrayColor;
-        for (let a of card.abilities) {
-            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
-                if (a.description) {
-                    abilitiesText += a.description;
-                    color = Constants.blackColor;
-                } else {
-                    if (a.name == "DamageDraw") {
-                        continue;
-                    }
-                    abilitiesText += a.name;
-                    if (a != card.abilities[card.abilities.length-1]) {                
-                           abilitiesText += ", ";
-                    }               
-                }
-            }
-        }
+        if ("abilities" in card) {
+	        for (let a of card.abilities) {
+	            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
+	                if (a.description) {
+	                    abilitiesText += a.description;
+	                    color = Constants.blackColor;
+	                } else {
+	                    if (a.name == "DamageDraw") {
+	                        continue;
+	                    }
+	                    abilitiesText += a.name;
+	                    if (a != card.abilities[card.abilities.length-1]) {                
+	                           abilitiesText += ", ";
+	                    }               
+	                }
+	            }
+	        }
 
-        for (let c of card.tokens) {
-           if (c.set_can_act == false) {
-            if (abilitiesText.length) {
-                abilitiesText += ", ";
-            }
-            abilitiesText += "Can't Attack";
-           }
+	        if ("tokens" in card) {
+		        for (let c of card.tokens) {
+		           if (c.set_can_act == false) {
+		            if (abilitiesText.length) {
+		                abilitiesText += ", ";
+		            }
+		            abilitiesText += "Can't Attack";
+		           }
+		        }        	
+		    }
         }
 
         let baseDescription =  card.description ? card.description : "";
@@ -203,7 +213,7 @@ export class Card {
         }
 
 
-        if (card.added_descriptions.length) {
+        if (card.added_descriptions && card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
                 baseDescription += " " + d
             }
@@ -243,7 +253,7 @@ export class Card {
         if (useLargeSize) {
             Card.showAbilityPanels(cardSprite, card, cw, ch);
             if (card.card_for_effect) {
-                var subcard = Card.cardSprite(game, card.card_for_effect, player, true, true);
+                let subcard = Card.sprite(card.card_for_effect, pixiUX, game, player, true, true);
                 Card.setCardAnchors(subcard);
                 subcard.height *=.75;
                 subcard.width *=.75;
@@ -251,11 +261,10 @@ export class Card {
                 cardSprite.addChild(subcard)            
             }
         }
-
         if (card.card_type == Constants.mobCardType) {
             Card.addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize)
 
-        } else if (card.turn_played == -1) {
+        } else if (card.turn_played == -1 || !("turn_played" in card)) {
             let typeX = aFX + cw/4 - 33;
             let typeY = aFY + ch/2 - 5;
             if (useLargeSize) {
@@ -281,10 +290,12 @@ export class Card {
             typeOptions.fill = Constants.whiteColor;
 
             let typeName = card.card_type;
-            for (let a of card.abilities) {
-                if ("Weapon" == a.descriptive_id) {
-                    typeName = a.descriptive_id;
-                }
+            if ("abilities" in card) {
+	            for (let a of card.abilities) {
+	                if ("Weapon" == a.descriptive_id) {
+	                    typeName = a.descriptive_id;
+	                }
+	            }
             }
 
             let type = new PIXI.Text(typeName.charAt(0).toUpperCase() + typeName.slice(1), typeOptions);
@@ -310,22 +321,30 @@ export class Card {
             }
         }
 
-        Card.setCardFilters(card, cardSprite, gameUX.thisPlayer(game), overrideClickable, useLargeSize);
+        let currentPlayer = null;
+        if (pixiUX.thisPlayer) {
+			currentPlayer = pixiUX.thisPlayer(game);        	
+        }
+ 
+        Card.setCardFilters(card, cardSprite, currentPlayer, overrideClickable, useLargeSize);
 
         if (dont_attach_listeners) {
             return cardSprite;
         }
 
-        gameUX.setCardDragListeners(card, cardSprite, game);
-        if (!useLargeSize) {
-            gameUX.setCardMouseoverListeners(cardSprite, game);
+        if (pixiUX.setCardDragListeners) {
+	        pixiUX.setCardDragListeners(card, cardSprite, game);
         }
+        if (!useLargeSize) {
+            Card.setCardMouseoverListeners(cardSprite, game, pixiUX);
+        }        	
+
         Card.setCardAnchors(cardSprite);
-        
+
         return cardSprite;
     }
 
-    static spriteInPlay(game, card, player, gameUX, dont_attach_listeners) {
+    static spriteInPlay(card, pixiUX, game, player, dont_attach_listeners) {
         let cardTexture = Card.cardTextureInPlay;
         for (let a of card.abilities) {
             if (a.name == "Guard") {
@@ -334,7 +353,7 @@ export class Card {
         }
 
         let cardSprite = Card.baseSprite(card, cardTexture, game);
-        let imageSprite = Card.framedSprite(card.name+Constants.largeSpriteQueryString, 256, gameUX.app);
+        let imageSprite = Card.framedSprite(card.name+Constants.largeSpriteQueryString, 256, pixiUX.app);
         cardSprite.addChild(imageSprite);
         Card.ellipsifyImageSprite(imageSprite, card, 38, 82)
 
@@ -424,7 +443,7 @@ export class Card {
         }
 
         if (card.card_for_effect) {
-            var subcard = Card.cardSprite(game, card.card_for_effect, player, true);
+            let subcard = Card.sprite(card.card_for_effect, pixiUX, game, player, true);
             Card.setCardAnchors(subcard);
             subcard.height = Card.cardHeight/2
             subcard.width = Card.cardWidth/2
@@ -432,28 +451,73 @@ export class Card {
             cardSprite.addChild(subcard)            
         }
 
-        Card.setCardFilters(card, cardSprite, gameUX.thisPlayer(game));
+        Card.setCardFilters(card, cardSprite, pixiUX.thisPlayer(game));
 
         if (dont_attach_listeners) {
             return cardSprite;
         }
 
-        gameUX.setCardDragListeners(card, cardSprite, game);
-        gameUX.setCardMouseoverListeners(cardSprite, game);
+        pixiUX.setCardDragListeners(card, cardSprite, game);
+        Card.setCardMouseoverListeners(cardSprite, game, pixiUX);
 
         Card.setCardAnchors(cardSprite);
 
          if (cardSprite.card.damage_to_show > 0) {
-           Card.damageSprite(imageSprite, cardSprite.card.id + '_pic', cardSprite.card.damage_to_show);
-           Card.damageSprite(cardSprite, cardSprite.card.id, cardSprite.card.damage_to_show);
+           pixiUX.damageSprite(imageSprite, cardSprite.card.id + '_pic', cardSprite.card.damage_to_show);
+           pixiUX.damageSprite(cardSprite, cardSprite.card.id, cardSprite.card.damage_to_show);
         }
 
         return cardSprite;
     }
 
+    static button(title, color, textColor, x, y, clickFunction, container=null, width=null, short=false, fontSize=null) {
+        const buttonBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        Constants.roundRectangle(buttonBG)
+        let options = {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : textColor};
+        if (fontSize != null) {
+            options.fontSize = fontSize;
+        }
+        let textSprite = new PIXI.Text(title, options);
+        textSprite.position.y = textSprite.height;
+        buttonBG.width = textSprite.width + Constants.padding * 8;
+        textSprite.position.x = buttonBG.width / 2 - textSprite.width / 2;
+        if (width != null) {
+            buttonBG.width = width;
+            textSprite.position.x = width / 2 - textSprite.width / 2;
+        }        
+        buttonBG.height = textSprite.height * 3;
+        if (short) {
+            buttonBG.height = textSprite.height * 2;            
+            textSprite.position.y = buttonBG.height / 2 - textSprite.height / 2 - 1;
+            textSprite.height = options.fontSize * 2;
+        }
+        buttonBG.tint = color;
+        buttonBG.buttonMode = true;
+        buttonBG.interactive = true;
+        buttonBG
+            .on("click", clickFunction)
+            .on("tap", clickFunction)
+        const cage = new PIXI.Container();
+        cage.position.x = x - buttonBG.width / 2;
+        cage.position.y = y + buttonBG.height;
+        cage.addChild(buttonBG);
+        cage.addChild(textSprite);
+        cage.name = "button";
+        cage.text = textSprite;
+        cage.buttonSprite = buttonBG;
+        if (container) {
+            container.addChild(cage);            
+        }
+        return cage;
+    }
+
     static addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
+    	let damage = 0;
+    	if (card.damage) {
+    		damage = card.damage;
+    	}
         let cardPower = card.power;
-        let cardToughness = card.toughness - card.damage;
+        let cardToughness = card.toughness - damage;
         if (card.tokens) {
             // todo does this code need to be clientside?
             for (let c of card.tokens) {
@@ -516,10 +580,12 @@ export class Card {
         defense.position.y = powerY;
         cardSprite.addChild(defense);        
 
-        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
-        cardId.position.x = defenseX - Card.cardWidth/4 - 5;
-        cardId.position.y = powerY;
-        cardSprite.addChild(cardId);        
+        if (card.id && window.location.hostname.startsWith("127.")) {
+	        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
+	        cardId.position.x = defenseX - Card.cardWidth/4 - 5;
+	        cardId.position.y = powerY;
+	        cardSprite.addChild(cardId);                	
+        }
     }
 
     static addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
@@ -621,6 +687,9 @@ export class Card {
     }
 
     static showAbilityPanels(cardSprite, card, cw, ch) {
+    	if (!card.abilities) {
+    		return;
+    	}
         let options = Constants.textOptions();
         options.fontSize = 10;
         options.wordWrapWidth = cw - 8;
@@ -694,16 +763,18 @@ export class Card {
                 textContainer.addChild(abilityText);
             }
         }
-        for (let e of card.effects) {
-            if (e.name == "evolve") {
-                let effectText = new PIXI.Text("", options);
-                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
-                effectText.position.x -= cw/2 - 4;
-                effectText.position.y = yPosition - ch/2 + 2;
-                yPosition += effectText.height + 10;
-                textContainer.addChild(effectText);
-            }                    
-        }
+    	if (card.effects) {
+	        for (let e of card.effects) {
+	            if (e.name == "evolve") {
+	                let effectText = new PIXI.Text("", options);
+	                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
+	                effectText.position.x -= cw / 2 - 4;
+	                effectText.position.y = yPosition - ch / 2 + 2;
+	                yPosition += effectText.height + 10;
+	                textContainer.addChild(effectText);
+	            }                    
+	        }
+	    }
 
         if (yPosition == 0) {
             cardSprite.removeChild(topBG);
@@ -739,20 +810,85 @@ export class Card {
                 }
             }
         } else {
-            if (!isStackCard) {
+            if (!isStackCard && currentPlayer) {
                 filters.push(Constants.cantBeClickedFilter());                                        
             }
         }
         if (card.shielded && card.turn_played > -1) {
             filters.push(Constants.shieldFilter());                        
         }
-        if (card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
+        if (card.abilities && card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
             filters.push(Constants.lurkerFilter());                        
         }
 
         cardSprite.filters = filters;
+    }
+
+    static setCardMouseoverListeners(cardSprite, game, pixiUX) {
+        cardSprite.onMouseover = () => {Card.onMouseover(cardSprite, game, pixiUX)};
+        cardSprite.onMouseout = () => {Card.onMouseout(cardSprite, pixiUX)};
+        cardSprite
+            .on('mouseover',        cardSprite.onMouseover)
+            .on('mouseout',        cardSprite.onMouseout)
+    }
+
+    static onMouseover(cardSprite, game, pixiUX) {
+        pixiUX.hovering = true;
+        pixiUX.hoverTimeout = setTimeout(() => { 
+            if (pixiUX.hovering) {
+                pixiUX.app.stage.removeChild(pixiUX.hoverCards);
+                pixiUX.hovering = false;
+                const card = cardSprite.card
+                const loaderID = card.name+Constants.largeSpriteQueryString
+                const loaderURL = pixiUX.rasterizer.fullImagePath(card) + Constants.largeSpriteQueryString;
+                if (!PIXI.utils.TextureCache[loaderURL]) {
+                    pixiUX.app.loader.reset()
+                    pixiUX.rasterizer.loadCardImage(
+                        card.card_type,
+                        loaderID,
+                        loaderURL,
+                        .9,
+                    );
+                    pixiUX.app.loader.load(() => {
+                        Card.addHoverCard(cardSprite, game, pixiUX);
+                    });                     
+            	} else {
+                    Card.addHoverCard(cardSprite, game, pixiUX);
+            	}
+            }
+        }, 300);
 
     }
 
+    static addHoverCard(cardSprite, game, pixiUX) {
+    	let player = null;
+    	if (pixiUX.thisPlayer) {
+    		player = pixiUX.thisPlayer(game);
+    	}
+        let sprite = Card.sprite(cardSprite.card, pixiUX, game, player, false, true);
+        sprite.position.x = cardSprite.position.x + Card.cardWidth/2;
+        sprite.position.y = cardSprite.position.y - Card.cardHeight*1.5;
+        if (sprite.position.y < Card.cardHeight) {
+            sprite.position.y = Card.cardHeight;
+            sprite.position.x = cardSprite.position.x + Card.cardWidth*1.5 + 10;
+        }
+        // hax - because cards are in an unusual container?
+        if (player && player.card_choice_info.cards.length) {
+            sprite.position.x += Card.cardWidth * 2.5 + Constants.padding * 2;
+        }
+        if (sprite.position.x >= 677) {
+            sprite.position.x = cardSprite.position.x - Card.cardWidth;
+        }
+
+        pixiUX.app.stage.addChild(sprite)
+        pixiUX.hoverCards = sprite;        
+        pixiUX.hovering = true;        
+    }
+
+    static onMouseout(cardSprite, pixiUX) {
+        clearTimeout(pixiUX.hoverTimeout);
+        pixiUX.hovering = false
+        pixiUX.app.stage.removeChild(pixiUX.hoverCards);
+    }    
 
 }
