@@ -90,7 +90,6 @@ class BattleWizardConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         print("Disconnected")
-        JsonDB().remove_from_queue_database(int(self.room_name), JsonDB().queue_database())
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name
