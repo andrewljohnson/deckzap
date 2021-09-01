@@ -1,10 +1,9 @@
-
+\
 def default_deck_genie_wizard():
     return {
         "name": "Draw Go",
         "url": "draw_go",
-        "race": "genie",
-        "class": "wizard",
+        "discipline": "magic",
         "cards": {
             "Mana Battery": 1,
             "Elemental Ritual": 2,
@@ -31,8 +30,7 @@ def default_deck_vampire_lich():
     return {
         "name": "The Coven",
         "url": "the_coven",
-        "race": "vampire",
-        "class": "lich",
+        "discipline": "magic",
         "cards": {
             "Mana Coffin": 1,
             "Orpheus Krustal": 1,
@@ -50,6 +48,7 @@ def default_deck_vampire_lich():
             "Doomer": 1,
             "The Ancient": 2,
             "Ritual of the Night": 2,
+            "Kill Artifact": 1
         }
     }
 
@@ -57,8 +56,7 @@ def default_deck_dwarf_tinkerer():
     return {
         "name": "Keeper",
         "url": "keeper",
-        "race": "dwarf",
-        "class": "tinkerer",
+        "discipline": "tech",
         "cards": {
             "Find Artifact": 1,
             "Wind of Mercury": 2,
@@ -66,7 +64,8 @@ def default_deck_dwarf_tinkerer():
             "Rolling Thunder": 2,
             "Tame Shop Demon": 2,
             "Work in Progress": 2,
-            "Side Project": 2
+            "Side Project": 2,
+            "Tinker": 2
         }
     }
 
@@ -74,12 +73,10 @@ def default_deck_dwarf_bard():
     return {
         "name": "Townies",
         "url": "townies",
-        "race": "dwarf",
-        "class": "bard",
+        "discipline": "tech",
         "cards": {
             "Lute": 1,
-            "Mana Shrub": 1,
-            "Dwarf Council": 1,
+            "Tech Crashhouse": 1,
             "Mayor's Brandy": 1,
             "Song of Patience": 1,
             "Study the Music": 1,
@@ -91,7 +88,7 @@ def default_deck_dwarf_bard():
             "Study the Masters": 1,
             "Sabotage": 1,
             "Fine War Music": 1,
-            "Dwarves' Revenge": 1,
+            "Tech Revenge": 1,
             "Song of Fire": 1,
         }
     }

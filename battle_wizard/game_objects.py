@@ -270,8 +270,6 @@ class Game:
         # moves to join/configure/start a game
         if move_type == 'JOIN':
             message = self.join(message)
-        elif move_type == 'CHOOSE_RACE':
-            message = self.choose_race(message)
         else:
             if (message["username"] != self.current_player().username):
                 print(f"can't {move_type} on opponent's turn")
@@ -837,17 +835,6 @@ class Game:
             self.start_game(message)
         return message
 
-    def choose_race(self, message):
-        message["log_lines"].append(f"{message['username']} chose {message['race']}.")
-        player = self.players[0]
-        if player.username != message["username"]:
-            player = self.players[1]
-        player.race = message["race"]
-
-        if self.players[0].race and len(self.players) == 2 and self.players[1].race:
-            self.start_game(message)
-        return message
-
     def start_game(self, message):
         if len(self.player_decks[0]) > 0 or len(self.player_decks[1]) > 0 :
             self.start_test_stacked_deck_game(message)
@@ -893,7 +880,7 @@ class Game:
                 for card_name in card_names:
                     self.players[x].add_to_deck(card_name, 1)
                 random.shuffle(self.players[x].deck)
-                self.players[x].race = deck_to_use["race"]
+                self.players[x].discipline = deck_to_use["discipline"]
 
             self.get_starting_artifacts()
             self.get_starting_spells()
@@ -973,7 +960,7 @@ class Game:
             else:
                 cards_to_discard.append(card)
 
-        if self.current_player().race == "dwarf":
+        if self.current_player().discipline == "tech":
             for card in cards_to_discard:
                 self.current_player().hand.remove(card)
                 self.current_player().played_pile.append(card)
@@ -1971,7 +1958,7 @@ class Player:
 
     def __init__(self, game, info, new=False, bot=None):
         self.username = info["username"]
-        self.race = info["race"] if "race" in info else None
+        self.discipline = info["discipline"] if "discipline" in info else None
         self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.bot = bot
 
@@ -2008,7 +1995,7 @@ class Player:
             self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"], "effect_card_id": info["card_choice_info"]["effect_card_id"] if "effect_card_id" in info["card_choice_info"] else None}
 
     def __repr__(self):
-        return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - \
+        return f"{self.username} ({self.discipline}, deck_id: {self.deck_id}) - \
                 {self.hit_points} hp - {self.damage_this_turn} damage_this_turn - {self.damage_to_show} damage_to_show - {self.mana} mana, self.card_info_to_target {self.card_info_to_target} \
                 {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
                 {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
@@ -2019,7 +2006,7 @@ class Player:
     def as_dict(self):
         return {
             "username": self.username,
-            "race": self.race,
+            "discipline": self.discipline,
             "hit_points": self.hit_points,
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
@@ -2038,17 +2025,17 @@ class Player:
         }
 
     def max_max_mana(self):
-        if self.race == "dwarf":
+        if self.discipline == "tech":
             return 99
         return 10
 
     def cards_each_turn(self):
-        if self.race == "dwarf":
+        if self.discipline == "tech":
             return 5
         return 1
 
     def initial_hand_size(self):
-        if self.race == "dwarf":
+        if self.discipline == "tech":
             return 5
         return 4
 
@@ -3049,13 +3036,13 @@ class Player:
         all_cards = Game.all_cards(require_images=True, include_tokens=False)
         banned_cards = ["Make Spell", "Make Spell+", "Make Mob", "Make Mob+"]
         card1 = None 
-        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == mobCardType and card1.cost != requiredMobCost):  #or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
+        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == mobCardType and card1.cost != requiredMobCost): 
             card1 = random.choice(all_cards)
         card2 = None
-        while not card2 or card2.name in banned_cards or (make_type != "any" and card2.card_type != make_type) or card2 == card1: #or (self.race != None and card2.race != None and self.race not in [card2.race, f"{card2.race}_{card2.card_class}"]):
+        while not card2 or card2.name in banned_cards or (make_type != "any" and card2.card_type != make_type) or card2 == card1:
             card2 = random.choice(all_cards)
         card3 = None
-        while not card3 or card3.name in banned_cards or (make_type != "any" and card3.card_type != make_type) or card3 in [card1, card2]: #or (self.race != None and card3.race != None and self.race not in [card3.race, f"{card3.race}_{card3.card_class}"]):
+        while not card3 or card3.name in banned_cards or (make_type != "any" and card3.card_type != make_type) or card3 in [card1, card2]:
             card3 = random.choice(all_cards)
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
         
@@ -3279,7 +3266,7 @@ class Player:
                     # hack for Rolling Thunder
                     card.effects[0].amount += 1
                 if card.effects[1].name == "improve_effect_amount_when_cast":
-                    # hack for Dwarf Council
+                    # hack for Tech Crashhouse
                     card.effects[0].amount += 1
                 if card.effects[1].name == "improve_effect_when_cast":
                     # hack for Tame Shop Demon
@@ -3550,14 +3537,14 @@ class Player:
             if self.has_brarium():
                 draw_count -= 1
                 if draw_count > 0:
-                    if self.race != "dwarf" or self.game.turn > 1:
+                    if self.discipline != "tech" or self.game.turn > 1:
                         self.draw(draw_count)
                 self.do_make_from_deck_effect(self.username)
             else:
-                if self.race != "dwarf" or self.game.turn > 1:
+                if self.discipline != "tech" or self.game.turn > 1:
                     self.draw(draw_count)
 
-        if self.race == "dwarf":
+        if self.discipline == "tech":
             if self.game.turn <= 1:
                 self.max_mana = 3
         else:
@@ -3789,11 +3776,11 @@ class Card:
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
         self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
         self.card_type = info["card_type"] if "card_type" in info else mobCardType
-        self.card_class = info["class"] if "class" in info else None
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
         self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
         self.damage_to_show = info["damage_to_show"] if "damage_to_show" in info else 0
+        self.discipline = info["discipline"] if "discipline" in info else None
         self.effects = [CardEffect(e, self.id) for _, e in enumerate(info["effects"])] if "effects" in info else []
         self.effects_can_be_clicked = info["effects_can_be_clicked"] if "effects_can_be_clicked" in info else []
         self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
@@ -3808,17 +3795,16 @@ class Card:
         # probably bugs WRT Mind Manacles
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.power = info["power"] if "power" in info else None
-        self.race = info["race"] if "race" in info else None
         self.shielded = info["shielded"] if "shielded" in info else False
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.toughness = info["toughness"] if "toughness" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
     def __repr__(self):
-        return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n \
+        return f"{self.name} ({self.discipline}, {self.cost}) - {self.power}/{self.toughness}\n \
                  abilities: {self.abilities}, tokens: {self.tokens}\n \
                  added_descriptions: {self.added_descriptions}\n \
-                 attacked: {self.attacked} card_class: {self.card_class}\n \
+                 attacked: {self.attacked} \n \
                  can_activate_abilities: {self.can_activate_abilities})\n \
                  can_be_clicked: {self.can_be_clicked}\n \
                  card_for_effect: {self.card_for_effect}\n \
@@ -3846,7 +3832,6 @@ class Card:
             "attacked": self.attacked,
             "can_activate_abilities": self.can_activate_abilities,
             "can_be_clicked": self.can_be_clicked,
-            "card_class": self.card_class,
             "card_for_effect": self.card_for_effect.as_dict() if self.card_for_effect else None,
             "card_subtype": self.card_subtype,
             "card_type": self.card_type,
@@ -3854,6 +3839,7 @@ class Card:
             "damage": self.damage,
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
+            "discipline": self.discipline,
             "description": self.description,
             "effects": [e.as_dict() for e in self.effects],
             "effects_can_be_clicked": self.effects_can_be_clicked,
@@ -3868,7 +3854,6 @@ class Card:
             "original_description": self.original_description,
             "owner_username": self.owner_username,
             "power": self.power,
-            "race": self.race,
             "shielded": self.shielded,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "toughness": self.toughness,

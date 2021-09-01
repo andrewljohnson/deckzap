@@ -1,82 +1,57 @@
 import * as PIXI from 'pixi.js'
 import { Card } from './Card.js';
 import * as Constants from './constants.js';
-import { SVGRasterizer } from './SVGRasterizer.js';
 
 
 export class DeckContainer {
 
-	constructor(deck, allCards, containerID) {
-		this.cardWidth = 7;
-		let appWidth = Card.cardWidth * this.cardWidth + Constants.padding * this.cardWidth;
-		let appHeight = Card.cardHeight * 3 + Constants.padding * 2;
-		this.deck = deck;
-		this.allCards = allCards;
-        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
-        this.app = new PIXI.Application({
-            antialias: true,
-            autoDensity: true,
-            backgroundColor: Constants.whiteColor,
-            height: appHeight,
-            width: appWidth, 
-            resolution: PIXI.settings.FILTER_RESOLUTION,
-        });        
-        this.rasterizer = new SVGRasterizer(this.app);
-
-		let container = document.getElementById(containerID);
-		let deckContainer = document.createElement("div");
-		container.appendChild(deckContainer);
-        deckContainer.appendChild(this.app.view);
-        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        this.app.stage.addChild(background)
-        Constants.roundRectangle(background)
-        background.width = appWidth;
-        background.height = appHeight;
-        background.tint = Constants.blueColor;
+	constructor(pixiUX, deck, allCards, x, y) {
+        this.allCards = allCards;
+		this.cardSprites = [];
+        this.deck = deck;
+        this.pixiUX = pixiUX;
+		this.background = Constants.background(x, y, Card.cardWidth * 1.25, .2)
+    	this.pixiUX.app.stage.addChild(this.background)
+    	this.position = this.background.position;
 	}
 
 	redisplayDeck() {
-		let spritesToRemove = [];
-	    for (let sprite of this.app.stage.children) {
-	    	if (sprite.card) {
-	    		spritesToRemove.push(sprite)
-	    	}
+	    for (let sprite of this.cardSprites) {
+	    	this.pixiUX.app.stage.removeChild(sprite);
 	    }
-	    for (let sprite of spritesToRemove) {
-	    	this.app.stage.removeChild(sprite);
-	    }
-		this.cards = [];
+		this.cards = Card.cardsForDeck(this.deck.cards, this.allCards);
+		this.cards.sort((a, b) => (a.name < b.name) ? 1 : -1)
+		this.cards.sort((a, b) => (a.cost > b.cost) ? 1 : -1)
 
-		for (let dcName in this.deck.cards) {
-			for(let ac of this.allCards) {
-				if (ac.name == dcName) {
-					this.cards.push(ac);
-				}
-			}   
-		}
-
-        let loadingImages = this.rasterizer.loadCardImages(this.cards);
-		let index = 0;
-        this.app.loader.load(() => {
-			for (let card of this.cards) {
-				this.addCardToContainer(card, index);
-				index += 1;
-			}
-            for (let sprite of this.app.stage.children) {
-                if (sprite.card) {
-                    sprite.interactive = true;
-                }
-            }
-            this.app.loader.reset()
-        });
+		this.cardSprites = [];
+		this.cards.forEach((card, i) => {
+			this.addCardToContainer(card, i);
+		});
+		this.background.height = 350;
 	}
 
 	addCardToContainer(card, index) {
-		let pixiUX = this;
-        let cardSprite = Card.sprite(card, pixiUX);
-        cardSprite.position.x = (Card.cardWidth + Constants.padding) *  (index % this.cardWidth) + Card.cardWidth/2;
-        cardSprite.position.y = Card.cardHeight/2 + (Card.cardHeight + 5) * Math.floor(index / this.cardWidth);            
-        this.app.stage.addChild(cardSprite);
+        let cardSprite = Card.spriteTopSliver(card, this.pixiUX, this.deck.cards[card.name]);
+        cardSprite.interactive = true
+        cardSprite.position.x = this.background.position.x;
+        let cardHeight = 18;
+        cardSprite.position.y = cardHeight / 2 + (cardHeight + 5) * index + this.background.position.y - (cardHeight-5) / 2 * index - cardHeight / 2;            
+        this.pixiUX.app.stage.addChild(cardSprite);
+        this.cardSprites.push(cardSprite)
+	}
+
+	hide() {
+		this.background.alpha = 0;
+    	for (let sprite of this.cardSprites) {
+    		sprite.alpha = 0;
+    	}
+	}
+
+	show() {
+		this.background.alpha = 1;
+    	for (let sprite of this.cardSprites) {
+    		sprite.alpha = 1;
+    	}		
 	}
 
 }

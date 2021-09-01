@@ -512,18 +512,6 @@
 			"target_type": "all_players"
 		}]
 	},
-		{
-		"name": "Kill Artifact",
-		"race": "genie",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Kill an artifact.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "spell",
-			"target_type": "artifact"
-		}]
-	},
 	{
 		"name": "Lightning Storm",
 		"race": "genie",

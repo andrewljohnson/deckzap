@@ -470,9 +470,52 @@ export class Card {
         return cardSprite;
     }
 
+    static spriteTopSliver(card, pixiUX, count) {
+        let cardSprite = Card.baseSprite(card, PIXI.Texture.from("/static/images/card-sliver.png"));
+        cardSprite.card = card;
+        cardSprite.buttonMode = true;
+
+        const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        nameBackground.tint = Constants.blackColor;
+        nameBackground.width = Card.cardWidth * 1.25 - Constants.padding * 4;
+        nameBackground.height = Constants.defaultFontSize;
+        nameBackground.alpha = .7;
+        nameBackground.position.x = Constants.padding/2;
+        nameBackground.position.y = Constants.padding/2;
+        let nameOptions = Constants.textOptions();
+        cardSprite.addChild(nameBackground);
+
+        nameOptions.fill = Constants.whiteColor;
+        let name = new PIXI.Text(card.name, nameOptions);
+        name.anchor.set(0);
+        cardSprite.addChild(name);
+        name.position.x = nameBackground.position.x + 1;
+        name.position.y = nameBackground.position.y + 1;
+
+        if (count > 1) {
+            let options = Constants.textOptions();            
+            let circle = Card.addCircledLabel(Card.cardWidth * 1.25 - options.fontSize, options.fontSize + 1, cardSprite, options, count, Constants.yellowColor);
+            circle.anchor.set(.5)
+        }
+
+        let currentPlayer = null;
+        if (pixiUX.thisPlayer) {
+            currentPlayer = pixiUX.thisPlayer(game);            
+        }
+ 
+        pixiUX.setDeckCardDragListeners(cardSprite);
+
+        Card.setCardFilters(card, cardSprite, currentPlayer, false, false);
+
+        Card.setCardMouseoverListeners(cardSprite, null, pixiUX);
+
+
+        return cardSprite;
+    }
+
     static button(title, color, textColor, x, y, clickFunction, container=null, width=null, short=false, fontSize=null) {
         const buttonBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        Constants.roundRectangle(buttonBG)
+        Constants.roundRectangle(buttonBG, 1)
         let options = {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : textColor};
         if (fontSize != null) {
             options.fontSize = fontSize;
@@ -601,6 +644,7 @@ export class Card {
         cost.position.x = -4;
         cost.position.y = -8;
         circle.addChild(cost);
+        return circle;
     }
 
     static circleBackground(x, y) {
@@ -748,7 +792,7 @@ export class Card {
                 abilityText.text = "Lurker - Lurker mobs can't be targetted until they attack.";
             }                    
             if (a.name == "Keep") {
-                abilityText.text = "Keep - Cards with Keep can be Kept by races (dwarves) that discard their hand each turn.";
+                abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
             }                    
             if (a.name == "Disappear") {
                 abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
@@ -861,6 +905,7 @@ export class Card {
     }
 
     static addHoverCard(cardSprite, game, pixiUX) {
+        console.log(pixiUX.constructor.name)
     	let player = null;
     	if (pixiUX.thisPlayer) {
     		player = pixiUX.thisPlayer(game);
@@ -880,6 +925,19 @@ export class Card {
             sprite.position.x = cardSprite.position.x - Card.cardWidth;
         }
 
+        if (pixiUX.constructor.name == "DeckViewer" || pixiUX.constructor.name == "OpponentChooser") {
+            sprite.position.x = cardSprite.position.x + (Card.cardWidth+Constants.padding*2)*2;
+            sprite.position.y = cardSprite.position.y + Card.cardHeight;
+        }
+        if (pixiUX.constructor.name == "DeckBuilder") {
+            sprite.position.x = cardSprite.position.x - (Card.cardWidth);
+            sprite.position.y = cardSprite.position.y + Card.cardHeight;
+        }
+        if (pixiUX.constructor.name == "DeckBuilder" && cardSprite.height == 114) {
+            sprite.position.x = cardSprite.position.x + (Card.cardWidth* 1.5);
+            sprite.position.y = cardSprite.position.y + Card.cardHeight/2;
+        }
+
         pixiUX.app.stage.addChild(sprite)
         pixiUX.hoverCards = sprite;        
         pixiUX.hovering = true;        
@@ -891,4 +949,39 @@ export class Card {
         pixiUX.app.stage.removeChild(pixiUX.hoverCards);
     }    
 
+    static hasAbility(card, abilityName) {
+        if (!card.abilities) {
+            return false;
+        }
+        for (let ability of card.abilities) {
+            if (ability.name == abilityName) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static cardsForDeck(deck, allCards) {
+        let cards = [];
+        for (let nameKey in deck) {
+            for(let card of allCards) {
+                if (card.name == nameKey) {
+                    cards.push(card);
+                }
+            }   
+        }   
+        return cards;
+    }
+
+    static cardsForCardList(cardList, allCards) {
+        let cards = [];
+        for (let nameKey of cardList) {
+            for(let card of allCards) {
+                if (card.name == nameKey) {
+                    cards.push(card);
+                }
+            }   
+        }   
+        return cards;
+    }
 }

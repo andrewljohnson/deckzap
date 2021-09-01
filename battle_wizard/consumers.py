@@ -109,9 +109,9 @@ class BattleWizardConsumer(WebsocketConsumer):
             self.send_game_message(self.game.as_dict(), message)
 
             if message["move_type"] == "GET_TIME":
-                # run AI if it's the AI's move or if the other player just chose their race
+                # run AI if it's the AI's move or if the other player just chose their discipline
                 if self.player_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
-                    (self.game.players[0].race != None and self.game.players[1].race == None)):                     
+                    (self.game.players[0].discipline != None and self.game.players[1].discipline == None)):                     
                     time_for_next_move = False
                     if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
                         time_for_next_move = True

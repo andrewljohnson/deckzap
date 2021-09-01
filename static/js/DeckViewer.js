@@ -1,17 +1,25 @@
 import * as PIXI from 'pixi.js'
 import { Card } from './Card.js';
 import * as Constants from './constants.js';
+import { DeckContainer } from './DeckContainer.js';
+import { DeckPicker } from './DeckPicker.js';
+import { DeckInfo } from './DeckInfo.js';
 import { SVGRasterizer } from './SVGRasterizer.js';
 
 
 export class DeckViewer {
 
 	constructor(decks, allCards, containerID) {
-		this.cardWidth = 7;
-		let appWidth = Card.cardWidth * this.cardWidth + Constants.padding * this.cardWidth;
-		let appHeight = Card.cardHeight * 3 + Constants.padding * 2;
-		this.decks = decks;
 		this.allCards = allCards;
+		this.decks = decks;
+		this.setUpPIXIApp()
+		this.loadUX(containerID);
+	}
+
+	setUpPIXIApp() {
+		let cardWidth = 7;
+		let appWidth = Card.cardWidth * cardWidth + Constants.padding * cardWidth;
+		let appHeight = Card.cardHeight * 10 + Constants.padding * 2;
         PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
         this.app = new PIXI.Application({
             antialias: true,
@@ -22,103 +30,69 @@ export class DeckViewer {
             resolution: PIXI.settings.FILTER_RESOLUTION,
         });        
         this.rasterizer = new SVGRasterizer(this.app);
+	}
 
+	loadUX(containerID) {			
 		let container = document.getElementById(containerID);
-		let controlsContainer = document.createElement("div");
-		container.appendChild(controlsContainer);
-		let titleH1 = document.createElement("h1");
-		titleH1.innerHTML = `
-			<a id=findMatchButton class="button button-top-right">Find Match</a> 
-        	Choose Deck
-		`;
-		titleH1.class = "title-with-button";
-		controlsContainer.appendChild(titleH1);
+		container.appendChild(this.app.view);
+        let titleText = this.addTitle();
+        this.deckPicker = new DeckPicker(this, this.decks, this.allCards, titleText.position.y + titleText.height + 20, deckIndex => {this.redisplayDeck(deckIndex)} )
+		this.deckContainer = new DeckContainer(this, this.decks[0], this.allCards, 0, this.deckPicker.position.y + 60 );
+		this.deckPicker.select(0);
+		this.addFindMatchButton();
+	}
 
-		let select = document.createElement("select");
-		controlsContainer.appendChild(select);
-		this.deckSelector = select;
-		select.name = "decks";
-		select.id = "decks";
-		select.onchange = () => {
-			this.redisplayDeck();
-		};
+	addTitle() {
+		let title = "Choose Deck";
+        let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
+        titleText.position.x = Constants.padding;
+        titleText.position.y = Constants.padding * 1.5;
+        this.app.stage.addChild(titleText);		
+        return titleText;
+	}
 
-		for (let deck of decks) {
-			let option = document.createElement("option");
-			select.appendChild(option)
-			option.innerHTML = `${deck.name} (${deck.race})`;
-			option.value = deck.id;
+	addFindMatchButton() {
+        const buttonWidth = Card.cardWidth * 1.25;
+        const buttonHeight = 40;
+        const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth + Constants.padding * 2;
+        let b = Card.button(
+                "Find Match", 
+                Constants.blueColor, 
+                Constants.whiteColor, 
+                buttonX, 
+                -buttonHeight - 2,
+                () => {
+                	window.location.href = `/choose_opponent/${this.decks[this.deckPicker.selectedIndex].id}`
+                },
+                null,
+                buttonWidth
+            );
+       this.app.stage.addChild(b);
+       return b;
+	}
+
+	redisplayDeck(deckIndex) {
+		this.deckContainer.deck = this.decks[deckIndex];
+		this.deckContainer.redisplayDeck()
+
+		if (this.disciplineDescriptionText) {
+			this.disciplineDescriptionText.parent.removeChild(this.disciplineDescriptionText);
+			this.disciplineDescriptionText = null;
 		}
-
-		this.deckInfoDiv  = document.createElement("div");
-		controlsContainer.appendChild(this.deckInfoDiv);
-
-		let deckContainer = document.createElement("div");
-		container.appendChild(deckContainer);
-        deckContainer.appendChild(this.app.view);
-        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        this.app.stage.addChild(background)
-        Constants.roundRectangle(background)
-        background.width = appWidth;
-        background.height = appHeight;
-        background.tint = Constants.blueColor;
+		let disciplineDescription = new DeckInfo(this.decks[deckIndex].discipline).infoListText()
+        this.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.blackColor});
+        this.disciplineDescriptionText.position.x = this.deckContainer.position.x + Card.cardWidth* 1.25 + Constants.padding * 2;
+        this.disciplineDescriptionText.position.y = this.deckContainer.position.y;
+        this.app.stage.addChild(this.disciplineDescriptionText);
 	}
 
-	redisplayDeck() {
-		document.getElementById("findMatchButton").href = `/choose_opponent/${this.deckSelector.value}`
-
-		let chosenDeck = this.decks[this.deckSelector.value];
-
-       	if (chosenDeck.race == "dwarf") {
-            this.deckInfoDiv.innerHTML = 
-                "<ul><li>three mana per turn</li><li>new hand of five cards each turn</li><li>15 card deck</li></ul>"
-        } else {
-            this.deckInfoDiv.innerHTML = 
-                "<ul><li>get more mana each turn</li><li>start with 4 cards, draw a card per turn</li><li>30 card deck</li></ul>"          
-        }
-
-
-		let spritesToRemove = [];
-	    for (let sprite of this.app.stage.children) {
-	    	if (sprite.card) {
-	    		spritesToRemove.push(sprite)
-	    	}
-	    }
-	    for (let sprite of spritesToRemove) {
-	    	this.app.stage.removeChild(sprite);
-	    }
-		this.cards = [];
-
-		for (let dcName in chosenDeck.cards) {
-			for(let ac of this.allCards) {
-				if (ac.name == dcName) {
-					this.cards.push(ac);
-				}
-			}   
-		}
-
-        let loadingImages = this.rasterizer.loadCardImages(this.cards);
-		let index = 0;
-        this.app.loader.load(() => {
-			for (let card of this.cards) {
-				this.addCardToContainer(card, index);
-				index += 1;
-			}
-            for (let sprite of this.app.stage.children) {
-                if (sprite.card) {
-                    sprite.interactive = true;
-                }
-            }
-            this.app.loader.reset()
-        });
-	}
-
-	addCardToContainer(card, index) {
-		let pixiUX = this;
-        let cardSprite = Card.sprite(card, pixiUX);
-        cardSprite.position.x = (Card.cardWidth + Constants.padding) *  (index % this.cardWidth) + Card.cardWidth/2;
-        cardSprite.position.y = Card.cardHeight/2 + (Card.cardHeight + 5) * Math.floor(index / this.cardWidth);            
-        this.app.stage.addChild(cardSprite);
-	}
+	// protocol for DeckContainer
+    setDeckCardDragListeners(cardSprite) {
+		return;
+		let self = this;
+		cardSprite
+		    .on('mousedown',        function (e) {self.removeCard(this)})
+		    .on('touchstart',       function (e) {self.removeCard(this)})
+    }
 
 }

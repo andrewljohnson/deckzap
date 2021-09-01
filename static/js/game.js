@@ -699,7 +699,7 @@ export class GameUX {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         let modalWidth = this.opponentAvatar.width;
         let modalHeight = this.inPlay.height * 2 + Constants.padding;
-        Constants.roundRectangle(background)
+        Constants.roundRectangle(background, .2)
         background.width = modalWidth;
         background.height = modalHeight;
         container.position.x = this.opponentAvatar.position.x;
@@ -941,7 +941,7 @@ export class GameUX {
             text.position.x = Constants.padding * 2;
             text.position.y = text.height;
             const b = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-            Constants.roundRectangle(b)
+            Constants.roundRectangle(b, 2)
             b.width = text.width + Constants.padding * 4;
             b.height = text.height*3;
             b.tint = Constants.blueColor;
