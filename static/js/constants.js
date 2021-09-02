@@ -29,6 +29,7 @@ export const menuGrayColor = 0x969696;
 // styles
 export const titleFontSize = 24;
 export const h2FontSize = 16;
+export const defaultButtonFontSize = 16;
 export const defaultFontSize = 12;
 export const defaultFontSizeSmall = 10;
 export const defaultFontFamily = "Arial";

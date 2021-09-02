@@ -83,7 +83,7 @@ export class GameUX {
         const topOfMiddle = this.opponentAvatar.position.y + avatarHeight + Constants.padding
         this.inPlayOpponent = this.inPlayContainer(Constants.padding, topOfMiddle);
         const artifactX = this.inPlayOpponent.position.x + cardContainerWidth + Constants.padding * 8;
-        this.artifactsOpponent = this.artifacts(artifactX,  this.inPlayOpponent.position.y - Constants.padding*10);
+        this.artifactsOpponent = this.artifacts(artifactX,  this.inPlayOpponent.position.y - Constants.padding * 8.5);
         let gapHeight = 90;
         this.artifacts = this.artifacts(artifactX, this.artifactsOpponent.position.y + Card.cardHeight + gapHeight);
         const middleOfMiddle = this.inPlayOpponent.position.y + Card.cardHeight + Constants.padding;
@@ -127,10 +127,10 @@ export class GameUX {
     }
 
     scrollbox() {
-        const scrollboxHeight = this.playerAvatar.height - Constants.padding;
+        const scrollboxHeight = avatarHeight - Constants.padding;
         const scrollBoxWidth = 418;
         const scrollbox = new Scrollbox({ boxWidth: scrollBoxWidth, boxHeight: scrollboxHeight, clampWheel: false, passiveWheel: false})
-        scrollbox.position.x = this.playerAvatar.position.x + this.playerAvatar.width + Constants.padding;
+        scrollbox.position.x = this.playerAvatar.position.x + avatarWidth + Constants.padding;
         scrollbox.position.y = this.playerAvatar.position.y;
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.tint = Constants.whiteColor
@@ -160,11 +160,7 @@ export class GameUX {
             Constants.darkGrayColor, 
             0, 
             0,
-            () => { this.showMenu() }, 
-            null,
-            null,
-            true,
-            6
+            () => { this.showMenu() }
         );
         if (!this.isPlaying(game)) {
             button.buttonSprite.buttonMode = false;
@@ -1062,10 +1058,10 @@ export class GameUX {
 
     renderEndTurnButton(game, message) {
         if (this.turnLabel) {
-            this.buttonMenu.removeChild(this.turnLabel)
+            this.app.stage.removeChild(this.turnLabel)
         }
         if (this.endTurnButton) {
-            this.buttonMenu.removeChild(this.endTurnButton)
+            this.app.stage.removeChild(this.endTurnButton)
         }
 
         let clickFunction = () => {
@@ -1111,7 +1107,7 @@ export class GameUX {
             }
         }
 
-        let buttonWidth = 140;
+        let buttonWidth = 160;
 
         let b = Card.button(
             title, 
@@ -1123,8 +1119,8 @@ export class GameUX {
             this.app.stage,
             buttonWidth
         );
-        b.position.x = this.artifactsOpponent.position.x + this.artifactsOpponent.width - buttonWidth;
-        b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 2;
+        b.position.x = this.artifactsOpponent.position.x;
+        b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 4;
 
         if (this.isActivePlayer(game)) {
             if (this.thisPlayer(game).card_info_to_target.effect_type) {
@@ -1141,7 +1137,7 @@ export class GameUX {
         this.endTurnButton = b;
 
         let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.darkGrayColor, align: "center"});
-        turnText.position.x = b.position.x - turnText.width + Constants.padding * 4;
+        turnText.position.x = b.position.x + buttonWidth + Constants.padding * 10;
         turnText.position.y = b.position.y + b.height / 2;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;

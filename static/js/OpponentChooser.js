@@ -21,11 +21,12 @@ export class OpponentChooser {
 
 	setUpPIXIApp() {
 		this.cardWidth = 7;
-		let appWidth = Card.cardWidth * this.cardWidth + Constants.padding * this.cardWidth;
-		let appHeight = Card.cardHeight * 10 + Constants.padding * 2;
+		let appWidth = 1160;
+		let appHeight = 855;
         PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
         this.app = new PIXI.Application({
             antialias: true,
+            autoDensity: true,
             backgroundColor: Constants.whiteColor,
             height: appHeight,
             width: appWidth, 
@@ -76,7 +77,7 @@ export class OpponentChooser {
 	addPlayButton() {
         const buttonWidth = Card.cardWidth * 1.25;
         const buttonHeight = 40;
-        const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth + Constants.padding * 2;
+        const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth * 2;
         let b = Card.button(
                 "Play", 
                 Constants.blueColor, 
