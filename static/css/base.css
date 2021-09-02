@@ -1,3 +1,12 @@
+body {
+        margin:0;
+}
+
+.wrapper {
+	margin:10px;	
+}
+
+
 #footer ul {
   list-style-type: none;
   margin: 0;
@@ -22,7 +31,7 @@
 }
 
 #footer .footer-content {
-	margin-top:60px;	
+	/*margin-top:60px;*/	
 }
 
 .blue-header {
@@ -50,3 +59,22 @@ span.subtitle {
 	margin:0;
 	padding:0;	
 }
+
+a.button {
+	background-color: blue;
+	color:white;
+	width:150px;
+	height:40px;
+	border: none;
+	border-radius: 4px;
+	font-weight:bold;
+	font-size:18px;
+	text-decoration: none;
+	margin-top: 20px;
+	margin-right: 20px;
+	display: inline-block;
+	text-align: center;
+	padding-top:17px;
+}
+
+

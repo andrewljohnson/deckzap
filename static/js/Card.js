@@ -4,8 +4,8 @@ import * as Constants from './constants.js';
 
 export class Card {
 
-	static cardHeight = 114;
-	static cardWidth = 80;
+	static cardHeight = 190;
+	static cardWidth = 150;
     static cardTexture = PIXI.Texture.from("/static/images/card.png");
     static cardLargeTexture = PIXI.Texture.from("/static/images/card-large.png");
     static cardTextureInPlay = PIXI.Texture.from("/static/images/in play mob.png");
@@ -14,24 +14,22 @@ export class Card {
 	static sprite(card, pixiUX, game, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
         let cw = Card.cardWidth;
         let ch = Card.cardHeight;
-        let imageBackgroundSize = 128
+        let imageBackgroundSize = 150
         let spellWidth = Card.cardWidth - 6;
-        let spellHeight = 54;
-        let portraitHeight = 44;
-        let portraitWidth = 24;
+        let spellHeight = Card.cardHeight/2 - 4;
+        let portraitHeight = 70;
+        let portraitWidth = Card.cardWidth / 4;
         let loaderId = card.name;
-        let aFX = -8;
-        let aFY = -9;
+        let aFX = -Card.cardWidth / 2 + 16;
+        let aFY = -Card.cardHeight / 2 + 16;
         let cardTexture = Card.cardTexture
         if (useLargeSize) {
-            aFX = -Card.cardWidth / 4 + 16;
-            aFY = -Card.cardHeight / 4;
             cw *= 2;
             ch *= 2; 
             imageBackgroundSize *= 2;           
             spellWidth = Card.cardWidth * 2 - 6;
             spellHeight *= 2;
-            portraitHeight *= 2.2;
+            portraitHeight *= 2;
             portraitWidth *= 2;
             loaderId = card.name + Constants.largeSpriteQueryString 
             cardTexture = Card.cardLargeTexture
@@ -41,11 +39,13 @@ export class Card {
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
         let imageSprite = Card.framedSprite(loaderId, imageBackgroundSize, pixiUX.app);
+        let ellipseTopper = 0;
         if (card.card_type == Constants.mobCardType || card.card_type == Constants.artifactCardType) {
-            imageSprite.position.y = -imageSprite.height / 4;
+            ellipseTopper = Constants.padding * 2;
+            imageSprite.position.y = -imageSprite.height / 4 - ellipseTopper;
             Card.ellipsifyImageSprite(imageSprite, card, portraitWidth, portraitHeight)        
         } else if (card.card_type == Constants.spellCardType) {
-            imageSprite.position.y = -spellHeight / 2;
+            imageSprite.position.y = -spellHeight / 2 - 2;
             Card.rectanglifyImageSprite(imageSprite, spellWidth, spellHeight)                                    
         }
         cardSprite.addChild(imageSprite);
@@ -53,20 +53,14 @@ export class Card {
         const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         nameBackground.tint = Constants.blackColor;
         nameBackground.width = cw - 6;
-        nameBackground.height = Constants.defaultFontSize;
+        nameBackground.height = Constants.defaultFontSize + 4;
         nameBackground.alpha = .7;
-        nameBackground.position.x = aFX + 8;
-        nameBackground.position.y = aFY + 2;
+        nameBackground.position.x = 0;
+        nameBackground.position.y = imageSprite.position.y + imageSprite.height/4 + ellipseTopper;
         let nameOptions = Constants.textOptions();
+        nameOptions.wordWrapWidth = cw - Constants.padding*4;
         if (card.name.length >= 22) {
             nameOptions.fontSize --;
-        }
-        if (useLargeSize) {
-            nameOptions.fontSize = Constants.defaultFontSize;
-            nameOptions.wordWrapWidth = 142;
-            nameBackground.position.x -= 4
-            nameBackground.position.y += 19
-            nameBackground.height = 16;
         }
         cardSprite.addChild(nameBackground);
 
@@ -109,8 +103,8 @@ export class Card {
         descriptionBackground.tint = Constants.whiteColor;
         descriptionBackground.alpha = .8;
         descriptionBackground.width = cw - 6;
-        descriptionBackground.height = ch / 2 - 10;
-        descriptionBackground.position.y = descriptionBackground.height/2;
+        descriptionBackground.height = ch / 2 - Constants.padding * 2;
+        descriptionBackground.position.y = nameBackground.position.y + Constants.defaultFontSize + descriptionBackground.height / 2 - Constants.padding;
         cardSprite.addChild(descriptionBackground);
 
         let activatedEffects = [];
@@ -127,8 +121,8 @@ export class Card {
 	    }
 
         if (card.card_type != "Effect") {
-            let costX = aFX - 23;
-            let costY = aFX - 38;
+            let costX = Constants.padding * 3 - Card.cardWidth/2;
+            let costY = Constants.padding * 3 - Card.cardHeight/2;
             if (useLargeSize) {
                 costX -= cw/4;
                 costY -= ch/4;
@@ -136,12 +130,9 @@ export class Card {
 
             imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "amethyst.svg"));
             imageSprite.tint = Constants.blueColor;
-            imageSprite.height = 15;
-            imageSprite.width = 15;
-            if (useLargeSize) {
-                imageSprite.height = 25;
-                imageSprite.width = 25;
-            }
+            imageSprite.height = 28;
+            imageSprite.width = 28;
+            
             imageSprite.position.x = costX;
             imageSprite.position.y = costY;
             cardSprite.addChild(imageSprite);
@@ -150,10 +141,8 @@ export class Card {
             ptOptions.stroke = Constants.blackColor;
             ptOptions.strokeThickness = 2;
             ptOptions.fill = Constants.whiteColor;
-            ptOptions.fontSize = Constants.defaultFontSize;
-            if (useLargeSize) {
-                ptOptions.fontSize = 17;
-            }
+            ptOptions.fontSize = 16
+            
             let cost = new PIXI.Text(card.cost, ptOptions);
             cost.position.x = costX;
             cost.position.y = costY;
@@ -219,12 +208,14 @@ export class Card {
             }
         }
         let descriptionOptions = Constants.textOptions();
+        descriptionOptions.wordWrapWidth = cw - Constants.padding*4;
+
         if ((abilitiesText + ". " + baseDescription).length > 95) {
             descriptionOptions.fontSize = 6; 
         }
         if (useLargeSize) {
-            descriptionOptions.wordWrapWidth = 142;
-            descriptionOptions.fontSize = Constants.defaultFontSize;
+            descriptionOptions.fontSize = 16; 
+
         }
 
 
@@ -245,11 +236,8 @@ export class Card {
             }
         }
         description.position.x = name.position.x;
-        description.position.y = name.position.y + 28;
-        if (useLargeSize) {
-            description.position.y += 20 + 2;
-        }
-
+        description.position.y = name.position.y + 40;
+        
         if (useLargeSize) {
             Card.showAbilityPanels(cardSprite, card, cw, ch);
             if (card.card_for_effect) {
@@ -265,18 +253,15 @@ export class Card {
             Card.addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize)
 
         } else if (card.turn_played == -1 || !("turn_played" in card)) {
-            let typeX = aFX + cw/4 - 33;
-            let typeY = aFY + ch/2 - 5;
-            if (useLargeSize) {
-                typeX -= 20;
-                typeY += 20;
-            }
+            let typeWidth = 42;
+            let typeX = - typeWidth/2;
+            let typeY = ch/2 - Constants.defaultFontSize;
             let typeBG = new PIXI.Graphics();
             typeBG.beginFill(Constants.blackColor);
             typeBG.drawRoundedRect(
                 0,
                 0,
-                42,
+                typeWidth,
                 Constants.defaultFontSize,
                 30
             );
@@ -355,7 +340,7 @@ export class Card {
         let cardSprite = Card.baseSprite(card, cardTexture, game);
         let imageSprite = Card.framedSprite(card.name+Constants.largeSpriteQueryString, 256, pixiUX.app);
         cardSprite.addChild(imageSprite);
-        Card.ellipsifyImageSprite(imageSprite, card, 38, 82)
+        Card.ellipsifyImageSprite(imageSprite, card, 70, 132)
 
         if (card.name == "Mana Battery") {
             let currentBatteryMana = 0;
@@ -583,23 +568,21 @@ export class Card {
         }
 
         let ptOptions = Constants.textOptions()
+        ptOptions.stroke = Constants.blackColor;
+        ptOptions.strokeThickness = 2;
+        ptOptions.fill = Constants.whiteColor;
+        ptOptions.fontSize = 16;
 
         let centerOfEllipse = 16
 
-        let powerX = aFX - cw/2 + centerOfEllipse;
-        let powerY = aFY + ch/2;
-        let defenseX = aFX + cw/2;
-
-        if (useLargeSize) {
-            powerY += 20;
-            powerX -= 5;
-            defenseX -= 5;
-        }
+        let powerX = - cw/2 + ptOptions.fontSize;
+        let powerY = ch/2 - ptOptions.fontSize + 4;
+        let defenseX = cw/2 - ptOptions.fontSize + 3;
 
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "piercing-sword.svg"));
         imageSprite.tint = Constants.yellowColor;
-        imageSprite.height = 17;
-        imageSprite.width = 17;
+        imageSprite.height = 32;
+        imageSprite.width = 32;
         imageSprite.position.x = powerX;
         imageSprite.position.y = powerY;
         cardSprite.addChild(imageSprite);
@@ -608,16 +591,12 @@ export class Card {
 
         imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "hearts.svg"));
         imageSprite.tint = Constants.redColor;
-        imageSprite.height = 17;
-        imageSprite.width = 17;
+        imageSprite.height = 24;
+        imageSprite.width = 24;
         imageSprite.position.x = defenseX;
         imageSprite.position.y = powerY;
         cardSprite.addChild(imageSprite);
 
-        ptOptions.stroke = Constants.blackColor;
-        ptOptions.strokeThickness = 2;
-        ptOptions.fill = Constants.whiteColor;
-        ptOptions.fontSize = 9;
         let defense = new PIXI.Text(cardToughness, ptOptions);
         defense.position.x = defenseX;
         defense.position.y = powerY;
@@ -632,27 +611,22 @@ export class Card {
     }
 
     static addCircledLabel(costX, costY, cardSprite, options, value, fillColor) {
-        options.stroke = Constants.blackColor;
-        options.strokeThickness = 2;
-        options.fill = Constants.whiteColor;
-        options.fontSize = 11;
-
         let circle = Card.circleBackground(costX, costY);
         circle.tint = fillColor
         cardSprite.addChild(circle);
         let cost = new PIXI.Text(value, options);
-        cost.position.x = -4;
-        cost.position.y = -8;
-        circle.addChild(cost);
+        cost.position.x = circle.position.x;
+        cost.position.y = circle.position.y;
+        cardSprite.addChild(cost);
         return circle;
     }
 
     static circleBackground(x, y) {
-        const circleRadius = 7;
+        const circleRadius = 12;
         const background = new PIXI.Graphics();
         background.beginFill(Constants.blackColor, 1);
         background.lineStyle(2, Constants.blackColor, 1); 
-        background.drawCircle(0, 0, circleRadius);
+        background.drawCircle(0, 0, circleRadius/2);
         background.endFill();
 
         const sprite = new PIXI.Sprite.from(PIXI.Texture.WHITE);
@@ -660,7 +634,7 @@ export class Card {
         sprite.position.y = y;
         sprite.mask = background;
         sprite.width = circleRadius * 2;
-        sprite.height = circleRadius * 2;
+        sprite.height = sprite.width;
         sprite.addChild(background);
         return sprite;
     }
@@ -735,7 +709,7 @@ export class Card {
     		return;
     	}
         let options = Constants.textOptions();
-        options.fontSize = 10;
+        options.fontSize = 18;
         options.wordWrapWidth = cw - 8;
 
         const topBG = new PIXI.Sprite.from(PIXI.Texture.WHITE);

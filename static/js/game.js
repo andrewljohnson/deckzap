@@ -6,11 +6,11 @@ import * as Constants from './constants.js';
 import { GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 
-const appWidth = 840;
-const appHeight = 803;
+const appWidth = 1585;
+const appHeight = 855;
 const avatarHeight = 128;
 const avatarWidth = 300;
-const cardContainerWidth = Card.cardWidth * 7 + 12;
+const cardContainerWidth = Card.cardWidth * 7 + 2 * 7;
 const gameDivID = "new_game";
 const oneThousandMS = 1000;
 const ropeHeight = 8;
@@ -54,12 +54,11 @@ export class GameUX {
     }
 
     loadTextures() {
-        this.artifactsTexture = PIXI.Texture.from("/static/images/relics.png");
+        this.artifactsTexture = PIXI.Texture.from("/static/images/artifacts.png");
         this.avatarTexture = PIXI.Texture.from("/static/images/avatar.png");
         this.bearTexture = PIXI.Texture.from("/static/images/bear.png");
         this.handTexture = PIXI.Texture.from("/static/images/hand.png");
         this.inPlayTexture = PIXI.Texture.from("/static/images/in_play.png");
-        this.menuTexture = PIXI.Texture.from("/static/images/menu.png");
         this.tigerTexture = PIXI.Texture.from("/static/images/tiger.png");        
     }
 
@@ -80,18 +79,17 @@ export class GameUX {
     renderStaticGameElements() {
         this.app.stage.addChild(this.background());
         const centerOfMobs = cardContainerWidth/2 - avatarWidth/2;
-        const artifactX = cardContainerWidth/2 + avatarWidth/2 + Constants.padding;
         this.opponentAvatar = this.avatar(centerOfMobs, Constants.padding);
-        const playerBoxHeight = avatarHeight + Constants.padding * 2;  // magic numbers includes top and bottom padding
-        this.artifactsOpponent = this.artifacts(artifactX, playerBoxHeight/2 - Card.cardHeight/2);
         const topOfMiddle = this.opponentAvatar.position.y + avatarHeight + Constants.padding
         this.inPlayOpponent = this.inPlayContainer(Constants.padding, topOfMiddle);
-        const middleOfMiddle = this.inPlayOpponent.position.y + Card.cardHeight + Constants.padding
+        const artifactX = this.inPlayOpponent.position.x + cardContainerWidth + Constants.padding * 8;
+        this.artifactsOpponent = this.artifacts(artifactX,  this.inPlayOpponent.position.y - Constants.padding*10);
+        let gapHeight = 90;
+        this.artifacts = this.artifacts(artifactX, this.artifactsOpponent.position.y + Card.cardHeight + gapHeight);
+        const middleOfMiddle = this.inPlayOpponent.position.y + Card.cardHeight + Constants.padding;
         this.inPlay = this.inPlayContainer(Constants.padding, middleOfMiddle);
-        this.buttonMenu = this.menu(cardContainerWidth + Constants.padding * 2, topOfMiddle);
         const playerOneY = middleOfMiddle + Card.cardHeight + Constants.padding;
         this.playerAvatar = this.avatar(centerOfMobs, playerOneY);
-        this.artifacts = this.artifacts(artifactX, playerOneY + Constants.padding);
         this.handContainer = this.hand(Constants.padding, playerOneY + avatarHeight + Constants.padding);
         this.gameLogScrollbox = this.scrollbox()
     }
@@ -128,20 +126,12 @@ export class GameUX {
         return handContainer;
     }
 
-    menu(x, y) {
-        const menu = new PIXI.Sprite.from(this.menuTexture);
-        menu.position.x = x;
-        menu.position.y = y;
-        this.app.stage.addChild(menu);
-        return menu;
-    }
-
     scrollbox() {
-        const scrollboxHeight = Card.cardHeight * 1.25;
-        const scrollBoxWidth = appWidth - Constants.padding * 2;
+        const scrollboxHeight = this.playerAvatar.height - Constants.padding;
+        const scrollBoxWidth = 418;
         const scrollbox = new Scrollbox({ boxWidth: scrollBoxWidth, boxHeight: scrollboxHeight, clampWheel: false, passiveWheel: false})
-        scrollbox.position.x = Constants.padding;
-        scrollbox.position.y = this.handContainer.position.y + Card.cardHeight + Constants.padding;
+        scrollbox.position.x = this.playerAvatar.position.x + this.playerAvatar.width + Constants.padding;
+        scrollbox.position.y = this.playerAvatar.position.y;
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.tint = Constants.whiteColor
         background.width = scrollBoxWidth;
@@ -513,8 +503,8 @@ export class GameUX {
 
         for (let card of player.artifacts) {
             let sprite = Card.spriteInPlay(card, this, game, player, false);
-            sprite.position.y = artifactsSprite.position.y + Card.cardHeight/2;
-            sprite.position.x = artifactsSprite.position.x + Card.cardWidth*index + Card.cardWidth/2;
+            sprite.position.y = artifactsSprite.position.y + Card.cardHeight/2 + 6;
+            sprite.position.x = artifactsSprite.position.x + Card.cardWidth*index + Card.cardWidth/2 + 3;
             this.app.stage.addChild(sprite);
             index++;
             if (cardIdToHide && card.id == cardIdToHide) {
@@ -557,7 +547,7 @@ export class GameUX {
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
         let sprite = Card.spriteInPlay(card, this, game, player, false);
-        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding + 4;
+        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding + 3;
         sprite.position.y = inPlaySprite.position.y + Card.cardHeight/2;
 
         if (cardIdToHide && card.id == cardIdToHide) {
@@ -574,9 +564,9 @@ export class GameUX {
         if (!this.menuButtonAdded) {
             let menuButton = this.menuButton(game);
             menuButton.width = width;
-            menuButton.position.x = this.buttonMenu.width / 2 - menuButton.width/2;
-            menuButton.position.y = this.buttonMenu.height - menuButton.height * 1.5 - Constants.padding;
-            this.buttonMenu.addChild(menuButton);
+            menuButton.position.x = appWidth - width - Constants.padding;
+            menuButton.position.y = Constants.padding;
+            this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
         }
     }
@@ -1121,6 +1111,8 @@ export class GameUX {
             }
         }
 
+        let buttonWidth = 140;
+
         let b = Card.button(
             title, 
             buttonColor, 
@@ -1128,11 +1120,11 @@ export class GameUX {
             23, 
             17,
             clickFunction, 
-            this.buttonMenu,
-            this.buttonMenu.width - Constants.padding * 6
+            this.app.stage,
+            buttonWidth
         );
-        b.position.x = b.parent.width/2 - b.width/2;
-        b.position.y = b.height / 2;
+        b.position.x = this.artifactsOpponent.position.x + this.artifactsOpponent.width - buttonWidth;
+        b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 2;
 
         if (this.isActivePlayer(game)) {
             if (this.thisPlayer(game).card_info_to_target.effect_type) {
@@ -1148,12 +1140,12 @@ export class GameUX {
 
         this.endTurnButton = b;
 
-        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : textFillColor, align: "center"});
-        turnText.position.x = this.buttonMenu.width/2;
-        turnText.position.y = b.position.y + 60 + Constants.padding;
+        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.darkGrayColor, align: "center"});
+        turnText.position.x = b.position.x - turnText.width + Constants.padding * 4;
+        turnText.position.y = b.position.y + b.height / 2;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;
-        this.buttonMenu.addChild(turnText);
+        this.app.stage.addChild(turnText);
 
     }
 
@@ -1265,7 +1257,7 @@ export class GameUX {
             let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 10});
             textSprite.position.x = 5;
             textSprite.position.y = this.messageNumber * 16 + 5;
-            this.scrollboxBackground.height = Math.max(Card.cardHeight*1.25, (this.messageNumber + 1) * 16);
+            this.scrollboxBackground.height = Math.max(this.playerAvatar.height - Constants.padding, (this.messageNumber + 1) * 16);
             this.gameLogScrollbox.content.addChild(textSprite);
         }
         this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;

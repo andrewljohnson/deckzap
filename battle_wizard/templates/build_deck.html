@@ -1,22 +1,9 @@
 {% extends 'base.html' %}
-{% load static %}
-
-
-{% block css %}
-<link rel="stylesheet" href="/static/css/nongame.css">
-{% endblock %}
-
-
-{% block javascript %}
-{% endblock javascript %}
-
 
 {% block content %}
 <div class="wrapper">
     <div id="app"></div>
 </div>
 
-
 <div id="data_store" csrf_token='{% csrf_token %}' username = {{request.user.username}} deck='{{json_deck}}' all_cards='{{all_cards}}'></div>
-
 {% endblock content %}

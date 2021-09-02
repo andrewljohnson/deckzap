@@ -26,7 +26,6 @@ export class OpponentChooser {
         PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
         this.app = new PIXI.Application({
             antialias: true,
-            autoDensity: true,
             backgroundColor: Constants.whiteColor,
             height: appHeight,
             width: appWidth, 
@@ -38,8 +37,14 @@ export class OpponentChooser {
 	loadUX(containerID) {			
 		let container = document.getElementById(containerID);
 		container.appendChild(this.app.view);
+
+		let background = Constants.background(0, 0, Card.cardWidth * (this.cardWidth-1), .1)
+		background.tint = 0xEEEEEE;
+		background.height = (Card.cardHeight) * 12
+		this.app.stage.addChild(background);
+
         let titleText = this.addTitle()
-        this.playerTypePicker = new PlayerTypePicker(this, Constants.padding, titleText.position.y + titleText.height + Constants.padding, playerIndex => {this.selectPlayer(playerIndex)} )
+        this.playerTypePicker = new PlayerTypePicker(this, Constants.padding, titleText.position.y + titleText.height + Constants.padding*3, playerIndex => {this.selectPlayer(playerIndex)} )
         let subtitleText = this.addChooseDeckTitle();
         this.deckPickerTitle = subtitleText;
         this.deckPicker = new DeckPicker(this, this.opponentDecks, this.allCards, this.playerTypePicker.position.y + 100, deckIndex => {this.selectOpponentDeck(deckIndex)}, true);
@@ -53,7 +58,7 @@ export class OpponentChooser {
 		let title = "Choose Opponent";
         let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
         titleText.position.x = Constants.padding;
-        titleText.position.y = Constants.padding * 1.5;
+        titleText.position.y = Constants.padding * 2.5;
         this.app.stage.addChild(titleText);		
         return titleText;
 	}
@@ -77,7 +82,7 @@ export class OpponentChooser {
                 Constants.blueColor, 
                 Constants.whiteColor, 
                 buttonX, 
-                -buttonHeight - 2,
+                -buttonHeight + Constants.padding,
                 () => {
                 	let playerID = this.playerTypePicker.players[this.playerTypePicker.selectedIndex].id;
                 	let deckID = this.deckID;

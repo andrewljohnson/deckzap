@@ -30,14 +30,14 @@ export const menuGrayColor = 0x969696;
 export const titleFontSize = 24;
 export const h2FontSize = 16;
 export const defaultFontSize = 12;
-export const defaultFontSizeSmall = 8;
+export const defaultFontSizeSmall = 10;
 export const defaultFontFamily = "Arial";
 export const padding = 5;
 
 export function textOptions() {
     return {
     	fontFamily : defaultFontFamily, 
-    	fontSize: defaultFontSizeSmall, 
+    	fontSize: defaultFontSize, 
     	fill : blackColor, 
     	wordWrap: true, 
     	wordWrapWidth: 75
