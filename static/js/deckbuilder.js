@@ -55,7 +55,7 @@ export class DeckBuilder {
 		this.app.stage.addChild(background);
 
         let titleText = this.addTitle();
-        this.disciplinePicker = new DisciplinePicker(this, titleText.position.y + titleText.height, disciplineID => {this.switchClassFunction(disciplineID)} )
+        this.disciplinePicker = new DisciplinePicker(this, titleText.position.y + titleText.height + Constants.padding * 4, disciplineID => {this.switchClassFunction(disciplineID)} )
         let b = this.addSaveButton();
         this.addDeckTitleInput(b.position.x, b.position.y + b.height + Constants.padding, b.width);
 	}
@@ -97,7 +97,7 @@ export class DeckBuilder {
 	addDeckTitleInput(x, y, buttonWidth) {
        let deckTitleInput = new TextInput({
 		    input: {
-		        fontSize: '8pt',
+		        fontSize: '14pt',
 		        width: (buttonWidth - 5) + 'px',
 		        textAlign: 'center'
 		    }, 
@@ -135,7 +135,7 @@ export class DeckBuilder {
 			}
 		}
 		if (!this.cardsContainer) {
-			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, this.disciplinePicker.position.x-25, this.disciplinePicker.position.y+40);
+			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, this.disciplinePicker.position.x-45, this.disciplinePicker.position.y+80);
 		}
 		this.cardsContainer.deck = {"cards":disciplineCards};
 		this.cardsContainer.redisplayDeck();				
@@ -156,7 +156,7 @@ export class DeckBuilder {
 		if (this.deckIsFull()) {
 			labelColor = Constants.blueColor;
 		}
-		this.cardCountLabel = new PIXI.Text(cardCountText, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.whiteColor, stroke: labelColor, strokeThickness: 2});
+		this.cardCountLabel = new PIXI.Text(cardCountText, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor, stroke: labelColor, strokeThickness: 2});
 
         this.cardCountLabel.position.x = this.deckTitleInput.position.x;
         this.cardCountLabel.position.y = this.deckTitleInput.position.y + this.deckTitleInput.height + Constants.padding * 2;

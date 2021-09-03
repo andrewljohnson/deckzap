@@ -163,7 +163,7 @@ export function ovalSprite(pixiUX, imageName, labelText, choiceWidth, choiceHeig
     ovalSprite.position.y = y;
     pixiUX.app.stage.addChild(ovalSprite);
 
-    let labelOptions = {align: 'center', fontFamily : defaultFontFamily, fontSize: defaultFontSizeSmall, fill : whiteColor, stroke: blueColor, strokeThickness: 2};
+    let labelOptions = {align: 'center', fontFamily : defaultFontFamily, fontSize: h2FontSize, fill : yellowColor, stroke: blueColor, strokeThickness: 4};
     let label = new PIXI.Text(labelText, labelOptions);
     label.anchor.set(.5);
     label.position.y = choiceHeight - choiceHeight/1.5;

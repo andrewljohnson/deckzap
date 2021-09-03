@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import { Card } from './Card.js';
 import * as Constants from './constants.js';
 
-import { GlowFilter } from 'pixi-filters';
+import { AdjustmentFilter, GlowFilter } from 'pixi-filters';
 
 export class DisciplinePicker {
 
@@ -11,6 +11,9 @@ export class DisciplinePicker {
         const switchClass = function() {
         	for (let sprite of [magic, tech]) {
         		sprite.filters = [];
+        		if (sprite != this) {
+					sprite.filters = [new AdjustmentFilter({ alpha: .5})];
+        		}
         	}
             this.filters = [new GlowFilter({ innerStrength: 1, outerStrength: 1, color: Constants.blueColor})];
 
@@ -18,20 +21,20 @@ export class DisciplinePicker {
 				self.disciplineDescriptionText.parent.removeChild(self.disciplineDescriptionText);
 				self.disciplineDescriptionText = null;
 			}
-			let disciplineDescription = "• 30 card deck\n• more mana each turn\n• draw one card a turn";
+			let disciplineDescription = "Magic\n\n• 30 card deck\n• more mana each turn\n• draw one card a turn";
 			if (this.id == "tech") {
-				disciplineDescription = "• 15 card deck\n• 3 mana each turn\n• new hand each turn";
+				disciplineDescription = "Tech\n\n• 15 card deck\n• 3 mana each turn\n• new hand each turn";
 			}
-	        self.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.blackColor});
-	        self.disciplineDescriptionText.position.x = tech.position.x + choiceWidth + Constants.padding * 2;
+	        self.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.darkGrayColor});
+	        self.disciplineDescriptionText.position.x = tech.position.x + choiceWidth + Constants.padding * 4;
 	        self.disciplineDescriptionText.position.y = tech.position.y - choiceHeight / 2;
 	        pixiUX.app.stage.addChild(self.disciplineDescriptionText);
 
 			clickFunction(this.id)
 		};
 
-	    const choiceWidth = 20;
-	    const choiceHeight = 40;
+	    const choiceWidth = 45;
+	    const choiceHeight = 90;
 	    let magic = Constants.ovalSprite(
 			pixiUX,
 			"wizard-face.svg",

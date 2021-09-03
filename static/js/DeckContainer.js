@@ -10,7 +10,7 @@ export class DeckContainer {
 		this.cardSprites = [];
         this.deck = deck;
         this.pixiUX = pixiUX;
-		this.background = Constants.background(x, y, Card.cardWidth, .2)
+		this.background = Constants.background(x, y, Card.cardWidth * 1.25, .2)
     	this.pixiUX.app.stage.addChild(this.background)
     	this.position = this.background.position;
 	}

@@ -469,7 +469,7 @@ export class Card {
         cardSprite.buttonMode = true;
         const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         nameBackground.tint = Constants.blackColor;
-        nameBackground.width = Card.cardWidth - Constants.padding;
+        nameBackground.width = Card.cardWidth * 1.25 - Constants.padding;
         nameBackground.height = 36 - 6;
         nameBackground.alpha = .7;
         nameBackground.position.x = Constants.padding/2;
@@ -478,7 +478,7 @@ export class Card {
         cardSprite.addChild(nameBackground);
 
         nameOptions.fill = Constants.whiteColor;
-        nameOptions.wordWrapWidth = Card.cardWidth - Constants.padding * 3 - 32;
+        nameOptions.wordWrapWidth = Card.cardWidth * 1.25 - Constants.padding * 3 - 32;
         let name = new PIXI.Text(card.name, nameOptions);
         name.anchor.set(0);
         cardSprite.addChild(name);
@@ -491,7 +491,7 @@ export class Card {
             options.strokeThickness = 2;
             options.fill = Constants.whiteColor;
             options.fontSize = 16;            
-            let circle = Card.addCircledLabel(Card.cardWidth - options.fontSize, options.fontSize + 1, cardSprite, options, count, Constants.yellowColor, .5);
+            let circle = Card.addCircledLabel(Card.cardWidth * 1.25 - options.fontSize, options.fontSize + 1, cardSprite, options, count, Constants.yellowColor, .5);
             circle.anchor.set(.5)
         }
 

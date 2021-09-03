@@ -21,8 +21,8 @@ export class DeckPicker {
 
 		let index = 0;
 		this.options = [];
-	    const choiceWidth = 30;
-	    const choiceHeight = 60;
+	    const choiceWidth = 60;
+	    const choiceHeight = 120;
 		for (let deck of decks) {
 			let firstCardName = Object.keys(deck.cards)[0]
 			let firstCard;
