@@ -27,14 +27,14 @@ export class DeckContainer {
 		this.cards.forEach((card, i) => {
 			this.addCardToContainer(card, i);
 		});
-		this.background.height = 18 * 36;
+		this.background.height = 18 * 30;
 	}
 
 	addCardToContainer(card, index) {
         let cardSprite = Card.spriteTopSliver(card, this.pixiUX, this.deck.cards[card.name]);
         cardSprite.interactive = true
         cardSprite.position.x = this.background.position.x;
-        let cardHeight = 36;
+        let cardHeight = 30;
         cardSprite.position.y = (cardHeight * index) + this.background.position.y;            
         this.pixiUX.app.stage.addChild(cardSprite);
         this.cardSprites.push(cardSprite)

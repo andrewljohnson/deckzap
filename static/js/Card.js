@@ -470,7 +470,7 @@ export class Card {
         const nameBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         nameBackground.tint = Constants.blackColor;
         nameBackground.width = Card.cardWidth * 1.25 - Constants.padding;
-        nameBackground.height = 36 - 6;
+        nameBackground.height = 30 - 6;
         nameBackground.alpha = .7;
         nameBackground.position.x = Constants.padding/2;
         nameBackground.position.y = Constants.padding/2;
@@ -483,7 +483,7 @@ export class Card {
         name.anchor.set(0);
         cardSprite.addChild(name);
         name.position.x = nameBackground.position.x + 4;
-        name.position.y = nameBackground.position.y + nameOptions.fontSize/2 + 1;
+        name.position.y = nameBackground.position.y + nameOptions.fontSize/2 - 1;
 
         if (count > 1) {
             let options = Constants.textOptions()
@@ -491,7 +491,7 @@ export class Card {
             options.strokeThickness = 2;
             options.fill = Constants.whiteColor;
             options.fontSize = 16;            
-            let circle = Card.addCircledLabel(Card.cardWidth * 1.25 - options.fontSize, options.fontSize + 1, cardSprite, options, count, Constants.yellowColor, .5);
+            let circle = Card.addCircledLabel(Card.cardWidth * 1.25 - options.fontSize, options.fontSize - 1, cardSprite, options, count, Constants.yellowColor, .5);
             circle.anchor.set(.5)
         }
 
@@ -914,7 +914,7 @@ export class Card {
             sprite.position.x = cardSprite.position.x + (Card.cardWidth * 1.5);
             sprite.position.y = cardSprite.position.y + Card.cardHeight / 2;                
             // hax: move this hover to various classes
-            if (cardSprite.texture.orig.height == 36) {
+            if (cardSprite.texture.orig.height == 30) {
                 sprite.position.x = cardSprite.position.x - (Card.cardWidth);
                 sprite.position.y = cardSprite.position.y + Card.cardHeight;                
             }

@@ -43,7 +43,7 @@ export class DeckViewer {
 
         let titleText = this.addTitle();
         this.deckPicker = new DeckPicker(this, this.decks, this.allCards, titleText.position.y + titleText.height + 20, deckIndex => {this.redisplayDeck(deckIndex)} )
-		this.deckContainer = new DeckContainer(this, this.decks[0], this.allCards, 0, this.deckPicker.position.y + 60 );
+		this.deckContainer = new DeckContainer(this, this.decks[0], this.allCards, Constants.padding * 2, this.deckPicker.position.y + 100 );
 		this.deckPicker.select(0);
 		this.addFindMatchButton();
 	}
@@ -86,7 +86,7 @@ export class DeckViewer {
 			this.disciplineDescriptionText = null;
 		}
 		let disciplineDescription = new DeckInfo(this.decks[deckIndex].discipline).infoListText()
-        this.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.darkGrayColor});
+        this.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.darkGrayColor});
         this.disciplineDescriptionText.position.x = this.deckContainer.position.x + Card.cardWidth* 1.25 + Constants.padding * 2;
         this.disciplineDescriptionText.position.y = this.deckContainer.position.y;
         this.app.stage.addChild(this.disciplineDescriptionText);

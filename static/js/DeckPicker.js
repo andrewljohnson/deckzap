@@ -21,8 +21,8 @@ export class DeckPicker {
 
 		let index = 0;
 		this.options = [];
-	    const choiceWidth = 60;
-	    const choiceHeight = 120;
+	    const choiceWidth = 50;
+	    const choiceHeight = 100;
 		for (let deck of decks) {
 			let firstCardName = Object.keys(deck.cards)[0]
 			let firstCard;
@@ -38,7 +38,7 @@ export class DeckPicker {
 				choiceWidth,
 				choiceHeight,
 				index,
-   				choiceWidth + Constants.padding * 2 + (choiceWidth + Constants.padding * 8) * index, 
+   				choiceWidth + Constants.padding * 2 + (choiceWidth + Constants.padding * 12) * index, 
 	        	yPosition + Constants.padding * 3 + choiceHeight/2,
 	        	switchDeck	
 		    );			
@@ -53,7 +53,7 @@ export class DeckPicker {
 				choiceWidth,
 				choiceHeight,
 				index,
-   				choiceWidth + Constants.padding * 2 + (choiceWidth + Constants.padding * 8) * index, 
+   				choiceWidth + Constants.padding * 2 + (choiceWidth + Constants.padding * 12) * index, 
 	        	yPosition + Constants.padding * 3 + choiceHeight/2,
 	        	switchDeck	
 		    );	
