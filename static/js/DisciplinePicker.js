@@ -73,4 +73,13 @@ export class DisciplinePicker {
         }
 
 	}
+
+	disable() {
+		this.magic.alpha = .9;
+		this.tech.alpha = .9;
+		this.magic.interactive = false;
+		this.tech.interactive = false;
+		this.tech.buttonMode = true;
+		this.tech.buttonMode = true;
+	}
 }

@@ -257,9 +257,10 @@ class Game:
             print(f"play_move: {move_type}")
         
         if move_type == 'GET_TIME':
-            max_turn_time = 60
+            max_turn_time = 1
             turn_time = datetime.datetime.now() - self.turn_start_time
-            
+            # if turn_time.seconds > max_turn_time:
+            #     self.show_rope = True
             message["turn_time"] = turn_time.seconds
             message["max_turn_time"] = max_turn_time
             return message
@@ -1558,7 +1559,7 @@ class Game:
             for deck_card in self.current_player().deck:
                 if card.id == deck_card.id:
                    card_to_remove = deck_card 
-            self.current_player().deck.remove(deck_card)
+            self.current_player().deck.remove(card_to_remove)
             if card.id != chosen_card.id:
                 self.send_card_to_played_pile(card, self.current_player(), did_kill=False)
                 message["log_lines"].append(f"{message['username']} puts {card.name} into their played pile.")
@@ -3510,7 +3511,7 @@ class Player:
                 card.power = max(0, card.power)
         return card
 
-    # todo: make a has_effect method instea dof checking name
+    # todo: make a has_effect method instead of checking name
     def has_brarium(self):
         for a in self.artifacts:
             if a.name == "Brarium":
@@ -3539,7 +3540,8 @@ class Player:
                 if draw_count > 0:
                     if self.discipline != "tech" or self.game.turn > 1:
                         self.draw(draw_count)
-                self.do_make_from_deck_effect(self.username)
+                if len(self.hand) < 10:                        
+                    self.do_make_from_deck_effect(self.username)
             else:
                 if self.discipline != "tech" or self.game.turn > 1:
                     self.draw(draw_count)

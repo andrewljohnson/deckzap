@@ -707,7 +707,7 @@ export class Card {
     }
 
     static showAbilityPanels(cardSprite, card, cw, ch) {
-    	if (!card.abilities) {
+    	if (!card.abilities && !card.effects) {
     		return;
     	}
         let options = Constants.textOptions();
@@ -720,67 +720,69 @@ export class Card {
         const textContainer = new PIXI.Container();
         cardSprite.addChild(textContainer);
         let yPosition = 0;
-        for (let a of card.abilities) {
-            let abilityText = new PIXI.Text("", options);
-            if (a.name == "Shield") {
-                abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
-            }                    
-            if (a.name == "Guard") {
-                abilityText.text = "Guard - Guard mobs must be attacked before anything else.";
-            }                    
-            if (a.name == "Syphon") {
-                abilityText.text = "Syphon - Gain hit points when this deals damage.";
-            }                    
-            if (a.name == "Fast") {
-                abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
-            }                    
-            if (a.name == "Conjure") {
-                abilityText.text = "Conjure - Conjure mobs may be played as instants.";
-            }                    
-            if (a.name == "Instant Attack") {
-                abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
-            }                    
-            if (a.name == "Ambush") {
-                abilityText.text = "Ambush - Ambush mobs may attack other mobs the turn they come into play.";
-            }                    
-            if (a.name == "Instrument Required") {
-                abilityText.text = "Instrument Required - You must have an Instrument in play to play Card.";
-            }                    
-            if (a.name == "Townie") {
-                abilityText.text = "Townie - Townies have a little ability.";
-            }                    
-            if (a.name == "Unique") {
-                abilityText.text = "Unique - only one Unique card is allowed per deck.";
-            }                    
-            if (a.name == "Weapon") {
-                abilityText.text = "Weapon - Weapons can be used to attack players and mobs.";
-            }                    
-            if (a.name == "Instrument") {
-                abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
-            } 
-            if (a.name == "Fade") {
-                abilityText.text = "Fade - Fade mobs get -1/-1 at the beginning of the turn.";
-            }                    
-            if (a.name == "Stomp") {
-                abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
-            }                    
-            if (a.name == "Lurker") {
-                abilityText.text = "Lurker - Lurker mobs can't be targetted until they attack.";
-            }                    
-            if (a.name == "Keep") {
-                abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
-            }                    
-            if (a.name == "Disappear") {
-                abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
-            }                    
-            if (a.name == "Defend") {
-                abilityText.text = "Defend - Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.";
-            }                    
-            if (abilityText.text) {
-                abilityText.position.x -= cw/2 - 4;
-                abilityText.position.y = yPosition - ch/2 + 2;
-                yPosition += abilityText.height + 10;
-                textContainer.addChild(abilityText);
+        if (card.abilities) {
+            for (let a of card.abilities) {
+                let abilityText = new PIXI.Text("", options);
+                if (a.name == "Shield") {
+                    abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
+                }                    
+                if (a.name == "Guard") {
+                    abilityText.text = "Guard - Guard mobs must be attacked before anything else.";
+                }                    
+                if (a.name == "Syphon") {
+                    abilityText.text = "Syphon - Gain hit points when this deals damage.";
+                }                    
+                if (a.name == "Fast") {
+                    abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
+                }                    
+                if (a.name == "Conjure") {
+                    abilityText.text = "Conjure - Conjure mobs may be played as instants.";
+                }                    
+                if (a.name == "Instant Attack") {
+                    abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
+                }                    
+                if (a.name == "Ambush") {
+                    abilityText.text = "Ambush - Ambush mobs may attack other mobs the turn they come into play.";
+                }                    
+                if (a.name == "Instrument Required") {
+                    abilityText.text = "Instrument Required - You must have an Instrument in play to play Card.";
+                }                    
+                if (a.name == "Townie") {
+                    abilityText.text = "Townie - Townies have a little ability.";
+                }                    
+                if (a.name == "Unique") {
+                    abilityText.text = "Unique - only one Unique card is allowed per deck.";
+                }                    
+                if (a.name == "Weapon") {
+                    abilityText.text = "Weapon - Weapons can be used to attack players and mobs.";
+                }                    
+                if (a.name == "Instrument") {
+                    abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
+                } 
+                if (a.name == "Fade") {
+                    abilityText.text = "Fade - Fade mobs get -1/-1 at the beginning of the turn.";
+                }                    
+                if (a.name == "Stomp") {
+                    abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
+                }                    
+                if (a.name == "Lurker") {
+                    abilityText.text = "Lurker - Lurker mobs can't be targetted until they attack.";
+                }                    
+                if (a.name == "Keep") {
+                    abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
+                }                    
+                if (a.name == "Disappear") {
+                    abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
+                }                    
+                if (a.name == "Defend") {
+                    abilityText.text = "Defend - Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.";
+                }                    
+                if (abilityText.text) {
+                    abilityText.position.x -= cw/2 - 4;
+                    abilityText.position.y = yPosition - ch/2 + 2;
+                    yPosition += abilityText.height + 10;
+                    textContainer.addChild(abilityText);
+                }
             }
         }
     	if (card.effects) {

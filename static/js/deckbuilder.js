@@ -17,7 +17,6 @@ export class DeckBuilder {
 		if (Object.keys(jsonDeck.cards).length) {
 			this.decks[jsonDeck.discipline] = jsonDeck;
 	    	this.discipline = jsonDeck.discipline;
-	    	console.log(this.decks[jsonDeck.discipline])
 		} else {
 	    	this.discipline = "magic"			
 		}
@@ -25,7 +24,6 @@ export class DeckBuilder {
 		this.username = username;
 		this.setUpPIXIApp()
 		this.loadUX(containerID);
-	    this.disciplinePicker.select(this.discipline)
 	}
 
 	setUpPIXIApp() {
@@ -58,10 +56,17 @@ export class DeckBuilder {
         this.disciplinePicker = new DisciplinePicker(this, titleText.position.y + titleText.height + Constants.padding * 4, disciplineID => {this.switchClassFunction(disciplineID)} )
         let b = this.addSaveButton();
         this.addDeckTitleInput(b.position.x, b.position.y + b.height + Constants.padding, b.width);
+	    this.disciplinePicker.select(this.discipline)
+        if (this.decks[this.discipline].id != null) {
+        	this.disciplinePicker.disable();
+        }
 	}
 
 	addTitle() {
 		let title = "Build Deck";
+		if (this.decks[this.discipline].id != null) {
+			title = "Edit Deck"
+		}
         let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
         titleText.position.x = Constants.padding;
         titleText.position.y = Constants.padding * 1.5;
@@ -135,7 +140,8 @@ export class DeckBuilder {
 			}
 		}
 		if (!this.cardsContainer) {
-			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, this.disciplinePicker.position.x-45, this.disciplinePicker.position.y+80);
+			let containerY = this.disciplinePicker.position.y+80;
+			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, this.disciplinePicker.position.x-45, containerY);
 		}
 		this.cardsContainer.deck = {"cards":disciplineCards};
 		this.cardsContainer.redisplayDeck();				

@@ -300,7 +300,7 @@ export class GameUX {
       let sprite = Card.sprite(card, this, game,  player);
       sprite.scale.set(1.5)
       sprite.position.x = Card.cardWidth + Constants.padding;
-      sprite.position.y = this.inPlay.position.y;
+      sprite.position.y = this.inPlay.position.y + Constants.padding;
       this.spellBeingCastSprite = sprite;
       this.app.stage.addChild(sprite)
       this.showArrowsForSpell(game, sprite, message, card);
@@ -872,7 +872,7 @@ export class GameUX {
 
     showRiffleView(game, event_name) {
         let self = this;
-        this.showSelectCardView(game, "Top 3 Cards", card => {
+        this.showSelectCardView(game, `Top ${this.thisPlayer(game).card_choice_info.cards.length} Cards`, card => {
                 this.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
             });
         
@@ -882,7 +882,7 @@ export class GameUX {
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         this.selectCardContainer = container;
-
+        let width = Card.cardWidth * 7 + Constants.padding * 2;
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.width = appWidth;
         background.height = appHeight;
@@ -896,21 +896,25 @@ export class GameUX {
         options.fill = Constants.whiteColor;
         options.align = "middle";
         let name = new PIXI.Text(title, options);
-        name.position.x = appWidth/2 - name.width/2;
+        name.position.x = width/2 - name.width/2;
         name.position.y = 170
         container.addChild(name);
 
         const cardContainer = new PIXI.Container();
         this.selectCardInnerContainer = cardContainer
-        cardContainer.position.x = appWidth/2 - Card.cardWidth*1.5;
+        cardContainer.position.x = width/2 - Card.cardWidth*1.5;
 
         let cards = this.thisPlayer(game).card_choice_info.cards;
         if (cards.length >= 6) {
             cardContainer.position.x = Card.cardWidth;            
         }
+        // Tinker has 2 cards
+        if (cards.length == 2) {
+            cardContainer.position.x = width/2 - Card.cardWidth;            
+        }
         // make global effect has 5 cards
         if (cards.length == 5) {
-            cardContainer.position.x = appWidth/2 - Card.cardWidth*2.5;            
+            cardContainer.position.x = width/2 - Card.cardWidth*2.5;            
         }
         cardContainer.position.y = name.position.y + 60;
         container.addChild(cardContainer);
@@ -939,7 +943,7 @@ export class GameUX {
                 .on("click", clickFunction)
                 .on("tap", clickFunction)
             const cage = new PIXI.Container();
-            cage.position.x = appWidth / 2 - b.width/2;
+            cage.position.x = width / 2 - b.width/2;
             cage.position.y = cardContainer.position.y + cardContainer.height + b.height;
             cage.addChild(b);
             cage.addChild(text);
@@ -1167,7 +1171,7 @@ export class GameUX {
                 continue;
             }
             sprite.scale.set(1.5)
-            sprite.position.x = 100 + 20*index;
+            sprite.position.x = Card.cardWidth + Constants.padding + 20*index;
             sprite.position.y = this.inPlay.position.y + Constants.padding + 40*index;
             this.app.stage.addChild(sprite)
             this.spellStackSprites.push(sprite)

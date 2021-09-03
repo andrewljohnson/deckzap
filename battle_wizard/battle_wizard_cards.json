@@ -1388,12 +1388,12 @@
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep",
-				"keep_evolve": "WIP: Stage 1"
+				"keep_evolve": "Work in Progress: Stage 1"
 			}
 		]
 	},
 	{
-		"name": "WIP: Stage 1",
+		"name": "Work in Progress: Stage 1",
 		"discipline": "tech",
 		"is_token": true,
 		"image": "fish-monster.svg",
@@ -1406,12 +1406,12 @@
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep",
-				"keep_evolve": "WIP: Stage 2"
+				"keep_evolve": "Work in Progress: Stage 2"
 			}
 		]
 	},
 	{
-		"name": "WIP: Stage 2",
+		"name": "Work in Progress: Stage 2",
 		"discipline": "tech",
 		"is_token": true,
 		"image": "angler-fish.svg",
@@ -1430,12 +1430,12 @@
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep",
-				"keep_evolve": "WIP: Stage 3"
+				"keep_evolve": "Work in Progress: Stage 3"
 			}
 		]
 	},
 	{
-		"name": "WIP: Stage 3",
+		"name": "Work in Progress: Stage 3",
 		"discipline": "tech",
 		"is_token": true,
 		"image": "piranha.svg",
@@ -1454,7 +1454,7 @@
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep",
-				"keep_evolve": "WIP: Stage 4"
+				"keep_evolve": "Work in Progress: Stage 4"
 			},
 			{
 				"name": "Fast",
@@ -1464,7 +1464,7 @@
 		]
 	},
 	{
-		"name": "WIP: Stage 4",
+		"name": "Work in Progress: Stage 4",
 		"discipline": "tech",
 		"is_token": true,
 		"image": "helicoprion.svg",
@@ -2317,7 +2317,7 @@
 		"discipline": "tech",
 		"image": "gear-hammer.svg",
 		"card_type": "spell",
-		"cost": 1,
+		"cost": 0,
 		"description": "Draw one of the top 2 cards of your deck. Put the other in your played pile.",
 		"effects": [
 			{
