@@ -902,7 +902,7 @@ export class Card {
             sprite.position.x = cardSprite.position.x - Card.cardWidth;
         }
 
-        if (pixiUX.constructor.name == "DeckViewer" || pixiUX.constructor.name == "OpponentChooser") {
+        if (pixiUX.constructor.name == "DeckViewer") {
             sprite.position.x = cardSprite.position.x + (Card.cardWidth+Constants.padding*2)*2;
             sprite.position.y = cardSprite.position.y + Card.cardHeight;
         }
@@ -910,7 +910,7 @@ export class Card {
             sprite.position.x = cardSprite.position.x + (Card.cardWidth);
             sprite.position.y = cardSprite.position.y + Card.cardHeight;
         }
-        if (pixiUX.constructor.name == "DeckBuilder") {
+        if (pixiUX.constructor.name == "DeckBuilder" || pixiUX.constructor.name == "OpponentChooser") {
             sprite.position.x = cardSprite.position.x + (Card.cardWidth * 1.5);
             sprite.position.y = cardSprite.position.y + Card.cardHeight / 2;                
             // hax: move this hover to various classes

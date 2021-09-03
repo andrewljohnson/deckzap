@@ -48,8 +48,8 @@ export class OpponentChooser {
         this.playerTypePicker = new PlayerTypePicker(this, Constants.padding, titleText.position.y + titleText.height + Constants.padding*3, playerIndex => {this.selectPlayer(playerIndex)} )
         let subtitleText = this.addChooseDeckTitle();
         this.deckPickerTitle = subtitleText;
-        this.deckPicker = new DeckPicker(this, this.opponentDecks, this.allCards, this.playerTypePicker.position.y + 100, deckIndex => {this.selectOpponentDeck(deckIndex)}, true);
-		this.deckContainer = new DeckContainer(this, this.opponentDecks[0], this.allCards, Constants.padding, this.deckPicker.position.y + 60 );
+        this.deckPicker = new DeckPicker(this, this.opponentDecks, this.allCards, this.playerTypePicker.position.y + 140, deckIndex => {this.selectOpponentDeck(deckIndex)}, true);
+		this.deckContainer = new DeckContainer(this, this.opponentDecks[0], this.allCards, this.app.renderer.width / this.app.renderer.resolution - Card.cardWidth* 3 - Constants.padding * 4, 90 );
         this.playerTypePicker.select(0);
 		this.deckPicker.select(0);
 		this.addPlayButton();		
@@ -68,7 +68,7 @@ export class OpponentChooser {
 		let title = "Opponent's Deck";
         let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.blackColor});
         titleText.position.x = Constants.padding;
-        titleText.position.y = this.playerTypePicker.position.y + 80;
+        titleText.position.y = this.playerTypePicker.position.y + 105;
         this.app.stage.addChild(titleText);		
         return titleText;
 	}
@@ -140,9 +140,9 @@ export class OpponentChooser {
 			this.deckContainer.deck = this.opponentDecks[deckIndex];
 			this.deckContainer.redisplayDeck()			
 			let disciplineDescription = new DeckInfo(this.opponentDecks[deckIndex].discipline).infoListText()
-	        this.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.darkGrayColor});
-	        this.disciplineDescriptionText.position.x = this.deckContainer.position.x + Card.cardWidth* 1.25 + Constants.padding * 2;
-	        this.disciplineDescriptionText.position.y = this.deckContainer.position.y;
+	        this.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.darkGrayColor});
+	        this.disciplineDescriptionText.position.x = Constants.padding;
+	        this.disciplineDescriptionText.position.y = this.deckPicker.position.y + 80;
 	        this.app.stage.addChild(this.disciplineDescriptionText);
 		}
 	}

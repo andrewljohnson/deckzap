@@ -7,8 +7,8 @@ export class PlayerTypePicker {
 
 	constructor(pixiUX, x, y, clickFunction) {
 		this.players = [
-			{"id": "aggro_bot", "name": "Aggro Bot", "image": "cyborg-face.svg", "description": "A pretty bad bot that always goes face."},
-			{"id": "random_bot", "name": "Random Bot", "image": "card-random.svg", "description": "A bot that moves 100% at random."},
+			{"id": "aggro_bot", "name": "Aggro\nBot", "image": "cyborg-face.svg", "description": "A pretty bad bot that always goes face."},
+			{"id": "random_bot", "name": "Random\nBot", "image": "card-random.svg", "description": "A bot that moves 100% at random."},
 			{"id": "human", "name": "Human", "image": "suspicious.svg", "description": "Find a match with a human.\nInvite a buddy to play, or you won't get a match."}
 		];
 
@@ -23,17 +23,17 @@ export class PlayerTypePicker {
 				self.disciplineDescriptionText.parent.removeChild(self.disciplineDescriptionText);
 				self.disciplineDescriptionText = null;
 			}
-	        self.disciplineDescriptionText = new PIXI.Text(self.players[this.id].description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.darkGrayColor});
+	        self.disciplineDescriptionText = new PIXI.Text(self.players[this.id].description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.darkGrayColor});
 	        self.disciplineDescriptionText.position.x = x;
-	        self.disciplineDescriptionText.position.y = this.position.y + 50;
+	        self.disciplineDescriptionText.position.y = this.position.y + 70;
 	        pixiUX.app.stage.addChild(self.disciplineDescriptionText);
 
 			clickFunction(this.id)
 			self.selectedIndex = this.id;
 		};
 
-	    const choiceWidth = 30;
-	    const choiceHeight = 60;
+	    const choiceWidth = 45;
+	    const choiceHeight = 90;
 	   	let index = 0;
 	   	this.options = [];
 	    for (let player of this.players) {
