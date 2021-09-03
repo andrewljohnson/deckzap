@@ -647,9 +647,7 @@ export class Card {
     static baseSprite(card, cardTexture, game) { 
         let cardSprite = new PIXI.Sprite.from(cardTexture);
         cardSprite.card = card;
-        // if (Card.isPlaying(game)) {
-        //    cardSprite.buttonMode = true;  // hand cursor
-        //}
+        cardSprite.buttonMode = true;  // hand cursor
         return cardSprite;
     }
 
