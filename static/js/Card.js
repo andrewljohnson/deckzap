@@ -57,8 +57,12 @@ export class Card {
         nameBackground.alpha = .7;
         nameBackground.position.x = 0;
         nameBackground.position.y = 0;
-        
+
         let nameOptions = Constants.textOptions();
+        if (useLargeSize) {
+            nameBackground.height = 18 + 10;
+            nameOptions.fontSize = 20;
+        }
         nameOptions.wordWrapWidth = cw - Constants.padding*4;
         if (card.name.length >= 22) {
             nameOptions.fontSize --;
@@ -99,6 +103,9 @@ export class Card {
         cardSprite.addChild(name);
         name.position.x = nameBackground.position.x;
         name.position.y = nameBackground.position.y;
+        if (useLargeSize) {
+            name.position.y = nameBackground.position.y - 4;
+        }
 
         const descriptionBackground = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         descriptionBackground.tint = Constants.whiteColor;

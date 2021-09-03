@@ -190,6 +190,9 @@ class BattleWizardConsumer(WebsocketConsumer):
         if DEBUG and message and message["move_type"] != "GET_TIME":
             self.print_move(message)
         message["game"] = game_dict
+        if message["move_type"] == "JOIN" and len(game_dict["players"]) == 1:
+            message[ "all_cards"] = json.dumps(JsonDB().all_cards())
+
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -222,34 +225,3 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'payload': message
         }))
-
-
-# todo fix for AI and self.game?
-class BattleWizardCustomConsumer(BattleWizardConsumer):
-    def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_code']
-        self.room_group_name = 'room_%s' % self.room_name
-        self.custom_game_id = self.scope['url_route']['kwargs']['custom_game_id']
-        self.db_name = f"custom-{self.custom_game_id}-{self.room_name}"
-        self.moves = []
-
-        cgd = JsonDB().custom_game_database()
-        for game in cgd["games"]:
-            if game["id"] == int(self.custom_game_id):
-                self.player_type = game["player_type"]   
-
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
-        self.accept()
-
-    def disconnect(self, close_code):
-        print("Disconnected")
-
-        JsonDB().remove_custom_from_queue_database(int(self.custom_game_id), int(self.room_name), JsonDB().queue_database())
-
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name,
-            self.channel_name
-        )

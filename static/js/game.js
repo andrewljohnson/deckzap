@@ -49,7 +49,6 @@ export class GameUX {
  
     loadDataFromDOM() {
         this.playerType = document.getElementById("data_store").getAttribute("player_type");
-        this.allCards = JSON.parse(document.getElementById("card_store").getAttribute("all_cards"));
         this.username = document.getElementById("data_store").getAttribute("username");
     }
 
@@ -399,7 +398,7 @@ export class GameUX {
     }
 
     updatePlayer(game, player, avatarSprite) {
-        let props = {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.blackColor};
+        let props = {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.blackColor};
         avatarSprite.player = player;
         avatarSprite.children = []
         let avatar;
@@ -1137,7 +1136,7 @@ export class GameUX {
         this.endTurnButton = b;
 
         let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.darkGrayColor, align: "center"});
-        turnText.position.x = b.position.x + buttonWidth + Constants.padding * 10;
+        turnText.position.x = b.position.x + buttonWidth + Constants.padding * 12;
         turnText.position.y = b.position.y + b.height / 2;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;

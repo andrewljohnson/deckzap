@@ -19,6 +19,10 @@ body {
   float: left;
 }
 
+ul.right-menu {
+  float: right;
+}
+
 #footer li a {
   display: block;
   color: lightgray;
@@ -30,8 +34,8 @@ body {
   background-color: #111111;
 }
 
-#footer .footer-content {
-	/*margin-top:60px;*/	
+#footer a.gray-link {
+	color: #A9A9A9;	
 }
 
 .blue-header {
@@ -76,5 +80,3 @@ a.button {
 	text-align: center;
 	padding-top:17px;
 }
-
-

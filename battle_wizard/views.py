@@ -185,9 +185,7 @@ def play_game(request, player_type, room_code):
         "room_code": room_code,
         "player_type": player_type,
         "opponent_deck_id": opponent_deck_id,
-        "deck_id": deck_id,
-        "is_custom": False,
-        "all_cards": json.dumps(JsonDB().all_cards())
+        "deck_id": deck_id
     }
 
     return render(request, "game.html", context)

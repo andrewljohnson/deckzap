@@ -8,29 +8,14 @@ class JsonDB:
     def game_database(self, game_id):
         try:
             json_data = open(f"database/games/{game_id}.json")
-            custom_game_database = json.load(json_data) 
-            return custom_game_database
+            game_database = json.load(json_data) 
+            return game_database
         except:
             return None
 
     def save_game_database(self, game_dict, game_id):
         with open(f"database/games/{game_id}.json", 'w') as outfile:
             json.dump(game_dict, outfile)
-
-    def custom_game_database(self):
-        try:
-            json_data = open("database/custom_game_database.json")
-            custom_game_database = json.load(json_data) 
-        except:
-            custom_game_database = {"games": [], "starting_id":0}
-        return custom_game_database
-
-    def save_to_custom_game_database(self, game_info, custom_game_database):
-        custom_game_database["games"].append(game_info)
-        game_info["id"] = custom_game_database["starting_id"]
-        custom_game_database["starting_id"] += 1
-        with open("database/custom_game_database.json", 'w') as outfile:
-            json.dump(custom_game_database, outfile)
 
     def decks_database(self):
         try:
