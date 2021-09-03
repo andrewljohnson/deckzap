@@ -126,11 +126,11 @@ export class GameUX {
     }
 
     scrollbox() {
-        const scrollboxHeight = avatarHeight - Constants.padding;
+        const scrollboxHeight = avatarHeight - 2;
         const scrollBoxWidth = 418;
         const scrollbox = new Scrollbox({ boxWidth: scrollBoxWidth, boxHeight: scrollboxHeight, clampWheel: false, passiveWheel: false})
         scrollbox.position.x = this.playerAvatar.position.x + avatarWidth + Constants.padding;
-        scrollbox.position.y = this.playerAvatar.position.y;
+        scrollbox.position.y = this.playerAvatar.position.y + 2;
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.tint = Constants.whiteColor
         background.width = scrollBoxWidth;
@@ -1252,7 +1252,7 @@ export class GameUX {
             let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 14});
             textSprite.position.x = 5;
             textSprite.position.y = this.messageNumber * 20 + 5;
-            this.scrollboxBackground.height = Math.max(this.playerAvatar.height - Constants.padding, (this.messageNumber + 1) * 20);
+            this.scrollboxBackground.height = Math.max(this.playerAvatar.height, (this.messageNumber + 1) * 20);
             this.gameLogScrollbox.content.addChild(textSprite);
         }
         this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
