@@ -1249,10 +1249,10 @@ export class GameUX {
         }
         for (let text of log_lines) {
             this.messageNumber += 1
-            let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 10});
+            let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 14});
             textSprite.position.x = 5;
-            textSprite.position.y = this.messageNumber * 16 + 5;
-            this.scrollboxBackground.height = Math.max(this.playerAvatar.height - Constants.padding, (this.messageNumber + 1) * 16);
+            textSprite.position.y = this.messageNumber * 20 + 5;
+            this.scrollboxBackground.height = Math.max(this.playerAvatar.height - Constants.padding, (this.messageNumber + 1) * 20);
             this.gameLogScrollbox.content.addChild(textSprite);
         }
         this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
