@@ -971,7 +971,7 @@ class Game:
                          self.current_player().hand[self.current_player().hand.index(card)] = evolved_card
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
-            # this works because all endd_turn triggered effects dont have targets to choose
+            # this works because all end_turn triggered effects dont have targets to choose
             effect_targets = self.current_player().unchosen_targets_for_card(mob, self.current_player().username, effect_type="triggered")            
             index = 0
             for effect in mob.effects_triggered():
@@ -1624,7 +1624,7 @@ class Game:
     def update_for_mob_changes_zones(self, player):
 
         # code for War Scorpion
-        for e in player.in_play:
+        for e in player.in_play + player.artifacts:
             effect = e.effect_with_trigger("mob_changes_zones")
             if effect and effect.name == "toggle_symbiotic_fast":
                 abilities_to_remove = []
@@ -2097,7 +2097,7 @@ class Player:
                 continue
             card = self.deck.pop()
             self.hand.append(card)
-            for m in self.in_play:
+            for m in self.in_play + self.artifacts:
                 for effect in m.effects_triggered():
                     if effect.name == "hp_damage_random":
                         choice = random.choice(["hp", "damage"])
@@ -2112,6 +2112,7 @@ class Player:
                                 self.do_damage_effect_on_player(choice, 1)
                             else:
                                 self.do_damage_effect_on_mob(choice.id, 1)
+
             for r in self.artifacts:
                 for effect in r.effects_triggered():
                     if effect.name == "reduce_cost" and card.card_type == effect.target_type:
@@ -3230,7 +3231,7 @@ class Player:
         spell_to_resolve["log_lines"] = []
         card = Card(to_resolve[1])
 
-        for e in self.in_play:
+        for e in self.in_play + self.artifacts:
             for idx, effect in enumerate(e.effects_triggered()):
                 if effect.trigger == "friendly_card_played" and effect.target_type == "this":
                     self.do_add_tokens_effect(e, effect, {idx: {"id": e.id, "target_type":"mob"}}, idx)
@@ -3298,7 +3299,7 @@ class Player:
         if card.card_type == mobCardType:
             if len(card.effects) > 0 and do_effects:
                 self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
-            for c in self.in_play:
+            for c in self.in_play + self.artifacts:
                 if len(c.effects_triggered()) > 0:
                     # Spouty Gas Ball code
                     if c.effects_triggered()[0].trigger == "play_friendly_mob":
@@ -3506,11 +3507,8 @@ class Player:
 
     # todo: make a has_effect method instead of checking name
     def has_brarium(self):
-        for a in self.artifacts:
-            if a.name == "Brarium":
-                return True
-        for m in self.in_play:
-            if m.name == "Enthralled Maker":
+        for a in self.artifacts + self.in_play:
+            if a.name == "Brarium" or a.name == "Enthralled Maker":
                 return True
         return False
 
@@ -3558,7 +3556,7 @@ class Player:
         self.mana = min(self.max_max_mana(), self.mana)
 
 
-        for card in self.in_play:
+        for card in self.in_play + self.artifacts:
             if card.has_ability("Fade"):
                 token = {
                     "turns": -1,
@@ -3576,7 +3574,7 @@ class Player:
                     if effect.name == "damage" and effect.target_type == "self":
                         self.game.current_player().damage(effect.amount)
                         message["log_lines"].append(f"{self.game.current_player().username} takes {effect.amount} damage from {card.name}.")
-                    elif effect.name == "take_control" and effect.target_type == "opponents_mob_random":
+                    elif effect.name == "take_control" and effect.target_type == "opponents_mob_random": # song dragon
                         if len(self.game.opponent().in_play) > 0:
                             mob_to_target = random.choice(self.game.opponent().in_play)
                             self.game.current_player().do_take_control_effect_on_mob(mob_to_target.id)
@@ -3619,6 +3617,8 @@ class Player:
                     r.card_for_effect.cost = max(0, r.card_for_effect.cost - 1)
                     self.hand.append(r.card_for_effect)
                     r.card_for_effect = None
+                else:
+                    print(f"unsupported start_turn triggered effect for artifact, {effect}")
 
         if self.game.is_under_ice_prison():
             mobs_to_select_from = []
