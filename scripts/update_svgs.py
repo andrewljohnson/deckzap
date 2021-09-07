@@ -5,7 +5,7 @@
 import os
 import xml.dom.minidom
 
-directory = 'static/images/card-art/'
+directory = '../static/images/card-art/'
 
 for filename in os.listdir(directory):
 	full_path = os.path.join(directory, filename)

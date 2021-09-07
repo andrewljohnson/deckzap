@@ -1093,9 +1093,9 @@ export class GameUX {
                 buttonColor = Constants.lightRedColor;
             }
 
-            if (this.thisPlayer(game).card_info_to_target.effect_type) {
+            if (this.thisPlayer(game).card_info_to_target.effect_type && this.thisPlayer(game).card_info_to_target.effect_type != "spell_cast") {
                 buttonColor = Constants.menuGrayColor;
-                title = "Choose Target";
+                title = "Choosing Target";
             }
         } else {
             title = "Waiting...";
@@ -1127,14 +1127,16 @@ export class GameUX {
 
         if (this.isActivePlayer(game)) {
             if (this.thisPlayer(game).card_info_to_target.effect_type) {
-                b.interactive = false;
+                b.buttonSprite.interactive = false;
+                b.buttonSprite.buttonMode = false;
             }
         } else {
             b.interactive = false;
+            b.buttonMode = false;
         }
         if (!this.isPlaying(game)) {
-            b.buttonSprite.buttonMode = false;
-            b.buttonSprite.interactive = false;
+            b.buttonMode = false;
+            b.interactive = false;
         }
 
         this.endTurnButton = b;
