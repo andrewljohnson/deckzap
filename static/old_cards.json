@@ -1243,7 +1243,41 @@
 			"amount": 1
 		}]
 	},
-
+	{
+		"name": "Dagger",
+		"card_type": "artifact",
+		"image": "bone-knife.svg",
+		"discipline": "magic",
+		"cost": 1,
+		"description": "Pay 2, make this a 1 power weapon with 2 charges.",
+		"original_description": "Pay 2, make this a 1 power weapon with 2 charges.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			},
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
+			}
+		],
+		"effects": [{
+				"name": "enable_activated_effect",
+				"effect_type": "activated",
+				"target_type": "self",
+				"cost": 2,
+				"effect_to_activate": {
+					"name": "attack",
+					"effect_type": "activated",
+					"description": "Remove a counter: Attack an enemy for 1 damage.",
+					"target_type": "any_enemy",
+					"counters": 2,
+					"cost": 0,
+					"power": 1,
+					"was_added": true
+				}
+		}]
+	},
 	
 
 

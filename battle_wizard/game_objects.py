@@ -115,22 +115,15 @@ class Game:
             if len(moves) == 0:
                 moves = self.add_attack_and_play_card_moves(moves)
                 moves.append({"move_type": "END_TURN", "username": self.ai})                
-        elif len(self.stack) > 0 and self.stack[-1][0]["move_type"] == "ATTACK" and not has_action_selected:
-            moves = self.add_attack_response_moves(player, moves)
         elif len(self.stack) > 0 and not has_action_selected:
-            moves = self.add_spell_response_moves(player, moves)
+            moves = self.add_response_moves(player, moves)
         else:
             moves = self.add_attack_and_play_card_moves(moves)
             if not has_action_selected:
                 moves.append({"move_type": "END_TURN", "username": self.ai})
         return moves
 
-    def add_spell_response_moves(self, player, moves):
-        moves = self.add_attack_and_play_card_moves(moves)
-        moves.append({"move_type": "RESOLVE_NEXT_STACK", "username": self.ai})              
-        return moves 
-
-    def add_attack_response_moves(self, player, moves):
+    def add_response_moves(self, player, moves):
         moves = self.add_attack_and_play_card_moves(moves)
         moves.append({"move_type": "RESOLVE_NEXT_STACK", "username": self.ai})              
         return moves 
@@ -2755,7 +2748,7 @@ class Player:
         return target_player.riffle(amount)
 
     def do_fetch_card_effect_on_player(self, card, target_player_username, card_type, target_restrictions, choice_type=None):
-        if card_type == artifactCardType:
+        if artifactCardType in card_type:
             target_player = self.game.players[0]
             if target_player.username != target_player_username:
                 target_player = self.game.players[1]
@@ -4012,8 +4005,7 @@ class Card:
 
     def needs_target_for_activated_effect(self, effect_index):
         e = self.enabled_activated_effects()[effect_index]
-        # todo: Artifact target_type because of fetch_card, maybe refactor:
-        if e.target_type in ["self", "opponent", artifactCardType, "all"]: 
+        if e.target_type in ["self", "opponent", "artifact_in_deck", "all"]: 
             return False
         return True
 
@@ -4135,6 +4127,7 @@ class CardEffect:
 
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
         self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
+        self.ai_target_types = info["ai_target_types"] if "ai_target_types" in info else []
         self.amount = info["amount"] if "amount" in info else None
         self.amount_id = info["amount_id"] if "amount_id" in info else None
         self.card_descriptions = info["card_descriptions"] if "card_descriptions" in info else []
@@ -4165,7 +4158,8 @@ class CardEffect:
 
     def __repr__(self):
         return f"\
-            id: {self.id} name: {self.name} power: {self.power} target_restrictions: {self.target_restrictions}]n \
+            id: {self.id} name: {self.name} power: {self.power} target_restrictions: {self.target_restrictions}]\n \
+            ai_target_types: {self.ai_target_types}\n \
             trigger: {self.trigger} toughness: {self.toughness} multiplier: {self.multiplier}\n \
             amount_id: {self.amount_id} amount: {self.amount} cost: {self.cost} targetted_this_turn: {self.targetted_this_turn}\n \
             description: {self.description} cost_hp: {self.cost_hp} card_descriptions: {self.card_descriptions} \n \
@@ -4179,6 +4173,7 @@ class CardEffect:
         return {
             "abilities": [a.as_dict() for a in self.abilities] if self.abilities else [],
             "activate_on_add": self.activate_on_add,
+            "ai_target_types": self.ai_target_types,
             "amount": self.amount,
             "amount_id": self.amount_id,
             "card_descriptions": self.card_descriptions,

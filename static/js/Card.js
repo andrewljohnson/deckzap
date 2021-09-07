@@ -298,19 +298,17 @@ export class Card {
         }
 
         if (attackEffect) {
-            let powerX = aFX - 24;
-            let powerY = aFY + ch/2;
-            if (useLargeSize) {
-                powerX -= 44;
-                powerY += 20;
-            }
-            let countersX = powerX + cw - 16;
-            let attackEffectOptions = Constants.textOptions() 
+            let powerX = -cw/2 + Constants.padding * 2;
+            let powerY = ch/2 - Constants.padding * 2;
+            let countersX = powerX + cw - Constants.padding * 4;
+            let attackEffectOptions = Constants.textOptions(); 
+            attackEffectOptions.fill = Constants.whiteColor;
             if (attackEffect.name == "make_random_townie") {
                 Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
             } else {
-                Card.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power);
-                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
+                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
+                attackEffectOptions.fill = Constants.blackColor;
+                Card.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power, Constants.yellowColor);
             }
         }
 
@@ -400,8 +398,6 @@ export class Card {
         
         let options = Constants.textOptions();
         
-        let aFX = -Card.cardWidth / 2;
-        let aFY = -Card.cardHeight / 2;
 
         let activatedEffects = [];
         let attackEffect = null;
@@ -418,20 +414,24 @@ export class Card {
             Card.addStats(card, cardSprite, player, -8, -14, Card.cardWidth-16, Card.cardHeight, false)
         } else if (card.turn_played == -1 && !attackEffect) {
             let type = new PIXI.Text(card.card_type, options);
-            type.position.x = aFX + Card.cardWidth - 28;
-            type.position.y = aFY + Card.cardHeight - 18;
+            type.position.x =  - 28;
+            type.position.y =  - 18;
             cardSprite.addChild(type);
         }
 
         if (attackEffect) {
-            let powerCharges = new PIXI.Text(attackEffect.power + "/" + attackEffect.counters, options);
             if (attackEffect.name == "make_random_townie") {
                 let attackEffectOptions = Constants.textOptions() 
-                Card.addCircledLabel(aFX + Card.cardWidth - 14, aFY + Card.cardHeight - 18, cardSprite, attackEffectOptions, attackEffect.counters);
+                Card.addCircledLabel(-Constants.padding * 8, Card.cardHeight / 2 - Constants.padding * 6, cardSprite, attackEffectOptions, attackEffect.counters, Constants.yellowColor);
             } else {
-                powerCharges.position.x = aFX + Card.cardWidth - 14;
-                powerCharges.position.y = aFY + Card.cardHeight - 18;
-                cardSprite.addChild(powerCharges);                
+                let powerX = -Constants.padding * 8;
+                let powerY = Card.cardHeight / 2 - Constants.padding * 6
+                let countersX = powerX + Card.cardWidth / 2;
+                let attackEffectOptions = Constants.textOptions() 
+                attackEffectOptions.fill = Constants.whiteColor;
+                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
+                attackEffectOptions.fill = Constants.blackColor;
+                Card.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power, Constants.yellowColor);
             }
         }
 

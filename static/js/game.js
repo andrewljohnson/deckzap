@@ -547,7 +547,7 @@ export class GameUX {
 
         if (cardIdToHide && card.id == cardIdToHide) {
             if (player == this.opponent(game)) {
-                sprite.filters = [Constants.targettableGlowFilter()];
+                sprite.filters = [Constants.targettingGlowFilter()];
             } else {
                 sprite.alpha = Constants.beingCastCardAlpha;
             }
@@ -1385,7 +1385,10 @@ function onDragMove(dragSprite, gameUX, bump) {
 
 function updateDraggedCardFilters(gameUX, cardSprite){
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
-    let newFilters = Constants.glowAndShadowFilters();
+    let newFilters = [
+        Constants.targettingGlowFilter(),
+        Constants.dropshadowFilter()
+    ];
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {

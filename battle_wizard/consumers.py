@@ -129,56 +129,114 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.ai_running = True
         self.last_move_time = datetime.datetime.now()
         # todo don't reference AI by index 1
+        is_opponent_target = False
         if self.ai == "random_bot":
             chosen_move = random.choice(moves)
-            #while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
-            #    chosen_move = random.choice(moves) 
         elif self.ai == "aggro_bot":
             chosen_move = random.choice(moves)
             while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
                 chosen_move = random.choice(moves) 
+            good_moves = []
+            for move in moves:
+                if move["move_type"] == "SELECT_MOB":
+                    good_moves.insert(0, move)
+            for move in moves:
+                if move["move_type"] == "SELECT_CARD_IN_HAND":
+                    being_cast = self.game.current_player().in_hand_card(move["card"])
+                    if being_cast.card_type in ["mob", "artifact"]:                        
+                        favorable_move = False
+                        if len(being_cast.effects) > 0:
+                            if "opponents_mob" in being_cast.effects[0].ai_target_types:
+                                for mob in self.game.opponent().in_play:
+                                    if not mob.has_ability("Lurker"):
+                                        favorable_move = True
+                        if favorable_move:
+                            good_moves.insert(0, move)
             for move in moves:
                 if move["move_type"] == "PLAY_CARD":
-                    being_cast, _ = self.game.get_in_play_for_id(move["card"])
+                    being_cast = self.game.current_player().in_hand_card(move["card"])
                     target, _ = self.game.get_in_play_for_id(move["effect_targets"][0].id)
                     if target in self.game.opponent().in_play: 
-                        if being_cast.name in ["Kill", "Zap", "Stiff Wind", "Siz Pop", "Unwind"]:
-                            chosen_move = move
-                if move["move_type"] == "PLAY_CARD":
-                    being_cast, _ = self.game.get_in_play_for_id(move["card"])
-                    target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
-                    if target in self.game.current_player().in_play: 
-                        if being_cast.name in ["Faerie War Chant", "Mayor's Brandy"]:
-                            chosen_move = move
+                        if len(being_cast.effects) > 0:
+                            if "opponents_mob" in being_cast.effects[0].ai_target_types:
+                                good_moves.insert(0, move)
 
+                    if target in self.game.current_player().in_play: 
+                        if len(being_cast.effects) > 0:
+                            if "self_mob" in being_cast.effects[0].ai_target_types:
+                                good_moves.insert(0, move)
+            for move in moves:
                 if move["move_type"] == "RESOLVE_MOB_EFFECT":
+                    chosen_move = move
                     coming_into_play, _ = self.game.get_in_play_for_id(move["card"])
-                    print(f"{coming_into_play.name} is resolving on {move['effect_targets'][0]['id']}")
                     target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
                     if target and target.id in [card.id for card in self.game.current_player().in_play]: 
-                        if coming_into_play.name in ["Training Master"]:
-                            chosen_move = move
+                        pass
                     elif target and target.id in [card.id for card in self.game.opponent().in_play]:
-                        if coming_into_play.name in ["Lightning Elemental", "Tempest Elemental", "Tame Tempest"]:
-                            chosen_move = move
+                        if len(coming_into_play.effects) > 0:
+                            if "opponents_mob" in coming_into_play.effects[0].ai_target_types:
+                                good_moves.append(move)
                     else:
                         print("this move is targetting a player, maybe this code isnt so great") 
                         print(move) 
                         # target is none for people targets print(f"{target.name} {target.id}") 
                         print(f"ids for curr: {[card.id for card in self.game.current_player().in_play]}")
                         print(f"ids for opp: {[card.id for card in self.game.opponent().in_play]}")
-                    chosen_move = move
-                if move["move_type"] == "SELECT_MOB":
-                    chosen_move = move
             for move in moves:
                 if move["move_type"] == "SELECT_OPPONENT":
-                    chosen_move = move
-            for move in moves:
-                if move["move_type"] == "RESOLVE_MOB_EFFECT" and move["effect_targets"][0]["id"] == self.game.opponent().username :
-                    chosen_move = move
+                    good_moves.insert(0, move)
         else:
             print(f"Unknown AI bot: {self.ai}")
+
+        # don't let aggrobot select unfavorable spells to cast
+        # prefer to pass the turn
+        if chosen_move["move_type"] == "SELECT_CARD_IN_HAND" and len(good_moves) == 0:
+            being_cast = self.game.current_player().in_hand_card(chosen_move["card"])
+            if len(being_cast.effects) > 0:
+                if "opponents_mob" in being_cast.effects[0].ai_target_types and not "opponent" in being_cast.effects[0].ai_target_types:
+                    has_favorable_target = False
+                    for mob in self.game.opponent().in_play:
+                        if not mob.has_ability("Lurker"):
+                            has_favorable_target = True
+                    if not has_favorable_target:
+                        print(f"NO FAVORABLE TARGET FOR {being_cast.name}")
+                        for card in self.game.current_player().hand:
+                            print(f"hc: {card.name}")
+                        if len (self.game.stack) > 0:
+                            good_moves.append({"move_type": "RESOLVE_NEXT_STACK", "username": self.ai})                              
+                        else:
+                            good_moves.append({"move_type": "END_TURN", "username": self.ai})  
+                elif "self_mob" in being_cast.effects[0].ai_target_types:
+                    has_favorable_target = False
+                    for mob in self.game.current_player().in_play:
+                        if not mob.has_ability("Lurker"):
+                            has_favorable_target = True
+                    if not has_favorable_target:
+                        print(f"NO FAVORABLE TARGET FOR {being_cast.name}")
+                        for card in self.game.current_player().hand:
+                            print(f"hc: {card.name}")
+                        if len (self.game.stack) > 0:
+                            good_moves.append({"move_type": "RESOLVE_NEXT_STACK", "username": self.ai})                              
+                        else:
+                            good_moves.append({"move_type": "END_TURN", "username": self.ai})  
+                elif "opponents_artifact" in being_cast.effects[0].ai_target_types:
+                    has_favorable_target = False
+                    for mob in self.game.opponent().artifacts:
+                        has_favorable_target = True
+                    if not has_favorable_target:
+                        print(f"NO FAVORABLE TARGET FOR {being_cast.name}")
+                        for card in self.game.current_player().hand:
+                            print(f"hc: {card.name}")
+                        if len (self.game.stack) > 0:
+                            good_moves.append({"move_type": "RESOLVE_NEXT_STACK", "username": self.ai})                              
+                        else:
+                            good_moves.append({"move_type": "END_TURN", "username": self.ai})  
+
+        if len(good_moves) > 0:
+            chosen_move = good_moves[0]
+
         chosen_move["log_lines"] = []
+
         print("AI playing " + str(chosen_move))
         message = self.game.play_move(chosen_move)    
         self.send_game_message(self.game.as_dict(), message)

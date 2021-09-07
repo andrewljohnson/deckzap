@@ -46,13 +46,6 @@ export function textOptions() {
 }
 
 // filters
-export function glowAndShadowFilters() {
-    return [
-        targettableGlowFilter(),
-        dropshadowFilter()
-    ];
-}
-
 export function canBeClickedFilter() {
     return new GlowFilter({ innerStrength: 1, outerStrength: 1, color: greenColor});
 }
@@ -69,12 +62,12 @@ export function dropshadowFilter() {
     return new GlowFilter({ outerStrength: 1 , color: blackColor});
 }
 
-export function targettingGlowFilter() {
-    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
-}
-
 export function targettableGlowFilter() {
     return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: greenColor});
+}
+
+export function targettingGlowFilter() {
+    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
 }
 
 export function lurkerFilter() {
