@@ -2683,8 +2683,8 @@ class Player:
         if len(target_player.artifacts) < 3:
             target_card.card_type = "artifact"
             target_player.artifacts.append(target_card)
-        self.game.update_for_mob_changes_zones(self.current_player())
-        self.game.update_for_mob_changes_zones(self.opponent())
+        self.game.update_for_mob_changes_zones(self)
+        self.game.update_for_mob_changes_zones(self.game.opponent())
 
     def do_gain_for_toughness_effect(self, target_mob_id):
         target_card, target_player = self.game.get_in_play_for_id(target_mob_id)

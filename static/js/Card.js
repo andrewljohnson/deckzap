@@ -219,7 +219,7 @@ export class Card {
         descriptionOptions.wordWrapWidth = cw - Constants.padding*4;
 
         if ((abilitiesText + ". " + baseDescription).length > 95) {
-            descriptionOptions.fontSize = 6; 
+            descriptionOptions.fontSize = 11; 
         }
         if (useLargeSize) {
             descriptionOptions.fontSize = 16; 
@@ -244,7 +244,10 @@ export class Card {
             }
         }
         description.position.x = name.position.x;
-        description.position.y = name.position.y + 40;
+        description.position.y = name.position.y + 45;
+        if (useLargeSize) {
+            description.position.y += Card.cardHeight/4;
+        }
         
         if (useLargeSize) {
             Card.showAbilityPanels(cardSprite, card, cw, ch);
