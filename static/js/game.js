@@ -155,8 +155,8 @@ export class GameUX {
     menuButton(game) {
         let button = Card.button(
             menuString, 
+            Constants.blueColor, 
             Constants.whiteColor, 
-            Constants.darkGrayColor, 
             0, 
             0,
             () => { this.showMenu() }
@@ -168,7 +168,8 @@ export class GameUX {
         return button;
     }
 
-    showMenu() {
+    showMenu(title=null) {
+        const centerX = (Card.cardWidth * 7 + Constants.padding * 2) / 2;
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
 
@@ -184,8 +185,8 @@ export class GameUX {
         options.fontSize = 24;
         options.fill = Constants.whiteColor;
         options.align = "middle";
-        let name = new PIXI.Text(menuString, options);
-        name.position.x = appWidth/2 - name.width/2;
+        let name = new PIXI.Text(title || menuString, options);
+        name.position.x = centerX - name.width/2;
         name.position.y = 170
         container.addChild(name);
 
@@ -193,22 +194,22 @@ export class GameUX {
             newGameString, 
             Constants.redColor, 
             Constants.whiteColor, 
-            appWidth / 2, 
+            centerX, 
             name.position.y + name.height,
             () => { this.gameRoom.nextRoom()}, 
             container,
-            120
+            140
         );
 
         let cancelCage = Card.button(
             "Return to Game", 
             Constants.darkGrayColor, 
             Constants.whiteColor, 
-            appWidth / 2, 
+            centerX, 
             cage.position.y + cage.height,
             () => { this.app.stage.removeChild(container);}, 
             container,
-            120
+            140
         );
 
     }
@@ -340,7 +341,7 @@ export class GameUX {
         }
         this.renderEndTurnButton(game, message);
         if (this.opponent(game)) {
-            this.addMenuButton(game, this.endTurnButton.width);
+            this.addMenuButton(game);
         }
         this.maybeShowSpellStack(game);
         this.maybeShowGameOver(game);
@@ -555,11 +556,10 @@ export class GameUX {
         this.app.stage.addChild(sprite);        
     }
 
-    addMenuButton(game, width) {
+    addMenuButton(game) {
         if (!this.menuButtonAdded) {
             let menuButton = this.menuButton(game);
-            menuButton.width = width;
-            menuButton.position.x = appWidth - width - Constants.padding;
+            menuButton.position.x = appWidth - menuButton.width - Constants.padding;
             menuButton.position.y = Constants.padding;
             this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
@@ -569,7 +569,7 @@ export class GameUX {
     maybeShowGameOver(game) {
         if (this.opponent(game) && this.thisPlayer(game)) {
             if (this.opponent(game).hit_points <= 0 || this.thisPlayer(game).hit_points <= 0) {
-                alert(gameOverMessage);
+                this.showMenu(gameOverMessage);
             }
         }
     }
@@ -1131,12 +1131,12 @@ export class GameUX {
                 b.buttonSprite.buttonMode = false;
             }
         } else {
-            b.interactive = false;
-            b.buttonMode = false;
+            b.buttonSprite.interactive = false;
+            b.buttonSprite.buttonMode = false;
         }
         if (!this.isPlaying(game)) {
-            b.buttonMode = false;
-            b.interactive = false;
+            b.buttonSprite.buttonMode = false;
+            b.buttonSprite.interactive = false;
         }
 
         this.endTurnButton = b;

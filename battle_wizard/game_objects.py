@@ -100,7 +100,6 @@ class Game:
         elif player.card_choice_info["choice_type"] == "make_with_option":
             moves = self.add_resolve_make_moves(player, moves)
             moves.append({"move_type": "CANCEL_MAKE", "username": self.ai})              
-            # todo add make_with_option moves
         elif player.card_choice_info["choice_type"] == "make_from_deck":
             moves = self.add_resolve_make_from_deck_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_artifact_into_hand":
@@ -2036,6 +2035,18 @@ class Player:
                 return True
         return False
 
+    def has_mob_target(self):
+        for mob in self.in_play:
+            if not mob.has_ability("Lurker"):
+                return True
+        return False
+
+    def has_artifact_target(self):
+        for mob in self.artifacts:
+            if not mob.has_ability("Lurker"):
+                return True
+        return False
+
     def has_defend(self):
         for c in self.in_play:
             if c.can_be_clicked:
@@ -2544,7 +2555,6 @@ class Player:
             if len(card.effects) == 2 and card.effects[1].name == "decrease_max_mana":
                 card.effects[1].enabled = False
 
-
     def do_damage_effect(self, e, effect_targets, target_index, message):
         damage_amount = e.amount 
         if e.amount_id == "hand":            
@@ -2555,44 +2565,31 @@ class Player:
             self.do_damage_effect_on_player(effect_targets[target_index]["id"], e.amount, e.amount_id)
             message["log_lines"].append(f"{self.username} deals {damage_amount} damage to {effect_targets[target_index]['id']}.")
         elif effect_targets[target_index]["target_type"] == "opponents_mobs":
-            dead_mobs = []
-            for mob in self.game.opponent().in_play:
-                mob.damage += damage_amount
-                mob.damage_this_turn += damage_amount
-                mob.damage_to_show += damage_amount
-                if mob.damage >= mob.toughness_with_tokens():
-                    dead_mobs.append(mob)
-            for mob in dead_mobs:
-                self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
-            message["log_lines"].append(f"{self.username} deals {damage_amount} damage to {self.game.opponent().username}'s mobs.")
+            self.damage_mobs(self.game.opponent().in_play, damage_amount, self.username, f"{self.game.opponent().username}'s mobs")
         elif effect_targets[target_index]["target_type"] == "all_mobs" or effect_targets[target_index]["target_type"] == "all":
-            dead_mobs = []
-            for mob in self.in_play:
-                mob.damage += damage_amount
-                mob.damage_this_turn += damage_amount
-                mob.damage_to_show += damage_amount
-                if mob.damage >= mob.toughness_with_tokens():
-                    dead_mobs.append(mob)
-            for mob in dead_mobs:
-                self.game.send_card_to_played_pile(mob, self, did_kill=True)
-            dead_mobs = []
-            for mob in self.game.opponent().in_play:
-                mob.damage += damage_amount
-                mob.damage_this_turn += damage_amount
-                mob.damage_to_show += damage_amount
-                if mob.damage >= mob.toughness_with_tokens():
-                    dead_mobs.append(mob)
-            for mob in dead_mobs:
-                self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
+            damage_taker = "all mobs"
+            if effect_targets[target_index]["target_type"] == "all":
+                damage_taker = "all mobs and players"
+            self.damage_mobs(self.game.opponent().in_play + self.in_play, damage_amount, self.username, damage_taker)
             if effect_targets[target_index]["target_type"] == "all":
                 self.damage(damage_amount)
                 self.game.opponent().damage(damage_amount)
-                message["log_lines"].append(f"{self.username} deals {damage_amount} damage to all mobs and players.")
-            else:
-                message["log_lines"].append(f"{self.username} deals {damage_amount} damage to all mobs.")
         else:
             message["log_lines"].append(f"{self.username} deals {damage_amount} damage to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
             self.do_damage_effect_on_mob(effect_targets[target_index]["id"], e.amount, e.amount_id)
+        return message
+
+    def damage_mobs(self, mobs, damage_amount, damage_dealer, damage_taker, message):
+        dead_mobs = []
+        for mob in mobs:
+            mob.damage += damage_amount
+            mob.damage_this_turn += damage_amount
+            mob.damage_to_show += damage_amount
+            if mob.damage >= mob.toughness_with_tokens():
+                dead_mobs.append(mob)
+        for mob in dead_mobs:
+            self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
+        message["log_lines"].append(f"{damage_dealer} deals {damage_amount} damage to {damage_taker}.")
         return message
 
     def do_damage_effect_on_player(self, target_player_username, amount, amount_id=None):
