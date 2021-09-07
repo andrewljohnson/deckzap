@@ -2363,6 +2363,58 @@ class Player:
         
         return message 
 
+    def do_card_effect_start_turn(self, card, effect):
+        if effect.name == "damage" and effect.target_type == "self":
+            self.damage(effect.amount)
+            message["log_lines"].append(f"{self.username} takes {effect.amount} damage from {card.name}.")
+        elif effect.name == "take_control" and effect.target_type == "opponents_mob_random": # song dragon
+            if len(self.game.opponent().in_play) > 0:
+                mob_to_target = random.choice(self.game.opponent().in_play)
+                self.do_take_control_effect_on_mob(mob_to_target.id)
+                message["log_lines"].append(f"{self.username} takes control of {mob_to_target.name}.")
+        elif effect.name == "gain_hp":
+            self.do_heal_effect_on_player(self.username, effect.amount)
+        else:
+            print(f"unsupported start_turn triggered effect {effect}")
+
+    def do_card_effect_artifact_only_start_turn(self, r, effect):
+        for effect in r.effects_triggered():
+            if effect.trigger == "start_turn":
+                if effect.name == "gain_hp_for_hand":
+                    gained = 0
+                    to_apply = max(len(self.hand) - 5, 0)
+                    while self.hit_points < 30 and to_apply > 0:
+                        self.hit_points += 1
+                        to_apply -= 1
+                        gained += 1  
+                    message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
+                elif effect.name == "lose_hp_for_hand":
+                    self.game.opponent().damage(len(self.game.opponent().hand))
+                    message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
+            elif effect.name == "duplicate_card_next_turn" and r.card_for_effect:
+                new_card = self.add_to_deck(r.card_for_effect.name, 1, add_to_hand=True)
+                self.hand.append(r.card_for_effect)
+                new_card.cost = r.card_for_effect.cost
+                r.card_for_effect = None
+            elif effect.name == "upgrade_card_next_turn" and r.card_for_effect:
+                previous_card = None
+                for c in Game.all_cards():
+                    if r.card_for_effect.name == c.name:
+                        previous_card = c
+                previous_card.evolve(previous_card)
+                self.hand.append(previous_card)
+                r.card_for_effect = None
+            elif effect.name == "decost_card_next_turn" and r.card_for_effect:                    
+                r.card_for_effect.cost = max(0, r.card_for_effect.cost - 1)
+                self.hand.append(r.card_for_effect)
+                r.card_for_effect = None
+            elif effect.name == "store_mana" and self.mana > 0:
+                    counters = effect.counters or 0
+                    counters += self.mana
+                    effect.counters = min(3, counters)
+            else:
+                print(f"unsupported start_turn triggered effect for artifact, {effect}")
+
     def spend_mana(self, amount):
         amount_to_spend = amount        
         
@@ -3511,47 +3563,33 @@ class Player:
     def start_turn(self, message):
         self.game.turn_start_time = datetime.datetime.now()
         self.game.show_rope = False
+        self.draw_for_turn()
+        self.do_start_turn_card_effects_and_abilities()
+        self.refresh_mana_for_turn()
+        self.maybe_do_ice_prison()
+        return message
 
-        if self.game.turn != 0:
-            draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
-            for m in self.in_play:
-                for e in m.effects_triggered():
-                    if e.name == "draw" and e.trigger == "start_turn":
-                        draw_count += e.amount
-            for a in self.artifacts:
-                for e in a.effects_triggered():
-                    if e.name == "draw" and e.trigger == "start_turn":
-                        draw_count += e.amount
-            if self.has_brarium():
-                draw_count -= 1
-                if draw_count > 0:
-                    if self.discipline != "tech" or self.game.turn > 1:
-                        self.draw(draw_count)
-                if len(self.hand) < 10:                        
-                    self.do_make_from_deck_effect(self.username)
-            else:
+    def draw_for_turn(self):
+        if self.game.turn == 0:
+            return
+
+        draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
+        for m in self.in_play + self.artifacts:
+            for e in m.effects_triggered():
+                if e.name == "draw" and e.trigger == "start_turn":
+                    draw_count += e.amount
+        if self.has_brarium():
+            draw_count -= 1
+            if draw_count > 0:
                 if self.discipline != "tech" or self.game.turn > 1:
                     self.draw(draw_count)
-
-        if self.discipline == "tech":
-            if self.game.turn <= 1:
-                self.max_mana = 3
+            if len(self.hand) < 10:                        
+                self.do_make_from_deck_effect(self.username)
         else:
-            self.max_mana += 1
-            self.max_mana = min(self.max_max_mana(), self.max_mana)
-        
-        for r in self.artifacts:
-            for effect in r.effects_triggered():
-                if effect.name == "store_mana" and self.mana > 0:
-                    counters = effect.counters or 0
-                    counters += self.mana
-                    effect.counters = min(3, counters)
-        
-        self.mana = 0
-        self.mana += self.max_mana
-        self.mana = min(self.max_max_mana(), self.mana)
+            if self.discipline != "tech" or self.game.turn > 1:
+                self.draw(draw_count)
 
-
+    def do_start_turn_card_effects_and_abilities(self):
         for card in self.in_play + self.artifacts:
             if card.has_ability("Fade"):
                 token = {
@@ -3563,67 +3601,39 @@ class Player:
 
             if not self.game.is_under_ice_prison():
                 card.attacked = False
+
             card.can_activate_abilities = True
 
             for effect in card.effects_triggered():
-                if effect.trigger == "start_turn":
-                    if effect.name == "damage" and effect.target_type == "self":
-                        self.game.current_player().damage(effect.amount)
-                        message["log_lines"].append(f"{self.game.current_player().username} takes {effect.amount} damage from {card.name}.")
-                    elif effect.name == "take_control" and effect.target_type == "opponents_mob_random": # song dragon
-                        if len(self.game.opponent().in_play) > 0:
-                            mob_to_target = random.choice(self.game.opponent().in_play)
-                            self.game.current_player().do_take_control_effect_on_mob(mob_to_target.id)
-                            message["log_lines"].append(f"{self.game.current_player().username} takes control of {mob_to_target.name}.")
-                    elif effect.name == "gain_hp":
-                        self.do_heal_effect_on_player(self.username, effect.amount)
-                    else:
-                        print(f"unsupported start_turn triggered effect {effect}")
+                if effect.trigger == "start_turn" and effect.name != "draw":
+                    self.do_card_effect_start_turn(card, effect)
 
         for r in self.artifacts:
             r.can_activate_abilities = True
             r.effects_exhausted = {}
-            for effect in r.effects_triggered():
-                if effect.trigger == "start_turn":
-                    if effect.name == "gain_hp_for_hand":
-                        gained = 0
-                        to_apply = max(len(self.hand) - 5, 0)
-                        while self.hit_points < 30 and to_apply > 0:
-                            self.hit_points += 1
-                            to_apply -= 1
-                            gained += 1  
-                        message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
-                    elif effect.name == "lose_hp_for_hand":
-                        self.game.opponent().damage(len(self.game.opponent().hand))
-                        message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
-                elif effect.name == "duplicate_card_next_turn" and r.card_for_effect:
-                    new_card = self.add_to_deck(r.card_for_effect.name, 1, add_to_hand=True)
-                    self.hand.append(r.card_for_effect)
-                    new_card.cost = r.card_for_effect.cost
-                    r.card_for_effect = None
-                elif effect.name == "upgrade_card_next_turn" and r.card_for_effect:
-                    previous_card = None
-                    for c in Game.all_cards():
-                        if r.card_for_effect.name == c.name:
-                            previous_card = c
-                    previous_card.evolve(previous_card)
-                    self.hand.append(previous_card)
-                    r.card_for_effect = None
-                elif effect.name == "decost_card_next_turn" and r.card_for_effect:                    
-                    r.card_for_effect.cost = max(0, r.card_for_effect.cost - 1)
-                    self.hand.append(r.card_for_effect)
-                    r.card_for_effect = None
-                else:
-                    print(f"unsupported start_turn triggered effect for artifact, {effect}")
+            self.do_card_effect_artifact_only_start_turn(r, effect)
 
-        if self.game.is_under_ice_prison():
-            mobs_to_select_from = []
-            for e in self.in_play:
-                if e.attacked:
-                    mobs_to_select_from.append(e)
-            if len(mobs_to_select_from) > 0:
-                self.card_choice_info = {"cards": mobs_to_select_from, "choice_type": "select_mob_for_ice_prison"}
-        return message
+    def refresh_mana_for_turn(self):
+        if self.discipline == "tech":
+            if self.game.turn <= 1:
+                self.max_mana = 3
+        else:
+            self.max_mana += 1
+            self.max_mana = min(self.max_max_mana(), self.max_mana)
+
+        self.mana = 0
+        self.mana += self.max_mana
+        self.mana = min(self.max_max_mana(), self.mana)
+
+    def maybe_do_ice_prison(self):
+        if not self.game.is_under_ice_prison():
+            return
+        mobs_to_select_from = []
+        for e in self.in_play:
+            if e.attacked:
+                mobs_to_select_from.append(e)
+        if len(mobs_to_select_from) > 0:
+            self.card_choice_info = {"cards": mobs_to_select_from, "choice_type": "select_mob_for_ice_prison"}
 
     def controls_artifact(self, card_id):
         for c in self.artifacts:
