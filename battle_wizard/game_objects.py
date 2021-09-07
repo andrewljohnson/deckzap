@@ -48,6 +48,9 @@ class Game:
         
         self.max_hand_size = 10
 
+    def __repr__(self):
+        return f"{self.as_dict()}"
+
     def as_dict(self):
         return {
             "players": [p.as_dict() for p in self.players], 
@@ -1989,13 +1992,7 @@ class Player:
             self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"], "effect_card_id": info["card_choice_info"]["effect_card_id"] if "effect_card_id" in info["card_choice_info"] else None}
 
     def __repr__(self):
-        return f"{self.username} ({self.discipline}, deck_id: {self.deck_id}) - \
-                {self.hit_points} hp - {self.damage_this_turn} damage_this_turn - {self.damage_to_show} damage_to_show - {self.mana} mana, self.card_info_to_target {self.card_info_to_target} \
-                {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
-                {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
-                self.can_be_clicked {self.can_be_clicked}, \
-                {self.card_choice_info} \
-                {self.abilities}, self.artifacts {self.artifacts}"
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
@@ -3798,29 +3795,7 @@ class Card:
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
     def __repr__(self):
-        return f"{self.name} ({self.discipline}, {self.cost}) - {self.power}/{self.toughness}\n \
-                 abilities: {self.abilities}, tokens: {self.tokens}\n \
-                 added_descriptions: {self.added_descriptions}\n \
-                 attacked: {self.attacked} \n \
-                 can_activate_abilities: {self.can_activate_abilities})\n \
-                 can_be_clicked: {self.can_be_clicked}\n \
-                 card_for_effect: {self.card_for_effect}\n \
-                 card_subtype: {self.card_type}\n \
-                 card_type: {self.card_type}\n \
-                 damage: {self.damage}\n \
-                 damage_this_turn: {self.damage_this_turn}\n \
-                 damage_to_show: {self.damage_to_show}\n \
-                 description: {self.description}\n \
-                 effects: {self.effects}\n \
-                 effects_can_be_clicked: {self.effects_can_be_clicked}\n \
-                 effects_exhausted: {self.effects_exhausted}\n \
-                 id: {self.id}, turn played: {self.turn_played}\n \
-                 image: {self.image}\n \
-                 level: {self.level}\n \
-                 needs_targets: {self.needs_targets} is_token: {self.is_token} shielded: {self.shielded}\n \
-                 original_description: {self.original_description}\n \
-                 owner_username: {self.owner_username}"
- 
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
@@ -4159,17 +4134,7 @@ class CardEffect:
         self.was_added = info["was_added"] if "was_added" in info else False
 
     def __repr__(self):
-        return f"\
-            id: {self.id} name: {self.name} power: {self.power} target_restrictions: {self.target_restrictions}]\n \
-            ai_target_types: {self.ai_target_types}\n \
-            trigger: {self.trigger} toughness: {self.toughness} multiplier: {self.multiplier}\n \
-            amount_id: {self.amount_id} amount: {self.amount} cost: {self.cost} targetted_this_turn: {self.targetted_this_turn}\n \
-            description: {self.description} cost_hp: {self.cost_hp} card_descriptions: {self.card_descriptions} \n \
-            target_type: {self.target_type} name: {self.card_name} image: {self.image} card_names: {self.card_names} \n \
-            make_type: {self.make_type} tokens: {self.tokens} turns: {self.turns}\n \
-            sacrifice_on_activate: {self.sacrifice_on_activate} abilities: {self.abilities}\n \
-            effect_type: {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} \
-            effect_to_activate: {self.effect_to_activate} enabled: {self.enabled} counters: {self.counters} was_added: {self.was_added}"
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
@@ -4222,17 +4187,7 @@ class CardAbility:
         self.turns = info["turns"] if "turns" in info else -1
 
     def __repr__(self):
-        return f"self.id: {self.id}\n\
-                self.name: {self.name}\n\
-                self.amount: {self.amount}\n\
-                self.target_type: {self.target_type}\n\
-                self.description: {self.description}\n\
-                self.descriptive_id: {self.descriptive_id}\n\
-                self.keep_evolve: {self.keep_evolve}\n\
-                self.keep_power_increase: {self.keep_power_increase}\n\
-                self.keep_toughness_increase: {self.keep_toughness_increase}\n\
-                self.turns: {self.turns}\n\
-                self.enabled: {self.enabled}"
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
@@ -4260,11 +4215,7 @@ class CardToken:
         self.id = info["id"] if "id" in info else None
 
     def __repr__(self):
-        if self.set_can_act is not None:
-            return "Can't Attack"
-        if self.id != None:
-            return f"id: {self.id} - +{self.power_modifier}/+{self.toughness_modifier}"
-        return f"+{self.power_modifier}/+{self.toughness_modifier}"
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
