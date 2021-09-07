@@ -13,7 +13,6 @@ from battle_wizard.views import profile
 from battle_wizard.views import save_deck
 from battle_wizard.views import signup
 
-#todo add /play/aggro_bot/dwarf/tinkerer
 
 urlpatterns = [
     path('admin/', admin.site.urls),

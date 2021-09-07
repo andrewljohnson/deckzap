@@ -130,6 +130,8 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.last_move_time = datetime.datetime.now()
         if self.ai == "random_bot":
             chosen_move = random.choice(moves)
+        elif self.ai == "pass_bot":
+            chosen_move = self.pass_move()
         elif self.ai == "aggro_bot":
             chosen_move = self.aggro_bot_move(moves)
         else:
@@ -196,11 +198,11 @@ class BattleWizardConsumer(WebsocketConsumer):
                 if ("opponents_mob" in being_cast.effects[0].ai_target_types and not "opponent" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_mob_target()) or \
                    ("self_mob" in being_cast.effects[0].ai_target_types and not self.game.current_player().has_mob_target()) or \
                    ("opponents_artifact" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_artifact_target()):
-                    chosen_move = self.pass_move(good_moves)
+                    chosen_move = self.pass_move()
 
         return chosen_move
             
-    def pass_move(self, moves):
+    def pass_move(self):
         if len (self.game.stack) > 0:
             return {"move_type": "RESOLVE_NEXT_STACK", "username": self.ai}                              
         else:

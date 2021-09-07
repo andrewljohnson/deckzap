@@ -9,6 +9,7 @@ export class PlayerTypePicker {
 		this.players = [
 			{"id": "aggro_bot", "name": "Aggro\nBot", "image": "cyborg-face.svg", "description": "A pretty bad bot that always goes face."},
 			{"id": "random_bot", "name": "Random\nBot", "image": "card-random.svg", "description": "A bot that moves 100% at random."},
+			{"id": "pass_bot", "name": "Pass\nBot", "image": "aquarium.svg", "description": "A bot that always passes."},
 			{"id": "human", "name": "Human", "image": "suspicious.svg", "description": "Find a match with a human.\nInvite a buddy to play, or you won't get a match."}
 		];
 

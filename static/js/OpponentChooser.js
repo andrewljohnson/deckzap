@@ -103,7 +103,7 @@ export class OpponentChooser {
 	}
 
 	selectPlayer(playerIndex) {
-		if (playerIndex == 2) {
+		if (playerIndex == 3) {
 			this.hideDeckSelector();
 		} else {
 			this.showDeckSelector();			
