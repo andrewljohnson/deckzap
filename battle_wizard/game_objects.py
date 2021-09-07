@@ -2565,12 +2565,12 @@ class Player:
             self.do_damage_effect_on_player(effect_targets[target_index]["id"], e.amount, e.amount_id)
             message["log_lines"].append(f"{self.username} deals {damage_amount} damage to {effect_targets[target_index]['id']}.")
         elif effect_targets[target_index]["target_type"] == "opponents_mobs":
-            self.damage_mobs(self.game.opponent().in_play, damage_amount, self.username, f"{self.game.opponent().username}'s mobs")
+            self.damage_mobs(self.game.opponent().in_play, damage_amount, self.username, f"{self.game.opponent().username}'s mobs", message)
         elif effect_targets[target_index]["target_type"] == "all_mobs" or effect_targets[target_index]["target_type"] == "all":
             damage_taker = "all mobs"
             if effect_targets[target_index]["target_type"] == "all":
                 damage_taker = "all mobs and players"
-            self.damage_mobs(self.game.opponent().in_play + self.in_play, damage_amount, self.username, damage_taker)
+            self.damage_mobs(self.game.opponent().in_play + self.in_play, damage_amount, self.username, damage_taker, message)
             if effect_targets[target_index]["target_type"] == "all":
                 self.damage(damage_amount)
                 self.game.opponent().damage(damage_amount)
