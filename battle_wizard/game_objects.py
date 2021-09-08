@@ -4135,6 +4135,17 @@ class Card:
             if e.id == effect_id:
                 return e
 
+    def deal_damage(self, amount, target_player, game):
+        if self.shielded:
+            if damage_amount > 0:
+                self.shielded = False
+        else:
+            self.damage += damage_amount
+            self.damage_to_show += damage_amount
+            if self.damage >= self.toughness_with_tokens():
+                game.send_card_to_played_pile(self, target_player, did_kill=True)
+
+
 class CardEffect:
     def __init__(self, info, effect_id):
         self.id = effect_id
@@ -4252,7 +4263,11 @@ class CardToken:
         self.id = info["id"] if "id" in info else None
 
     def __repr__(self):
-        return f"{self.as_dict()}"
+        if self.set_can_act is not None:
+            return "Can't Attack"
+        if self.id != None:
+            return f"id: {self.id} - +{self.power_modifier}/+{self.toughness_modifier}"
+        return f"+{self.power_modifier}/+{self.toughness_modifier}"
 
     def as_dict(self):
         return {
