@@ -30,7 +30,6 @@ const moveTypeUnselect = "UNSELECT";
 
 // strings shown to user (todo: localize)
 const gameOverMessage = "GAME OVER"
-const newGameString = "New Game";
 const menuString = "Menu";
 
 
@@ -184,7 +183,7 @@ export class GameUX {
         container.addChild(name);
 
         let cage = Card.button(
-            newGameString, 
+            "Resign & Rematch", 
             Constants.redColor, 
             Constants.whiteColor, 
             centerX, 
@@ -194,12 +193,23 @@ export class GameUX {
             140
         );
 
+        let leaveGameCage = Card.button(
+            "Leave Game", 
+            Constants.redColor, 
+            Constants.whiteColor, 
+            centerX, 
+            cage.position.y + cage.height,
+            () => { window.location.href = `/`}, 
+            container,
+            140
+        );
+
         let cancelCage = Card.button(
             "Return to Game", 
             Constants.darkGrayColor, 
             Constants.whiteColor, 
             centerX, 
-            cage.position.y + cage.height,
+            leaveGameCage.position.y + leaveGameCage.height,
             () => { this.app.stage.removeChild(container);}, 
             container,
             140
@@ -449,6 +459,7 @@ export class GameUX {
         if (!player.can_be_clicked) {
             avatarSprite.filters = [Constants.cantBeClickedFilter()];                        
             avatarSprite.on("click", function (e) {})
+            avatarSprite.on("tap", function (e) {})
             avatarSprite.interactive = false;
             avatarSprite.buttonMode = true;
        } else {
@@ -463,6 +474,8 @@ export class GameUX {
                 let self = this;
                 avatarSprite
                     .on("click", function (e) {self.gameRoom.sendPlayMoveEvent(eventString, {});})
+                avatarSprite
+                    .on("tap", function (e) {self.gameRoom.sendPlayMoveEvent(eventString, {});})
             }
         }
 
@@ -847,6 +860,9 @@ export class GameUX {
                 .on('click',        e => {
                     this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
                 })        
+                .on('tap',        e => {
+                    this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+                })        
     }
 
     showChooseCardView(game, event_name) {
@@ -958,6 +974,10 @@ export class GameUX {
                 Card.onMouseout(cardSprite, self);
                 card_on_click(card);
             })
+            .on('tap',        function (e) {
+                Card.onMouseout(cardSprite, self);
+                card_on_click(card);
+            })
     }
 
     setCardDragListeners(card, cardSprite, game) {
@@ -971,8 +991,10 @@ export class GameUX {
             //  todo: cleaner if/then for Duplication Chamber/Upgrade Chamber/Mana Coffin
             if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
                 cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
             } else if (this.thisPlayer(game).card_info_to_target.card_id) {
                 cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
+                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
             } else {
                 let self = this;
                 cardSprite
@@ -1280,11 +1302,15 @@ function onDragStart(event, cardSprite, gameUX, game) {
     if (!gameUX.isPlaying(game)) {
         return;
     }
-
+    console.log("onDragStart")
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
     cardSprite.data = event.data;
+    cardSprite.data.firstPosition = cardSprite.data.global
+
+    cardSprite.data.firstPosition = Object.assign({}, cardSprite.data.firstPosition);
+
     cardSprite.off('mouseover', Card.onMouseover);
     cardSprite.off('mouseout', Card.onMouseout);
     Card.onMouseout(cardSprite, gameUX);
@@ -1373,6 +1399,12 @@ function onDragMove(dragSprite, gameUX, bump) {
 
     // take sprite out of the hand container so it can collide with other sprites when dragged
     let newPosition = dragSprite.data.getLocalPosition(dragSprite.parent);
+    console.log("firstPosition: " + dragSprite.data.firstPosition.y)
+    console.log("now: " +dragSprite.position.y)
+    const sensitivity = 40
+    if (Math.abs(dragSprite.data.firstPosition.y - dragSprite.position.y) + Math.abs(dragSprite.data.firstPosition.x - dragSprite.position.x) > sensitivity) {
+        Card.onMouseout(dragSprite, gameUX);
+    }
     dragSprite.position.x = newPosition.x;
     dragSprite.position.y = newPosition.y;
     let parent = dragSprite.parent;

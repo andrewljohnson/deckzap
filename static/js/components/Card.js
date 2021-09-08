@@ -855,6 +855,8 @@ export class Card {
         cardSprite
             .on('mouseover',        cardSprite.onMouseover)
             .on('mouseout',        cardSprite.onMouseout)
+            .on('touchstart',        cardSprite.onMouseover)
+            .on('touchend',        cardSprite.onMouseout)
     }
 
     static onMouseover(cardSprite, game, pixiUX) {
