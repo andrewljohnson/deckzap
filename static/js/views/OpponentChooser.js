@@ -1,12 +1,11 @@
 import * as PIXI from 'pixi.js'
-import { Card } from './Card.js';
-import { CardsContainer } from './CardsContainer.js';
-import { DeckContainer } from './DeckContainer.js';
-import { DeckInfo } from './DeckInfo.js';
-import { DeckPicker } from './DeckPicker.js';
-import { PlayerTypePicker } from './PlayerTypePicker.js';
-import * as Constants from './constants.js';
-import { SVGRasterizer } from './SVGRasterizer.js';
+import * as Constants from '../Constants.js';
+import { Card } from '../components/Card.js';
+import { CardsContainer } from '../components/CardsContainer.js';
+import { DeckContainer } from '../components/DeckContainer.js';
+import { DeckPicker } from '../components/DeckPicker.js';
+import { PlayerTypePicker } from '../components/PlayerTypePicker.js';
+import { SVGRasterizer } from '../components/SVGRasterizer.js';
 
 
 export class OpponentChooser {
@@ -125,7 +124,7 @@ export class OpponentChooser {
 			this.deckContainer.show()
 			this.deckContainer.deck = this.opponentDecks[deckIndex];
 			this.deckContainer.redisplayDeck()			
-			let disciplineDescription = new DeckInfo(this.opponentDecks[deckIndex].discipline).infoListText()
+			let disciplineDescription = Constants.infoListText(this.opponentDecks[deckIndex].discipline)
 	        this.disciplineDescriptionText = new PIXI.Text(disciplineDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.darkGrayColor});
 	        this.disciplineDescriptionText.position.x = Constants.padding;
 	        this.disciplineDescriptionText.position.y = this.deckPicker.position.y + 80;

@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import * as Constants from './constants.js';
+import * as Constants from '../Constants.js';
 
 
 export class SVGRasterizer {

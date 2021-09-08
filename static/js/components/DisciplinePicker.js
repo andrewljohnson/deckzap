@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js'
-import { Card } from './Card.js';
-import * as Constants from './constants.js';
-
 import { AdjustmentFilter, GlowFilter } from 'pixi-filters';
+import { Card } from './Card.js';
+import * as Constants from '../Constants.js';
+
 
 export class DisciplinePicker {
 

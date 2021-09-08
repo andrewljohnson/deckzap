@@ -1,10 +1,10 @@
 import * as PIXI from 'pixi.js'
-import { Bump } from './lib/bump.js';
-import { Card } from './Card.js';
-import { SVGRasterizer } from './SVGRasterizer.js';
-import * as Constants from './constants.js';
 import { GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
+import { Bump } from '../lib/bump.js';
+import * as Constants from '../Constants.js';
+import { Card } from '../components/Card.js';
+import { SVGRasterizer } from '../components/SVGRasterizer.js';
 
 const appWidth = 1585;
 const appHeight = 855;

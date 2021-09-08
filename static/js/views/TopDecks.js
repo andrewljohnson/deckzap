@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
-import * as Constants from './constants.js';
-import { Card } from './Card.js';
+import * as Constants from '../Constants.js';
+import { Card } from '../components/Card.js';
 import { TopPlayers } from './TopPlayers.js';
 
 

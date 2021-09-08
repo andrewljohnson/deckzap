@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { Card } from './Card.js';
-import * as Constants from './constants.js';
+import * as Constants from '../Constants.js';
 
 
 export class DeckContainer {

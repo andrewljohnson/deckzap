@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
-import { Card } from './Card.js';
 import { AdjustmentFilter, DropShadowFilter, GlowFilter } from 'pixi-filters';
+import { Card } from './components/Card.js';
 
 
 // constants recognized by the game rules engine
@@ -194,3 +194,10 @@ export function setUpPIXIApp(appOwner, appHeight=855, appWidth=1160) {
             resolution: PIXI.settings.FILTER_RESOLUTION,
         });        
 }
+
+export function infoListText(discipline) {
+    if (discipline == "magic") {
+        return "Magic\n\n• 30 card deck\n• more mana each turn\n• draw one card a turn";
+    }
+    return "Tech\n\n• 15 card deck\n• 3 mana each turn\n• new hand each turn";
+    }

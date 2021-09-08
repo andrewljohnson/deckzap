@@ -1,14 +1,14 @@
 // this import due to: https://flaviocopes.com/parcel-regeneratorruntime-not-defined/
 import 'regenerator-runtime/runtime'
 
-import { DeckBuilder } from '../js/DeckBuilder';
-import { DeckViewer } from '../js/DeckViewer';
-import { GameRoom } from '../js/GameRoom';
-import { GameUX } from '../js/game';
-import { MatchFinder } from '../js/MatchFinder';
-import { OpponentChooser } from '../js/OpponentChooser';
-import { TopDecks } from '../js/TopDecks';
-import { TopPlayers } from '../js/TopPlayers';
+import { DeckBuilder } from '../js/views/DeckBuilder';
+import { DeckViewer } from '../js/views/DeckViewer';
+import { GameRoom } from '../js/components/GameRoom';
+import { GameUX } from '../js/views/Game';
+import { MatchFinder } from '../js/views/MatchFinder';
+import { OpponentChooser } from '../js/views/OpponentChooser';
+import { TopDecks } from '../js/views/TopDecks';
+import { TopPlayers } from '../js/views/TopPlayers';
 
 if (window.location.pathname.startsWith("/play")) {
 	const gameUX = new GameUX();
