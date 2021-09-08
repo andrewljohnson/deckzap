@@ -1258,8 +1258,16 @@ export class GameUX {
             let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 14});
             textSprite.position.x = 5;
             textSprite.position.y = this.messageNumber * 20 + 5;
+            if (this.lastTextSprite) {
+                textSprite.position.y = this.lastTextSprite.position.y + this.lastTextSprite.height + Constants.padding;
+            }
             this.scrollboxBackground.height = Math.max(this.playerAvatar.height, (this.messageNumber + 1) * 20);
+            if (this.lastTextSprite) {
+                textSprite.position.y = this.lastTextSprite.position.y + this.lastTextSprite.height + Constants.padding;
+                this.scrollboxBackground.height = Math.max(this.playerAvatar.height, textSprite.position.y + textSprite.height);
+            }
             this.gameLogScrollbox.content.addChild(textSprite);
+            this.lastTextSprite = textSprite
         }
         this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
         this.gameLogScrollbox.update();

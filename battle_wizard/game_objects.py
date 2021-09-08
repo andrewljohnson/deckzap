@@ -23,7 +23,7 @@ artifactCardType = "artifact"
 
 
 class Game:
-    def __init__(self, websocket_consumer, player_type, db_name, info=None, player_decks=None, ai=None):
+    def __init__(self, websocket_consumer, player_type, info=None, player_decks=None, ai=None):
 
         self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
 
@@ -45,8 +45,6 @@ class Game:
         # created by Make Effect
         self.global_effects = info["global_effects"] if info and "global_effects" in info else []
 
-        # the name of the json database on disk
-        self.db_name = db_name
         # the websocket consumer instance the game gets updated by
         self.websocket_consumer = websocket_consumer
 
@@ -63,17 +61,16 @@ class Game:
 
     def as_dict(self):
         return {
-            "players": [p.as_dict() for p in self.players], 
+            "actor_turn": self.actor_turn, 
             "game_record_id": self.game_record_id, 
+            "global_effects": self.global_effects, 
+            "next_card_id": self.next_card_id, 
+            "players": [p.as_dict() for p in self.players], 
+            "player_type": self.player_type, 
+            "show_rope": self.show_rope, 
             "stack": self.stack, 
             "turn": self.turn, 
-            "actor_turn": self.actor_turn, 
-            "next_card_id": self.next_card_id, 
-            "global_effects": self.global_effects, 
-            "db_name": self.db_name, 
-            "player_type": self.player_type, 
             "turn_start_time": self.turn_start_time.__str__() if self.turn_start_time else None, 
-            "show_rope": self.show_rope, 
         }
 
     @staticmethod
@@ -81,9 +78,9 @@ class Game:
         """
             Returns a list of all possible cards in the game. 
         """
-        all_cards = [Card(c_info) for c_info in all_cards()]
+        cards = [Card(c_info) for c_info in all_cards()]
         subset = []
-        for c in all_cards:
+        for c in cards:
             if include_tokens or not c.is_token:
                 if c.image or not require_images:
                     subset.append(c)

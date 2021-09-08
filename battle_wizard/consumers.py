@@ -7,7 +7,8 @@ import time
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.generic.websocket import WebsocketConsumer
 from battle_wizard.game_objects import Game
-from battle_wizard.jsonDB import all_cards
+from battle_wizard.models import GameRecord
+from battle_wizard.data import all_cards
 
 DEBUG = True
 
@@ -108,7 +109,7 @@ class BattleWizardConsumer(WebsocketConsumer):
         game_object = GameRecord.objects.get(id=self.game_record_id)
         info = game_object.game_json
         info["game_record_id"] = self.game_record_id
-        self.game = Game(self, self.player_type, self.db_name, info=info, ai=self.ai, player_decks=self.decks)        
+        self.game = Game(self, self.player_type, info=info, ai=self.ai, player_decks=self.decks)        
         message = json.loads(text_data)
 
         if message["move_type"] == 'NEXT_ROOM':

@@ -106,12 +106,12 @@ def choose_deck_for_match(request):
     """
     if not request.user.is_authenticated:
         return redirect('/signup')
-    all_cards = all_cards(require_images=True, include_tokens=False)
-    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
+    cards = all_cards(require_images=True, include_tokens=False)
+    cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     
     return render(request, "choose_deck_for_match.html", 
         {
-            "all_cards": json.dumps(all_cards),
+            "all_cards": json.dumps(cards),
             "json_decks": json.dumps(json_decks(request.user.username))
         }
     )
@@ -131,8 +131,8 @@ def choose_opponent(request, deck_id):
     """
     if not request.user.is_authenticated:
         return redirect('/signup')
-    all_cards = all_cards(require_images=True, include_tokens=False)
-    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
+    cards = all_cards(require_images=True, include_tokens=False)
+    cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     json_opponent_decks = [
         default_deck_vampire_lich(),
         default_deck_genie_wizard(),
@@ -141,7 +141,7 @@ def choose_opponent(request, deck_id):
     ]
     return render(request, "choose_opponent.html", 
         {
-            "all_cards": json.dumps(all_cards),
+            "all_cards": json.dumps(cards),
             "deck_id": deck_id,
             "json_opponent_decks": json.dumps(json_opponent_decks)
         }
