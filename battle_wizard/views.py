@@ -1,7 +1,9 @@
 import datetime
 import json
 import random
+import requests
 import string
+import time
 
 from battle_wizard.data import all_cards
 from battle_wizard.data import default_deck_dwarf_bard
@@ -25,6 +27,8 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 
 
+from decouple import config
+
 def index(request):
     """
         The logged out home page, or the logged in profile page.
@@ -32,12 +36,14 @@ def index(request):
     if request.user.is_authenticated:
         return redirect(f'/u/{request.user.username}')
 
+    Analytics.log_amplitude(request, "Page View - Home", {"path":"/", "page":"home", "logged_in": False})
     return render(request, "index.html", {})
 
 def profile(request, username):
     """
         The home view for the logged in app.
     """
+    Analytics.log_amplitude(request, "Page View - Profile", {"path":"/u/", "page":"profile", "logged_in": request.user.is_authenticated})
     decks = Deck.objects.filter(owner__username=username).order_by("-date_created")
 
     if len(decks) == 0:
@@ -81,6 +87,7 @@ def signup(request):
             login(request, user)
             return redirect(f'/u/{user.username}')
     else:
+        Analytics.log_amplitude(request, "Page View - Sign Up", {"path":"/signup", "page":"sign up"})
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
 
@@ -97,6 +104,7 @@ def logout(request):
     """
         A POST view to log out of the app.
     """
+    Analytics.log_amplitude(request, "Log Out", {})
     logout_django(request)
     return redirect('/')
 
@@ -109,6 +117,7 @@ def choose_deck_for_match(request):
     cards = all_cards(require_images=True, include_tokens=False)
     cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     
+    Analytics.log_amplitude(request, "Page View - Choose Deck", {"path":"/choose_deck_for_match", "page":"choose deck for match"})
     return render(request, "choose_deck_for_match.html", 
         {
             "all_cards": json.dumps(cards),
@@ -139,6 +148,7 @@ def choose_opponent(request, deck_id):
         default_deck_dwarf_tinkerer(),
         default_deck_dwarf_bard()
     ]
+    Analytics.log_amplitude(request, "Page View - Choose Opponent", {"path":"/choose_opponent/", "page":"choose opponent for match"})
     return render(request, "choose_opponent.html", 
         {
             "all_cards": json.dumps(cards),
@@ -149,7 +159,7 @@ def choose_opponent(request, deck_id):
 
 def find_game(request, player_type):
     """
-        Either start a game with player_type AI, or redirect to the match finder for [player_type human.
+        Either start a game with player_type AI, or redirect to the match finder for player_type human.
     """
     deck_id = request.GET.get("deck_id", None)
     ai = request.GET.get("ai")
@@ -161,6 +171,7 @@ def find_match(request):
     """
         A view to be matched with a human player.
     """
+    Analytics.log_amplitude(request, "Find Match", {})
     deck_id = request.GET.get("deck_id", None)
     return render(request, "find_match.html", {"deck_id": deck_id})
 
@@ -214,6 +225,8 @@ def play_game(request, player_type, game_record_id):
         "deck_id": deck_id
     }
 
+    Analytics.log_amplitude(request, "Page View - Game", {"path":"/play/", "page":"play game", "player_type":player_type, "logged_in": request.user.is_authenticated})
+
     return render(request, "game.html", context)
 
 def build_deck(request):
@@ -230,6 +243,7 @@ def build_deck(request):
         deck["title"] = deck_object.title
     cards = all_cards(require_images=True, include_tokens=False)
     cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
+    Analytics.log_amplitude(request, "Page View - View Deck", {"path":"/build_deck/", "page":"build deck", "deck_id":deck_id})
     return render(request, "build_deck.html", 
         {
             "all_cards": json.dumps(cards),
@@ -255,7 +269,6 @@ def save_deck(request):
             print(error_message)
             return JsonResponse({"error": error_message})
         else: 
-            print(deck)
             global_deck = maybe_save_global_deck(deck, request.user.username)
             deck_object = None
             if not "id" in deck or deck["id"] == None:
@@ -267,6 +280,7 @@ def save_deck(request):
                     deck_object = Deck.objects.create(date_created=datetime.datetime.now(), owner=request.user, global_deck=global_deck)
             deck_object.title = info["deck"]["title"]
             deck_object.save()
+            Analytics.log_amplitude(request, "Save Deck", {})
             return JsonResponse({})
     else:
         return JsonResponse({"error": "Unsupported request type"})
@@ -287,6 +301,7 @@ def top_players(request):
         else:
             player_list.sort(key=lambda x: x[sort_parameter])
 
+    Analytics.log_amplitude(request, "Page View - Top Players", {"path":"/top_players", "page":"top players", "logged_in": request.user.is_authenticated})
     return render(request, "top_players.html", {"players": json.dumps(player_list)})
 
 def player_records():
@@ -322,6 +337,7 @@ def top_decks(request):
         else:
             deck_list.sort(key=lambda x: x[sort_parameter])
 
+    Analytics.log_amplitude(request, "Page View - Top Decks", {"path":"/top_decks", "page":"top decks", "logged_in": request.user.is_authenticated})
     return render(request, "top_decks.html", {"decks": json.dumps(deck_list)})
 
 def deck_records(request):
@@ -367,3 +383,64 @@ def maybe_save_global_deck(deck, username):
         global_deck = GlobalDeck.objects.create(cards_hash=cards_hash, deck_json=deck, author=User.objects.get(username=username), date_created=datetime.datetime.now())
         global_deck.save()
     return global_deck
+
+
+class Analytics:
+    def __init__(self, api_key, api_uri="https://api2.amplitude.com/2/httpapi"):
+        self.api_key = api_key
+        self.api_uri = api_uri
+        
+    def create_event(self,**kwargs):
+        user_id = kwargs.get('user_id',None)
+        device_id = kwargs.get('device_id', None)
+        username = kwargs.get('username', None)        
+        event_type = kwargs.get('event_type', None)
+
+        event = {}
+        event["event_type"] = event_type
+
+        if user_id:
+            event["user_id"] = username
+            if len(username) < 5:
+                event["user_id"] = user_id + 10000
+            event["user_properties"] = {}
+            event["user_properties"]["django_user_id"] = user_id
+            event["user_properties"]["username"] = username
+        if device_id:
+            event["device_id"] = device_id
+        if not user_id and not device_id:
+            print("No user_id or device_id provided for analytics call " + event_type)
+            return
+
+        # integer epoch time in milliseconds 
+        event["time"] = int(time.time()*1000)
+        
+        event_properties = kwargs.get('event_properties', None)
+        if event_properties is not None and type(event_properties) == dict:
+            event["event_properties"] = event_properties
+
+        event_package = {
+            'api_key': self.api_key,
+            'events': [event],
+            }
+        return event_package
+
+    def log_event(self,event):
+        result = requests.post(self.api_uri, data=json.dumps(event))
+        return result
+    
+    @staticmethod
+    def log_amplitude(request, event_name, event_props):
+        amplitude_logger = Analytics(api_key = config("AMPLITUDE_API_KEY"))
+        event_args = {
+            "event_type":event_name, 
+            "event_properties":event_props
+        }
+        if request.user.is_authenticated:
+            event_args["user_id"] = request.user.id
+            event_args["username"] = request.user.username
+        event_args["device_id"] = request.session._get_or_create_session_key()
+        event = amplitude_logger.create_event(**event_args)
+        amplitude_logger.log_event(event)
+                    
+                

@@ -2364,7 +2364,7 @@ class Player:
                 message["log_lines"].append(f"{self.username} gains {card.description}.")
             self.do_add_abilities_effect(e, card)           
         elif e.name == "add_mob_abilities":
-            message["log_lines"].append(f"{self.username} adds {e.abilities[0].name} to {effect_targets[target_index]['id']} with {card.name}.")
+            message["log_lines"].append(f"{self.username} adds {e.abilities[0].name} to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name} with {card.name}.")
             self.do_add_abilities_effect(e, self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0])           
         elif e.name == "add_random_mob_ability":
             message["log_lines"].append(f"{self.username} added a random ability to their mobs with {card.name}.")
@@ -2421,6 +2421,10 @@ class Player:
                 elif effect.name == "lose_hp_for_hand":
                     self.game.opponent().damage(len(self.game.opponent().hand))
                     message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
+                elif effect.name == "store_mana" and self.mana > 0:
+                        counters = effect.counters or 0
+                        counters += self.mana
+                        effect.counters = min(3, counters)
             elif effect.name == "duplicate_card_next_turn" and r.card_for_effect:
                 new_card = self.add_to_deck(r.card_for_effect.name, 1, add_to_hand=True)
                 self.hand.append(r.card_for_effect)
@@ -2438,10 +2442,6 @@ class Player:
                 r.card_for_effect.cost = max(0, r.card_for_effect.cost - 1)
                 self.hand.append(r.card_for_effect)
                 r.card_for_effect = None
-            elif effect.name == "store_mana" and self.mana > 0:
-                    counters = effect.counters or 0
-                    counters += self.mana
-                    effect.counters = min(3, counters)
             else:
                 print(f"unsupported start_turn triggered effect for artifact, {effect}")
 
