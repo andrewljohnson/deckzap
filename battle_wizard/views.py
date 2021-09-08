@@ -228,11 +228,11 @@ def build_deck(request):
         deck["id"] = deck_id
         deck["username"] = deck_object.owner.username
         deck["title"] = deck_object.title
-    all_cards = all_cards(require_images=True, include_tokens=False)
-    all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
+    cards = all_cards(require_images=True, include_tokens=False)
+    cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     return render(request, "build_deck.html", 
         {
-            "all_cards": json.dumps(all_cards),
+            "all_cards": json.dumps(cards),
             "deck_id": deck_id,
             "json_deck": json.dumps(deck),
             "deck": deck,

@@ -12,24 +12,9 @@ export class DeckViewer {
 	constructor(decks, allCards, containerID) {
 		this.allCards = allCards;
 		this.decks = decks;
-		this.setUpPIXIApp()
-		this.loadUX(containerID);
-	}
-
-	setUpPIXIApp() {
-		let cardWidth = 7;
-		let appWidth = 1160;
-		let appHeight = 855;
-        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
-        this.app = new PIXI.Application({
-            antialias: true,
-            autoDensity: true,
-            backgroundColor: Constants.whiteColor,
-            height: appHeight,
-            width: appWidth, 
-            resolution: PIXI.settings.FILTER_RESOLUTION,
-        });        
+		Constants.setUpPIXIApp(this)
         this.rasterizer = new SVGRasterizer(this.app);
+		this.loadUX(containerID);
 	}
 
 	loadUX(containerID) {			

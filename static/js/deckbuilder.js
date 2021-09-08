@@ -22,7 +22,7 @@ export class DeckBuilder {
 		}
 		this.allCards = JSON.parse(allCards);
 		this.username = username;
-		this.setUpPIXIApp()
+		this.setUpPIXIApp();
 		this.loadUX(containerID);
 	}
 
@@ -30,17 +30,8 @@ export class DeckBuilder {
 		const widthInCards = 8;
 		let appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
 		let appHeight = (Card.cardHeight) * 12;
-        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
-        this.app = new PIXI.Application({
-            antialias: true,
-            autoDensity: true,
-            backgroundColor: Constants.whiteColor,
-            height: appHeight,
-            width: appWidth, 
-            resolution: PIXI.settings.FILTER_RESOLUTION,
-        });        
+		Constants.setUpPIXIApp(this, appHeight, appWidth)
         this.rasterizer = new SVGRasterizer(this.app);
-
 	}
 
 	loadUX(containerID) {

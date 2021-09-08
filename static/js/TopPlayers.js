@@ -2,48 +2,27 @@ import * as PIXI from 'pixi.js'
 import * as Constants from './constants.js';
 import { Card } from './Card.js';
 
+
 export class TopPlayers {
+
 	constructor(containerID, players) {
 		this.players = players;
-		console.log(this.players);
-		this.setUpPIXIApp()
+		this.cardWidth = 7;
+		Constants.setUpPIXIApp(this)
 		this.loadUX(containerID);
 	}
-
-	setUpPIXIApp() {
-		this.cardWidth = 7;
-		let appWidth = 1160;
-		let appHeight = 750;
-        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
-        this.app = new PIXI.Application({
-            antialias: true,
-            autoDensity: true,
-            backgroundColor: Constants.whiteColor,
-            height: appHeight,
-            width: appWidth, 
-            resolution: PIXI.settings.FILTER_RESOLUTION,
-        });        
-	}
-
-
 
 	loadUX(containerID) {			
 		let container = document.getElementById(containerID);
 		container.appendChild(this.app.view);
-
-		let background = Constants.background(0, 0, Card.cardWidth * (this.cardWidth-1), .1)
-		background.tint = 0xEEEEEE;
-		background.height = 750
-		this.app.stage.addChild(background);
-
+		TopPlayers.addBackground(this);
         let titleText = TopPlayers.addTitle(this.app, "Top Players")
 
         let index = 0;
-        let yPosition = titleText.position.y + Constants.padding * 9 + Constants.padding * 5 * index
+        let yPosition = titleText.position.y + Constants.padding * 9 
         const leftPadding = Constants.padding;
-
-    	let sortParameter = getSearchParameters()["sort"];
-    	let orderParameter = getSearchParameters()["order"];
+    	let sortParameter = Constants.getSearchParameters()["sort"];
+    	let orderParameter = Constants.getSearchParameters()["order"];
     	TopPlayers.addHeaderCellFor(this.app, Constants.padding + leftPadding, yPosition, "top_players", sortParameter, orderParameter, "descending", "username", "Username", 0)    	
     	TopPlayers.addHeaderCellFor(this.app, 175 + leftPadding, yPosition, "top_players", sortParameter, orderParameter, "ascending", "win_rate", "Win Rate")    	
     	TopPlayers.addHeaderCellFor(this.app, 275 + leftPadding, yPosition, "top_players", sortParameter, orderParameter, "descending", "wins", "Wins")
@@ -58,6 +37,13 @@ export class TopPlayers {
         	TopPlayers.addCell(this.app, player.wins, 275 + leftPadding, yPosition)
         	TopPlayers.addCell(this.app, player.losses, 375 + leftPadding, yPosition)
         }
+	}
+
+	static addBackground(appOwner) {
+		let background = Constants.background(0, 0, Card.cardWidth * (appOwner.cardWidth-1), .1)
+		background.tint = 0xEEEEEE;
+		background.height = 750
+		appOwner.app.stage.addChild(background);
 	}
 
 	static addHeaderCellFor(app, x, y, baseURL, currentSortParameter, currentOrderParameter, defaultOrder, thisSort, defaultTitle, anchor=0.5) {
@@ -132,20 +118,5 @@ export class TopPlayers {
         app.stage.addChild(titleText);		
         return titleText;
 	}
-}
 
-
-function getSearchParameters() {
-    let prmstr = window.location.search.substr(1);
-    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
-}
-
-function transformToAssocArray( prmstr ) {
-    let params = {};
-    let prmarr = prmstr.split("&");
-    for ( let i = 0; i < prmarr.length; i++) {
-        let tmparr = prmarr[i].split("=");
-        params[tmparr[0]] = tmparr[1];
-    }
-    return params;
 }

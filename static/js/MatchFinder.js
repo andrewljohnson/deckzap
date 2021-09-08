@@ -14,7 +14,6 @@ export class MatchFinder {
 		controlsContainer.appendChild(titleH1);
 
 		this.connect(username, deckID)
-
 	}
 
 	connect (username, deckID) {
@@ -31,7 +30,6 @@ export class MatchFinder {
                 this.connect(username);
             }, 100);
         }
-
 	}
 
     setupSocket(deckID) {

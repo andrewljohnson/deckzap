@@ -15,24 +15,10 @@ export class OpponentChooser {
 		this.allCards = allCards;
 		this.opponentDecks = opponentDecks;
 		this.deckID = deckID;
-		this.setUpPIXIApp()
-		this.loadUX(containerID);
-	}
-
-	setUpPIXIApp() {
 		this.cardWidth = 7;
-		let appWidth = 1160;
-		let appHeight = 855;
-        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
-        this.app = new PIXI.Application({
-            antialias: true,
-            autoDensity: true,
-            backgroundColor: Constants.whiteColor,
-            height: appHeight,
-            width: appWidth, 
-            resolution: PIXI.settings.FILTER_RESOLUTION,
-        });        
+		Constants.setUpPIXIApp(this)
         this.rasterizer = new SVGRasterizer(this.app);
+		this.loadUX(containerID);
 	}
 
 	loadUX(containerID) {			

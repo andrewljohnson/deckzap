@@ -1,3 +1,6 @@
+import * as Constants from './constants.js';
+
+
 export class GameRoom {
 
     gameSocket = null;
@@ -54,7 +57,7 @@ export class GameRoom {
         this.gameSocket.onmessage = function (e) {
             let data = JSON.parse(e.data)["payload"];
             if (data["move_type"] == "NEXT_ROOM") {
-                let usernameParameter = getSearchParameters()["username"];
+                let usernameParameter = Constants.getSearchParameters()["username"];
                 if (data["username"] == usernameParameter) {
                    window.location.href = self.nextRoomUrl();
                 } else {
@@ -105,7 +108,7 @@ export class GameRoom {
         }
         let basePath = "play";
         let roomNumber = parseInt(url.split( '/' ).pop()) + 1;
-        let usernameParameter = getSearchParameters()["username"];
+        let usernameParameter = Constants.getSearchParameters()["username"];
         let nextRoomUrl = `/${basePath}/` + this.gameUX.playerType + '/' + roomNumber;
         let getParams =  "?new_game_from_button=true";
         if (ai && ai != "None") {
@@ -149,19 +152,4 @@ export class GameRoom {
         this.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
     }
 
-}
-
-function getSearchParameters() {
-    let prmstr = window.location.search.substr(1);
-    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
-}
-
-function transformToAssocArray( prmstr ) {
-    let params = {};
-    let prmarr = prmstr.split("&");
-    for ( let i = 0; i < prmarr.length; i++) {
-        let tmparr = prmarr[i].split("=");
-        params[tmparr[0]] = tmparr[1];
-    }
-    return params;
 }

@@ -63,14 +63,7 @@ export class GameUX {
 
     setUpPIXIView() {
         this.bump = new Bump(PIXI); // keep a reference to the collision detector
-        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
-        PIXI.GRAPHICS_CURVES.adaptive = true
-        this.app = new PIXI.Application({
-            autoDensity: true,
-            height: appHeight, 
-            resolution: PIXI.settings.FILTER_RESOLUTION,
-            width: appWidth, 
-        });        
+        Constants.setUpPIXIApp(this, appHeight, appWidth)
         document.getElementById(gameDivID).appendChild(this.app.view);
         this.rasterizer = new SVGRasterizer(this.app);
     }

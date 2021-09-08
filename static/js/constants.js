@@ -166,3 +166,31 @@ export function ovalSprite(pixiUX, imageName, labelText, choiceWidth, choiceHeig
         .on("tap", clickFunction)
     return ovalSprite;
 }
+
+export function getSearchParameters() {
+    let prmstr = window.location.search.substr(1);
+    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+}
+
+function transformToAssocArray( prmstr ) {
+    let params = {};
+    let prmarr = prmstr.split("&");
+    for ( let i = 0; i < prmarr.length; i++) {
+        let tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+    }
+    return params;
+}
+
+export function setUpPIXIApp(appOwner, appHeight=855, appWidth=1160) {
+        PIXI.GRAPHICS_CURVES.adaptive = true
+        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
+        appOwner.app = new PIXI.Application({
+            antialias: true,
+            autoDensity: true,
+            backgroundColor: whiteColor,
+            height: appHeight,
+            width: appWidth, 
+            resolution: PIXI.settings.FILTER_RESOLUTION,
+        });        
+}
