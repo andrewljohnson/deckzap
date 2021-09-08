@@ -12,6 +12,8 @@ from battle_wizard.views import play_game
 from battle_wizard.views import profile
 from battle_wizard.views import save_deck
 from battle_wizard.views import signup
+from battle_wizard.views import top_decks
+from battle_wizard.views import top_players
 
 
 urlpatterns = [
@@ -32,5 +34,7 @@ urlpatterns = [
     path('build_deck', build_deck),
     path('build_deck/save', save_deck),
     path('play/<player_type>', find_game),
-  	path('play/<player_type>/<room_code>', play_game),
+  	path('play/<player_type>/<game_record_id>', play_game),
+    path('top_decks', top_decks),
+    path('top_players', top_players),
  ]
