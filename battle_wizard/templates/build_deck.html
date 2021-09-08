@@ -5,5 +5,5 @@
     <div id="app"></div>
 </div>
 
-<div id="data_store" csrf_token='{% csrf_token %}' username = {{request.user.username}} deck='{{json_deck}}' all_cards='{{all_cards}}'></div>
+<div id="data_store" csrf_token='{% csrf_token %}' username = "{{request.user.username}}" deck='{{json_deck}}' all_cards='{{all_cards}}'></div>
 {% endblock content %}

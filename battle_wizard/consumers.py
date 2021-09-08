@@ -45,14 +45,16 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
             queue_database["pvp"]["waiting_players"].append(self.username)
 
         if len(queue_database["pvp"]["waiting_players"]) == 2:
+            game_record = GameRecord.objects.create(date_created=datetime.datetime.now())
+            game_record.save()
+            game_record_id = game_record.id            
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
                     'type': 'matchfinder_message',
-                    'message': {"message_type": "start_match", "room_id": queue_database["pvp"]["starting_id"]}
+                    'message': {"message_type": "start_match", "game_record_id": game_record_id}
                 }
             )
-            queue_database["pvp"]["starting_id"] += 1
             queue_database["pvp"]["waiting_players"] = []
         else:
             print("waiting for match")
@@ -74,9 +76,9 @@ class BattleWizardConsumer(WebsocketConsumer):
     def connect(self):
         self.player_type = self.scope['url_route']['kwargs']['player_type']
         self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
-        self.room_name = self.scope['url_route']['kwargs']['room_code']
-        self.room_group_name = 'room_%s' % self.room_name
-        self.db_name = f"standard-{self.player_type}-{self.room_name}"
+        self.game_record_id = self.scope['url_route']['kwargs']['game_record_id']
+        self.room_group_name = 'room_%s' % self.game_record_id
+        self.db_name = f"standard-{self.player_type}-{self.game_record_id}"
         self.moves = []
         self.ai_running = False
         self.last_move_time = None
@@ -96,7 +98,9 @@ class BattleWizardConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
-        self.game = Game(self, self.player_type, self.db_name, info=JsonDB().game_database(self.db_name), ai=self.ai, player_decks=self.decks)        
+        info = JsonDB().game_database(self.db_name)
+        info["game_record_id"] = self.game_record_id
+        self.game = Game(self, self.player_type, self.db_name, info=info, ai=self.ai, player_decks=self.decks)        
         message = json.loads(text_data)
 
         if message["move_type"] == 'NEXT_ROOM':

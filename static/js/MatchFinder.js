@@ -49,7 +49,7 @@ export class MatchFinder {
             console.log(data);
 
             if (data.message_type == "start_match") {
-				window.location.href = `/play/pvp/${data.room_id}?deck_id=${deckID}`            	
+				window.location.href = `/play/pvp/${data.game_record_id}?deck_id=${deckID}`            	
             }
         };
     }

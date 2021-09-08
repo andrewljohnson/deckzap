@@ -1,70 +1,67 @@
+import datetime
 import json
 import pathlib
+from battle_wizard.models import Deck, GameRecord, GlobalDeck
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
+
 
 class JsonDB:
     def __init__(self):
         pathlib.Path('database/games').mkdir(parents=True, exist_ok=True) 
 
-    def game_database(self, game_id):
+    def game_database(self, game_filename):
         try:
-            json_data = open(f"database/games/{game_id}.json")
+            json_data = open(f"database/games/{game_filename}.json")
             game_database = json.load(json_data) 
             return game_database
         except:
-            return None
+            return {}
 
-    def save_game_database(self, game_dict, game_id):
-        with open(f"database/games/{game_id}.json", 'w') as outfile:
+    def save_game_database(self, game_dict, game_filename):
+        with open(f"database/games/{game_filename}.json", 'w') as outfile:
             json.dump(game_dict, outfile)
 
-    def decks_database(self):
-        try:
-            json_data = open("database/decks_database.json")
-            decks_database = json.load(json_data) 
-        except:
-            decks_database = {}
-        return decks_database
+    def save_new_to_decks_database(self, username, deck):
+        self.maybe_save_global_deck(deck, username)
+        self.save_new_deck(deck, username)
 
-    def save_to_decks_database(self, username, deck, decks_database):
-        if not username in decks_database:
-            decks_database[username] = {"decks": [], "next_id": 0} 
-        if not "id" in deck or deck["id"] == None:
-            deck["id"] = decks_database[username]["next_id"]
-            decks_database[username]["next_id"] += 1
-            decks_database[username]["decks"].append(deck)
-        else:
-            found_index = None
-            for d in decks_database[username]["decks"]:
-                if d["id"] == deck["id"]:
-                    found_index = decks_database[username]["decks"].index(d)
-            try:
-                decks_database[username]["decks"][found_index] = deck
-            except:
-                deck["id"] = decks_database[username]["next_id"]
-                decks_database[username]["next_id"] += 1
-                decks_database[username]["decks"].append(deck)
-        with open("database/decks_database.json", 'w') as outfile:
-            json.dump(decks_database, outfile)
+    def save_new_deck(self, deck, username):
+        cards_hash = self.hash_for_deck(deck)
+        global_deck = GlobalDeck.objects.get(cards_hash=cards_hash)
+        deck = Deck.objects.create(global_deck=global_deck, owner=User.objects.get(username=username), date_created=datetime.datetime.now(), title=deck["title"])
+        deck.save()
+
+    def maybe_save_global_deck(self, deck, username):
+        cards_hash = self.hash_for_deck(deck)
+        global_deck = None
+        try:
+            global_deck = GlobalDeck.objects.get(cards_hash=cards_hash)
+        except ObjectDoesNotExist:
+            global_deck = GlobalDeck.objects.create(cards_hash=cards_hash, deck_json=deck, author=User.objects.get(username=username), date_created=datetime.datetime.now())
+            global_deck.save()
+        return global_deck
+
+    def hash_for_deck(self, deck):
+        strings = []
+        for key in deck["cards"]:
+            strings.append(f"{key}{deck['cards'][key]}")
+        strings.sort()
+        return "".join(strings)
 
     def queue_database(self):
         try:
             json_data = open("database/queue_database.json")
             queue_database = json.load(json_data) 
         except:
-            queue_database = {"pvai": {"starting_id":0},
-                              "pvp": {"waiting_players":[], "starting_id":0}
-            }
+            queue_database = {"pvp": {"waiting_players":[]}}
         return queue_database
     
-    def join_ai_game_in_queue_database(self, player_type, queue_database):
-        is_new_room = True
-        print(f"player_type is {player_type}")
-        if player_type == "pvai":
-            room_code = queue_database[player_type]["starting_id"]
-            queue_database[player_type]["starting_id"] += 1
-        with open("database/queue_database.json", 'w') as outfile:
-            json.dump(queue_database, outfile)
-        return room_code, is_new_room
+    def join_ai_game_in_queue_database(self):
+        game_record = GameRecord.objects.create(date_created=datetime.datetime.now())
+        game_record.save()
+        game_record_id = game_record.id
+        return game_record_id
 
     def all_cards(self, require_images=False, include_tokens=True):
         json_data = open('battle_wizard/battle_wizard_cards.json')

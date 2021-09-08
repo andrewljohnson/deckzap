@@ -7,6 +7,8 @@ import { GameRoom } from '../js/GameRoom';
 import { GameUX } from '../js/game';
 import { MatchFinder } from '../js/MatchFinder';
 import { OpponentChooser } from '../js/OpponentChooser';
+import { TopDecks } from '../js/TopDecks';
+import { TopPlayers } from '../js/TopPlayers';
 
 if (window.location.pathname.startsWith("/play")) {
 	const gameUX = new GameUX();
@@ -27,4 +29,8 @@ if (window.location.pathname.startsWith("/play")) {
     new MatchFinder("app", deckID, username);
 } else if (window.location.pathname.startsWith("/build_deck")) {
     new DeckBuilder("app", document.getElementById("data_store").getAttribute("deck"), document.getElementById("data_store").getAttribute("username"), document.getElementById("data_store").getAttribute("all_cards"));
+} else if (window.location.pathname.startsWith("/top_players")) {
+    new TopPlayers("app", JSON.parse(document.getElementById("data_store").getAttribute("players")));
+} else if (window.location.pathname.startsWith("/top_decks")) {
+    new TopDecks("app", JSON.parse(document.getElementById("data_store").getAttribute("decks")));
 }

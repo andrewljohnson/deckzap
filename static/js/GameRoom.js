@@ -85,7 +85,7 @@ export class GameRoom {
     }
 
     roomSocketUrl() {
-        const roomCode = document.getElementById("data_store").getAttribute("room_code");
+        const roomCode = document.getElementById("data_store").getAttribute("game_record_id");
         const url = new URL(window.location.href);
         let protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
         let connectionString = protocol + window.location.host + '/ws/play/' + this.gameUX.playerType + '/' + roomCode + '/';

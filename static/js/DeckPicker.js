@@ -34,7 +34,7 @@ export class DeckPicker {
 	 		let option = Constants.ovalSprite(
 				pixiUX,
 				firstCard.image,
-				`${deck.name}\n(${deck.discipline})`,
+				`${deck.title}\n(${deck.discipline})`,
 				choiceWidth,
 				choiceHeight,
 				index,

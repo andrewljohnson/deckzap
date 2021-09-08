@@ -1142,7 +1142,7 @@ export class GameUX {
         this.endTurnButton = b;
 
         let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.darkGrayColor, align: "center"});
-        turnText.position.x = b.position.x + buttonWidth + Constants.padding * 12;
+        turnText.position.x = b.position.x + buttonWidth + Constants.padding * 20;
         turnText.position.y = b.position.y + b.height / 2;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;

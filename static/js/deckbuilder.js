@@ -12,9 +12,9 @@ import { SVGRasterizer } from './SVGRasterizer.js';
 export class DeckBuilder {
 
 	constructor(containerID, deck, username, allCards) {
-		this.decks = {"magic": {"cards":{}, "discipline": "magic", "name": null}, "tech": {"cards":{}, "discipline": "tech", "name": null}}
+		this.decks = {"magic": {"cards":{}, "discipline": "magic", "title": null}, "tech": {"cards":{}, "discipline": "tech", "title": null}}
 		const jsonDeck = JSON.parse(deck);
-		if (Object.keys(jsonDeck.cards).length) {
+		if (jsonDeck && Object.keys(jsonDeck.cards).length) {
 			this.decks[jsonDeck.discipline] = jsonDeck;
 	    	this.discipline = jsonDeck.discipline;
 		} else {
@@ -67,6 +67,9 @@ export class DeckBuilder {
 		if (this.decks[this.discipline].id != null) {
 			title = "Edit Deck"
 		}
+		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
+			title = "View Deck: " + this.decks[this.discipline].title			
+		}
         let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
         titleText.position.x = Constants.padding;
         titleText.position.y = Constants.padding * 1.5;
@@ -78,14 +81,20 @@ export class DeckBuilder {
         const buttonWidth = Card.cardWidth * 1.25;
         const buttonHeight = 40;
         const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth + Constants.padding * 2;
+        let buttonTitle = "Save";
+        if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
+			buttonTitle = "Copy Deck";        	
+        }
         let b = Card.button(
-                "Save", 
+                buttonTitle, 
                 Constants.blueColor, 
                 Constants.whiteColor, 
                 buttonX, 
                 -buttonHeight - 2,
                 () => {
-                	if (this.deckIsFull()) {
+                	if (!this.username) {
+                		window.location.href = "/signup"
+                	} else if (this.deckIsFull()) {
                 		console.log("Saving, deck is complete")
                 		this.saveDeck();
                 	} else {
@@ -104,7 +113,7 @@ export class DeckBuilder {
 		    input: {
 		        fontSize: '14pt',
 		        width: (buttonWidth - 5) + 'px',
-		        textAlign: 'center'
+		        textAlign: 'center',
 		    }, 
 		    box: {
 		    	borderWidth: '1px',
@@ -113,15 +122,18 @@ export class DeckBuilder {
 		    }
 		})
        	deckTitleInput.placeholder = 'My Deck'
-       	deckTitleInput.text = this.decks[this.discipline].name
+       	deckTitleInput.text = this.decks[this.discipline].title ? this.decks[this.discipline].title != undefined : ""
   		deckTitleInput.position.x = x;
         deckTitleInput.position.y = y;
-        this.app.stage.addChild(deckTitleInput);
+		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
+	        deckTitleInput.interactive = false
+	        deckTitleInput.buttonMode = false
+	    }
+	    this.app.stage.addChild(deckTitleInput);
         this.deckTitleInput = deckTitleInput;
 
         this.deckTitleInput.on('input', text => {
-    		console.log('text:', text)
-    		this.decks[this.discipline].name = text
+    		this.decks[this.discipline].title = text
 		})
 	}
 
@@ -195,8 +207,8 @@ export class DeckBuilder {
 		this.deckContainer.deck = this.decks[this.discipline];
 		this.deckContainer.redisplayDeck();
 
-	    if ("name" in this.decks[this.discipline]) {
-		    this.deckTitleInput.text = this.decks[this.discipline].name;
+	    if ("title" in this.decks[this.discipline]) {
+		    this.deckTitleInput.text = this.decks[this.discipline].title;
 	    } else {
 		    this.deckTitleInput.text = null;
 	    }		
@@ -212,6 +224,9 @@ export class DeckBuilder {
 
 	// protocol for DeckContainer
     setDeckCardDragListeners(cardSprite) {
+		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
+			return;
+		}
 		let self = this;
 		cardSprite
 		    .on('mousedown',        function (e) {self.removeCard(this)})

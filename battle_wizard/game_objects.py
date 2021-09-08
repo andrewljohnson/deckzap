@@ -7,7 +7,9 @@ import time
 
 from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer, default_deck_dwarf_bard, default_deck_vampire_lich
 from battle_wizard.jsonDB import JsonDB
-
+from battle_wizard.models import Deck, GameRecord, GlobalDeck
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
 spellCardType = "spell"
 mobCardType = "mob"
@@ -17,21 +19,23 @@ artifactCardType = "artifact"
 class Game:
     def __init__(self, websocket_consumer, player_type, db_name, info=None, player_decks=None, ai=None):
 
+        self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
+
         self.ai = ai
         self.player_type = info["player_type"] if info and "player_type" in info else player_type
 
         # support 2 players
-        self.players = [Player(self, u) for u in info["players"]] if info else []
-        self.turn = int(info["turn"]) if info else 0
+        self.players = [Player(self, u) for u in info["players"]] if info and "players" in info else []
+        self.turn = int(info["turn"]) if info and "turn" in info else 0
 
         # player 0 always acts on even turns, player 1 acts on odd turns
-        self.actor_turn = int(info["actor_turn"]) if info else 0
+        self.actor_turn = int(info["actor_turn"]) if info and "actor_turn" in info else 0
 
         self.stack = info["stack"] if info and "stack" in info else []
 
         # the next id to give a card when doing make_card effects
         # each card gets the next unusued integer
-        self.next_card_id = int(info["next_card_id"]) if info else 0
+        self.next_card_id = int(info["next_card_id"]) if info and "next_card_id" in info else 0
         # created by Make Effect
         self.global_effects = info["global_effects"] if info and "global_effects" in info else []
 
@@ -44,7 +48,7 @@ class Game:
         self.player_decks = player_decks
 
         self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()
-        self.show_rope = info["show_rope"] if info else False
+        self.show_rope = info["show_rope"] if info and "show_rope" in info else False
         
         self.max_hand_size = 10
 
@@ -54,6 +58,7 @@ class Game:
     def as_dict(self):
         return {
             "players": [p.as_dict() for p in self.players], 
+            "game_record_id": self.game_record_id, 
             "stack": self.stack, 
             "turn": self.turn, 
             "actor_turn": self.actor_turn, 
@@ -252,7 +257,7 @@ class Game:
             print(f"play_move: {move_type}")
         
         if move_type == 'GET_TIME':
-            max_turn_time = 1
+            max_turn_time = 60
             turn_time = datetime.datetime.now() - self.turn_start_time
             # if turn_time.seconds > max_turn_time:
             #     self.show_rope = True
@@ -341,6 +346,14 @@ class Game:
 
         if message:
             JsonDB().save_game_database(self.as_dict(), self.db_name)
+            if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
+                game_record = GameRecord.objects.get(id=self.game_record_id)
+                game_record.date_finished = datetime.datetime.now()
+                if self.players[0].hit_points <= 0 and self.players[1].hit_points >= 0:
+                    game_record.winner = User.objects.get(username=self.players[1].username)
+                elif self.players[1].hit_points <= 0 and self.players[0].hit_points >= 0:
+                    game_record.winner = User.objects.get(username=self.players[0].username)
+                game_record.save()
         else:
             # if message is None, the move was a no-op, like SELECT_CARD_IN_HAND on an uncastable card
             pass
@@ -420,7 +433,6 @@ class Game:
                 spell_card = spell[1]
                 action = spell[0]
                 if action["move_type"] == "ATTACK" and action["username"] != cp.username:
-                    print ("ATTACK ON STACK")
                     attacker, _ = self.get_in_play_for_id(action["card"])     
                     if attacker:
                         attacker.can_be_clicked = True
@@ -852,13 +864,16 @@ class Game:
 
     def start_constructed_game(self, message):
         if self.players[0].max_mana == 0: 
+            deck_hashes = []
             for x in range(0, 2):
-                decks_db = JsonDB().decks_database()
-                decks = decks_db[self.players[x].username]["decks"] if self.players[x].username in decks_db else []
+                try:
+                    decks = Deck.objects.filter(owner=User.objects.get(username=self.players[x].username))
+                except ObjectDoesNotExist:
+                    decks = []
                 deck_to_use = None
                 for d in decks:
-                    if d["id"] == self.players[x].deck_id:
-                        deck_to_use = d
+                    if d.id == self.players[x].deck_id:
+                        deck_to_use = d.global_deck.deck_json
                 if self.players[x].deck_id == "the_coven":
                     deck_to_use = default_deck_vampire_lich()
                 elif self.players[x].deck_id == "keeper":
@@ -869,6 +884,7 @@ class Game:
                     deck_to_use = default_deck_genie_wizard()
                 else:
                     deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
+                deck_hashes.append(JsonDB().hash_for_deck(deck_to_use))
                 card_names = []
                 for key in deck_to_use["cards"]:
                     for _ in range(0, deck_to_use["cards"][key]):
@@ -884,6 +900,18 @@ class Game:
                 self.players[x].draw(self.players[x].initial_hand_size())
 
             self.send_start_first_turn(message)
+
+            game_record = GameRecord.objects.get(id=self.game_record_id)
+            game_record.date_started = datetime.datetime.now()
+            game_record.player_one = User.objects.get(username=self.players[0].username)
+            try:
+                game_record.player_two = User.objects.get(username=self.players[1].username)
+            except ObjectDoesNotExist:
+                game_record.player_two = User.objects.create(username=self.players[1].username)
+                game_record.player_two.save()
+            game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[0])
+            game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[1])
+            game_record.save()
 
     def get_starting_artifacts(self):
         found_artifact = None
@@ -1240,7 +1268,6 @@ class Game:
             message = self.select_artifact_target_for_artifact_effect(cp.selected_mob(), message)
         elif cp.selected_spell():  
             # todo handle cards with multiple effects
-            print(cp.selected_spell().name)
             if cp.selected_spell().effects[effect_index].target_type == "opponents_artifact" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().artifacts:
                 print(f"can't target own artifact with opponents_artifact effect from {cp.selected_spell().name}")
                 return None
@@ -2377,7 +2404,7 @@ class Player:
         else:
             print(f"unsupported start_turn triggered effect {effect}")
 
-    def do_card_effect_artifact_only_start_turn(self, r, effect):
+    def do_card_effect_artifact_only_start_turn(self, r):
         for effect in r.effects_triggered():
             if effect.trigger == "start_turn":
                 if effect.name == "gain_hp_for_hand":
@@ -3611,7 +3638,7 @@ class Player:
         for r in self.artifacts:
             r.can_activate_abilities = True
             r.effects_exhausted = {}
-            self.do_card_effect_artifact_only_start_turn(r, effect)
+            self.do_card_effect_artifact_only_start_turn(r)
 
     def refresh_mana_for_turn(self):
         if self.discipline == "tech":
