@@ -709,17 +709,44 @@ export class GameUX {
         name.position.y = 80
         container.addChild(name);
 
-        let i = 1;                  
-        function myLoop() {        
-          setTimeout(function() {   
-            container.alpha -= .01
-            i++;                    
-            if (container.alpha > 0) {          
-              myLoop();            
-            }                     
-          }, 40-i)
+        var FADE_DURATION = .5 * oneThousandMS; 
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        function render(currTime) { 
+            // How opaque should head1 be?  Its fade started at currTime=0.
+            // Over FADE_DURATION ms, opacity goes from 0 to 1
+            var alpha = 1.0 - (currTime/FADE_DURATION);
+            if (alpha <= .05) {
+                alpha = 0;
+            }
+            container.alpha = alpha;
         }
-        myLoop();             
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                // This branch: executes for the first frame only.
+                // it sets the startTime, then renders at currTime = 0.0
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                // This branch: renders every frame, other than the 1st frame,
+                // with the new timeRunning value.
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            // Now we're done rendering one frame.
+            // So we make a request to the browser to execute the next
+            // animation frame, and the browser optimizes the rest.
+            // This happens very rapidly, as you can see in the console.log();
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame); 
     }
 
     showArrow(fromSprite, toSprite, adjustment={"x":0, "y": 0}){
