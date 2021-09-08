@@ -1,4 +1,22 @@
-\
+import json
+
+def all_cards(require_images=False, include_tokens=True):
+    json_data = open('battle_wizard/battle_wizard_cards.json')
+    all_cards = json.load(json_data)
+    subset = []
+    for c in all_cards:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                subset.append(c)
+    return subset
+
+def hash_for_deck(deck):
+    strings = []
+    for key in deck["cards"]:
+        strings.append(f"{key}{deck['cards'][key]}")
+    strings.sort()
+    return "".join(strings)
+
 def default_deck_genie_wizard():
     return {
         "title": "Draw Go",

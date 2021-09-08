@@ -8,18 +8,12 @@ import time
 class GameObjectTests(TestCase):
 
     def setUp(self):
-        self.testDBName = "testDB"
 
     def tearDown(self):
-        if os.path.exists(f"database/games/{self.TEST_DB_NAME()}.json"):
-            os.remove(f"database/games/{self.TEST_DB_NAME()}.json")
+        pass
 
-    def TEST_DB_NAME(self):
-        return self.testDBName
-    
     def game_for_decks(self, player_decks):
-        dbName = self.TEST_DB_NAME()
-        game_dict = JsonDB().game_database(dbName)
+        game_dict = {}
         game = Game(None, "pvp", dbName, "test_stacked_deck", info=game_dict, player_decks=player_decks)
         game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})

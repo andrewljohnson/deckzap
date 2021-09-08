@@ -3,17 +3,21 @@ import json
 import random
 import string
 
+from battle_wizard.data import all_cards
 from battle_wizard.data import default_deck_dwarf_bard
 from battle_wizard.data import default_deck_dwarf_tinkerer
 from battle_wizard.data import default_deck_genie_wizard
 from battle_wizard.data import default_deck_vampire_lich
+from battle_wizard.data import hash_for_deck
 from battle_wizard.forms import SignUpForm
-from battle_wizard.jsonDB import JsonDB
-from battle_wizard.models import Deck, GameRecord
+from battle_wizard.models import Deck
+from battle_wizard.models import GameRecord
+from battle_wizard.models import GlobalDeck
 from django.contrib.auth import authenticate 
 from django.contrib.auth import login
 from django.contrib.auth import logout as logout_django
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.http import Http404
 from django.http import JsonResponse
@@ -84,10 +88,10 @@ def add_initial_decks(username):
     """
         The initial decks for a new player.
     """
-    JsonDB().save_new_to_decks_database(username, default_deck_vampire_lich())
-    JsonDB().save_new_to_decks_database(username, default_deck_genie_wizard())
-    JsonDB().save_new_to_decks_database(username, default_deck_dwarf_tinkerer())
-    JsonDB().save_new_to_decks_database(username, default_deck_dwarf_bard())
+    save_new_to_decks_database(username, default_deck_vampire_lich())
+    save_new_to_decks_database(username, default_deck_genie_wizard())
+    save_new_to_decks_database(username, default_deck_dwarf_tinkerer())
+    save_new_to_decks_database(username, default_deck_dwarf_bard())
    
 def logout(request):
     """
@@ -102,7 +106,7 @@ def choose_deck_for_match(request):
     """
     if not request.user.is_authenticated:
         return redirect('/signup')
-    all_cards = JsonDB().all_cards(require_images=True, include_tokens=False)
+    all_cards = all_cards(require_images=True, include_tokens=False)
     all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     
     return render(request, "choose_deck_for_match.html", 
@@ -127,7 +131,7 @@ def choose_opponent(request, deck_id):
     """
     if not request.user.is_authenticated:
         return redirect('/signup')
-    all_cards = JsonDB().all_cards(require_images=True, include_tokens=False)
+    all_cards = all_cards(require_images=True, include_tokens=False)
     all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     json_opponent_decks = [
         default_deck_vampire_lich(),
@@ -166,8 +170,11 @@ def play_ai_game(request, player_type, deck_id, ai):
     """
     opponent_deck_id = request.GET.get("opponent_deck_id", None)
     # if deck_id:
-    game_record_id = JsonDB().join_ai_game_in_queue_database()
-    url = f"/play/{player_type}/{game_record_id}"
+
+    game_record = GameRecord.objects.create(date_created=datetime.datetime.now())
+    game_record.save()
+    game_record_id = game_record.id
+    url = f"/play/{player_type}/{game_record.id}"
     url+= f"?deck_id={deck_id}"
     url+= f"&ai={ai}"
     if opponent_deck_id:
@@ -178,7 +185,6 @@ def play_game(request, player_type, game_record_id):
     """
         Play a game.
     """
-    queue_database = JsonDB().queue_database()
     last_room = request.GET.get("new_game_from_button")
     ai = request.GET.get("ai") if request.GET.get("ai") and len(request.GET.get("ai")) else None
     deck_id = request.GET.get("deck_id", None)
@@ -222,7 +228,7 @@ def build_deck(request):
         deck["id"] = deck_id
         deck["username"] = deck_object.owner.username
         deck["title"] = deck_object.title
-    all_cards = JsonDB().all_cards(require_images=True, include_tokens=False)
+    all_cards = all_cards(require_images=True, include_tokens=False)
     all_cards = sorted(all_cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     return render(request, "build_deck.html", 
         {
@@ -250,7 +256,7 @@ def save_deck(request):
             return JsonResponse({"error": error_message})
         else: 
             print(deck)
-            global_deck = JsonDB().maybe_save_global_deck(deck, request.user.username)
+            global_deck = maybe_save_global_deck(deck, request.user.username)
             deck_object = None
             if not "id" in deck or deck["id"] == None:
                 deck_object = Deck.objects.create(date_created=datetime.datetime.now(), owner=request.user, global_deck=global_deck)
@@ -344,3 +350,20 @@ def deck_records(request):
     for key in decks:
         deck_list.append(decks[key])
     return deck_list
+
+def save_new_to_decks_database(username, deck):
+    maybe_save_global_deck(deck, username)
+    cards_hash = hash_for_deck(deck)
+    global_deck = GlobalDeck.objects.get(cards_hash=cards_hash)
+    deck = Deck.objects.create(global_deck=global_deck, owner=User.objects.get(username=username), date_created=datetime.datetime.now(), title=deck["title"])
+    deck.save()
+
+def maybe_save_global_deck(deck, username):
+    cards_hash = hash_for_deck(deck)
+    global_deck = None
+    try:
+        global_deck = GlobalDeck.objects.get(cards_hash=cards_hash)
+    except ObjectDoesNotExist:
+        global_deck = GlobalDeck.objects.create(cards_hash=cards_hash, deck_json=deck, author=User.objects.get(username=username), date_created=datetime.datetime.now())
+        global_deck.save()
+    return global_deck

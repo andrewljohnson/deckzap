@@ -21,6 +21,7 @@ class GameRecord(models.Model):
 	date_finished = models.DateTimeField(null=True)
 	date_started = models.DateTimeField(null=True)
 	date_created = models.DateTimeField()
+	game_json = models.JSONField(default=dict)
 	player_one = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='player_one')
 	player_two = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='player_two')
 	player_one_deck = models.ForeignKey("GlobalDeck", on_delete=models.CASCADE, null=True, related_name='player_one_deck')

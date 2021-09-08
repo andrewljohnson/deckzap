@@ -5,9 +5,15 @@ import math
 import random
 import time
 
-from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer, default_deck_dwarf_bard, default_deck_vampire_lich
-from battle_wizard.jsonDB import JsonDB
-from battle_wizard.models import Deck, GameRecord, GlobalDeck
+from battle_wizard.data import all_cards
+from battle_wizard.data import default_deck_genie_wizard 
+from battle_wizard.data import default_deck_dwarf_tinkerer
+from battle_wizard.data import default_deck_dwarf_bard
+from battle_wizard.data import default_deck_vampire_lich
+from battle_wizard.data import hash_for_deck
+from battle_wizard.models import Deck
+from battle_wizard.models import GameRecord
+from battle_wizard.models import GlobalDeck
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -75,7 +81,7 @@ class Game:
         """
             Returns a list of all possible cards in the game. 
         """
-        all_cards = [Card(c_info) for c_info in JsonDB().all_cards()]
+        all_cards = [Card(c_info) for c_info in all_cards()]
         subset = []
         for c in all_cards:
             if include_tokens or not c.is_token:
@@ -345,15 +351,15 @@ class Game:
                 return self.play_move({"move_type": "RESOLVE_NEXT_STACK", "username": cp.username})
 
         if message:
-            JsonDB().save_game_database(self.as_dict(), self.db_name)
+            game_object = GameRecord.objects.get(id=self.game_record_id)
+            game_object.game_json = self.as_dict()
             if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
-                game_record = GameRecord.objects.get(id=self.game_record_id)
-                game_record.date_finished = datetime.datetime.now()
+                game_object.date_finished = datetime.datetime.now()
                 if self.players[0].hit_points <= 0 and self.players[1].hit_points >= 0:
-                    game_record.winner = User.objects.get(username=self.players[1].username)
+                    game_object.winner = User.objects.get(username=self.players[1].username)
                 elif self.players[1].hit_points <= 0 and self.players[0].hit_points >= 0:
-                    game_record.winner = User.objects.get(username=self.players[0].username)
-                game_record.save()
+                    game_object.winner = User.objects.get(username=self.players[0].username)
+            game_object.save()
         else:
             # if message is None, the move was a no-op, like SELECT_CARD_IN_HAND on an uncastable card
             pass
@@ -884,7 +890,7 @@ class Game:
                     deck_to_use = default_deck_genie_wizard()
                 else:
                     deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
-                deck_hashes.append(JsonDB().hash_for_deck(deck_to_use))
+                deck_hashes.append(hash_for_deck(deck_to_use))
                 card_names = []
                 for key in deck_to_use["cards"]:
                     for _ in range(0, deck_to_use["cards"][key]):

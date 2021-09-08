@@ -7,7 +7,7 @@ import time
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.generic.websocket import WebsocketConsumer
 from battle_wizard.game_objects import Game
-from battle_wizard.jsonDB import JsonDB
+from battle_wizard.jsonDB import all_cards
 
 DEBUG = True
 
@@ -24,7 +24,7 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
         self.accept()
 
     def disconnect(self, close_code):
-        queue_database = JsonDB().queue_database()
+        queue_database = self.queue_database()
         queue_database["pvp"]["waiting_players"].remove(self.username)
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
@@ -40,7 +40,7 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
 
         self.username = message["username"]
 
-        queue_database = JsonDB().queue_database()
+        queue_database = self.queue_database()
         if not self.username in queue_database["pvp"]["waiting_players"]:
             queue_database["pvp"]["waiting_players"].append(self.username)
 
@@ -62,6 +62,14 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
         with open("database/queue_database.json", 'w') as outfile:
             json.dump(queue_database, outfile)
 
+    def queue_database(self):
+        try:
+            json_data = open("database/queue_database.json")
+            queue_database = json.load(json_data) 
+        except:
+            queue_database = {"pvp": {"waiting_players":[]}}
+        return queue_database
+    
     def matchfinder_message(self, event):
         message = event['message']
 
@@ -78,7 +86,6 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
         self.game_record_id = self.scope['url_route']['kwargs']['game_record_id']
         self.room_group_name = 'room_%s' % self.game_record_id
-        self.db_name = f"standard-{self.player_type}-{self.game_record_id}"
         self.moves = []
         self.ai_running = False
         self.last_move_time = None
@@ -98,7 +105,8 @@ class BattleWizardConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
-        info = JsonDB().game_database(self.db_name)
+        game_object = GameRecord.objects.get(id=self.game_record_id)
+        info = game_object.game_json
         info["game_record_id"] = self.game_record_id
         self.game = Game(self, self.player_type, self.db_name, info=info, ai=self.ai, player_decks=self.decks)        
         message = json.loads(text_data)
@@ -218,7 +226,7 @@ class BattleWizardConsumer(WebsocketConsumer):
             self.print_move(message)
         message["game"] = game_dict
         if message["move_type"] == "JOIN" and len(game_dict["players"]) == 1:
-            message[ "all_cards"] = json.dumps(JsonDB().all_cards())
+            message[ "all_cards"] = json.dumps(all_cards())
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
