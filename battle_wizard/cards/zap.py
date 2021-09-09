@@ -35,24 +35,24 @@ card.effects = [effect]
 # optional: help the AI play better by listing preferred targets
 effect.ai_target_types = ["opponent", "opponents_mob"]
 	
-def zap_player(target, caster, target_controller, game):
+def zap_player(target_player, caster, target_controller, game):
 	"""
 	This is a method for effect.function_player, which are always passed a Card, Player, Player, and Game	
 	"""
 	damage_amount = 3 
     target_player.damage(damage_amount)
     log_lines = [
-    	f"{caster.username} deals {damage_amount} damage to {target.username}."
+    	f"{caster.username} deals {damage_amount} damage to {target_player.username}."
     ]
     return log_lines
 
-def zap_mob(target, caster, target_controller, game):
+def zap_mob(target_mob, caster, target_controller, game):
 	"""
 	This is a method for effect.function_mob, which are always passed a Card, Player, Player, and Game	
 	"""
 	damage_amount = 3 
 	target_mob.deal_damage(damage_amount, target_controller, game)
     log_lines = [
-    	f"{caster.username} deals {damage_amount} damage to {target.name}."
+    	f"{caster.username} deals {damage_amount} damage to {target_mob.name}."
     ]
     return log_lines
