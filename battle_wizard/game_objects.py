@@ -1090,7 +1090,7 @@ class Game:
                             spell = random.choice(spells)
                             self.current_player().hand.append(spell)
                             self.current_player().played_pile.remove(spell)
-                elif effect.name == "damage":
+                elif effect.name == "damage" and effect.trigger == "end_turn":
                     message = self.current_player().do_damage_effect(effect, effect_targets, index, message)
                 elif effect.name == "improve_damage_when_used":
                     # hax for Doomer, this would break if it didnt have two damage effects

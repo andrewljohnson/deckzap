@@ -341,7 +341,7 @@ def deck_records(request):
     decks = {}
     complete_games = GameRecord.objects.filter(winner__isnull=False)
     for game in complete_games:
-        for info in [(game.player_one, game.player_one_deck), (game.player_one, game.player_two_deck)]:
+        for info in [(game.player_one, game.player_one_deck), (game.player_two, game.player_two_deck)]:
             player = info[0]
             deck = info[1]
             if deck.cards_hash not in decks:
