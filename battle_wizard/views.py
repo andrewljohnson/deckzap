@@ -247,10 +247,15 @@ def build_deck(request):
         if not deck_objects:
             deck_objects = Deck.objects.filter(global_deck=global_deck_object)
         if deck_objects:
+            print("FOO")
             deck = global_deck_object.deck_json
             deck["id"] = deck_objects[0].id
             deck["username"] = deck_objects[0].owner.username
             deck["title"] = deck_objects[0].title
+        else:
+            deck = global_deck_object.deck_json
+            deck["title"] = global_deck_object.deck_json["title"]
+
 
     cards = all_cards(require_images=True, include_tokens=False)
     cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
