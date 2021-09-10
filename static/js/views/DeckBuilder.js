@@ -72,6 +72,7 @@ export class DeckBuilder {
         const buttonHeight = 40;
         const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth + Constants.padding * 2;
         let buttonTitle = "Save";
+        console.log(this.decks[this.discipline].username)
         if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			buttonTitle = "Copy Deck";        	
         }

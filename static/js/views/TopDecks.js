@@ -33,7 +33,7 @@ export class TopDecks {
         for (let deck of this.decks) {
 	        index += 1;
 	        yPosition = titleText.position.y + Constants.padding * 10 + Constants.padding * 6 * index
-        	const cell = TopPlayers.addCell(this.app, deck.title, Constants.padding + leftPadding, yPosition, true, Constants.blueColor, 0, ()=>{window.location.href=`/build_deck?deck_id=${deck.id}`})
+        	const cell = TopPlayers.addCell(this.app, deck.title, Constants.padding + leftPadding, yPosition, true, Constants.blueColor, 0, ()=>{window.location.href=`/build_deck?global_deck_id=${deck.id}`})
         	TopPlayers.toggleUnderline(cell, 0);
         	const cellAuthor = TopPlayers.addCell(this.app, deck.author, 190 + leftPadding, yPosition, true, Constants.blueColor, 0.5, ()=>{window.location.href=`/u/${deck.author}`})
         	TopPlayers.toggleUnderline(cellAuthor, 0.5);
