@@ -1064,7 +1064,6 @@ export class GameUX {
 
     showCardPile(title, cards, isDeck=false) {
         this.setInteraction(false)
-
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         let width = Card.cardWidth * 7 + Constants.padding * 2;
@@ -1075,21 +1074,8 @@ export class GameUX {
         background.alpha = .7;
         container.addChild(background);
 
-        let options = Constants.textOptions();
-        options.wordWrapWidth = 500
-        options.fontSize = 24;
-        options.fill = Constants.whiteColor;
-        options.align = "middle";
-        let name = new PIXI.Text(title, options);
-        name.position.x = width/2 - name.width/2;
-        name.position.y = 170
-        container.addChild(name);
-
         const cardContainer = new PIXI.Container();
-        cardContainer.position.x = width/2 - Card.cardWidth*1.5;
-
-        cardContainer.position.x = Card.cardWidth;            
-        cardContainer.position.y = name.position.y + 60;
+        cardContainer.position.y = Constants.padding * 4;
         container.addChild(cardContainer);
 
         if (isDeck) {
@@ -1100,12 +1086,13 @@ export class GameUX {
             this.addSelectViewCard(this.game, cards[i], cardContainer, () =>{}, i)                
         }
 
-        let text = new PIXI.Text("Hide", {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.whiteColor});
+        let text = new PIXI.Text("Hide " + title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor});
         text.position.x = Constants.padding * 2;
         text.position.y = text.height;
         const b = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         Constants.roundRectangle(b, 2)
-        b.width = text.width + Constants.padding * 4;
+        b.width = text.width * 1.2;
+        cardContainer.position.x = Constants.padding * 6 + b.width;
         b.height = text.height*3;
         b.tint = Constants.blueColor;
         b.buttonMode = true;
@@ -1118,8 +1105,8 @@ export class GameUX {
             .on("click", clickFunction)
             .on("tap", clickFunction)
         const cage = new PIXI.Container();
-        cage.position.x = width / 2 - b.width/2;
-        cage.position.y = cardContainer.position.y + cardContainer.height + b.height;
+        cage.position.x = cardContainer.position.x - b.width - Constants.padding * 2;
+        cage.position.y = cardContainer.position.y;
         cage.addChild(b);
         cage.addChild(text);
         cage.name = "button";
