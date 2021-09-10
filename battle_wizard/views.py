@@ -360,7 +360,7 @@ def deck_records(request):
             deck = info[1]
             if deck.cards_hash not in decks:
                 decks[deck.cards_hash] = {"wins":0, "losses":0, "win_rate": 0, "id": deck.id, "author": player.username, "title": deck.deck_json["title"] or "Unnamed Deck"}
-                deck_objects = []
+                deck_objects = None
                 if request.user.is_authenticated:
                     deck_objects = Deck.objects.filter(owner=request.user).filter(global_deck=deck)
                 if not deck_objects:
