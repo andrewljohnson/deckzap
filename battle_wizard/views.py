@@ -363,9 +363,9 @@ def deck_records(request):
                 deck_objects = []
                 if request.user.is_authenticated:
                     deck_objects = Deck.objects.filter(owner=request.user).filter(global_deck=deck)
-                if len(deck_objects) == 0:
+                if not deck_objects:
                     deck_objects = Deck.objects.filter(global_deck=deck)
-                if len(deck_objects) > 0:
+                if deck_objects:
                     decks[deck.cards_hash]["id"] = deck.id
 
             if player == game.winner:
