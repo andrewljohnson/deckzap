@@ -241,11 +241,12 @@ def build_deck(request):
         deck["title"] = deck_object.title
     elif global_deck_id:
         global_deck_object = GlobalDeck.objects.get(id=int(global_deck_id))
+        deck_objects = None
         if request.user.is_authenticated:
             deck_objects = Deck.objects.filter(owner=request.user).filter(global_deck=global_deck_object)
-        if len(deck_objects) == 0:
+        if not deck_objects:
             deck_objects = Deck.objects.filter(global_deck=global_deck_object)
-        if len(deck_objects) > 0:
+        if deck_objects:
             deck = global_deck_object.deck_json
             deck["id"] = deck_objects[0].id
             deck["username"] = deck_objects[0].owner.username
