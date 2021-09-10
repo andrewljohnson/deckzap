@@ -4,6 +4,8 @@ import { Scrollbox } from 'pixi-scrollbox'
 import { Bump } from '../lib/bump.js';
 import * as Constants from '../Constants.js';
 import { Card } from '../components/Card.js';
+import { CardPile } from '../components/CardPile.js';
+import { GameNavigator } from '../components/GameNavigator.js';
 import { SVGRasterizer } from '../components/SVGRasterizer.js';
 
 const appWidth = 1585;
@@ -14,6 +16,7 @@ const cardContainerWidth = Card.cardWidth * 7 + 2 * 7;
 const gameDivID = "new_game";
 const oneThousandMS = 1000;
 const ropeHeight = 8;
+const scrollBoxWidth = 418;
 
 // move types recognized by the game rules engine
 const moveTypeActivateArtifact = "ACTIVATE_ARTIFACT";
@@ -119,7 +122,6 @@ export class GameUX {
 
     scrollbox() {
         const scrollboxHeight = avatarHeight - 2;
-        const scrollBoxWidth = 418;
         const scrollbox = new Scrollbox({ boxWidth: scrollBoxWidth, boxHeight: scrollboxHeight, clampWheel: false, passiveWheel: false})
         scrollbox.position.x = this.playerAvatar.position.x + avatarWidth + Constants.padding;
         scrollbox.position.y = this.playerAvatar.position.y + 2;
@@ -133,6 +135,7 @@ export class GameUX {
           new OutlineFilter(1, Constants.blackColor),
         ]
         this.app.stage.addChild(scrollbox);
+
         return scrollbox;
     }
 
@@ -220,6 +223,15 @@ export class GameUX {
     // render images that aren't in the cache, then refresh display
     refresh(game, message) {
         this.game = game;
+        if (game.is_reviewing) {
+            this.parentGame = game;
+            this.game = game.review_game;
+            this.messageNumber = null;
+            this.lastTextSprite = null;
+            this.gameLogScrollbox.parent.removeChild(this.gameLogScrollbox)
+            this.scrollboxBackground.parent.removeChild(this.scrollboxBackground)
+            this.gameLogScrollbox = this.scrollbox()
+        }
         if (this.opponent(game)) {
             let loadingImages = this.loadInPlayImages(game);
             loadingImages = this.loadHandAndSelectionImages(game) || loadingImages;
@@ -339,12 +351,67 @@ export class GameUX {
         }
         if (this.opponent(game)) {
             this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
+            this.updateOpponentHand(game);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
+
+            const playerOneY = this.playerAvatar.position.y;
+            const playerTwoY = this.opponentAvatar.position.y;
+            if (this.opponentYardPile) {
+                this.opponentYardPile.clear()
+                this.opponentDeckPile.clear()
+                this.yardPile.clear()
+                this.deckPile.clear()
+                this.opponentYardPile = null;
+                this.opponentDeckPile = null;
+                this.yardPile = null;
+                this.deckPile = null;
+            }
+            this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile("Opponent's Yard", this.opponent(game).played_pile)})
+            this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
+            this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
+            this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile("My Deck", this.thisPlayer(game).deck, true)})
+
+            if (this.gameNavigator) {
+                this.gameNavigator.clear();
+                this.gameNavigator = null;
+            }
+            if (this.isPlayersTurn(game) || this.parentGame) {
+                this.gameNavigator = new GameNavigator(this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
+                    () => {
+                        let index = null;
+                        // the 2 is so players can't navigate before the initial join moves
+                        if (this.parentGame && this.parentGame.review_move_index > 2) {
+                            index = this.parentGame.review_move_index - 1;
+                        } else if (!this.parentGame) {
+                            index = this.game.moves.length - 1;
+                        }
+                        if (index) {
+                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                        }
+                    }, 
+                    () => {
+                        let index = null;
+                        if (this.parentGame && this.parentGame.review_move_index < this.parentGame.move_count) {
+                            index = this.parentGame.review_move_index + 1;
+                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                        } else {
+                            // alert("can't go forward from front")
+                        }
+
+                    },
+                    () => {
+                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index: -1});
+                        this.parentGame = null;
+                    })
+            }
         }
         this.renderEndTurnButton(game, message);
         if (this.opponent(game)) {
             this.addMenuButton(game);
+        }
+        if (this.parentGame) {
+            this.endTurnButton.buttonSprite.interactive = false;
         }
         this.maybeShowSpellStack(game);
         this.maybeShowGameOver(game);
@@ -355,6 +422,12 @@ export class GameUX {
         if (message.move_type == moveTypeEndTurn) {
             this.showChangeTurnAnimation(game)
         }
+    }
+
+
+    cardPile(x, y, game, labelText, cards, clickFunction) {
+        let cardPile = new CardPile(this, game, x, y, `${labelText} (${cards.length})`, clickFunction);
+        return cardPile;
     }
 
     removeCardsFromStage(game) {
@@ -384,8 +457,8 @@ export class GameUX {
         }        
     }
 
-    updateHand(game, index=0) {
-        for (let i=index;i<this.thisPlayer(game).hand.length;i++) {
+    updateHand(game) {
+        for (let i=0;i<this.thisPlayer(game).hand.length;i++) {
             const card = this.thisPlayer(game).hand[i];
             this.addHandCard(game, card, i)
         }
@@ -398,7 +471,23 @@ export class GameUX {
         this.app.stage.addChild(sprite);                
         if (this.thisPlayer(game).card_info_to_target && card.id == this.thisPlayer(game).card_info_to_target.card_id) {
             sprite.alpha = Constants.beingCastCardAlpha;
+                console.log(sprite.texture.textureCacheIds)
         }
+    }
+
+    updateOpponentHand(game) {
+        for (let i=0;i<this.opponent(game).hand.length;i++) {
+            const card = this.opponent(game).hand[i];
+            this.addOpponentHandCard(game, card, i)
+        }
+    }
+
+    addOpponentHandCard(game, card, index) {
+        let sprite = Card.spriteCardBack(card, game, this);
+        let sliverWidth = 25;
+        sprite.position.x = sliverWidth*index + sprite.width / 2 + Constants.padding + this.opponentAvatar.position.x + avatarWidth;
+        sprite.position.y = Constants.padding + avatarHeight / 2;
+        this.app.stage.addChild(sprite);                
     }
 
     updatePlayer(game, player, avatarSprite) {
@@ -428,27 +517,9 @@ export class GameUX {
         hp.position.y = username.height + username.position.y
         avatarSprite.addChild(hp);
 
-        let hand = hp;
-        if (player == this.opponent(game)) {
-            hand = new PIXI.Text("Hand: " + player.hand.length, props);
-            hand.position.x = Constants.padding + avatar.position.x + avatar.width;
-            hand.position.y = hp.height + hp.position.y;
-            avatarSprite.addChild(hand);        
-        }
-
-        let deck = new PIXI.Text("Deck: " + player.deck.length, props);
-        deck.position.x = Constants.padding + avatar.position.x + avatar.width;
-        deck.position.y = hand.height + hand.position.y;
-        avatarSprite.addChild(deck);
-
-        let playedPile = new PIXI.Text("Played Pile: " + player.played_pile.length, props);
-        playedPile.position.x = Constants.padding + avatar.position.x + avatar.width;
-        playedPile.position.y = deck.height + deck.position.y;
-        avatarSprite.addChild(playedPile);
-
         let mana = new PIXI.Text("Mana", props);
         mana.position.x = Constants.padding + avatar.position.x + avatar.width;
-        mana.position.y = playedPile.height + playedPile.position.y + Constants.padding;
+        mana.position.y = hp.height + hp.position.y + Constants.padding;
         avatarSprite.addChild(mana);
 
         let manaGems = Constants.manaGems(player.max_mana, player.mana);
@@ -566,7 +637,7 @@ export class GameUX {
         if (!this.menuButtonAdded) {
             let menuButton = this.menuButton(game);
             menuButton.position.x = appWidth - menuButton.width - Constants.padding;
-            menuButton.position.y = Constants.padding;
+            menuButton.position.y = Constants.padding*5;
             this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
         }
@@ -718,10 +789,7 @@ export class GameUX {
         function render(currTime) { 
             // How opaque should head1 be?  Its fade started at currTime=0.
             // Over FADE_DURATION ms, opacity goes from 0 to 1
-            var alpha = 1.0 - (currTime/FADE_DURATION);
-            if (alpha <= .05) {
-                alpha = 0;
-            }
+            var alpha = .9 - (currTime/FADE_DURATION);
             container.alpha = alpha;
         }
         function eachFrame() {
@@ -739,10 +807,8 @@ export class GameUX {
                 return;
             }
         
-            // Now we're done rendering one frame.
-            // So we make a request to the browser to execute the next
+            // make a request to the browser to execute the next
             // animation frame, and the browser optimizes the rest.
-            // This happens very rapidly, as you can see in the console.log();
             window.requestAnimationFrame(eachFrame);
         };
 
@@ -810,6 +876,9 @@ export class GameUX {
         }
 
         setTimeout(() => { 
+            if (this.parentGame) {
+                return;
+            }
             for (let sprite of this.app.stage.children) {
                 if (sprite.card) {
                     sprite.interactive = true;
@@ -877,12 +946,6 @@ export class GameUX {
 
     showRevealView(game) {
         this.showSelectCardView(game, "Opponent's Hand", null);
-        let makeDiv = document.getElementById("make_selector");
-        makeDiv.onclick = () => {
-            this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
-            this.showGame();
-            makeDiv.onclick = null
-        }
         this.selectCardContainer
                 .on('click',        e => {
                     this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
@@ -915,6 +978,9 @@ export class GameUX {
     }
 
     showSelectCardView(game, title, card_on_click, cancelTitle=null) {
+        for (let sprite of this.app.stage.children)  {
+            sprite.interactive = false;
+        }
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         this.selectCardContainer = container;
@@ -988,6 +1054,78 @@ export class GameUX {
             cage.buttonSprite = b;
             container.addChild(cage);
         }
+    }
+
+    setInteraction(on) {
+        for (let sprite of this.app.stage.children)  {
+            sprite.interactive = on;
+        }
+    }
+
+    showCardPile(title, cards, isDeck=false) {
+        this.setInteraction(false)
+
+        const container = new PIXI.Container();
+        this.app.stage.addChild(container);
+        let width = Card.cardWidth * 7 + Constants.padding * 2;
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        background.width = appWidth;
+        background.height = appHeight;
+        background.tint = Constants.blackColor;
+        background.alpha = .7;
+        container.addChild(background);
+
+        let options = Constants.textOptions();
+        options.wordWrapWidth = 500
+        options.fontSize = 24;
+        options.fill = Constants.whiteColor;
+        options.align = "middle";
+        let name = new PIXI.Text(title, options);
+        name.position.x = width/2 - name.width/2;
+        name.position.y = 170
+        container.addChild(name);
+
+        const cardContainer = new PIXI.Container();
+        cardContainer.position.x = width/2 - Card.cardWidth*1.5;
+
+        cardContainer.position.x = Card.cardWidth;            
+        cardContainer.position.y = name.position.y + 60;
+        container.addChild(cardContainer);
+
+        if (isDeck) {
+            cards.sort((a, b) => (a.name > b.name) ? 1 : -1)
+        }
+
+        for (let i=0;i<cards.length;i++) {
+            this.addSelectViewCard(this.game, cards[i], cardContainer, () =>{}, i)                
+        }
+
+        let text = new PIXI.Text("Hide", {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.whiteColor});
+        text.position.x = Constants.padding * 2;
+        text.position.y = text.height;
+        const b = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        Constants.roundRectangle(b, 2)
+        b.width = text.width + Constants.padding * 4;
+        b.height = text.height*3;
+        b.tint = Constants.blueColor;
+        b.buttonMode = true;
+        b.interactive = true;
+        const clickFunction = () => {
+            container.parent.removeChild(container);
+            this.setInteraction(true)
+        };
+        b
+            .on("click", clickFunction)
+            .on("tap", clickFunction)
+        const cage = new PIXI.Container();
+        cage.position.x = width / 2 - b.width/2;
+        cage.position.y = cardContainer.position.y + cardContainer.height + b.height;
+        cage.addChild(b);
+        cage.addChild(text);
+        cage.name = "button";
+        cage.text = text;
+        cage.buttonSprite = b;
+        container.addChild(cage);
     }
 
     addSelectViewCard(game, card, cardContainer, card_on_click, index) {
@@ -1225,6 +1363,11 @@ export class GameUX {
         }
     }
 
+    isPlayersTurn(game) {
+        return (game.turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
+                || game.turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
+    }
+
     isActivePlayer(game) {
         return (game.actor_turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
                 || game.actor_turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
@@ -1329,14 +1472,11 @@ function onDragStart(event, cardSprite, gameUX, game) {
     if (!gameUX.isPlaying(game)) {
         return;
     }
-    console.log("onDragStart")
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
     cardSprite.data = event.data;
-    cardSprite.data.firstPosition = cardSprite.data.global
-
-    cardSprite.data.firstPosition = Object.assign({}, cardSprite.data.firstPosition);
+    cardSprite.data.firstPosition = Object.assign({}, cardSprite.data.global);
 
     cardSprite.off('mouseover', Card.onMouseover);
     cardSprite.off('mouseout', Card.onMouseout);
@@ -1426,8 +1566,6 @@ function onDragMove(dragSprite, gameUX, bump) {
 
     // take sprite out of the hand container so it can collide with other sprites when dragged
     let newPosition = dragSprite.data.getLocalPosition(dragSprite.parent);
-    console.log("firstPosition: " + dragSprite.data.firstPosition.y)
-    console.log("now: " +dragSprite.position.y)
     const sensitivity = 40
     if (Math.abs(dragSprite.data.firstPosition.y - dragSprite.position.y) + Math.abs(dragSprite.data.firstPosition.x - dragSprite.position.x) > sensitivity) {
         Card.onMouseout(dragSprite, gameUX);
@@ -1496,7 +1634,7 @@ function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
     }
 
     for (let mob of gameUX.app.stage.children) {
-        if (mob.card && dragSprite.card.id != mob.card.id && (!collidedSprite || !collidedSprite.card || mob.card.id != collidedSprite.card.id)) {
+        if (mob.card && !mob.isCardBack && dragSprite.card.id != mob.card.id && (!collidedSprite || !collidedSprite.card || mob.card.id != collidedSprite.card.id)) {
             if (mob.card.can_be_clicked) {
                 if (!hasCanBeClickedFilter(mob) || hasCantBeTargettedFilter(mob)) {
                     clearDragFilters(mob);

@@ -1,9 +1,7 @@
 import datetime
 import json
 import random
-import requests
 import string
-import time
 
 from battle_wizard.analytics import Analytics
 from battle_wizard.data import all_cards

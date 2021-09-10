@@ -23,7 +23,7 @@ artifactCardType = "artifact"
 
 
 class Game:
-    def __init__(self, websocket_consumer, player_type, info=None, player_decks=None, ai=None):
+    def __init__(self, player_type, info=None, player_decks=None, ai=None):
 
         self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
 
@@ -45,9 +45,6 @@ class Game:
         # created by Make Effect
         self.global_effects = info["global_effects"] if info and "global_effects" in info else []
 
-        # the websocket consumer instance the game gets updated by
-        self.websocket_consumer = websocket_consumer
-
         # stack decks for unit testing
         self.player_decks = player_decks
 
@@ -55,6 +52,14 @@ class Game:
         self.show_rope = info["show_rope"] if info and "show_rope" in info else False
         
         self.max_hand_size = 10
+
+        # a list of all player-derived moves, sufficient to replay the game
+        self.moves = info["moves"] if info and "moves" in info else []
+        # when in review mode, the index of the move under review
+        self.review_move_index = info["review_move_index"] if info and "review_move_index" in info else -1
+        self.review_game = Game(self.player_type, info=info["review_game"], player_decks=player_decks, ai=ai) if info and "review_game" in info else None
+        self.is_review_game = info["is_review_game"] if info and "is_review_game" in info else False
+        self.is_reviewing = info["is_reviewing"] if info and "is_reviewing" in info else False
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -64,12 +69,17 @@ class Game:
             "actor_turn": self.actor_turn, 
             "game_record_id": self.game_record_id, 
             "global_effects": self.global_effects, 
+            "moves": self.moves, 
             "next_card_id": self.next_card_id, 
             "players": [p.as_dict() for p in self.players], 
             "player_type": self.player_type, 
             "show_rope": self.show_rope, 
             "stack": self.stack, 
             "turn": self.turn, 
+            "review_move_index": self.review_move_index, 
+            "review_game": self.review_game.as_dict() if self.review_game else None, 
+            "is_review_game": self.is_review_game, 
+            "is_reviewing": self.is_reviewing, 
             "turn_start_time": self.turn_start_time.__str__() if self.turn_start_time else None, 
         }
 
@@ -254,10 +264,47 @@ class Game:
             moves.append({"move_type": "SELECT_OPPONENT", "username": self.ai})
         return moves
 
-    def play_move(self, message):
+    def navigate_game(self, original_message, consumer):
+        
+        self.review_game = Game("pvp", info={}, ai=consumer.ai, player_decks=consumer.decks)
+        self.review_game.is_review_game = True
+        self.is_reviewing = True;
+        #print(f"navigate_game with total moves {len(self.moves)}")
+        #for move in self.moves:
+        #    print(move)
+        self.moves[0]["discipline"] = self.players[0].discipline
+        self.moves[1]["discipline"] = self.players[1].discipline
+        self.moves[0]["initial_deck"] = [c.as_dict() for c in self.players[0].initial_deck]
+        self.moves[1]["initial_deck"] = [c.as_dict() for c in self.players[1].initial_deck]
+        index = 0
+        log_lines = []
+        for move in self.moves:
+            if index > original_message["index"] - 1 and original_message["index"] > -1:
+                break
+            move["log_lines"] = []
+            message = self.review_game.play_move(move)
+            if message["log_lines"] != []:
+                log_lines += message["log_lines"]
+            index += 1
+        original_message["log_lines"] = log_lines  
+        username = original_message['username']
+        if original_message["index"] == -1:
+            self.review_game = None
+            self.is_reviewing = False
+            original_message["log_lines"].append(f"{username} resumed the game.")
+        else:
+            original_message["log_lines"].append(f"{username} navigated the game to move {original_message['index']}.")
+        self.review_move_index = original_message["index"]
+
+        #print(message["log_lines"])
+
+        return original_message
+
+
+    def play_move(self, message, save=False):
         move_type = message["move_type"]
         if message["move_type"] != "GET_TIME":
-            print(f"play_move: {move_type}")
+            print(f"play_move: {move_type} {message['username']}")
         
         if move_type == 'GET_TIME':
             max_turn_time = 60
@@ -268,6 +315,20 @@ class Game:
             message["max_turn_time"] = max_turn_time
             return message
 
+        if save and (message["move_type"] != "JOIN" or len(self.moves) <= 2):
+            move_copy = copy.deepcopy(message)
+            if "game" in move_copy:
+                del move_copy['game']
+            if "log_lines" in move_copy:
+                del move_copy['log_lines']
+            if "show_spell" in move_copy:
+                del move_copy['show_spell']
+            if "game" in move_copy:
+                del move_copy['game']
+            self.moves.append(move_copy)
+            #for move in self.moves:
+            #    print(move)
+        
         if move_type != 'JOIN':
             self.unset_clickables(move_type)
 
@@ -319,7 +380,7 @@ class Game:
                 message = self.attack(message)          
             else:  
                 self.actor_turn += 1
-                message = self.current_player().play_card(self.stack[-1][0]["card"], message)
+                self.current_player().play_card(self.stack[-1][0]["card"], message)
         elif move_type == 'ACTIVATE_ARTIFACT':
             message = self.activate_artifact(message)            
         elif move_type == 'ACTIVATE_MOB':
@@ -347,7 +408,12 @@ class Game:
             if not anything_clickable and not "bot" in cp.username and len(self.stack) > 0:
                 return self.play_move({"move_type": "RESOLVE_NEXT_STACK", "username": cp.username})
 
-        if message:
+        if move_type == 'JOIN':
+            if len(self.players) == 1 and self.player_type == "pvai":
+                message["username"] = self.ai
+                message = self.play_move(message, save=True)
+
+        if message and len(self.players) == 2 and not self.is_review_game:
             game_object = GameRecord.objects.get(id=self.game_record_id)
             game_object.game_json = self.as_dict()
             if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
@@ -827,17 +893,17 @@ class Game:
     def join(self, message):
         join_occured = True
         if len(self.players) == 0:
-            self.players.append(Player(self, {"username":message["username"]}, new=True))            
+            self.players.append(Player(self, message, new=True))            
             self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
-            if self.player_type == "pvai":
-                message["log_lines"].append(f"{self.ai} joined the game.")
-                self.players.append(Player(self, {"username":self.ai}, new=True, bot=self.ai))
-                self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
-            self.players.append(Player(self, {"username":message["username"]}, new=True))
-            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
+            if self.player_type == "pvai":                        
+                self.players.append(Player(self, message, new=True, bot=self.ai))
+                self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
+            else:
+                self.players.append(Player(self, message, new=True))
+                self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
         elif len(self.players) >= 2:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
@@ -869,33 +935,37 @@ class Game:
         if self.players[0].max_mana == 0: 
             deck_hashes = []
             for x in range(0, 2):
-                try:
-                    decks = Deck.objects.filter(owner=User.objects.get(username=self.players[x].username))
-                except ObjectDoesNotExist:
-                    decks = []
-                deck_to_use = None
-                for d in decks:
-                    if d.id == self.players[x].deck_id:
-                        deck_to_use = d.global_deck.deck_json
-                if self.players[x].deck_id == "the_coven":
-                    deck_to_use = default_deck_vampire_lich()
-                elif self.players[x].deck_id == "keeper":
-                    deck_to_use = default_deck_dwarf_tinkerer()
-                elif self.players[x].deck_id == "townies":
-                    deck_to_use = default_deck_dwarf_bard()
-                elif self.players[x].deck_id == "draw_go":
-                    deck_to_use = default_deck_genie_wizard()
+                if self.is_review_game:
+                    self.players[x].deck = self.players[x].initial_deck
                 else:
-                    deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
-                deck_hashes.append(hash_for_deck(deck_to_use))
-                card_names = []
-                for key in deck_to_use["cards"]:
-                    for _ in range(0, deck_to_use["cards"][key]):
-                        card_names.append(key)
-                for card_name in card_names:
-                    self.players[x].add_to_deck(card_name, 1)
-                random.shuffle(self.players[x].deck)
-                self.players[x].discipline = deck_to_use["discipline"]
+                    try:
+                        decks = Deck.objects.filter(owner=User.objects.get(username=self.players[x].username))
+                    except ObjectDoesNotExist:
+                        decks = []
+                    deck_to_use = None
+                    for d in decks:
+                        if d.id == self.players[x].deck_id:
+                            deck_to_use = d.global_deck.deck_json
+                    if self.players[x].deck_id == "the_coven":
+                        deck_to_use = default_deck_vampire_lich()
+                    elif self.players[x].deck_id == "keeper":
+                        deck_to_use = default_deck_dwarf_tinkerer()
+                    elif self.players[x].deck_id == "townies":
+                        deck_to_use = default_deck_dwarf_bard()
+                    elif self.players[x].deck_id == "draw_go":
+                        deck_to_use = default_deck_genie_wizard()
+                    else:
+                        deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
+                    deck_hashes.append(hash_for_deck(deck_to_use))
+                    card_names = []
+                    for key in deck_to_use["cards"]:
+                        for _ in range(0, deck_to_use["cards"][key]):
+                            card_names.append(key)
+                    for card_name in card_names:
+                        self.players[x].add_to_deck(card_name, 1)
+                    random.shuffle(self.players[x].deck)
+                    self.players[x].initial_deck = copy.deepcopy(self.players[x].deck)
+                    self.players[x].discipline = deck_to_use["discipline"]
 
             self.get_starting_artifacts()
             self.get_starting_spells()
@@ -903,18 +973,18 @@ class Game:
                 self.players[x].draw(self.players[x].initial_hand_size())
 
             self.send_start_first_turn(message)
-
-            game_record = GameRecord.objects.get(id=self.game_record_id)
-            game_record.date_started = datetime.datetime.now()
-            game_record.player_one = User.objects.get(username=self.players[0].username)
-            try:
-                game_record.player_two = User.objects.get(username=self.players[1].username)
-            except ObjectDoesNotExist:
-                game_record.player_two = User.objects.create(username=self.players[1].username)
-                game_record.player_two.save()
-            game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[0])
-            game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[1])
-            game_record.save()
+            if not self.is_review_game:
+                game_record = GameRecord.objects.get(id=self.game_record_id)
+                game_record.date_started = datetime.datetime.now()
+                game_record.player_one = User.objects.get(username=self.players[0].username)
+                try:
+                    game_record.player_two = User.objects.get(username=self.players[1].username)
+                except ObjectDoesNotExist:
+                    game_record.player_two = User.objects.create(username=self.players[1].username)
+                    game_record.player_two.save()
+                game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[0])
+                game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[1])
+                game_record.save()
 
     def get_starting_artifacts(self):
         found_artifact = None
@@ -1986,6 +2056,7 @@ class Player:
         self.username = info["username"]
         self.discipline = info["discipline"] if "discipline" in info else None
         self.deck_id = info["deck_id"] if "deck_id" in info else None
+        self.initial_deck = [Card(c_info) for c_info in info["initial_deck"]] if "initial_deck" in info else []
         self.bot = bot
 
         self.game = game
@@ -2036,6 +2107,7 @@ class Player:
             "card_info_to_target": self.card_info_to_target,
             "hand": [c.as_dict() for c in self.hand],
             "in_play": [c.as_dict() for c in self.in_play],
+            "initial_deck": [c.as_dict() for c in self.initial_deck],
             "artifacts": [c.as_dict() for c in self.artifacts],
             "deck": [c.as_dict() for c in self.deck],
             "played_pile": [c.as_dict() for c in self.played_pile],

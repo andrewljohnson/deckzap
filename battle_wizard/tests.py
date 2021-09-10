@@ -14,7 +14,7 @@ class GameObjectTests(TestCase):
 
     def game_for_decks(self, player_decks):
         game_dict = {}
-        game = Game(None, "pvp", "test_stacked_deck", info=game_dict, player_decks=player_decks)
+        game = Game("pvp", "test_stacked_deck", info=game_dict, player_decks=player_decks)
         game.play_move({"username": "a", "move_type": "JOIN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "JOIN", "log_lines":[]})
         return game

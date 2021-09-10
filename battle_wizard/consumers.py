@@ -37,7 +37,6 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         message = json.loads(text_data)
-        print(message)
 
         self.username = message["username"]
 
@@ -106,22 +105,37 @@ class BattleWizardConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
+        message = json.loads(text_data)
+
+        if message["move_type"] == 'NAVIGATE_GAME':
+            message["log_lines"] = []
+            message = self.game.navigate_game(message, self)  
+            self.send_game_message(self.game.as_dict(), message)
+            return
+
         game_object = GameRecord.objects.get(id=self.game_record_id)
         info = game_object.game_json
         info["game_record_id"] = self.game_record_id
-        self.game = Game(self, self.player_type, info=info, ai=self.ai, player_decks=self.decks)        
-        message = json.loads(text_data)
+        self.game = Game(self.player_type, info=info, ai=self.ai, player_decks=self.decks)        
 
         if message["move_type"] == 'NEXT_ROOM':
             self.send_game_message(None, message)
             return
 
         message["log_lines"] = []
-        message = self.game.play_move(message)    
+        save = message["move_type"] not in [
+            "ATTACK", 
+            "ACTIVATE_ARTIFACT", 
+            "ACTIVATE_MOB",
+            "PLAY_CARD",
+            "RESOLVE_MOB_EFFECT",
+            "SELECT_ARTIFACT",
+        ]
+        message = self.game.play_move(message, save=save)    
         if message:
             self.send_game_message(self.game.as_dict(), message)
 
-            if message["move_type"] == "GET_TIME":
+            if message["move_type"] == "GET_TIME" and not self.game.is_reviewing:
                 # run AI if it's the AI's move or if the other player just chose their discipline
                 if self.player_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
                     (self.game.players[0].discipline != None and self.game.players[1].discipline == None)):                     
@@ -152,7 +166,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         print("AI playing " + str(chosen_move))
         chosen_move["log_lines"] = []
-        message = self.game.play_move(chosen_move)    
+        message = self.game.play_move(chosen_move, save=True)    
         self.send_game_message(self.game.as_dict(), message)
         self.ai_running = False
 
@@ -256,7 +270,10 @@ class BattleWizardConsumer(WebsocketConsumer):
             Gets called once per recipient of a message.
         '''
         message = event['message']
-
+        # prevent circular refs from reviewing
+        if message["game"] and message["game"]["is_reviewing"]:
+            message["game"]["move_count"] = len(message["game"]["moves"])
+            del message["game"]["moves"]  
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'payload': message

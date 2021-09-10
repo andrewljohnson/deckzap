@@ -7,9 +7,33 @@ export class Card {
 	static cardHeight = 190;
 	static cardWidth = 150;
     static cardTexture = PIXI.Texture.from("/static/images/card.png");
+    static cardBackTexture = PIXI.Texture.from("/static/images/card-back.png");
     static cardLargeTexture = PIXI.Texture.from("/static/images/card-large.png");
     static cardTextureInPlay = PIXI.Texture.from("/static/images/in play mob.png");
     static cardTextureInPlayGuard = PIXI.Texture.from("/static/images/in play guard mob.png");
+
+    static spriteCardBack(card, game, pixiUX, small=false) {
+        let cardSprite = Card.baseSprite(card, Card.cardBackTexture, game);
+        cardSprite.isCardBack = true;
+        cardSprite.buttonMode = false;
+        cardSprite.anchor.set(.5);
+        if (small) {
+            cardSprite.height = cardSprite.height * .8;
+            cardSprite.width = cardSprite.width * .8;
+        }
+
+        let opponent = pixiUX.opponent(game);
+        let currentPlayer = pixiUX.thisPlayer(game);
+        cardSprite.filters = [];
+        if (card && currentPlayer.card_info_to_target.effect_type && currentPlayer.card_info_to_target.card_id == card.id) {
+                cardSprite.filters = [Constants.targettingGlowFilter()];                                   
+        } 
+        if (card && opponent.card_info_to_target.effect_type && opponent.card_info_to_target.card_id == card.id) {
+                cardSprite.filters = [Constants.targettingGlowFilter()];                                   
+        } 
+        return cardSprite
+    }
+
 
 	static sprite(card, pixiUX, game, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
         let cw = Card.cardWidth;
@@ -18,7 +42,7 @@ export class Card {
         let loaderId = card.name;
         let aFX = -Card.cardWidth / 2 + 16;
         let aFY = -Card.cardHeight / 2 + 16;
-        let cardTexture = Card.cardTexture
+        let cardTexture = Card.cardTexture;
         let portraitHeight = ch / 2 - Constants.defaultFontSize - Constants.padding;
         if (useLargeSize) {
             cw *= 2;
@@ -543,6 +567,7 @@ export class Card {
         if (container) {
             container.addChild(cage);            
         }
+        cage.background = buttonBG;
         return cage;
     }
 
