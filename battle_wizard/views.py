@@ -231,6 +231,7 @@ def build_deck(request):
         A view to create and edit decks.
     """
     deck_id = request.GET.get("deck_id", None)
+    global_deck_id = request.GET.get("global_deck_id", None)
     deck = None
     if deck_id:
         deck_object = Deck.objects.get(id=int(deck_id))
@@ -238,6 +239,18 @@ def build_deck(request):
         deck["id"] = deck_id
         deck["username"] = deck_object.owner.username
         deck["title"] = deck_object.title
+    elif global_deck_id:
+        global_deck_object = GlobalDeck.objects.get(id=int(global_deck_id))
+        if request.user.is_authenticated:
+            deck_objects = Deck.objects.filter(owner=request.user).filter(global_deck=global_deck_object)
+        if len(deck_objects) == 0:
+            deck_objects = Deck.objects.filter(global_deck=global_deck_object)
+        if len(deck_objects) > 0:
+            deck = global_deck_object.deck_json
+            deck["id"] = deck_objects[0].id
+            deck["username"] = deck_objects[0].owner.username
+            deck["title"] = deck_objects[0].title
+
     cards = all_cards(require_images=True, include_tokens=False)
     cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     Analytics.log_amplitude(request, "Page View - View Deck", {"path":"/build_deck/", "page":"build deck", "deck_id":deck_id})
@@ -352,7 +365,7 @@ def deck_records(request):
                 if len(deck_objects) == 0:
                     deck_objects = Deck.objects.filter(global_deck=deck)
                 if len(deck_objects) > 0:
-                    decks[deck.cards_hash]["id"] = deck_objects[0].id
+                    decks[deck.cards_hash]["id"] = deck.id
 
             if player == game.winner:
                 decks[deck.cards_hash]["wins"] += 1
