@@ -578,9 +578,6 @@ export class Card {
     	}
         let cardPower = card.power;
         let cardToughness = card.toughness - damage;
-        if (useLargeSize) {
-            cardToughness = card.toughness;
-        }
         if (card.tokens && !useLargeSize) {
             // todo does this code need to be clientside?
             for (let c of card.tokens) {
@@ -600,6 +597,10 @@ export class Card {
             for (let c of card.tokens) {
                 cardToughness += c.toughness_modifier;
             }
+        }
+        if (useLargeSize) {
+            cardPower = card.power;
+            cardToughness = card.toughness;
         }
 
         let ptOptions = Constants.textOptions()
