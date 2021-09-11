@@ -295,9 +295,6 @@ class Game:
         else:
             original_message["log_lines"].append(f"{username} navigated the game to move {original_message['index']}.")
         self.review_move_index = original_message["index"]
-
-        #print(message["log_lines"])
-
         return original_message
 
 
@@ -907,9 +904,6 @@ class Game:
         elif len(self.players) >= 2:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
-
-        print("JOIN")
-        print(self.players)
 
         if len(self.players) == 2 and join_occured:
             self.start_game(message)
