@@ -908,6 +908,9 @@ class Game:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
 
+        print("JOIN")
+        print(self.players)
+
         if len(self.players) == 2 and join_occured:
             self.start_game(message)
         return message

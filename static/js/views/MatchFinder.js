@@ -23,7 +23,7 @@ export class MatchFinder {
         if (this.gameSocket.readyState == WebSocket.OPEN) {
             console.log('WebSockets connection created.');
             this.gameSocket.send(JSON.stringify(
-            	{"username": username, "message_type": "join"}
+            	{"username": username, "message_type": "JOIN"}
         	));                
         } else {
             setTimeout(() => {
