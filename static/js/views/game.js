@@ -1064,6 +1064,23 @@ export class GameUX {
 
     showCardPile(title, cards, isDeck=false) {
         this.setInteraction(false)
+
+        if (isDeck) {
+            cards.sort((a, b) => (a.name > b.name) ? 1 : -1)
+        }
+
+        let loadingImages = this.rasterizer.loadCardImages(cards);
+        if (loadingImages) {
+            this.app.loader.load(() => {
+                this.finishShowCardPile(title, cards, isDeck)
+                this.app.loader.reset()
+            });
+        } else {
+            this.finishShowCardPile(title, cards, isDeck)                      
+        }
+    }
+
+    finishShowCardPile(title, cards, isDeck=false) {
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         let width = Card.cardWidth * 7 + Constants.padding * 2;
@@ -1077,10 +1094,6 @@ export class GameUX {
         const cardContainer = new PIXI.Container();
         cardContainer.position.y = Constants.padding * 4;
         container.addChild(cardContainer);
-
-        if (isDeck) {
-            cards.sort((a, b) => (a.name > b.name) ? 1 : -1)
-        }
 
         for (let i=0;i<cards.length;i++) {
             this.addSelectViewCard(this.game, cards[i], cardContainer, () =>{}, i)                

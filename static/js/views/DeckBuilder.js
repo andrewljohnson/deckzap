@@ -42,14 +42,14 @@ export class DeckBuilder {
 		background.height = (Card.cardHeight) * 12
 		this.app.stage.addChild(background);
 
-        let titleText = this.addTitle();
-        this.disciplinePicker = new DisciplinePicker(this, titleText.position.y + titleText.height + Constants.padding * 4, disciplineID => {this.switchClassFunction(disciplineID)} )
-        let b = this.addSaveButton();
-        this.addDeckTitleInput(b.position.x, b.position.y + b.height + Constants.padding, b.width);
-	    this.disciplinePicker.select(this.discipline)
-        if (this.decks[this.discipline].id != null) {
-        	this.disciplinePicker.disable();
-        }
+	        let titleText = this.addTitle();
+	        this.disciplinePicker = new DisciplinePicker(this, titleText.position.y + titleText.height + Constants.padding * 4, disciplineID => {this.switchClassFunction(disciplineID)} )
+	        let b = this.addSaveButton();
+	        this.addDeckTitleInput(b.position.x, b.position.y + b.height + Constants.padding, b.width);
+		    this.disciplinePicker.select(this.discipline)
+	        if (this.decks[this.discipline].id != null) {
+	        	this.disciplinePicker.disable();
+	        }
 	}
 
 	addTitle() {
@@ -99,32 +99,32 @@ export class DeckBuilder {
 	}
 
 	addDeckTitleInput(x, y, buttonWidth) {
-       let deckTitleInput = new TextInput({
-		    input: {
-		        fontSize: '14pt',
-		        width: (buttonWidth - 5) + 'px',
-		        textAlign: 'center',
-		    }, 
-		    box: {
-		    	borderWidth: '1px',
-		    	stroke: 'black',
-		    	borderStyle: 'solid',
+	       let deckTitleInput = new TextInput({
+			    input: {
+			        fontSize: '14pt',
+			        width: (buttonWidth - 5) + 'px',
+			        textAlign: 'center',
+			    }, 
+			    box: {
+			    	borderWidth: '1px',
+			    	stroke: 'black',
+			    	borderStyle: 'solid',
+			    }
+			})
+	       	deckTitleInput.placeholder = 'My Deck'
+	       	deckTitleInput.text = this.decks[this.discipline].title ? this.decks[this.discipline].title != undefined : ""
+	  		deckTitleInput.position.x = x;
+	        deckTitleInput.position.y = y;
+			if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
+		        deckTitleInput.interactive = false
+		        deckTitleInput.buttonMode = false
 		    }
-		})
-       	deckTitleInput.placeholder = 'My Deck'
-       	deckTitleInput.text = this.decks[this.discipline].title ? this.decks[this.discipline].title != undefined : ""
-  		deckTitleInput.position.x = x;
-        deckTitleInput.position.y = y;
-		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
-	        deckTitleInput.interactive = false
-	        deckTitleInput.buttonMode = false
-	    }
-	    this.app.stage.addChild(deckTitleInput);
-        this.deckTitleInput = deckTitleInput;
+		    this.app.stage.addChild(deckTitleInput);
+	        this.deckTitleInput = deckTitleInput;
 
-        this.deckTitleInput.on('input', text => {
-    		this.decks[this.discipline].title = text
-		})
+	        this.deckTitleInput.on('input', text => {
+	    		this.decks[this.discipline].title = text
+			})
 	}
 
 	switchClassFunction (disciplineID) {
@@ -166,9 +166,9 @@ export class DeckBuilder {
 		}
 		this.cardCountLabel = new PIXI.Text(cardCountText, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor, stroke: labelColor, strokeThickness: 2});
 
-        this.cardCountLabel.position.x = this.deckTitleInput.position.x;
-        this.cardCountLabel.position.y = this.deckTitleInput.position.y + this.deckTitleInput.height + Constants.padding * 2;
-        this.app.stage.addChild(this.cardCountLabel);
+	        this.cardCountLabel.position.x = this.deckTitleInput.position.x;
+	        this.cardCountLabel.position.y = this.deckTitleInput.position.y + this.deckTitleInput.height + Constants.padding * 2;
+	        this.app.stage.addChild(this.cardCountLabel);
 	}
 
 	deckIsFull() {
