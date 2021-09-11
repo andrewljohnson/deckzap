@@ -419,6 +419,12 @@ export class GameUX {
         this.maybeShowCardSelectionView(game);
         this.maybeShowRope(game);
         this.elevateSpritesBeingCast();
+
+        // keep the view above newly rendered sprites
+        if (this.currentCardPile) {
+            this.currentCardPile.parent.removeChild(this.currentCardPile);
+            this.app.stage.addChild(this.currentCardPile);
+        }
         if (message.move_type == moveTypeEndTurn) {
             this.showChangeTurnAnimation(game)
         }
@@ -1125,6 +1131,7 @@ export class GameUX {
         b.interactive = true;
         const clickFunction = () => {
             container.parent.removeChild(container);
+            this.currentCardPile = null;
             this.setInteraction(true)
         };
         b
@@ -1139,6 +1146,7 @@ export class GameUX {
         cage.text = text;
         cage.buttonSprite = b;
         container.addChild(cage);
+        this.currentCardPile = container;
     }
 
     addSelectViewCard(game, card, cardContainer, card_on_click, index) {
