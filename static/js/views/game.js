@@ -981,6 +981,21 @@ export class GameUX {
         for (let sprite of this.app.stage.children)  {
             sprite.interactive = false;
         }
+
+        let cards = this.thisPlayer(game).card_choice_info.cards;
+
+        let loadingImages = this.rasterizer.loadCardImages(cards);
+        if (loadingImages) {
+            this.app.loader.load(() => {
+                this.finishShowSelectionView(cards, game, title, card_on_click, cancelTitle);
+                this.app.loader.reset()
+            });
+        } else {
+            this.finishShowSelectionView(cards, game, title, card_on_click, cancelTitle);                      
+        }
+    }
+
+    finishShowSelectionView(cards, game, title, card_on_click, cancelTitle) {
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         this.selectCardContainer = container;
@@ -1005,8 +1020,6 @@ export class GameUX {
         const cardContainer = new PIXI.Container();
         this.selectCardInnerContainer = cardContainer
         cardContainer.position.x = width/2 - Card.cardWidth*1.5;
-
-        let cards = this.thisPlayer(game).card_choice_info.cards;
         if (cards.length >= 6) {
             cardContainer.position.x = Card.cardWidth;            
         }

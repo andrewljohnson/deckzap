@@ -1532,8 +1532,7 @@ class Game:
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
             elif e.target_type == "all":
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
-            # todo unhardcode for other fetch types if we can fetch more than Artifacts
-            elif e.target_type == artifactCardType:
+            elif e.target_type == "artifact_in_deck":
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": message["username"], "target_type": e.target_type}], 0)
             elif e.target_type == "self_mob":
                 message = self.select_mob_target_for_artifact_activated_effect(artifact, message)

@@ -578,7 +578,10 @@ export class Card {
     	}
         let cardPower = card.power;
         let cardToughness = card.toughness - damage;
-        if (card.tokens) {
+        if (useLargeSize) {
+            cardToughness = card.toughness;
+        }
+        if (card.tokens && !useLargeSize) {
             // todo does this code need to be clientside?
             for (let c of card.tokens) {
                 if (c.multiplier == "self_artifacts" && player.artifacts) {

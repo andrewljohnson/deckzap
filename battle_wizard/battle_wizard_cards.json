@@ -444,7 +444,7 @@
 		"card_type": "artifact",
 		"discipline": "magic",
 		"image": "rune-stone.svg",
-		"cost": 4,
+		"cost": 1,
 		"description": "0: sacrifice this, put a artifact from your deck into play.",
 		"effects": [{
 				"name": "fetch_card_into_play",
@@ -452,7 +452,13 @@
 				"target_type": "artifact_in_deck",
 				"cost": 0,
 				"sacrifice_on_activate": true
-		}]
+		}],
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		]
 	},
 	{
 		"name": "Town Council",
@@ -2190,7 +2196,7 @@
 		"discipline": "magic",
 		"card_type": "artifact",
 		"image": "extra-time.svg",
-		"cost": 8,
+		"cost": 6,
 		"description": "Syphon. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
 		"effects": [{
 				"name": "damage",
