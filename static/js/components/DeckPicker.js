@@ -57,7 +57,8 @@ export class DeckPicker {
 	        	yPosition + Constants.padding * 3 + choiceHeight/2,
 	        	switchDeck	
 		    );	
-		    this.random = option;		
+		    this.random = option;	
+		    this.options.push(option)	
 		}
 		this.position = this.options[0].position;
 	}
