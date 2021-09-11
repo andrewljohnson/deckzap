@@ -1279,7 +1279,62 @@
 		}]
 	},
 	
+	{
+		"name": "Stone Elemental",
+		"discipline": "magic",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1
+	},
 
+	{
+		"name": "Air Elemental",
+		"discipline": "magic",
+		"card_type": "mob",
+		"power": 1,
+		"toughness": 5,
+		"cost": 2,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
+	},
+	{
+		"name": "Hide",
+		"discipline": "magic",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "Target mob gains Lurker.",
+		"effects": [ 
+			{
+				"name": "add_mob_abilities",
+				"effect_type": "spell",
+				"target_type": "mob",
+				"abilities": [{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}],
+				"ai_target_types": ["self_mob"]
+			}
+		]
+	},	
+	{
+		"name": "Prayer Beads",
+		"card_type": "artifact",
+		"image": "prayer-beads.svg",
+		"cost": 1,
+		"description": "Pay 1, heal 2 hit points",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"effects": [{
+				"name": "heal",
+				"effect_type": "activated",
+				"target_type": "any",
+				"cost": 1,
+				"amount": 2
+		}]
+	},
 
 
 

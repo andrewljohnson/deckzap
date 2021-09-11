@@ -28,7 +28,7 @@ export class DeckBuilder {
 	setUpPIXIApp() {
 		const widthInCards = 8;
 		let appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
-		let appHeight = (Card.cardHeight) * 12;
+		let appHeight = (Card.cardHeight) * 15;
 		Constants.setUpPIXIApp(this, appHeight, appWidth)
         this.rasterizer = new SVGRasterizer(this.app);
 	}
@@ -72,7 +72,6 @@ export class DeckBuilder {
         const buttonHeight = 40;
         const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth + Constants.padding * 2;
         let buttonTitle = "Save";
-        console.log(this.decks[this.discipline].username)
         if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			buttonTitle = "Copy Deck";        	
         }

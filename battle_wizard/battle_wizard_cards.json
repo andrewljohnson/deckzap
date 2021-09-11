@@ -152,7 +152,7 @@
 	{
 		"name": "Riftwalker Djinn",
 		"image": "djinn.svg",
-		"discipline": "magic",
+		"discipline": "none",
 		"card_type": "mob",
 		"power": 3,
 		"toughness": 2,
@@ -179,7 +179,7 @@
 	{
 		"name": "LionKin",
 		"image": "lion.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"power": 3,
 		"toughness": 3,
@@ -192,10 +192,10 @@
 		"name": "Training Master",
 		"image": "coronation.svg",
 		"discipline": "none",
-		"card_type": "mob",
+		"card_type": "magic",
 		"power": 3,
 		"toughness": 3,
-		"cost": 4,
+		"cost": 3,
 		"description": "Double the power of another mob.",
 		"effects": [{
 			"name": "double_power",
@@ -206,20 +206,12 @@
 	{
 		"name": "Winding One",
 		"image": "wind-hole.svg",
-		"discipline": "magic",
+		"discipline": "none",
 		"card_type": "mob",
 		"power": 3,
 		"toughness": 4,
 		"cost": 3,
 		"abilities": [{"name": "Lurker", "descriptive_id": "Lurker"}]
-	},
-	{
-		"name": "Stone Elemental",
-		"discipline": "magic",
-		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
-		"cost": 1
 	},
 	{
 		"name": "Lightning Elemental",
@@ -237,17 +229,6 @@
 			"amount": 2,
 			"ai_target_types": ["opponent"]
 		}]	
-	},
-	{
-		"name": "Air Elemental",
-		"discipline": "magic",
-		"card_type": "mob",
-		"power": 1,
-		"toughness": 5,
-		"cost": 2,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
 	},
 	{
 		"name": "Tame Tempest",
@@ -293,22 +274,6 @@
 			"ai_target_types": ["opponents_mob"]
 		}]
 	},
-	{
-		"name": "Hide",
-		"discipline": "magic",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Target mob gains Lurker.",
-		"effects": [ 
-			{
-				"name": "add_mob_abilities",
-				"effect_type": "spell",
-				"target_type": "mob",
-				"abilities": [{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}],
-				"ai_target_types": ["self_mob"]
-			}
-		]
-	},	
 	{
 		"name": "Zap",
 		"image": "lightning-trio.svg",
@@ -412,6 +377,7 @@
 	{
 		"name": "Bow",
 		"image": "bow-arrow.svg",
+		"discipline": "magic",
 		"card_type": "artifact",
 		"cost": 1,
 		"description": "Pay 1, deal 3 damage to your opponent.",
@@ -433,8 +399,9 @@
 		"name": "Wand",
 		"card_type": "artifact",
 		"image": "orb-wand.svg",
+		"discipline": "magic",
 		"cost": 1,
-		"description": "Pay 1, deal 1 damage to anything.",
+		"description": "Pay 0, deal 1 damage to anything.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -445,35 +412,16 @@
 				"name": "damage",
 				"effect_type": "activated",
 				"target_type": "any",
-				"cost": 1,
+				"cost": 0,
 				"amount": 1,
 				"ai_target_types": ["opponent", "opponents_mob"]
-		}]
-	},
-	{
-		"name": "Prayer Beads",
-		"card_type": "artifact",
-		"image": "prayer-beads.svg",
-		"cost": 1,
-		"description": "Pay 1, heal 2 hit points",
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
-				"name": "heal",
-				"effect_type": "activated",
-				"target_type": "any",
-				"cost": 1,
-				"amount": 2
 		}]
 	},
 	{
 		"name": "Abyssal Crystal",
 		"card_type": "artifact",
 		"image": "moebius-star.svg",
+		"discipline": "magic",
 		"cost": 1,
 		"description": "Pay 1, draw a card and lose 2 life.",
 		"abilities": [
@@ -494,6 +442,7 @@
 	{
 		"name": "Wish Stone",
 		"card_type": "artifact",
+		"discipline": "magic",
 		"image": "rune-stone.svg",
 		"cost": 4,
 		"description": "0: sacrifice this, put a artifact from your deck into play.",
@@ -530,7 +479,7 @@
 	{
 		"name": "Totem Cat",
 		"image": "totem-mask.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"power": 2,
 		"toughness": 1,
@@ -559,7 +508,7 @@
 
 		"name": "Taunted Bear",
 		"image": "bear-face.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"power": 3,
 		"toughness": 2,
@@ -608,7 +557,7 @@
 
 		"name": "Berserk Monkey",
 		"image": "monkey.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"description": "Gets +1/+1 whenever you play a card.",
 		"power": 0,
@@ -630,7 +579,7 @@
 	{
 		"name": "Frenzy",
 		"image": "uprising.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"cost": 1,
 		"card_type": "spell",
 		"description": "Draw a card this turn. Draw another card if you dealt damage to your opponent.",
@@ -650,7 +599,7 @@
 	{
 		"name": "Impale",
 		"image": "spiked-trunk.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"cost": 2,
 		"card_type": "spell",
 		"description": "Deal 3 damage to a mob and your Opponent.",
@@ -672,7 +621,7 @@
 	{
 		"name": "Arsenal",
 		"image": "saber-and-pistol.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "artifact",
 		"cost": 2,
 		"description": "Your mobs get +1/+0 for each artifact you control.",
@@ -710,7 +659,7 @@
 	{
 		"name": "Animal Trainer",
 		"image": "teacher.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"power": 3,
 		"description": "Give a friendly mob +2/+2 and Fade.",
@@ -736,7 +685,7 @@
 
 		"name": "Viper",
 		"image": "snake-bite.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"power": 4,
 		"toughness": 3,
@@ -786,12 +735,12 @@
 
 		"name": "Enraged Stomper",
 		"image": "mammoth.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"description": "Deals you 1 damage at the start of your turn.",
 		"power": 5,
 		"toughness": 5,
-		"cost": 4,
+		"cost": 3,
 		"abilities": [
 			{
 				"name": "Stomp",
@@ -882,6 +831,7 @@
 		"name": "Disk of Death",
 		"card_type": "artifact",
 		"image": "chakram.svg",
+		"discipline": "magic",
 		"cost": 4,
 		"description": "1: sacrifice this, kill all artifacts and mobs.",
 		"abilities": [
@@ -1069,7 +1019,7 @@
 		"name": "Crazy Control",
 		"discipline": "magic",
 		"image": "misdirection.svg",
-		"cost": 6,
+		"cost": 4,
 		"card_type": "spell",
 		"description": "Summon a random mob or artifact from your opponent's hand.",
 		"effects": [{
