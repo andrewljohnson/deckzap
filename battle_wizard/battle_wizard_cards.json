@@ -1295,7 +1295,8 @@
 		"abilities": [
 			{
 				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw"
+				"descriptive_id": "DamageDraw",
+				"amount": 1
 			},
 			{
 				"name": "Fast",

@@ -136,8 +136,7 @@ class BattleWizardConsumer(WebsocketConsumer):
             "SELECT_ARTIFACT",
         ]
         message = self.game.play_move(message, save=save)   
-        if save: 
-            game_object.game_json = self.game.as_dict()
+        game_object.game_json = self.game.as_dict()
         game_object.save()
         if message:
             self.send_game_message(self.game.as_dict(), message)

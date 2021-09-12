@@ -186,7 +186,7 @@ export class GameUX {
         container.addChild(name);
 
         let cage = Card.button(
-            "Resign & Rematch", 
+            "Rematch", 
             Constants.redColor, 
             Constants.whiteColor, 
             centerX, 
@@ -213,11 +213,11 @@ export class GameUX {
             Constants.whiteColor, 
             centerX, 
             leaveGameCage.position.y + leaveGameCage.height,
-            () => { this.app.stage.removeChild(container);}, 
+            () => { this.app.stage.removeChild(container);this.menu=null;}, 
             container,
             140
         );
-
+        this.menu = container;
     }
 
     // render images that aren't in the cache, then refresh display
@@ -420,12 +420,17 @@ export class GameUX {
         this.maybeShowRope(game);
         this.elevateSpritesBeingCast();
 
-        // keep the view above newly rendered sprites
+        // keep the views above newly rendered sprites
         if (this.currentCardPile) {
             this.currentCardPile.parent.removeChild(this.currentCardPile);
             this.app.stage.addChild(this.currentCardPile);
         }
-        if (message.move_type == moveTypeEndTurn) {
+        if (this.menu) {
+            this.menu.parent.removeChild(this.menu);
+            this.app.stage.addChild(this.menu);
+        }
+
+        if (message.move_type == moveTypeEndTurn && this.thisPlayer(game) == this.turnPlayer(game)) {
             this.showChangeTurnAnimation(game)
         }
     }
@@ -477,7 +482,6 @@ export class GameUX {
         this.app.stage.addChild(sprite);                
         if (this.thisPlayer(game).card_info_to_target && card.id == this.thisPlayer(game).card_info_to_target.card_id) {
             sprite.alpha = Constants.beingCastCardAlpha;
-                console.log(sprite.texture.textureCacheIds)
         }
     }
 
@@ -766,7 +770,7 @@ export class GameUX {
         this.app.stage.addChild(container);
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         let modalWidth = this.opponentAvatar.width;
-        let modalHeight = this.inPlay.height * 2 + Constants.padding;
+        let modalHeight = this.inPlay.height + Constants.padding;
         Constants.roundRectangle(background, .2)
         background.width = modalWidth;
         background.height = modalHeight;
@@ -781,12 +785,12 @@ export class GameUX {
         options.fontSize = 32;
         options.fill = Constants.whiteColor;
         options.align = "middle";
-        let name = new PIXI.Text(this.activePlayer(game).username + "'s turn", options);
+        let name = new PIXI.Text("YOUR TURN", options);
         name.position.x = modalWidth/2 - name.width/2;
         name.position.y = 80
         container.addChild(name);
 
-        var FADE_DURATION = .5 * oneThousandMS; 
+        var FADE_DURATION = 1.5 * oneThousandMS; 
         
         // -1 is a flag to indicate if we are rendering the very 1st frame
         var startTime = -1.0; 
@@ -1342,14 +1346,30 @@ export class GameUX {
 
         this.endTurnButton = b;
 
-        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.darkGrayColor, align: "center"});
+        let humanTurn = (Math.floor(game.turn/2) + 1);
+        let textTitle = this.turnTitle(game);
+        let turnText = new PIXI.Text(textTitle, {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.darkGrayColor, align: "center"});
         turnText.position.x = b.position.x + buttonWidth + Constants.padding * 20;
         turnText.position.y = b.position.y + b.height / 2;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;
         this.app.stage.addChild(turnText);
-
     }
+
+    turnTitle(game) {
+        let humanTurn = (Math.floor(game.turn/2) + 1);
+        if (humanTurn == 1) {
+            return`${this.turnPlayer(game).username}'s 1st turn`
+        } else if (humanTurn == 2) {
+            return `${this.turnPlayer(game).username}'s 2nd turn`
+        } else if (humanTurn == 3) {
+            return `${this.turnPlayer(game).username}'s 3rd turn`
+        } else {
+            return `${this.turnPlayer(game).username}'s ${humanTurn}th turn`
+        }
+    }
+
+
 
     maybeShowSpellStack(game) {
         if (game.stack.length == 0) {
@@ -1387,6 +1407,13 @@ export class GameUX {
     isPlayersTurn(game) {
         return (game.turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
                 || game.turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
+    }
+
+    turnPlayer(game) {
+        if (game.turn % 2 == 0) {
+            return game.players[0]
+        }
+        return game.players[1]
     }
 
     isActivePlayer(game) {

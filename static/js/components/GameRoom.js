@@ -80,7 +80,9 @@ export class GameRoom {
                     self.gameUX.allCards = data["all_cards"]
                 }
                 self.gameUX.refresh(game, data);
-                self.gameUX.logMessage(data["log_lines"]);
+                if (data["log_lines"]) {
+                    self.gameUX.logMessage(data["log_lines"]);
+                }
             }
         };
 

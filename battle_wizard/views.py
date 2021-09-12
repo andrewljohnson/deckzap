@@ -322,7 +322,7 @@ def top_players(request):
 
 def player_records():
     players = {}
-    complete_games = GameRecord.objects.filter(winner__isnull=False)
+    complete_games = GameRecord.objects.filter(winner__isnull=False).filter(player_two__isnull=False).filter(player_one__isnull=False)
     for game in complete_games:
         for player in [game.player_one, game.player_two]:
             if player.username not in players:
@@ -358,7 +358,7 @@ def top_decks(request):
 
 def deck_records(request):
     decks = {}
-    complete_games = GameRecord.objects.filter(winner__isnull=False)
+    complete_games = GameRecord.objects.filter(winner__isnull=False).filter(player_two__isnull=False).filter(player_one__isnull=False)
     for game in complete_games:
         for info in [(game.player_one, game.player_one_deck), (game.player_two, game.player_two_deck)]:
             player = info[0]
