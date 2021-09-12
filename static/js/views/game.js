@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import { GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
+import { GlowFilter, GodrayFilter, OutlineFilter, ShockwaveFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 import { Bump } from '../lib/bump.js';
 import * as Constants from '../Constants.js';
@@ -144,7 +144,7 @@ export class GameUX {
 
     background() {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        background.width = appWidth;
+        background.width = appWidth; 
         background.height = appHeight;
         background.tint = Constants.lightGrayColor;
         return background;
@@ -153,7 +153,7 @@ export class GameUX {
     menuButton(game) {
         let button = Card.button(
             menuString, 
-            Constants.blueColor, 
+            0x4444FF, 
             Constants.whiteColor, 
             0, 
             0,
@@ -311,76 +311,113 @@ export class GameUX {
         this.refreshDisplay(message);
     }
 
-    showCardThatWasCast(card, game, player, message) {
-      let godray = new GodrayFilter();
-      let incrementGodrayTime = () => {
-        godray.time += this.app.ticker.elapsedMS / oneThousandMS;
-      }
-      let sprite = Card.sprite(card, this, game,  player);
-      sprite.scale.set(1.5)
-      sprite.position.x = Card.cardWidth + Constants.padding;
-      sprite.position.y = this.inPlay.position.y + Constants.padding;
-      this.spellBeingCastSprite = sprite;
-      this.app.stage.addChild(sprite)
-      this.showArrowsForSpell(game, sprite, message, card);
-      this.app.ticker.add(incrementGodrayTime)
-      this.app.stage.filters = [godray];
-      this.isShowingCastAnimation = true;
-      setTimeout(() => { 
-            this.clearArrows()
-            this.isShowingCastAnimation = false;
-            this.app.stage.filters = []; 
-            this.app.ticker.remove(incrementGodrayTime)
-            this.app.stage.removeChild(sprite)
-            if (this.needsToShowMakeViews) {
-                this.needsToShowMakeViews = false;
-                this.showSelectionViews(this.game);
-                this.makeCardsInteractive(game)
+    showCardThatWasCast(card, game, player, message, showArrows=true) {
+        let godray = new GodrayFilter();
+        let incrementGodrayTime = () => {
+            godray.time += this.app.ticker.elapsedMS / oneThousandMS;
+        }
+        if (card.show_level_up) {
+            if (card.level) {
+                card.level -= 1
+            } else {
+                card.effects[0].amount -= 1            
             }
-            this.spellBeingCastSprite = null;
+        }
+        let sprite = Card.sprite(card, this, game,  player);
+        sprite.scale.set(1.5)
+        sprite.position.x = Card.cardWidth + Constants.padding;
+        sprite.position.y = this.inPlay.position.y + Constants.padding;
+        this.spellBeingCastSprite = sprite;
+        this.app.stage.addChild(sprite)
+        if (showArrows) {
+            this.showArrowsForSpell(game, sprite, message, card);
+        }
+        this.app.ticker.add(incrementGodrayTime)
+        this.app.stage.filters = [godray];
+        this.isShowingCastAnimation = true;
+        setTimeout(() => { 
+            if (card.show_level_up) {
+                let shockwave = new ShockwaveFilter();
+                let incrementShockwaveTime = () => {
+                    shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+                }
+                this.app.ticker.add(incrementShockwaveTime)
+                this.spellBeingCastSprite.filters = [shockwave];
+                setTimeout(() => { 
+                    this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
+                }, oneThousandMS);
+            } else {
+                this.finishCastSpell(card, game, player, message, incrementGodrayTime);
+            }     
         }, oneThousandMS);
 
     }
 
+    finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime=null) {
+        this.isShowingCastAnimation = false;
+        this.app.stage.filters = []; 
+        this.app.ticker.remove(incrementGodrayTime)
+        this.app.stage.removeChild(this.spellBeingCastSprite)
+        this.spellBeingCastSprite = null;                
+        this.clearArrows()
+        if (card.show_level_up) {
+            if(incrementShockwaveTime) {
+                this.app.ticker.remove(incrementShockwaveTime);
+            }
+            if (card.level != null) {
+                card.level += 1;
+            } else {
+                card.effects[0].amount += 1            
+            }
+            card.show_level_up = false;
+            this.showCardThatWasCast(card, game, player, message, false);
+        } else {
+            if (this.needsToShowMakeViews) {
+                this.needsToShowMakeViews = false;
+                this.showSelectionViews(game);
+                this.makeCardsInteractive(game)
+            }
+        }
+    }
+
     refreshDisplay(message) {
         const game = this.game;
+        if (!this.thisPlayer(game) || !this.opponent(game)) {
+            return; 
+        }
         this.clearArrows()
         this.removeCardsFromStage(game)
-        if (this.thisPlayer(game)) {
-            this.updateHand(game);
-            this.updatePlayer(game, this.thisPlayer(game), this.playerAvatar);
-            this.updateThisPlayerArtifacts(game);
-            this.updateThisPlayerInPlay(game);
-        }
-        if (this.opponent(game)) {
-            this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
-            this.updateOpponentHand(game);
-            this.updateOpponentArtifacts(game);
-            this.updateOpponentInPlay(game);
-            this.updateCardPiles(game);
-            this.updateGameNavigator(game);
-        }
+        this.updateHand(game);
+        this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
+        this.updateThisPlayerArtifacts(game);
+        let thisPlayerAttackAnimation = this.updateThisPlayerInPlay(game);
+        this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
+        this.updateOpponentHand(game);
+        this.updateOpponentArtifacts(game);
+        let opponentAttackAnimation = this.updateOpponentInPlay(game);
+        this.updateCardPiles(game);
         this.renderEndTurnButton(game, message);
-        if (this.opponent(game)) {
-            this.addMenuButton(game);
-        }
-        if (this.parentGame) {
-            this.endTurnButton.buttonSprite.interactive = false;
-        }
+        this.addMenuButton(game);
+        this.updateGameNavigator(game);
         this.maybeShowSpellStack(game);
         this.maybeShowGameOver(game);
-        this.maybeShowAttack(game);
+        this.maybeShowAttackIntent(game);
         this.maybeShowCardSelectionView(game);
         this.maybeShowRope(game);
         this.elevateTopZViews(game, message);
-    }
+        if (thisPlayerAttackAnimation) {
+            thisPlayerAttackAnimation()
+        }
+        if (opponentAttackAnimation) {
+            opponentAttackAnimation()
+        }
+     }
 
 
     updateGameNavigator(game) {
         if (!this.debug) {
             return;
         }
-
         if (this.gameNavigator) {
             this.gameNavigator.clear();
             this.gameNavigator = null;
@@ -414,8 +451,10 @@ export class GameUX {
                     this.parentGame = null;
                 })
         }
+        if (this.parentGame) {
+            this.endTurnButton.buttonSprite.interactive = false;
+        }
     }
-
 
     updateCardPiles(game) {
         const playerOneY = this.playerAvatar.position.y;
@@ -500,7 +539,7 @@ export class GameUX {
         this.app.stage.addChild(sprite);                
     }
 
-    updatePlayer(game, player, avatarSprite) {
+    updatePlayer(game, player, opponent, avatarSprite) {
         let props = {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.blackColor};
         avatarSprite.player = player;
         avatarSprite.children = []
@@ -561,7 +600,7 @@ export class GameUX {
         }
 
         if (player.damage_to_show > 0) {
-           this.damageSprite(avatarSprite, player.username, player.damage_to_show);
+            this.damageSprite(avatarSprite, player.username, player.damage_to_show);
         }
     }
 
@@ -597,14 +636,14 @@ export class GameUX {
     }
 
     updateThisPlayerInPlay(game) {
-        this.updateInPlay(game, this.thisPlayer(game), this.inPlay);
+        return this.updateInPlay(game, this.thisPlayer(game), this.opponent(game), this.opponentAvatar, this.inPlay);
     }
 
     updateOpponentInPlay(game) {
-        this.updateInPlay(game, this.opponent(game), this.inPlayOpponent);
+        return this.updateInPlay(game, this.opponent(game), this.thisPlayer(game), this.playerAvatar, this.inPlayOpponent);
     }
 
-    updateInPlay(game, player, inPlaySprite) {
+    updateInPlay(game, player, opponent, opponentAvatarSprite, inPlaySprite) {
         let cardIdToHide = null
         for (let card of player.in_play) {
             if (player.card_info_to_target.card_id && card.id == player.card_info_to_target.card_id && player.card_info_to_target["effect_type"] != "mob_comes_into_play" && player.card_info_to_target["effect_type"] != "mob_activated") {
@@ -622,11 +661,85 @@ export class GameUX {
         } else if (inPlayLength == 5 || inPlayLength == 6) { 
             index = 1
         }
+        let spriteToAnimate = null;
         for (let card of player.in_play) {
-            this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
+            let sprite = this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
+            if (opponent.damage_to_show > 0) {
+                let twoMovesAgo = game.moves[game.moves.length - 2];           
+                if (sprite.card.id == twoMovesAgo["card"]) {
+                    spriteToAnimate = sprite;
+                }
+            }
             index++;
         }
+        if (spriteToAnimate) {
+            return () =>  {
+                this.animateAttackOnPlayer(spriteToAnimate, opponentAvatarSprite);
+            }
+        }
     }
+
+    animateAttackOnPlayer(card, avatarSprite) {
+        var FADE_DURATION = this.fadeDuration();
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        var self = this;
+        card.originalPosition = {x: card.position.x, y: card.position.y};
+        card.parent.removeChild(card);
+        this.app.stage.addChild(card);
+        function render(currTime) { 
+            // How opaque should head1 be?  Its fade started at currTime=0.
+            // Over FADE_DURATION ms, opacity goes from 0 to 1
+            card.position = self.positionForTime(currTime, card, avatarSprite);
+        }
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                // This branch: executes for the first frame only.
+                // it sets the startTime, then renders at currTime = 0.0
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                // This branch: renders every frame, other than the 1st frame,
+                // with the new timeRunning value.
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame);         
+    }
+
+    positionForTime(time, cardSprite, avatarSprite) {
+        let ratio = time * 2 / this.fadeDuration();
+        if (time > this.fadeDuration() / 2) {
+            ratio = 2 - ratio
+        }
+        let bumpAdjustmentX = Card.cardWidth/2;
+        let bumpAdjustmentY = Card.cardHeight/2;
+        if (avatarSprite.position.x > cardSprite.originalPosition.x) {
+            bumpAdjustmentX = -Card.cardWidth/2;            
+        }
+        if (avatarSprite.position.y > cardSprite.originalPosition.y) {
+            bumpAdjustmentY = -Card.cardHeight/2;            
+        }
+        let x = (1 - ratio) * cardSprite.originalPosition.x + ratio * (avatarSprite.position.x + bumpAdjustmentX)
+        let y = (1 - ratio) * cardSprite.originalPosition.y + ratio * (avatarSprite.position.y + bumpAdjustmentY)
+        console.log({x, y})
+        console.log(ratio)
+        return {x, y};
+    }
+
+
+
+
+
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
         let sprite = Card.spriteInPlay(card, this, game, player, false);
@@ -640,14 +753,15 @@ export class GameUX {
                 sprite.alpha = Constants.beingCastCardAlpha;
             }
         }
-        this.app.stage.addChild(sprite);        
+        this.app.stage.addChild(sprite);     
+        return sprite;   
     }
 
     addMenuButton(game) {
         if (!this.menuButtonAdded) {
             let menuButton = this.menuButton(game);
             menuButton.position.x = appWidth - menuButton.width - Constants.padding;
-            menuButton.position.y = Constants.padding*5;
+            menuButton.position.y = this.endTurnButton.position.y;
             this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
         }
@@ -661,7 +775,7 @@ export class GameUX {
         }
     }
 
-    maybeShowAttack(game) {
+    maybeShowAttackIntent(game) {
         if (game.stack.length > 0 && game.stack[game.stack.length - 1][0].move_type == moveTypeAttack) {
             let attack = game.stack[game.stack.length - 1][0];
             let attacking_id = attack.card;
@@ -845,8 +959,6 @@ export class GameUX {
                 return;
             }
         
-            // make a request to the browser to execute the next
-            // animation frame, and the browser optimizes the rest.
             window.requestAnimationFrame(eachFrame);
         };
 
@@ -1355,6 +1467,11 @@ export class GameUX {
             this.app.stage,
             buttonWidth
         );
+        b.id = "endTurnButton";
+        if (buttonColor == Constants.redColor) {
+            this.damageSprite(b, "endTurnButton", 2);                    
+
+        }
         b.position.x = this.artifactsOpponent.position.x;
         b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 4;
 

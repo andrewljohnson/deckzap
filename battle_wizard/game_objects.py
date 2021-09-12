@@ -57,8 +57,11 @@ class Game:
         self.moves = info["moves"] if info and "moves" in info else []
         # when in review mode, the index of the move under review
         self.review_move_index = info["review_move_index"] if info and "review_move_index" in info else -1
-        self.review_game = Game(self.player_type, info=info["review_game"], player_decks=player_decks, ai=ai) if info and "review_game" in info else None
         self.is_review_game = info["is_review_game"] if info and "is_review_game" in info else False
+        if self.is_review_game:
+            self.review_game = Game(self.player_type, info=info["review_game"], player_decks=player_decks, ai=ai) if info and "review_game" in info else None
+        else:
+            self.review_game = None
         self.is_reviewing = info["is_reviewing"] if info and "is_reviewing" in info else False
 
     def __repr__(self):
@@ -261,7 +264,7 @@ class Game:
         if self.current_player().can_be_clicked:
             moves.append({"move_type": "SELECT_SELF", "username": self.ai})
         if self.opponent().can_be_clicked:
-            moves.append({"move_type": "SELECT_OPPONENT", "username": self.ai})
+            moves.append({"move_type": "SELECT_OPPONENT", "username": self.ai, "card": self.current_player().card_info_to_target["card_id"]})
         return moves
 
     def navigate_game(self, original_message, consumer):
@@ -436,19 +439,19 @@ class Game:
 
         if len(self.players) != 2:
             return
+                       
+        for card in self.current_player().played_pile + self.opponent().played_pile:
+            card.show_level_up = False
         for spell in self.stack:
             spell[1]["can_be_clicked"] = False
         for card in self.opponent().in_play:
             card.can_be_clicked = False
-        for card in self.current_player().in_play:
+        for card in self.current_player().in_play + self.current_player().artifacts:
             card.can_be_clicked = False
             card.effects_can_be_clicked = []
         for card in self.current_player().hand:
             card.can_be_clicked = False
             card.needs_targets = False
-        for card in self.current_player().artifacts:
-            card.can_be_clicked = False
-            card.effects_can_be_clicked = []
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
         if move_type != "UNSELECT" and cancel_damage:
@@ -3406,13 +3409,18 @@ class Player:
                 if card.effects[1].name == "improve_damage_when_used":
                     # hack for Rolling Thunder
                     card.effects[0].amount += 1
+                    card.show_level_up = True
                 if card.effects[1].name == "improve_effect_amount_when_cast":
                     # hack for Tech Crashhouse
                     card.effects[0].amount += 1
+                    card.show_level_up = True
                 if card.effects[1].name == "improve_effect_when_cast":
                     # hack for Tame Shop Demon
+                    old_level = card.level
                     card.level += 1
                     card.level = min(card.level, len(card.effects[0].card_names)-1)
+                    if card.level > old_level:
+                        card.show_level_up = True
 
         if card.card_type == spellCardType:
             if not card.has_ability("Disappear"):
@@ -3895,6 +3903,7 @@ class Card:
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.power = info["power"] if "power" in info else None
         self.shielded = info["shielded"] if "shielded" in info else False
+        self.show_level_up = info["show_level_up"] if "show_level_up" in info else False
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.toughness = info["toughness"] if "toughness" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
@@ -3932,6 +3941,7 @@ class Card:
             "owner_username": self.owner_username,
             "power": self.power,
             "shielded": self.shielded,
+            "show_level_up": self.show_level_up,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "toughness": self.toughness,
             "turn_played": self.turn_played,
