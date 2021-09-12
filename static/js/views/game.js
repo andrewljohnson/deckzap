@@ -354,24 +354,26 @@ export class GameUX {
             this.updateOpponentHand(game);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
+            this.updateCardPiles(game);
+            this.updateGameNavigator(game);
+        }
+        this.renderEndTurnButton(game, message);
+        if (this.opponent(game)) {
+            this.addMenuButton(game);
+        }
+        if (this.parentGame) {
+            this.endTurnButton.buttonSprite.interactive = false;
+        }
+        this.maybeShowSpellStack(game);
+        this.maybeShowGameOver(game);
+        this.maybeShowAttack(game);
+        this.maybeShowCardSelectionView(game);
+        this.maybeShowRope(game);
+        this.elevateTopZViews(game, message);
+    }
 
-            const playerOneY = this.playerAvatar.position.y;
-            const playerTwoY = this.opponentAvatar.position.y;
-            if (this.opponentYardPile) {
-                this.opponentYardPile.clear()
-                this.opponentDeckPile.clear()
-                this.yardPile.clear()
-                this.deckPile.clear()
-                this.opponentYardPile = null;
-                this.opponentDeckPile = null;
-                this.yardPile = null;
-                this.deckPile = null;
-            }
-            this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile("Opponent's Yard", this.opponent(game).played_pile)})
-            this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
-            this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
-            this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile("My Deck", this.thisPlayer(game).deck, true)})
 
+    updateGameNavigator(game) {
             if (this.gameNavigator) {
                 this.gameNavigator.clear();
                 this.gameNavigator = null;
@@ -405,36 +407,27 @@ export class GameUX {
                         this.parentGame = null;
                     })
             }
-        }
-        this.renderEndTurnButton(game, message);
-        if (this.opponent(game)) {
-            this.addMenuButton(game);
-        }
-        if (this.parentGame) {
-            this.endTurnButton.buttonSprite.interactive = false;
-        }
-        this.maybeShowSpellStack(game);
-        this.maybeShowGameOver(game);
-        this.maybeShowAttack(game);
-        this.maybeShowCardSelectionView(game);
-        this.maybeShowRope(game);
-        this.elevateSpritesBeingCast();
-
-        // keep the views above newly rendered sprites
-        if (this.currentCardPile) {
-            this.currentCardPile.parent.removeChild(this.currentCardPile);
-            this.app.stage.addChild(this.currentCardPile);
-        }
-        if (this.menu) {
-            this.menu.parent.removeChild(this.menu);
-            this.app.stage.addChild(this.menu);
-        }
-
-        if (message.move_type == moveTypeEndTurn && this.thisPlayer(game) == this.turnPlayer(game)) {
-            this.showChangeTurnAnimation(game)
-        }
     }
 
+
+    updateCardPiles(game) {
+        const playerOneY = this.playerAvatar.position.y;
+        const playerTwoY = this.opponentAvatar.position.y;
+        if (this.opponentYardPile) {
+            this.opponentYardPile.clear()
+            this.opponentDeckPile.clear()
+            this.yardPile.clear()
+            this.deckPile.clear()
+            this.opponentYardPile = null;
+            this.opponentDeckPile = null;
+            this.yardPile = null;
+            this.deckPile = null;
+        }
+        this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile("Opponent's Yard", this.opponent(game).played_pile)})
+        this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
+        this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
+        this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile("My Deck", this.thisPlayer(game).deck, true)})
+    }
 
     cardPile(x, y, game, labelText, cards, clickFunction) {
         let cardPile = new CardPile(this, game, x, y, `${labelText} (${cards.length})`, clickFunction);
@@ -753,8 +746,8 @@ export class GameUX {
         sprite.filters = [godray];
     }
 
-    // put arrows and spell being cast above other refreshed sprites
-    elevateSpritesBeingCast() {    
+    // put arrows, menus, card selection views, and spell being cast above other refreshed sprites
+    elevateTopZViews(game, message) {    
         if (this.spellBeingCastSprite) {
             this.app.stage.removeChild(this.spellBeingCastSprite);
             this.app.stage.addChild(this.spellBeingCastSprite);
@@ -763,6 +756,34 @@ export class GameUX {
             this.app.stage.removeChild(arrow);
             this.app.stage.addChild(arrow);
         }
+        // keep the views above newly rendered sprites
+        if (this.currentCardPile) {
+            this.currentCardPile.parent.removeChild(this.currentCardPile);
+            this.app.stage.addChild(this.currentCardPile);
+        }
+        if (this.menu) {
+            this.menu.parent.removeChild(this.menu);
+            this.app.stage.addChild(this.menu);
+        }
+
+        if (message.move_type == moveTypeEndTurn && this.thisPlayer(game) == this.turnPlayer(game)) {
+            this.showChangeTurnAnimation(game)
+        }
+
+    }
+
+    fadeDuration () {
+        return 1.2 * oneThousandMS;
+    }
+
+    fadeAlphaForTime(t) {
+        if (t <= this.fadeDuration()/2) {
+            return 1;
+        }
+        if (t <= this.fadeDuration()*.99) {
+            return (1 - t / this.fadeDuration() ) * 2;
+        }
+        return 0;
     }
 
     showChangeTurnAnimation(game) {
@@ -790,17 +811,17 @@ export class GameUX {
         name.position.y = 80
         container.addChild(name);
 
-        var FADE_DURATION = 1.5 * oneThousandMS; 
+        var FADE_DURATION = this.fadeDuration();
         
         // -1 is a flag to indicate if we are rendering the very 1st frame
         var startTime = -1.0; 
         
         // render current frame (whatever frame that may be)
+        var self = this;
         function render(currTime) { 
             // How opaque should head1 be?  Its fade started at currTime=0.
             // Over FADE_DURATION ms, opacity goes from 0 to 1
-            var alpha = .9 - (currTime/FADE_DURATION);
-            container.alpha = alpha;
+            container.alpha = self.fadeAlphaForTime(currTime);
         }
         function eachFrame() {
             var timeRunning = (new Date()).getTime() - startTime;
