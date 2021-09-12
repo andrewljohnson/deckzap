@@ -7,7 +7,8 @@ import time
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.generic.websocket import WebsocketConsumer
 from battle_wizard.game_objects import Game
-from battle_wizard.jsonDB import JsonDB
+from battle_wizard.models import GameRecord
+from battle_wizard.data import all_cards
 
 DEBUG = True
 
@@ -24,10 +25,11 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
         self.accept()
 
     def disconnect(self, close_code):
-        queue_database = JsonDB().queue_database()
-        queue_database["pvp"]["waiting_players"].remove(self.username)
-        with open("database/queue_database.json", 'w') as outfile:
-            json.dump(queue_database, outfile)
+        queue_database = self.queue_database()
+        if self.username in queue_database["pvp"]["waiting_players"]:
+            queue_database["pvp"]["waiting_players"].remove(self.username)
+            with open("database/queue_database.json", 'w') as outfile:
+                json.dump(queue_database, outfile)
         print("Disconnected from Match Finder")
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
@@ -36,30 +38,40 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         message = json.loads(text_data)
-        print(message)
 
         self.username = message["username"]
 
-        queue_database = JsonDB().queue_database()
+        queue_database = self.queue_database()
         if not self.username in queue_database["pvp"]["waiting_players"]:
             queue_database["pvp"]["waiting_players"].append(self.username)
+            with open("database/queue_database.json", 'w') as outfile:
+                json.dump(queue_database, outfile)
 
         if len(queue_database["pvp"]["waiting_players"]) == 2:
+            game_record = GameRecord.objects.create(date_created=datetime.datetime.now())
+            game_record.save()
+            game_record_id = game_record.id            
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
                     'type': 'matchfinder_message',
-                    'message': {"message_type": "start_match", "room_id": queue_database["pvp"]["starting_id"]}
+                    'message': {"message_type": "start_match", "game_record_id": game_record_id}
                 }
             )
-            queue_database["pvp"]["starting_id"] += 1
             queue_database["pvp"]["waiting_players"] = []
+            with open("database/queue_database.json", 'w') as outfile:
+                json.dump(queue_database, outfile)
         else:
             print("waiting for match")
 
-        with open("database/queue_database.json", 'w') as outfile:
-            json.dump(queue_database, outfile)
-
+    def queue_database(self):
+        try:
+            json_data = open("database/queue_database.json")
+            queue_database = json.load(json_data) 
+        except:
+            queue_database = {"pvp": {"waiting_players":[]}}
+        return queue_database
+    
     def matchfinder_message(self, event):
         message = event['message']
 
@@ -74,9 +86,8 @@ class BattleWizardConsumer(WebsocketConsumer):
     def connect(self):
         self.player_type = self.scope['url_route']['kwargs']['player_type']
         self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
-        self.room_name = self.scope['url_route']['kwargs']['room_code']
-        self.room_group_name = 'room_%s' % self.room_name
-        self.db_name = f"standard-{self.player_type}-{self.room_name}"
+        self.game_record_id = self.scope['url_route']['kwargs']['game_record_id']
+        self.room_group_name = 'room_%s' % self.game_record_id
         self.moves = []
         self.ai_running = False
         self.last_move_time = None
@@ -96,22 +107,45 @@ class BattleWizardConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
-        self.game = Game(self, self.player_type, self.db_name, info=JsonDB().game_database(self.db_name), ai=self.ai, player_decks=self.decks)        
         message = json.loads(text_data)
+
+        if message["move_type"] == 'NAVIGATE_GAME':
+            message["log_lines"] = []
+            message = self.game.navigate_game(message, self)  
+            self.send_game_message(self.game.as_dict(), message)
+            return
 
         if message["move_type"] == 'NEXT_ROOM':
             self.send_game_message(None, message)
             return
 
+        game_object = GameRecord.objects.get(id=self.game_record_id)
+
+        info = game_object.game_json
+        info["game_record_id"] = self.game_record_id
+        self.game = Game(self.player_type, info=info, ai=self.ai, player_decks=self.decks)        
+
+
         message["log_lines"] = []
-        message = self.game.play_move(message)    
+        save = message["move_type"] not in [
+            "ATTACK", 
+            "ACTIVATE_ARTIFACT", 
+            "ACTIVATE_MOB",
+            "PLAY_CARD",
+            "RESOLVE_MOB_EFFECT",
+            "SELECT_ARTIFACT",
+        ]
+        message = self.game.play_move(message, save=save)   
+        if save: 
+            game_object.game_json = self.game.as_dict()
+        game_object.save()
         if message:
             self.send_game_message(self.game.as_dict(), message)
 
-            if message["move_type"] == "GET_TIME":
-                # run AI if it's the AI's move or if the other player just chose their race
+            if message["move_type"] == "GET_TIME" and not self.game.is_reviewing:
+                # run AI if it's the AI's move or if the other player just chose their discipline
                 if self.player_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
-                    (self.game.players[0].race != None and self.game.players[1].race == None)):                     
+                    (self.game.players[0].discipline != None and self.game.players[1].discipline == None)):                     
                     time_for_next_move = False
                     if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
                         time_for_next_move = True
@@ -128,68 +162,94 @@ class BattleWizardConsumer(WebsocketConsumer):
     def run_ai(self, moves):
         self.ai_running = True
         self.last_move_time = datetime.datetime.now()
-        # todo don't reference AI by index 1
         if self.ai == "random_bot":
             chosen_move = random.choice(moves)
-            #while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
-            #    chosen_move = random.choice(moves) 
+        elif self.ai == "pass_bot":
+            chosen_move = self.pass_move()
         elif self.ai == "aggro_bot":
-            chosen_move = random.choice(moves)
-            while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
-                chosen_move = random.choice(moves) 
-            for move in moves:
-                if move["move_type"] == "PLAY_CARD":
-                    being_cast, _ = self.game.get_in_play_for_id(move["card"])
-                    target, _ = self.game.get_in_play_for_id(move["effect_targets"][0].id)
-                    if target in self.game.opponent().in_play: 
-                        if being_cast.name in ["Kill", "Zap", "Stiff Wind", "Siz Pop", "Unwind"]:
-                            chosen_move = move
-                if move["move_type"] == "PLAY_CARD":
-                    being_cast, _ = self.game.get_in_play_for_id(move["card"])
-                    target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
-                    if target in self.game.current_player().in_play: 
-                        if being_cast.name in ["Faerie War Chant", "Mayor's Brandy"]:
-                            chosen_move = move
-
-                if move["move_type"] == "RESOLVE_MOB_EFFECT":
-                    coming_into_play, _ = self.game.get_in_play_for_id(move["card"])
-                    print(f"{coming_into_play.name} is resolving on {move['effect_targets'][0]['id']}")
-                    target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
-                    if target and target.id in [card.id for card in self.game.current_player().in_play]: 
-                        if coming_into_play.name in ["Training Master"]:
-                            chosen_move = move
-                    elif target and target.id in [card.id for card in self.game.opponent().in_play]:
-                        if coming_into_play.name in ["Lightning Elemental", "Tempest Elemental", "Tame Tempest"]:
-                            chosen_move = move
-                    else:
-                        print("this move is targetting a player, maybe this code isnt so great") 
-                        print(move) 
-                        # target is none for people targets print(f"{target.name} {target.id}") 
-                        print(f"ids for curr: {[card.id for card in self.game.current_player().in_play]}")
-                        print(f"ids for opp: {[card.id for card in self.game.opponent().in_play]}")
-                    chosen_move = move
-                if move["move_type"] == "SELECT_MOB":
-                    chosen_move = move
-            for move in moves:
-                if move["move_type"] == "SELECT_OPPONENT":
-                    chosen_move = move
-            for move in moves:
-                if move["move_type"] == "RESOLVE_MOB_EFFECT" and move["effect_targets"][0]["id"] == self.game.opponent().username :
-                    chosen_move = move
+            chosen_move = self.aggro_bot_move(moves)
         else:
             print(f"Unknown AI bot: {self.ai}")
-        chosen_move["log_lines"] = []
+
         print("AI playing " + str(chosen_move))
-        message = self.game.play_move(chosen_move)    
+        chosen_move["log_lines"] = []
+        message = self.game.play_move(chosen_move, save=True)    
         self.send_game_message(self.game.as_dict(), message)
         self.ai_running = False
+
+
+    def aggro_bot_move(self, moves):
+        chosen_move = random.choice(moves)
+        while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
+            chosen_move = random.choice(moves) 
+
+        good_moves = []
+        for move in moves:
+            if move["move_type"] == "SELECT_MOB":
+                good_moves.insert(0, move)
+        for move in moves:
+            if move["move_type"] == "SELECT_CARD_IN_HAND":
+                being_cast = self.game.current_player().in_hand_card(move["card"])
+                if being_cast.card_type in ["mob", "artifact"]:                        
+                    if len(being_cast.effects) > 0:
+                        if "opponents_mob" in being_cast.effects[0].ai_target_types and self.game.opponent().has_mob_target():
+                            good_moves.insert(0, move)
+        for move in moves:
+            if move["move_type"] == "PLAY_CARD":
+                being_cast = self.game.current_player().in_hand_card(move["card"])
+                target, _ = self.game.get_in_play_for_id(move["effect_targets"][0].id)
+                if target in self.game.opponent().in_play: 
+                    if len(being_cast.effects) > 0:
+                        if "opponents_mob" in being_cast.effects[0].ai_target_types:
+                            good_moves.insert(0, move)
+
+                if target in self.game.current_player().in_play: 
+                    if len(being_cast.effects) > 0:
+                        if "self_mob" in being_cast.effects[0].ai_target_types:
+                            good_moves.insert(0, move)
+        for move in moves:
+            if move["move_type"] == "RESOLVE_MOB_EFFECT":
+                chosen_move = move
+                coming_into_play, _ = self.game.get_in_play_for_id(move["card"])
+                target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
+                if target and target.id in [card.id for card in self.game.current_player().in_play]: 
+                    pass
+                elif target and target.id in [card.id for card in self.game.opponent().in_play]:
+                    if len(coming_into_play.effects) > 0:
+                        if "opponents_mob" in coming_into_play.effects[0].ai_target_types:
+                            good_moves.insert(0, move)
+        for move in moves:
+            if move["move_type"] == "SELECT_OPPONENT":
+                good_moves.insert(0, move)
+
+        # don't let aggrobot select unfavorable spells to cast
+        # instead, prefer to pass the turn
+        if len(good_moves) > 0:
+            chosen_move = good_moves[0]
+        elif chosen_move["move_type"] == "SELECT_CARD_IN_HAND":
+            being_cast = self.game.current_player().in_hand_card(chosen_move["card"])
+            if len(being_cast.effects) > 0:
+                if ("opponents_mob" in being_cast.effects[0].ai_target_types and not "opponent" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_mob_target()) or \
+                   ("self_mob" in being_cast.effects[0].ai_target_types and not self.game.current_player().has_mob_target()) or \
+                   ("opponents_artifact" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_artifact_target()):
+                    chosen_move = self.pass_move()
+
+        return chosen_move
             
+    def pass_move(self):
+        if len (self.game.stack) > 0:
+            return {"move_type": "RESOLVE_NEXT_STACK", "username": self.ai}                              
+        else:
+            return {"move_type": "END_TURN", "username": self.ai}
 
     def send_game_message(self, game_dict, message):
         # send current-game-related message to players
         if DEBUG and message and message["move_type"] != "GET_TIME":
             self.print_move(message)
         message["game"] = game_dict
+        if message["move_type"] == "JOIN" and len(game_dict["players"]) == 1:
+            message[ "all_cards"] = json.dumps(all_cards())
+
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -217,39 +277,11 @@ class BattleWizardConsumer(WebsocketConsumer):
             Gets called once per recipient of a message.
         '''
         message = event['message']
-
+        # prevent circular refs from reviewing
+        if message["game"] and message["game"]["is_reviewing"]:
+            message["game"]["move_count"] = len(message["game"]["moves"])
+            del message["game"]["moves"]  
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'payload': message
         }))
-
-
-# todo fix for AI and self.game?
-class BattleWizardCustomConsumer(BattleWizardConsumer):
-    def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_code']
-        self.room_group_name = 'room_%s' % self.room_name
-        self.custom_game_id = self.scope['url_route']['kwargs']['custom_game_id']
-        self.db_name = f"custom-{self.custom_game_id}-{self.room_name}"
-        self.moves = []
-
-        cgd = JsonDB().custom_game_database()
-        for game in cgd["games"]:
-            if game["id"] == int(self.custom_game_id):
-                self.player_type = game["player_type"]   
-
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
-        self.accept()
-
-    def disconnect(self, close_code):
-        print("Disconnected")
-
-        JsonDB().remove_custom_from_queue_database(int(self.custom_game_id), int(self.room_name), JsonDB().queue_database())
-
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name,
-            self.channel_name
-        )

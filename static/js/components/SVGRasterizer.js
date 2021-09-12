@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import * as Constants from './constants.js';
+import * as Constants from '../Constants.js';
 
 
 export class SVGRasterizer {
@@ -40,20 +40,26 @@ export class SVGRasterizer {
     }
 
     loadCardImage(cardType, loaderID, loaderURL) {
-        // todo: svgs still blurry: https://github.com/pixijs/pixijs/issues/6113
-        // resolution: window.devicePixelRatio || 1,
-        // resolution: 2,
+        let scale = .5;
+        var ua = navigator.userAgent.toLowerCase(); 
+        if (ua.indexOf('safari') != -1) { 
+          if (ua.indexOf('chrome') > -1) {
+          } else {
+            scale = .2
+          }
+        }        
+
         this.app.loader.add(loaderID, loaderURL, { 
             metadata: {
                 resourceOptions: {
-                    scale: .5,
+                    scale: scale,
                 }
             }
         });                       
         this.app.loader.add(loaderID + Constants.largeSpriteQueryString, loaderURL + Constants.largeSpriteQueryString, { 
             metadata: {
                 resourceOptions: {
-                    scale: 1,
+                    scale: scale * 2,
                 }
             }
         });                       

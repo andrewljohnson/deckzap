@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { AdjustmentFilter, DropShadowFilter, GlowFilter } from 'pixi-filters';
+import { Card } from './components/Card.js';
 
 
 // constants recognized by the game rules engine
@@ -26,15 +27,18 @@ export const lightGrayColor = 0xEEEEEE;
 export const menuGrayColor = 0x969696;
 
 // styles
+export const titleFontSize = 24;
+export const h2FontSize = 16;
+export const defaultButtonFontSize = 16;
 export const defaultFontSize = 12;
-export const defaultFontSizeSmall = 8;
+export const defaultFontSizeSmall = 10;
 export const defaultFontFamily = "Arial";
 export const padding = 5;
 
 export function textOptions() {
     return {
     	fontFamily : defaultFontFamily, 
-    	fontSize: defaultFontSizeSmall, 
+    	fontSize: defaultFontSize, 
     	fill : blackColor, 
     	wordWrap: true, 
     	wordWrapWidth: 75
@@ -42,13 +46,6 @@ export function textOptions() {
 }
 
 // filters
-export function glowAndShadowFilters() {
-    return [
-        targettableGlowFilter(),
-        dropshadowFilter()
-    ];
-}
-
 export function canBeClickedFilter() {
     return new GlowFilter({ innerStrength: 1, outerStrength: 1, color: greenColor});
 }
@@ -65,12 +62,12 @@ export function dropshadowFilter() {
     return new GlowFilter({ outerStrength: 1 , color: blackColor});
 }
 
-export function targettingGlowFilter() {
-    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
-}
-
 export function targettableGlowFilter() {
     return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: greenColor});
+}
+
+export function targettingGlowFilter() {
+    return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
 }
 
 export function lurkerFilter() {
@@ -123,8 +120,7 @@ export function manaGems(maxMana, currentMana, icon, iconColor) {
     return background
 }
 
-
-export function roundRectangle(sprite) {
+export function roundRectangle(sprite, cornerRadius) {
     let graphics = new PIXI.Graphics();
     graphics.beginFill(blackColor);
     graphics.drawRoundedRect(
@@ -132,10 +128,76 @@ export function roundRectangle(sprite) {
         0,
         sprite.width,
         sprite.height,
-        .2
+        cornerRadius
     );
     graphics.endFill();
     sprite.mask = graphics;
     sprite.addChild(graphics)
 }
 
+export function background(x, y, width, cornerRadius) {
+    const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+    background.tint = blueColor;          
+    roundRectangle(background, cornerRadius)
+    background.position.x = x;
+    background.position.y = y;
+    background.width = width;
+    return background
+}
+
+export function ovalSprite(pixiUX, imageName, labelText, choiceWidth, choiceHeight, choiceID, x, y, clickFunction) {
+    let ovalSprite = new PIXI.Sprite.from(PIXI.Texture.from("/static/images/card-art/" + imageName));
+    ovalSprite.anchor.set (.5);
+    ovalSprite.interactive = true;
+    ovalSprite.buttonMode = true;
+    ovalSprite.id = choiceID;
+    Card.ellipsifyImageSprite(ovalSprite, null, choiceWidth, choiceHeight);
+    ovalSprite.position.x = x; 
+    ovalSprite.position.y = y;
+    pixiUX.app.stage.addChild(ovalSprite);
+
+    let labelOptions = {align: 'center', fontFamily : defaultFontFamily, fontSize: h2FontSize, fill : yellowColor, stroke: blueColor, strokeThickness: 4};
+    let label = new PIXI.Text(labelText, labelOptions);
+    label.anchor.set(.5);
+    label.position.y = choiceHeight - choiceHeight/1.5;
+    ovalSprite.addChild(label);
+    ovalSprite
+        .on("click", clickFunction)
+        .on("tap", clickFunction)
+    return ovalSprite;
+}
+
+export function getSearchParameters() {
+    let prmstr = window.location.search.substr(1);
+    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+}
+
+function transformToAssocArray( prmstr ) {
+    let params = {};
+    let prmarr = prmstr.split("&");
+    for ( let i = 0; i < prmarr.length; i++) {
+        let tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+    }
+    return params;
+}
+
+export function setUpPIXIApp(appOwner, appHeight=855, appWidth=1160) {
+        PIXI.GRAPHICS_CURVES.adaptive = true
+        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
+        appOwner.app = new PIXI.Application({
+            antialias: true,
+            autoDensity: true,
+            backgroundColor: whiteColor,
+            height: appHeight,
+            width: appWidth, 
+            resolution: PIXI.settings.FILTER_RESOLUTION,
+        });        
+}
+
+export function infoListText(discipline) {
+    if (discipline == "magic") {
+        return "Magic\n\n• 30 card deck\n• more mana each turn\n• draw one card a turn";
+    }
+    return "Tech\n\n• 15 card deck\n• 3 mana each turn\n• new hand each turn";
+    }

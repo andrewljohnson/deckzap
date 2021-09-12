@@ -1,95 +1,9 @@
 {% extends 'base.html' %}
-{% load static %}
-
-{% block javascript %}
-<script src = "{% static 'js/deckbuilder.js' %}"></script>
-<script type="text/javascript">
-	  let deckBuilder = new DeckBuilder(document.getElementById("data_store").getAttribute("deck"), document.getElementById("data_store").getAttribute("all_cards"));
-    deckBuilder.loadAllCards();
-    deckBuilder.redisplayDeck();
-    document.getElementById("deck_name").onkeyup = function() {
-      deckBuilder.deck.name = this.value;
-    } 
-
-</script>
-{% endblock javascript %}
-
-{% block css %}
-<link rel="stylesheet" href="/static/css/nongame.css">
-{% endblock %}
 
 {% block content %}
-<div class="wrapper" style="max-width:1024px">
-    <h1 style="display:flex;justify-content: space-between;">
-  	<span>Build Deck</span>
-  	<span>
-  		<a onclick=deckBuilder.save() id=save_button>Save</a>
-  	</span>
-  </h1>
-
-  <div id=two_columns>
-  	<div id=left_column class=column>
-      <h2>Deck Name</h2>
-      <input id=deck_name name="deck_name" value="{% firstof deck.name 'My Deck' %}">
-  		<h2>Choose Cards (limit 1 of any Artifact, 2 of any other card)</h2>  		
-  		<div id=all_cards_container></div>
-  	</div>
-  	<div id=right_column class=column>
-      <h2>Cards in Deck - <span id=deck_count>0/30</span></h2>      
-  		<div id=new_deck_container style="padding:50px;padding-top:200px;text-align:center;font-size:16px;color:white;font-weight:bold;height:974px">
-  			Click cards on the left to add them to your deck. Decks must be 30 cards, no more than 2 of any card.
-  		</div>
-  	</div>
-  </div>
-
-  <div id="deckbuilder">
-  </div>
+<div class="wrapper">
+    <div id="app"></div>
 </div>
 
-<div id="data_store" csrf_token='{% csrf_token %}' username = {{request.user.username}} deck='{{json_deck}}' all_cards='{{all_cards}}'></div>
-
-<style>
-	#two_columns {
- 		display: flex;
- 		max-width:1024px;
-	}
-
-	.row {
-		display: flex;
-  		flex-direction: row;
-  		flex-wrap: wrap;
-  		width: 100%;
-	}
-
-	.column {
-  		display: flex;
-  		flex-direction: column;
-  		flex-basis: 100%;
-  		flex: 1;
-	}
-	#left_column {
-		margin-right:20px;
-	}
-	#right_column {
-		margin-left:20px;
-	}
-  #all_cards_container {
-    max-height: 1094px;
-    overflow: scroll;
-  }
-	#all_cards_container, #new_deck_container {
-		background-color: blue;
-    min-height: 1000px;
-	}
-
-	#save_button {
-		background-color: lightgray;
-		padding:10px;
-		color:white;
-		border-radius: 4px;
-
-	}
-
-</style>
-
+<div id="data_store" csrf_token='{% csrf_token %}' username = "{{request.user.username}}" deck='{{json_deck}}' all_cards='{{all_cards}}'></div>
 {% endblock content %}

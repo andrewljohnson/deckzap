@@ -1,8 +1,4 @@
-// import * as PIXI from 'pixi.js'
-// import { Card } from './Card.js';
-// import { DeckContainer } from './DeckContainer.js';
-import * as Constants from './constants.js';
-// import { SVGRasterizer } from './SVGRasterizer.js';
+import * as Constants from '../Constants.js';
 
 
 export class MatchFinder {
@@ -18,7 +14,6 @@ export class MatchFinder {
 		controlsContainer.appendChild(titleH1);
 
 		this.connect(username, deckID)
-
 	}
 
 	connect (username, deckID) {
@@ -28,14 +23,13 @@ export class MatchFinder {
         if (this.gameSocket.readyState == WebSocket.OPEN) {
             console.log('WebSockets connection created.');
             this.gameSocket.send(JSON.stringify(
-            	{"username": username, "message_type": "join"}
+            	{"username": username, "message_type": "JOIN"}
         	));                
         } else {
             setTimeout(() => {
                 this.connect(username);
             }, 100);
         }
-
 	}
 
     setupSocket(deckID) {
@@ -53,7 +47,7 @@ export class MatchFinder {
             console.log(data);
 
             if (data.message_type == "start_match") {
-				window.location.href = `/play/pvp/${data.room_id}?deck_id=${deckID}`            	
+				window.location.href = `/play/pvp/${data.game_record_id}?deck_id=${deckID}`            	
             }
         };
     }

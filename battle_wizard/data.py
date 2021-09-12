@@ -1,10 +1,27 @@
+import json
+
+def all_cards(require_images=False, include_tokens=True):
+    json_data = open('battle_wizard/battle_wizard_cards.json')
+    all_cards = json.load(json_data)
+    subset = []
+    for c in all_cards:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                subset.append(c)
+    return subset
+
+def hash_for_deck(deck):
+    strings = []
+    for key in deck["cards"]:
+        strings.append(f"{key}{deck['cards'][key]}")
+    strings.sort()
+    return "".join(strings)
 
 def default_deck_genie_wizard():
     return {
-        "name": "Draw Go",
+        "title": "Draw Go",
         "url": "draw_go",
-        "race": "genie",
-        "class": "wizard",
+        "discipline": "magic",
         "cards": {
             "Mana Battery": 1,
             "Elemental Ritual": 2,
@@ -29,10 +46,9 @@ def default_deck_genie_wizard():
 
 def default_deck_vampire_lich():
     return {
-        "name": "The Coven",
+        "title": "The Coven",
         "url": "the_coven",
-        "race": "vampire",
-        "class": "lich",
+        "discipline": "magic",
         "cards": {
             "Mana Coffin": 1,
             "Orpheus Krustal": 1,
@@ -50,15 +66,15 @@ def default_deck_vampire_lich():
             "Doomer": 1,
             "The Ancient": 2,
             "Ritual of the Night": 2,
+            "Kill Artifact": 1
         }
     }
 
 def default_deck_dwarf_tinkerer():
     return {
-        "name": "Keeper",
+        "title": "Keeper",
         "url": "keeper",
-        "race": "dwarf",
-        "class": "tinkerer",
+        "discipline": "tech",
         "cards": {
             "Find Artifact": 1,
             "Wind of Mercury": 2,
@@ -66,20 +82,19 @@ def default_deck_dwarf_tinkerer():
             "Rolling Thunder": 2,
             "Tame Shop Demon": 2,
             "Work in Progress": 2,
-            "Side Project": 2
+            "Side Project": 2,
+            "Tinker": 2
         }
     }
 
 def default_deck_dwarf_bard():
     return {
-        "name": "Townies",
+        "title": "Townies",
         "url": "townies",
-        "race": "dwarf",
-        "class": "bard",
+        "discipline": "tech",
         "cards": {
             "Lute": 1,
-            "Mana Shrub": 1,
-            "Dwarf Council": 1,
+            "Tech Crashhouse": 1,
             "Mayor's Brandy": 1,
             "Song of Patience": 1,
             "Study the Music": 1,
@@ -91,7 +106,7 @@ def default_deck_dwarf_bard():
             "Study the Masters": 1,
             "Sabotage": 1,
             "Fine War Music": 1,
-            "Dwarves' Revenge": 1,
+            "Tech Revenge": 1,
             "Song of Fire": 1,
         }
     }

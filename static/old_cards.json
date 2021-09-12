@@ -512,18 +512,6 @@
 			"target_type": "all_players"
 		}]
 	},
-		{
-		"name": "Kill Artifact",
-		"race": "genie",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Kill an artifact.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "spell",
-			"target_type": "artifact"
-		}]
-	},
 	{
 		"name": "Lightning Storm",
 		"race": "genie",
@@ -1255,9 +1243,98 @@
 			"amount": 1
 		}]
 	},
-
+	{
+		"name": "Dagger",
+		"card_type": "artifact",
+		"image": "bone-knife.svg",
+		"discipline": "magic",
+		"cost": 1,
+		"description": "Pay 2, make this a 1 power weapon with 2 charges.",
+		"original_description": "Pay 2, make this a 1 power weapon with 2 charges.",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			},
+			{
+				"name": "Weapon",
+				"descriptive_id": "Weapon"
+			}
+		],
+		"effects": [{
+				"name": "enable_activated_effect",
+				"effect_type": "activated",
+				"target_type": "self",
+				"cost": 2,
+				"effect_to_activate": {
+					"name": "attack",
+					"effect_type": "activated",
+					"description": "Remove a counter: Attack an enemy for 1 damage.",
+					"target_type": "any_enemy",
+					"counters": 2,
+					"cost": 0,
+					"power": 1,
+					"was_added": true
+				}
+		}]
+	},
 	
+	{
+		"name": "Stone Elemental",
+		"discipline": "magic",
+		"card_type": "mob",
+		"power": 2,
+		"toughness": 2,
+		"cost": 1
+	},
 
+	{
+		"name": "Air Elemental",
+		"discipline": "magic",
+		"card_type": "mob",
+		"power": 1,
+		"toughness": 5,
+		"cost": 2,
+		"abilities": [
+			{"name": "Guard", "descriptive_id": "Guard"}
+		]
+	},
+	{
+		"name": "Hide",
+		"discipline": "magic",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "Target mob gains Lurker.",
+		"effects": [ 
+			{
+				"name": "add_mob_abilities",
+				"effect_type": "spell",
+				"target_type": "mob",
+				"abilities": [{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}],
+				"ai_target_types": ["self_mob"]
+			}
+		]
+	},	
+	{
+		"name": "Prayer Beads",
+		"card_type": "artifact",
+		"image": "prayer-beads.svg",
+		"cost": 1,
+		"description": "Pay 1, heal 2 hit points",
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
+		"effects": [{
+				"name": "heal",
+				"effect_type": "activated",
+				"target_type": "any",
+				"cost": 1,
+				"amount": 2
+		}]
+	},
 
 
 

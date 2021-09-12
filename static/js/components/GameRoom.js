@@ -1,3 +1,6 @@
+import * as Constants from '../Constants.js';
+
+
 export class GameRoom {
 
     gameSocket = null;
@@ -13,9 +16,9 @@ export class GameRoom {
             this.setupSocket();
         }
         if (this.gameSocket.readyState == WebSocket.OPEN) {
-            const deck_id = document.getElementById("card_store").getAttribute("deck_id");
+            const deck_id = document.getElementById("data_store").getAttribute("deck_id");
             if (deck_id) {
-               const opponent_deck_id = document.getElementById("card_store").getAttribute("opponent_deck_id");
+               const opponent_deck_id = document.getElementById("data_store").getAttribute("opponent_deck_id");
                 if (opponent_deck_id) {
                     this.sendPlayMoveEvent("JOIN", { deck_id, opponent_deck_id });                
                 } else {
@@ -54,7 +57,7 @@ export class GameRoom {
         this.gameSocket.onmessage = function (e) {
             let data = JSON.parse(e.data)["payload"];
             if (data["move_type"] == "NEXT_ROOM") {
-                let usernameParameter = getSearchParameters()["username"];
+                let usernameParameter = Constants.getSearchParameters()["username"];
                 if (data["username"] == usernameParameter) {
                    window.location.href = self.nextRoomUrl();
                 } else {
@@ -73,7 +76,9 @@ export class GameRoom {
                 } else {
                   self.gameUX.game = game;  
                 }
-                console.log(data);
+                if (!self.gameUX.allCards) {
+                    self.gameUX.allCards = data["all_cards"]
+                }
                 self.gameUX.refresh(game, data);
                 self.gameUX.logMessage(data["log_lines"]);
             }
@@ -83,18 +88,13 @@ export class GameRoom {
     }
 
     roomSocketUrl() {
-        const roomCode = document.getElementById("data_store").getAttribute("room_code");
+        const roomCode = document.getElementById("data_store").getAttribute("game_record_id");
         const url = new URL(window.location.href);
         let protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
         let connectionString = protocol + window.location.host + '/ws/play/' + this.gameUX.playerType + '/' + roomCode + '/';
         const ai = document.getElementById("data_store").getAttribute("ai");
         if (ai && ai != "None") {
             connectionString += ai + '/';
-        }
-        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
-        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
-        if (isCustom != "False") {
-            connectionString = protocol + window.location.host + '/ws/play_custom/' + customGameId + '/' + roomCode + '/';
         }
         return connectionString;
     }
@@ -103,31 +103,26 @@ export class GameRoom {
         const ai = document.getElementById("data_store").getAttribute("ai");
         let url = location.host + location.pathname;
         if (!ai || ai == "None") {
-            const deckID = document.getElementById("card_store").getAttribute("deck_id");
+            const deckID = document.getElementById("data_store").getAttribute("deck_id");
             return `/find_match?deck_id=${deckID}`;
         }
         let basePath = "play";
         let roomNumber = parseInt(url.split( '/' ).pop()) + 1;
-        let usernameParameter = getSearchParameters()["username"];
+        let usernameParameter = Constants.getSearchParameters()["username"];
         let nextRoomUrl = `/${basePath}/` + this.gameUX.playerType + '/' + roomNumber;
         let getParams =  "?new_game_from_button=true";
         if (ai && ai != "None") {
             getParams += '&ai=' + ai;
         }
-        const deck_id = document.getElementById("card_store").getAttribute("deck_id");
+        const deck_id = document.getElementById("data_store").getAttribute("deck_id");
         if (deck_id && deck_id != "None") {
             getParams += '&deck_id=' + deck_id;
         }
-        const opponent_deck_id = document.getElementById("card_store").getAttribute("opponent_deck_id");
+        const opponent_deck_id = document.getElementById("data_store").getAttribute("opponent_deck_id");
         if (opponent_deck_id && opponent_deck_id != "None") {
             getParams += '&opponent_deck_id=' + opponent_deck_id;
         }
         nextRoomUrl +=  getParams;
-        const isCustom = document.getElementById("data_store").getAttribute("is_custom");
-        const customGameId = document.getElementById("data_store").getAttribute("custom_game_id");
-        if (isCustom != "False") {
-            nextRoomUrl = `/${basePath}/custom/` + roomNumber+ '/'  + customGameId + getParams;
-        }
         return nextRoomUrl;
     }
 
@@ -157,19 +152,4 @@ export class GameRoom {
         this.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
     }
 
-}
-
-function getSearchParameters() {
-    let prmstr = window.location.search.substr(1);
-    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
-}
-
-function transformToAssocArray( prmstr ) {
-    let params = {};
-    let prmarr = prmstr.split("&");
-    for ( let i = 0; i < prmarr.length; i++) {
-        let tmparr = prmarr[i].split("=");
-        params[tmparr[0]] = tmparr[1];
-    }
-    return params;
 }

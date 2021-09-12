@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 
-{% block css %}
-<link rel="stylesheet" href="/static/css/nongame.css">
-{% endblock %}
-
 {% block content %}
 <div class="wrapper" style="max-width:1024px">
   <h1>{{username}}</h1>
+  {% if player_rank > 0 %} 
+    <p>{{username}} is <a href=/top_players>ranked #{{player_rank}}</a> on deckzap.com.</p>
+  {% else %}
+    <p>{{username}} is <a href=/top_players>unranked</a> on deckzap.com.</p>
+  {% endif %}
   <p>{{username}} was the #{{account_number}} signup on deckzap.com.</p>
   {% if user.is_authenticated and user.username in request.path %}
     <a class=button href=/choose_deck_for_match>Find Match</a> 
@@ -16,7 +17,7 @@
   <h2 style="margin-bottom:0">Decks</h2>
   <ul style="padding:0;margin-top:0">
   {% for deck in decks %}
-	    <li>{% if user.is_authenticated and user.username in request.path %}<a class="button button-small" href=/build_deck?deck_id={{deck.id}}>Edit</a>{% endif %} {% firstof deck.name deck.id 'My Deck' %} ({{ deck.race }})</li>
+	    <li>{% if user.is_authenticated and user.username in request.path %}<a class="button button-small" href=/build_deck?deck_id={{deck.id}}>Edit</a>{% endif %} {% firstof deck.title deck.id 'My Deck' %} ({{ deck.global_deck.deck_json.discipline }})</li>
   {% endfor %}
 </div>
 

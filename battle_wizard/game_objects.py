@@ -5,9 +5,17 @@ import math
 import random
 import time
 
-from battle_wizard.data import default_deck_genie_wizard, default_deck_dwarf_tinkerer, default_deck_dwarf_bard, default_deck_vampire_lich
-from battle_wizard.jsonDB import JsonDB
-
+from battle_wizard.data import all_cards
+from battle_wizard.data import default_deck_genie_wizard 
+from battle_wizard.data import default_deck_dwarf_tinkerer
+from battle_wizard.data import default_deck_dwarf_bard
+from battle_wizard.data import default_deck_vampire_lich
+from battle_wizard.data import hash_for_deck
+from battle_wizard.models import Deck
+from battle_wizard.models import GameRecord
+from battle_wizard.models import GlobalDeck
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
 spellCardType = "spell"
 mobCardType = "mob"
@@ -15,51 +23,64 @@ artifactCardType = "artifact"
 
 
 class Game:
-    def __init__(self, websocket_consumer, player_type, db_name, info=None, player_decks=None, ai=None):
+    def __init__(self, player_type, info=None, player_decks=None, ai=None):
+
+        self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
 
         self.ai = ai
         self.player_type = info["player_type"] if info and "player_type" in info else player_type
 
         # support 2 players
-        self.players = [Player(self, u) for u in info["players"]] if info else []
-        self.turn = int(info["turn"]) if info else 0
+        self.players = [Player(self, u) for u in info["players"]] if info and "players" in info else []
+        self.turn = int(info["turn"]) if info and "turn" in info else 0
 
         # player 0 always acts on even turns, player 1 acts on odd turns
-        self.actor_turn = int(info["actor_turn"]) if info else 0
+        self.actor_turn = int(info["actor_turn"]) if info and "actor_turn" in info else 0
 
         self.stack = info["stack"] if info and "stack" in info else []
 
         # the next id to give a card when doing make_card effects
         # each card gets the next unusued integer
-        self.next_card_id = int(info["next_card_id"]) if info else 0
+        self.next_card_id = int(info["next_card_id"]) if info and "next_card_id" in info else 0
         # created by Make Effect
         self.global_effects = info["global_effects"] if info and "global_effects" in info else []
-
-        # the name of the json database on disk
-        self.db_name = db_name
-        # the websocket consumer instance the game gets updated by
-        self.websocket_consumer = websocket_consumer
 
         # stack decks for unit testing
         self.player_decks = player_decks
 
         self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()
-        self.show_rope = info["show_rope"] if info else False
+        self.show_rope = info["show_rope"] if info and "show_rope" in info else False
         
         self.max_hand_size = 10
 
+        # a list of all player-derived moves, sufficient to replay the game
+        self.moves = info["moves"] if info and "moves" in info else []
+        # when in review mode, the index of the move under review
+        self.review_move_index = info["review_move_index"] if info and "review_move_index" in info else -1
+        self.review_game = Game(self.player_type, info=info["review_game"], player_decks=player_decks, ai=ai) if info and "review_game" in info else None
+        self.is_review_game = info["is_review_game"] if info and "is_review_game" in info else False
+        self.is_reviewing = info["is_reviewing"] if info and "is_reviewing" in info else False
+
+    def __repr__(self):
+        return f"{self.as_dict()}"
+
     def as_dict(self):
         return {
+            "actor_turn": self.actor_turn, 
+            "game_record_id": self.game_record_id, 
+            "global_effects": self.global_effects, 
+            "moves": self.moves, 
+            "next_card_id": self.next_card_id, 
             "players": [p.as_dict() for p in self.players], 
+            "player_type": self.player_type, 
+            "show_rope": self.show_rope, 
             "stack": self.stack, 
             "turn": self.turn, 
-            "actor_turn": self.actor_turn, 
-            "next_card_id": self.next_card_id, 
-            "global_effects": self.global_effects, 
-            "db_name": self.db_name, 
-            "player_type": self.player_type, 
+            "review_move_index": self.review_move_index, 
+            "review_game": self.review_game.as_dict() if self.review_game else None, 
+            "is_review_game": self.is_review_game, 
+            "is_reviewing": self.is_reviewing, 
             "turn_start_time": self.turn_start_time.__str__() if self.turn_start_time else None, 
-            "show_rope": self.show_rope, 
         }
 
     @staticmethod
@@ -67,9 +88,9 @@ class Game:
         """
             Returns a list of all possible cards in the game. 
         """
-        all_cards = [Card(c_info) for c_info in JsonDB().all_cards()]
+        cards = [Card(c_info) for c_info in all_cards()]
         subset = []
-        for c in all_cards:
+        for c in cards:
             if include_tokens or not c.is_token:
                 if c.image or not require_images:
                     subset.append(c)
@@ -97,7 +118,6 @@ class Game:
         elif player.card_choice_info["choice_type"] == "make_with_option":
             moves = self.add_resolve_make_moves(player, moves)
             moves.append({"move_type": "CANCEL_MAKE", "username": self.ai})              
-            # todo add make_with_option moves
         elif player.card_choice_info["choice_type"] == "make_from_deck":
             moves = self.add_resolve_make_from_deck_moves(player, moves)
         elif player.card_choice_info["choice_type"] == "fetch_artifact_into_hand":
@@ -115,22 +135,15 @@ class Game:
             if len(moves) == 0:
                 moves = self.add_attack_and_play_card_moves(moves)
                 moves.append({"move_type": "END_TURN", "username": self.ai})                
-        elif len(self.stack) > 0 and self.stack[-1][0]["move_type"] == "ATTACK" and not has_action_selected:
-            moves = self.add_attack_response_moves(player, moves)
         elif len(self.stack) > 0 and not has_action_selected:
-            moves = self.add_spell_response_moves(player, moves)
+            moves = self.add_response_moves(player, moves)
         else:
             moves = self.add_attack_and_play_card_moves(moves)
             if not has_action_selected:
                 moves.append({"move_type": "END_TURN", "username": self.ai})
         return moves
 
-    def add_spell_response_moves(self, player, moves):
-        moves = self.add_attack_and_play_card_moves(moves)
-        moves.append({"move_type": "RESOLVE_NEXT_STACK", "username": self.ai})              
-        return moves 
-
-    def add_attack_response_moves(self, player, moves):
+    def add_response_moves(self, player, moves):
         moves = self.add_attack_and_play_card_moves(moves)
         moves.append({"move_type": "RESOLVE_NEXT_STACK", "username": self.ai})              
         return moves 
@@ -251,27 +264,74 @@ class Game:
             moves.append({"move_type": "SELECT_OPPONENT", "username": self.ai})
         return moves
 
-    def play_move(self, message):
+    def navigate_game(self, original_message, consumer):
+        
+        self.review_game = Game("pvp", info={}, ai=consumer.ai, player_decks=consumer.decks)
+        self.review_game.is_review_game = True
+        self.is_reviewing = True;
+        #print(f"navigate_game with total moves {len(self.moves)}")
+        #for move in self.moves:
+        #    print(move)
+        self.moves[0]["discipline"] = self.players[0].discipline
+        self.moves[1]["discipline"] = self.players[1].discipline
+        self.moves[0]["initial_deck"] = [c.as_dict() for c in self.players[0].initial_deck]
+        self.moves[1]["initial_deck"] = [c.as_dict() for c in self.players[1].initial_deck]
+        index = 0
+        log_lines = []
+        for move in self.moves:
+            if index > original_message["index"] - 1 and original_message["index"] > -1:
+                break
+            move["log_lines"] = []
+            message = self.review_game.play_move(move)
+            if message["log_lines"] != []:
+                log_lines += message["log_lines"]
+            index += 1
+        original_message["log_lines"] = log_lines  
+        username = original_message['username']
+        if original_message["index"] == -1:
+            self.review_game = None
+            self.is_reviewing = False
+            original_message["log_lines"].append(f"{username} resumed the game.")
+        else:
+            original_message["log_lines"].append(f"{username} navigated the game to move {original_message['index']}.")
+        self.review_move_index = original_message["index"]
+        return original_message
+
+
+    def play_move(self, message, save=False):
         move_type = message["move_type"]
         if message["move_type"] != "GET_TIME":
-            print(f"play_move: {move_type}")
+            print(f"play_move: {move_type} {message['username']}")
         
         if move_type == 'GET_TIME':
             max_turn_time = 60
             turn_time = datetime.datetime.now() - self.turn_start_time
-            
+            # if turn_time.seconds > max_turn_time:
+            #     self.show_rope = True
             message["turn_time"] = turn_time.seconds
             message["max_turn_time"] = max_turn_time
             return message
 
+        if save and (message["move_type"] != "JOIN" or len(self.moves) <= 2):
+            move_copy = copy.deepcopy(message)
+            if "game" in move_copy:
+                del move_copy['game']
+            if "log_lines" in move_copy:
+                del move_copy['log_lines']
+            if "show_spell" in move_copy:
+                del move_copy['show_spell']
+            if "game" in move_copy:
+                del move_copy['game']
+            self.moves.append(move_copy)
+            #for move in self.moves:
+            #    print(move)
+        
         if move_type != 'JOIN':
             self.unset_clickables(move_type)
 
         # moves to join/configure/start a game
         if move_type == 'JOIN':
             message = self.join(message)
-        elif move_type == 'CHOOSE_RACE':
-            message = self.choose_race(message)
         else:
             if (message["username"] != self.current_player().username):
                 print(f"can't {move_type} on opponent's turn")
@@ -317,7 +377,7 @@ class Game:
                 message = self.attack(message)          
             else:  
                 self.actor_turn += 1
-                message = self.current_player().play_card(self.stack[-1][0]["card"], message)
+                self.current_player().play_card(self.stack[-1][0]["card"], message)
         elif move_type == 'ACTIVATE_ARTIFACT':
             message = self.activate_artifact(message)            
         elif move_type == 'ACTIVATE_MOB':
@@ -345,8 +405,21 @@ class Game:
             if not anything_clickable and not "bot" in cp.username and len(self.stack) > 0:
                 return self.play_move({"move_type": "RESOLVE_NEXT_STACK", "username": cp.username})
 
-        if message:
-            JsonDB().save_game_database(self.as_dict(), self.db_name)
+        if move_type == 'JOIN':
+            if len(self.players) == 1 and self.player_type == "pvai":
+                message["username"] = self.ai
+                message = self.play_move(message, save=True)
+
+        if message and len(self.players) == 2 and not self.is_review_game:
+            game_object = GameRecord.objects.get(id=self.game_record_id)
+            game_object.game_json = self.as_dict()
+            if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
+                game_object.date_finished = datetime.datetime.now()
+                if self.players[0].hit_points <= 0 and self.players[1].hit_points >= 0:
+                    game_object.winner = User.objects.get(username=self.players[1].username)
+                elif self.players[1].hit_points <= 0 and self.players[0].hit_points >= 0:
+                    game_object.winner = User.objects.get(username=self.players[0].username)
+            game_object.save()
         else:
             # if message is None, the move was a no-op, like SELECT_CARD_IN_HAND on an uncastable card
             pass
@@ -426,7 +499,6 @@ class Game:
                 spell_card = spell[1]
                 action = spell[0]
                 if action["move_type"] == "ATTACK" and action["username"] != cp.username:
-                    print ("ATTACK ON STACK")
                     attacker, _ = self.get_in_play_for_id(action["card"])     
                     if attacker:
                         attacker.can_be_clicked = True
@@ -818,33 +890,22 @@ class Game:
     def join(self, message):
         join_occured = True
         if len(self.players) == 0:
-            self.players.append(Player(self, {"username":message["username"]}, new=True))            
+            self.players.append(Player(self, message, new=True))            
             self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
-            if self.player_type == "pvai":
-                message["log_lines"].append(f"{self.ai} joined the game.")
-                self.players.append(Player(self, {"username":self.ai}, new=True, bot=self.ai))
-                self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
-            self.players.append(Player(self, {"username":message["username"]}, new=True))
-            self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
+            if self.player_type == "pvai":                        
+                self.players.append(Player(self, message, new=True, bot=self.ai))
+                self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
+            else:
+                self.players.append(Player(self, message, new=True))
+                self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
         elif len(self.players) >= 2:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")
             join_occured = False
 
         if len(self.players) == 2 and join_occured:
-            self.start_game(message)
-        return message
-
-    def choose_race(self, message):
-        message["log_lines"].append(f"{message['username']} chose {message['race']}.")
-        player = self.players[0]
-        if player.username != message["username"]:
-            player = self.players[1]
-        player.race = message["race"]
-
-        if self.players[0].race and len(self.players) == 2 and self.players[1].race:
             self.start_game(message)
         return message
 
@@ -869,31 +930,39 @@ class Game:
 
     def start_constructed_game(self, message):
         if self.players[0].max_mana == 0: 
+            deck_hashes = []
             for x in range(0, 2):
-                decks_db = JsonDB().decks_database()
-                decks = decks_db[self.players[x].username]["decks"] if self.players[x].username in decks_db else []
-                deck_to_use = None
-                for d in decks:
-                    if d["id"] == self.players[x].deck_id:
-                        deck_to_use = d
-                if self.players[x].deck_id == "the_coven":
-                    deck_to_use = default_deck_vampire_lich()
-                elif self.players[x].deck_id == "keeper":
-                    deck_to_use = default_deck_dwarf_tinkerer()
-                elif self.players[x].deck_id == "townies":
-                    deck_to_use = default_deck_dwarf_bard()
-                elif self.players[x].deck_id == "draw_go":
-                    deck_to_use = default_deck_genie_wizard()
+                if self.is_review_game:
+                    self.players[x].deck = self.players[x].initial_deck
                 else:
-                    deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
-                card_names = []
-                for key in deck_to_use["cards"]:
-                    for _ in range(0, deck_to_use["cards"][key]):
-                        card_names.append(key)
-                for card_name in card_names:
-                    self.players[x].add_to_deck(card_name, 1)
-                random.shuffle(self.players[x].deck)
-                self.players[x].race = deck_to_use["race"]
+                    try:
+                        decks = Deck.objects.filter(owner=User.objects.get(username=self.players[x].username))
+                    except ObjectDoesNotExist:
+                        decks = []
+                    deck_to_use = None
+                    for d in decks:
+                        if d.id == self.players[x].deck_id:
+                            deck_to_use = d.global_deck.deck_json
+                    if self.players[x].deck_id == "the_coven":
+                        deck_to_use = default_deck_vampire_lich()
+                    elif self.players[x].deck_id == "keeper":
+                        deck_to_use = default_deck_dwarf_tinkerer()
+                    elif self.players[x].deck_id == "townies":
+                        deck_to_use = default_deck_dwarf_bard()
+                    elif self.players[x].deck_id == "draw_go":
+                        deck_to_use = default_deck_genie_wizard()
+                    else:
+                        deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
+                    deck_hashes.append(hash_for_deck(deck_to_use))
+                    card_names = []
+                    for key in deck_to_use["cards"]:
+                        for _ in range(0, deck_to_use["cards"][key]):
+                            card_names.append(key)
+                    for card_name in card_names:
+                        self.players[x].add_to_deck(card_name, 1)
+                    random.shuffle(self.players[x].deck)
+                    self.players[x].initial_deck = copy.deepcopy(self.players[x].deck)
+                    self.players[x].discipline = deck_to_use["discipline"]
 
             self.get_starting_artifacts()
             self.get_starting_spells()
@@ -901,6 +970,18 @@ class Game:
                 self.players[x].draw(self.players[x].initial_hand_size())
 
             self.send_start_first_turn(message)
+            if not self.is_review_game:
+                game_record = GameRecord.objects.get(id=self.game_record_id)
+                game_record.date_started = datetime.datetime.now()
+                game_record.player_one = User.objects.get(username=self.players[0].username)
+                try:
+                    game_record.player_two = User.objects.get(username=self.players[1].username)
+                except ObjectDoesNotExist:
+                    game_record.player_two = User.objects.create(username=self.players[1].username)
+                    game_record.player_two.save()
+                game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[0])
+                game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[1])
+                game_record.save()
 
     def get_starting_artifacts(self):
         found_artifact = None
@@ -973,7 +1054,7 @@ class Game:
             else:
                 cards_to_discard.append(card)
 
-        if self.current_player().race == "dwarf":
+        if self.current_player().discipline == "tech":
             for card in cards_to_discard:
                 self.current_player().hand.remove(card)
                 self.current_player().played_pile.append(card)
@@ -990,7 +1071,7 @@ class Game:
                          self.current_player().hand[self.current_player().hand.index(card)] = evolved_card
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
-            # this works because all endd_turn triggered effects dont have targets to choose
+            # this works because all end_turn triggered effects dont have targets to choose
             effect_targets = self.current_player().unchosen_targets_for_card(mob, self.current_player().username, effect_type="triggered")            
             index = 0
             for effect in mob.effects_triggered():
@@ -1006,7 +1087,7 @@ class Game:
                             spell = random.choice(spells)
                             self.current_player().hand.append(spell)
                             self.current_player().played_pile.remove(spell)
-                elif effect.name == "damage":
+                elif effect.name == "damage" and effect.trigger == "end_turn":
                     message = self.current_player().do_damage_effect(effect, effect_targets, index, message)
                 elif effect.name == "improve_damage_when_used":
                     # hax for Doomer, this would break if it didnt have two damage effects
@@ -1257,7 +1338,6 @@ class Game:
             message = self.select_artifact_target_for_artifact_effect(cp.selected_mob(), message)
         elif cp.selected_spell():  
             # todo handle cards with multiple effects
-            print(cp.selected_spell().name)
             if cp.selected_spell().effects[effect_index].target_type == "opponents_artifact" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().artifacts:
                 print(f"can't target own artifact with opponents_artifact effect from {cp.selected_spell().name}")
                 return None
@@ -1449,8 +1529,7 @@ class Game:
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
             elif e.target_type == "all":
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
-            # todo unhardcode for other fetch types if we can fetch more than Artifacts
-            elif e.target_type == artifactCardType:
+            elif e.target_type == "artifact_in_deck":
                 message = self.current_player().do_card_effect(artifact, e, message, [{"id": message["username"], "target_type": e.target_type}], 0)
             elif e.target_type == "self_mob":
                 message = self.select_mob_target_for_artifact_activated_effect(artifact, message)
@@ -1571,7 +1650,7 @@ class Game:
             for deck_card in self.current_player().deck:
                 if card.id == deck_card.id:
                    card_to_remove = deck_card 
-            self.current_player().deck.remove(deck_card)
+            self.current_player().deck.remove(card_to_remove)
             if card.id != chosen_card.id:
                 self.send_card_to_played_pile(card, self.current_player(), did_kill=False)
                 message["log_lines"].append(f"{message['username']} puts {card.name} into their played pile.")
@@ -1643,7 +1722,7 @@ class Game:
     def update_for_mob_changes_zones(self, player):
 
         # code for War Scorpion
-        for e in player.in_play:
+        for e in player.in_play + player.artifacts:
             effect = e.effect_with_trigger("mob_changes_zones")
             if effect and effect.name == "toggle_symbiotic_fast":
                 abilities_to_remove = []
@@ -1971,8 +2050,9 @@ class Player:
 
     def __init__(self, game, info, new=False, bot=None):
         self.username = info["username"]
-        self.race = info["race"] if "race" in info else None
+        self.discipline = info["discipline"] if "discipline" in info else None
         self.deck_id = info["deck_id"] if "deck_id" in info else None
+        self.initial_deck = [Card(c_info) for c_info in info["initial_deck"]] if "initial_deck" in info else []
         self.bot = bot
 
         self.game = game
@@ -2008,18 +2088,12 @@ class Player:
             self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"], "effect_card_id": info["card_choice_info"]["effect_card_id"] if "effect_card_id" in info["card_choice_info"] else None}
 
     def __repr__(self):
-        return f"{self.username} ({self.race}, deck_id: {self.deck_id}) - \
-                {self.hit_points} hp - {self.damage_this_turn} damage_this_turn - {self.damage_to_show} damage_to_show - {self.mana} mana, self.card_info_to_target {self.card_info_to_target} \
-                {self.max_mana} max_mana, {len(self.hand)} cards, {len(self.in_play)} in play, \
-                {len(self.deck)} in deck, {len(self.played_pile)} in played_pile, \
-                self.can_be_clicked {self.can_be_clicked}, \
-                {self.card_choice_info} \
-                {self.abilities}, self.artifacts {self.artifacts}"
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
             "username": self.username,
-            "race": self.race,
+            "discipline": self.discipline,
             "hit_points": self.hit_points,
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
@@ -2029,6 +2103,7 @@ class Player:
             "card_info_to_target": self.card_info_to_target,
             "hand": [c.as_dict() for c in self.hand],
             "in_play": [c.as_dict() for c in self.in_play],
+            "initial_deck": [c.as_dict() for c in self.initial_deck],
             "artifacts": [c.as_dict() for c in self.artifacts],
             "deck": [c.as_dict() for c in self.deck],
             "played_pile": [c.as_dict() for c in self.played_pile],
@@ -2038,23 +2113,35 @@ class Player:
         }
 
     def max_max_mana(self):
-        if self.race == "dwarf":
+        if self.discipline == "tech":
             return 99
         return 10
 
     def cards_each_turn(self):
-        if self.race == "dwarf":
+        if self.discipline == "tech":
             return 5
         return 1
 
     def initial_hand_size(self):
-        if self.race == "dwarf":
+        if self.discipline == "tech":
             return 5
         return 4
 
     def has_instants(self):
         for c in self.hand:
             if c.can_be_clicked:
+                return True
+        return False
+
+    def has_mob_target(self):
+        for mob in self.in_play:
+            if not mob.has_ability("Lurker"):
+                return True
+        return False
+
+    def has_artifact_target(self):
+        for mob in self.artifacts:
+            if not mob.has_ability("Lurker"):
                 return True
         return False
 
@@ -2116,7 +2203,7 @@ class Player:
                 continue
             card = self.deck.pop()
             self.hand.append(card)
-            for m in self.in_play:
+            for m in self.in_play + self.artifacts:
                 for effect in m.effects_triggered():
                     if effect.name == "hp_damage_random":
                         choice = random.choice(["hp", "damage"])
@@ -2131,6 +2218,7 @@ class Player:
                                 self.do_damage_effect_on_player(choice, 1)
                             else:
                                 self.do_damage_effect_on_mob(choice.id, 1)
+
             for r in self.artifacts:
                 for effect in r.effects_triggered():
                     if effect.name == "reduce_cost" and card.card_type == effect.target_type:
@@ -2344,7 +2432,7 @@ class Player:
                 message["log_lines"].append(f"{self.username} gains {card.description}.")
             self.do_add_abilities_effect(e, card)           
         elif e.name == "add_mob_abilities":
-            message["log_lines"].append(f"{self.username} adds {e.abilities[0].name} to {effect_targets[target_index]['id']} with {card.name}.")
+            message["log_lines"].append(f"{self.username} adds {e.abilities[0].name} to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name} with {card.name}.")
             self.do_add_abilities_effect(e, self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0])           
         elif e.name == "add_random_mob_ability":
             message["log_lines"].append(f"{self.username} added a random ability to their mobs with {card.name}.")
@@ -2372,6 +2460,58 @@ class Player:
         self.hit_points -= e.cost_hp
         
         return message 
+
+    def do_card_effect_start_turn(self, card, effect):
+        if effect.name == "damage" and effect.target_type == "self":
+            self.damage(effect.amount)
+            message["log_lines"].append(f"{self.username} takes {effect.amount} damage from {card.name}.")
+        elif effect.name == "take_control" and effect.target_type == "opponents_mob_random": # song dragon
+            if len(self.game.opponent().in_play) > 0:
+                mob_to_target = random.choice(self.game.opponent().in_play)
+                self.do_take_control_effect_on_mob(mob_to_target.id)
+                message["log_lines"].append(f"{self.username} takes control of {mob_to_target.name}.")
+        elif effect.name == "gain_hp":
+            self.do_heal_effect_on_player(self.username, effect.amount)
+        else:
+            print(f"unsupported start_turn triggered effect {effect}")
+
+    def do_card_effect_artifact_only_start_turn(self, r):
+        for effect in r.effects_triggered():
+            if effect.trigger == "start_turn":
+                if effect.name == "gain_hp_for_hand":
+                    gained = 0
+                    to_apply = max(len(self.hand) - 5, 0)
+                    while self.hit_points < 30 and to_apply > 0:
+                        self.hit_points += 1
+                        to_apply -= 1
+                        gained += 1  
+                    message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
+                elif effect.name == "lose_hp_for_hand":
+                    self.game.opponent().damage(len(self.game.opponent().hand))
+                    message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
+                elif effect.name == "store_mana" and self.mana > 0:
+                        counters = effect.counters or 0
+                        counters += self.mana
+                        effect.counters = min(3, counters)
+            elif effect.name == "duplicate_card_next_turn" and r.card_for_effect:
+                new_card = self.add_to_deck(r.card_for_effect.name, 1, add_to_hand=True)
+                self.hand.append(r.card_for_effect)
+                new_card.cost = r.card_for_effect.cost
+                r.card_for_effect = None
+            elif effect.name == "upgrade_card_next_turn" and r.card_for_effect:
+                previous_card = None
+                for c in Game.all_cards():
+                    if r.card_for_effect.name == c.name:
+                        previous_card = c
+                previous_card.evolve(previous_card)
+                self.hand.append(previous_card)
+                r.card_for_effect = None
+            elif effect.name == "decost_card_next_turn" and r.card_for_effect:                    
+                r.card_for_effect.cost = max(0, r.card_for_effect.cost - 1)
+                self.hand.append(r.card_for_effect)
+                r.card_for_effect = None
+            else:
+                print(f"unsupported start_turn triggered effect for artifact, {effect}")
 
     def spend_mana(self, amount):
         amount_to_spend = amount        
@@ -2565,7 +2705,6 @@ class Player:
             if len(card.effects) == 2 and card.effects[1].name == "decrease_max_mana":
                 card.effects[1].enabled = False
 
-
     def do_damage_effect(self, e, effect_targets, target_index, message):
         damage_amount = e.amount 
         if e.amount_id == "hand":            
@@ -2576,44 +2715,31 @@ class Player:
             self.do_damage_effect_on_player(effect_targets[target_index]["id"], e.amount, e.amount_id)
             message["log_lines"].append(f"{self.username} deals {damage_amount} damage to {effect_targets[target_index]['id']}.")
         elif effect_targets[target_index]["target_type"] == "opponents_mobs":
-            dead_mobs = []
-            for mob in self.game.opponent().in_play:
-                mob.damage += damage_amount
-                mob.damage_this_turn += damage_amount
-                mob.damage_to_show += damage_amount
-                if mob.damage >= mob.toughness_with_tokens():
-                    dead_mobs.append(mob)
-            for mob in dead_mobs:
-                self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
-            message["log_lines"].append(f"{self.username} deals {damage_amount} damage to {self.game.opponent().username}'s mobs.")
+            self.damage_mobs(self.game.opponent().in_play, damage_amount, self.username, f"{self.game.opponent().username}'s mobs", message)
         elif effect_targets[target_index]["target_type"] == "all_mobs" or effect_targets[target_index]["target_type"] == "all":
-            dead_mobs = []
-            for mob in self.in_play:
-                mob.damage += damage_amount
-                mob.damage_this_turn += damage_amount
-                mob.damage_to_show += damage_amount
-                if mob.damage >= mob.toughness_with_tokens():
-                    dead_mobs.append(mob)
-            for mob in dead_mobs:
-                self.game.send_card_to_played_pile(mob, self, did_kill=True)
-            dead_mobs = []
-            for mob in self.game.opponent().in_play:
-                mob.damage += damage_amount
-                mob.damage_this_turn += damage_amount
-                mob.damage_to_show += damage_amount
-                if mob.damage >= mob.toughness_with_tokens():
-                    dead_mobs.append(mob)
-            for mob in dead_mobs:
-                self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
+            damage_taker = "all mobs"
+            if effect_targets[target_index]["target_type"] == "all":
+                damage_taker = "all mobs and players"
+            self.damage_mobs(self.game.opponent().in_play + self.in_play, damage_amount, self.username, damage_taker, message)
             if effect_targets[target_index]["target_type"] == "all":
                 self.damage(damage_amount)
                 self.game.opponent().damage(damage_amount)
-                message["log_lines"].append(f"{self.username} deals {damage_amount} damage to all mobs and players.")
-            else:
-                message["log_lines"].append(f"{self.username} deals {damage_amount} damage to all mobs.")
         else:
             message["log_lines"].append(f"{self.username} deals {damage_amount} damage to {self.game.get_in_play_for_id(effect_targets[target_index]['id'])[0].name}.")
             self.do_damage_effect_on_mob(effect_targets[target_index]["id"], e.amount, e.amount_id)
+        return message
+
+    def damage_mobs(self, mobs, damage_amount, damage_dealer, damage_taker, message):
+        dead_mobs = []
+        for mob in mobs:
+            mob.damage += damage_amount
+            mob.damage_this_turn += damage_amount
+            mob.damage_to_show += damage_amount
+            if mob.damage >= mob.toughness_with_tokens():
+                dead_mobs.append(mob)
+        for mob in dead_mobs:
+            self.game.send_card_to_played_pile(mob, self.game.opponent(), did_kill=True)
+        message["log_lines"].append(f"{damage_dealer} deals {damage_amount} damage to {damage_taker}.")
         return message
 
     def do_damage_effect_on_player(self, target_player_username, amount, amount_id=None):
@@ -2707,6 +2833,8 @@ class Player:
         if len(target_player.artifacts) < 3:
             target_card.card_type = "artifact"
             target_player.artifacts.append(target_card)
+        self.game.update_for_mob_changes_zones(self)
+        self.game.update_for_mob_changes_zones(self.game.opponent())
 
     def do_gain_for_toughness_effect(self, target_mob_id):
         target_card, target_player = self.game.get_in_play_for_id(target_mob_id)
@@ -2767,7 +2895,7 @@ class Player:
         return target_player.riffle(amount)
 
     def do_fetch_card_effect_on_player(self, card, target_player_username, card_type, target_restrictions, choice_type=None):
-        if card_type == artifactCardType:
+        if artifactCardType in card_type:
             target_player = self.game.players[0]
             if target_player.username != target_player_username:
                 target_player = self.game.players[1]
@@ -3049,13 +3177,13 @@ class Player:
         all_cards = Game.all_cards(require_images=True, include_tokens=False)
         banned_cards = ["Make Spell", "Make Spell+", "Make Mob", "Make Mob+"]
         card1 = None 
-        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == mobCardType and card1.cost != requiredMobCost):  #or (self.race != None and card1.race != None and self.race not in [card1.race, f"{card1.race}_{card1.card_class}"]):
+        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == mobCardType and card1.cost != requiredMobCost): 
             card1 = random.choice(all_cards)
         card2 = None
-        while not card2 or card2.name in banned_cards or (make_type != "any" and card2.card_type != make_type) or card2 == card1: #or (self.race != None and card2.race != None and self.race not in [card2.race, f"{card2.race}_{card2.card_class}"]):
+        while not card2 or card2.name in banned_cards or (make_type != "any" and card2.card_type != make_type) or card2 == card1:
             card2 = random.choice(all_cards)
         card3 = None
-        while not card3 or card3.name in banned_cards or (make_type != "any" and card3.card_type != make_type) or card3 in [card1, card2]: #or (self.race != None and card3.race != None and self.race not in [card3.race, f"{card3.race}_{card3.card_class}"]):
+        while not card3 or card3.name in banned_cards or (make_type != "any" and card3.card_type != make_type) or card3 in [card1, card2]:
             card3 = random.choice(all_cards)
         self.card_choice_info = {"cards": [card1, card2, card3], "choice_type": "make"}
         
@@ -3249,7 +3377,7 @@ class Player:
         spell_to_resolve["log_lines"] = []
         card = Card(to_resolve[1])
 
-        for e in self.in_play:
+        for e in self.in_play + self.artifacts:
             for idx, effect in enumerate(e.effects_triggered()):
                 if effect.trigger == "friendly_card_played" and effect.target_type == "this":
                     self.do_add_tokens_effect(e, effect, {idx: {"id": e.id, "target_type":"mob"}}, idx)
@@ -3279,7 +3407,7 @@ class Player:
                     # hack for Rolling Thunder
                     card.effects[0].amount += 1
                 if card.effects[1].name == "improve_effect_amount_when_cast":
-                    # hack for Dwarf Council
+                    # hack for Tech Crashhouse
                     card.effects[0].amount += 1
                 if card.effects[1].name == "improve_effect_when_cast":
                     # hack for Tame Shop Demon
@@ -3317,7 +3445,7 @@ class Player:
         if card.card_type == mobCardType:
             if len(card.effects) > 0 and do_effects:
                 self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
-            for c in self.in_play:
+            for c in self.in_play + self.artifacts:
                 if len(c.effects_triggered()) > 0:
                     # Spouty Gas Ball code
                     if c.effects_triggered()[0].trigger == "play_friendly_mob":
@@ -3523,60 +3651,44 @@ class Player:
                 card.power = max(0, card.power)
         return card
 
-    # todo: make a has_effect method instea dof checking name
+    # todo: make a has_effect method instead of checking name
     def has_brarium(self):
-        for a in self.artifacts:
-            if a.name == "Brarium":
-                return True
-        for m in self.in_play:
-            if m.name == "Enthralled Maker":
+        for a in self.artifacts + self.in_play:
+            if a.name == "Brarium" or a.name == "Enthralled Maker":
                 return True
         return False
 
     def start_turn(self, message):
         self.game.turn_start_time = datetime.datetime.now()
         self.game.show_rope = False
+        self.draw_for_turn()
+        self.do_start_turn_card_effects_and_abilities()
+        self.refresh_mana_for_turn()
+        self.maybe_do_ice_prison()
+        return message
 
-        if self.game.turn != 0:
-            draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
-            for m in self.in_play:
-                for e in m.effects_triggered():
-                    if e.name == "draw" and e.trigger == "start_turn":
-                        draw_count += e.amount
-            for a in self.artifacts:
-                for e in a.effects_triggered():
-                    if e.name == "draw" and e.trigger == "start_turn":
-                        draw_count += e.amount
-            if self.has_brarium():
-                draw_count -= 1
-                if draw_count > 0:
-                    if self.race != "dwarf" or self.game.turn > 1:
-                        self.draw(draw_count)
-                self.do_make_from_deck_effect(self.username)
-            else:
-                if self.race != "dwarf" or self.game.turn > 1:
+    def draw_for_turn(self):
+        if self.game.turn == 0:
+            return
+
+        draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
+        for m in self.in_play + self.artifacts:
+            for e in m.effects_triggered():
+                if e.name == "draw" and e.trigger == "start_turn":
+                    draw_count += e.amount
+        if self.has_brarium():
+            draw_count -= 1
+            if draw_count > 0:
+                if self.discipline != "tech" or self.game.turn > 1:
                     self.draw(draw_count)
-
-        if self.race == "dwarf":
-            if self.game.turn <= 1:
-                self.max_mana = 3
+            if len(self.hand) < 10:                        
+                self.do_make_from_deck_effect(self.username)
         else:
-            self.max_mana += 1
-            self.max_mana = min(self.max_max_mana(), self.max_mana)
-        
-        for r in self.artifacts:
-            for effect in r.effects_triggered():
-                if effect.name == "store_mana" and self.mana > 0:
-                    counters = effect.counters or 0
-                    counters += self.mana
-                    effect.counters = min(3, counters)
-        
-        self.mana = 0
-        self.mana += self.max_mana
-        self.mana = min(self.max_max_mana(), self.mana)
+            if self.discipline != "tech" or self.game.turn > 1:
+                self.draw(draw_count)
 
-
-        for card in self.in_play:
+    def do_start_turn_card_effects_and_abilities(self):
+        for card in self.in_play + self.artifacts:
             if card.has_ability("Fade"):
                 token = {
                     "turns": -1,
@@ -3587,65 +3699,39 @@ class Player:
 
             if not self.game.is_under_ice_prison():
                 card.attacked = False
+
             card.can_activate_abilities = True
 
             for effect in card.effects_triggered():
-                if effect.trigger == "start_turn":
-                    if effect.name == "damage" and effect.target_type == "self":
-                        self.game.current_player().damage(effect.amount)
-                        message["log_lines"].append(f"{self.game.current_player().username} takes {effect.amount} damage from {card.name}.")
-                    elif effect.name == "take_control" and effect.target_type == "opponents_mob_random":
-                        if len(self.game.opponent().in_play) > 0:
-                            mob_to_target = random.choice(self.game.opponent().in_play)
-                            self.game.current_player().do_take_control_effect_on_mob(mob_to_target.id)
-                            message["log_lines"].append(f"{self.game.current_player().username} takes control of {mob_to_target.name}.")
-                    elif effect.name == "gain_hp":
-                        self.do_heal_effect_on_player(self.username, effect.amount)
-                    else:
-                        print(f"unsupported start_turn triggered effect {effect}")
+                if effect.trigger == "start_turn" and effect.name != "draw":
+                    self.do_card_effect_start_turn(card, effect)
 
         for r in self.artifacts:
             r.can_activate_abilities = True
             r.effects_exhausted = {}
-            for effect in r.effects_triggered():
-                if effect.trigger == "start_turn":
-                    if effect.name == "gain_hp_for_hand":
-                        gained = 0
-                        to_apply = max(len(self.hand) - 5, 0)
-                        while self.hit_points < 30 and to_apply > 0:
-                            self.hit_points += 1
-                            to_apply -= 1
-                            gained += 1  
-                        message["log_lines"].append(f"{message['username']} gains {gained} hit points from {r.name}.")
-                    elif effect.name == "lose_hp_for_hand":
-                        self.game.opponent().damage(len(self.game.opponent().hand))
-                        message["log_lines"].append(f"{self.game.opponent().username} takes {len(self.game.opponent().hand)} damage from {r.name}.")
-                elif effect.name == "duplicate_card_next_turn" and r.card_for_effect:
-                    new_card = self.add_to_deck(r.card_for_effect.name, 1, add_to_hand=True)
-                    self.hand.append(r.card_for_effect)
-                    new_card.cost = r.card_for_effect.cost
-                    r.card_for_effect = None
-                elif effect.name == "upgrade_card_next_turn" and r.card_for_effect:
-                    previous_card = None
-                    for c in Game.all_cards():
-                        if r.card_for_effect.name == c.name:
-                            previous_card = c
-                    previous_card.evolve(previous_card)
-                    self.hand.append(previous_card)
-                    r.card_for_effect = None
-                elif effect.name == "decost_card_next_turn" and r.card_for_effect:                    
-                    r.card_for_effect.cost = max(0, r.card_for_effect.cost - 1)
-                    self.hand.append(r.card_for_effect)
-                    r.card_for_effect = None
+            self.do_card_effect_artifact_only_start_turn(r)
 
-        if self.game.is_under_ice_prison():
-            mobs_to_select_from = []
-            for e in self.in_play:
-                if e.attacked:
-                    mobs_to_select_from.append(e)
-            if len(mobs_to_select_from) > 0:
-                self.card_choice_info = {"cards": mobs_to_select_from, "choice_type": "select_mob_for_ice_prison"}
-        return message
+    def refresh_mana_for_turn(self):
+        if self.discipline == "tech":
+            if self.game.turn <= 1:
+                self.max_mana = 3
+        else:
+            self.max_mana += 1
+            self.max_mana = min(self.max_max_mana(), self.max_mana)
+
+        self.mana = 0
+        self.mana += self.max_mana
+        self.mana = min(self.max_max_mana(), self.mana)
+
+    def maybe_do_ice_prison(self):
+        if not self.game.is_under_ice_prison():
+            return
+        mobs_to_select_from = []
+        for e in self.in_play:
+            if e.attacked:
+                mobs_to_select_from.append(e)
+        if len(mobs_to_select_from) > 0:
+            self.card_choice_info = {"cards": mobs_to_select_from, "choice_type": "select_mob_for_ice_prison"}
 
     def controls_artifact(self, card_id):
         for c in self.artifacts:
@@ -3789,11 +3875,11 @@ class Card:
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
         self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
         self.card_type = info["card_type"] if "card_type" in info else mobCardType
-        self.card_class = info["class"] if "class" in info else None
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
         self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
         self.damage_to_show = info["damage_to_show"] if "damage_to_show" in info else 0
+        self.discipline = info["discipline"] if "discipline" in info else None
         self.effects = [CardEffect(e, self.id) for _, e in enumerate(info["effects"])] if "effects" in info else []
         self.effects_can_be_clicked = info["effects_can_be_clicked"] if "effects_can_be_clicked" in info else []
         self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
@@ -3808,36 +3894,13 @@ class Card:
         # probably bugs WRT Mind Manacles
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.power = info["power"] if "power" in info else None
-        self.race = info["race"] if "race" in info else None
         self.shielded = info["shielded"] if "shielded" in info else False
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.toughness = info["toughness"] if "toughness" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
     def __repr__(self):
-        return f"{self.name} ({self.race}, {self.cost}) - {self.power}/{self.toughness}\n \
-                 abilities: {self.abilities}, tokens: {self.tokens}\n \
-                 added_descriptions: {self.added_descriptions}\n \
-                 attacked: {self.attacked} card_class: {self.card_class}\n \
-                 can_activate_abilities: {self.can_activate_abilities})\n \
-                 can_be_clicked: {self.can_be_clicked}\n \
-                 card_for_effect: {self.card_for_effect}\n \
-                 card_subtype: {self.card_type}\n \
-                 card_type: {self.card_type}\n \
-                 damage: {self.damage}\n \
-                 damage_this_turn: {self.damage_this_turn}\n \
-                 damage_to_show: {self.damage_to_show}\n \
-                 description: {self.description}\n \
-                 effects: {self.effects}\n \
-                 effects_can_be_clicked: {self.effects_can_be_clicked}\n \
-                 effects_exhausted: {self.effects_exhausted}\n \
-                 id: {self.id}, turn played: {self.turn_played}\n \
-                 image: {self.image}\n \
-                 level: {self.level}\n \
-                 needs_targets: {self.needs_targets} is_token: {self.is_token} shielded: {self.shielded}\n \
-                 original_description: {self.original_description}\n \
-                 owner_username: {self.owner_username}"
- 
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
@@ -3846,7 +3909,6 @@ class Card:
             "attacked": self.attacked,
             "can_activate_abilities": self.can_activate_abilities,
             "can_be_clicked": self.can_be_clicked,
-            "card_class": self.card_class,
             "card_for_effect": self.card_for_effect.as_dict() if self.card_for_effect else None,
             "card_subtype": self.card_subtype,
             "card_type": self.card_type,
@@ -3854,6 +3916,7 @@ class Card:
             "damage": self.damage,
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
+            "discipline": self.discipline,
             "description": self.description,
             "effects": [e.as_dict() for e in self.effects],
             "effects_can_be_clicked": self.effects_can_be_clicked,
@@ -3868,7 +3931,6 @@ class Card:
             "original_description": self.original_description,
             "owner_username": self.owner_username,
             "power": self.power,
-            "race": self.race,
             "shielded": self.shielded,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "toughness": self.toughness,
@@ -4025,8 +4087,7 @@ class Card:
 
     def needs_target_for_activated_effect(self, effect_index):
         e = self.enabled_activated_effects()[effect_index]
-        # todo: Artifact target_type because of fetch_card, maybe refactor:
-        if e.target_type in ["self", "opponent", artifactCardType, "all"]: 
+        if e.target_type in ["self", "opponent", "artifact_in_deck", "all"]: 
             return False
         return True
 
@@ -4142,12 +4203,24 @@ class Card:
             if e.id == effect_id:
                 return e
 
+    def deal_damage(self, amount, target_player, game):
+        if self.shielded:
+            if damage_amount > 0:
+                self.shielded = False
+        else:
+            self.damage += damage_amount
+            self.damage_to_show += damage_amount
+            if self.damage >= self.toughness_with_tokens():
+                game.send_card_to_played_pile(self, target_player, did_kill=True)
+
+
 class CardEffect:
     def __init__(self, info, effect_id):
         self.id = effect_id
 
         self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
         self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
+        self.ai_target_types = info["ai_target_types"] if "ai_target_types" in info else []
         self.amount = info["amount"] if "amount" in info else None
         self.amount_id = info["amount_id"] if "amount_id" in info else None
         self.card_descriptions = info["card_descriptions"] if "card_descriptions" in info else []
@@ -4177,21 +4250,13 @@ class CardEffect:
         self.was_added = info["was_added"] if "was_added" in info else False
 
     def __repr__(self):
-        return f"\
-            id: {self.id} name: {self.name} power: {self.power} target_restrictions: {self.target_restrictions}]n \
-            trigger: {self.trigger} toughness: {self.toughness} multiplier: {self.multiplier}\n \
-            amount_id: {self.amount_id} amount: {self.amount} cost: {self.cost} targetted_this_turn: {self.targetted_this_turn}\n \
-            description: {self.description} cost_hp: {self.cost_hp} card_descriptions: {self.card_descriptions} \n \
-            target_type: {self.target_type} name: {self.card_name} image: {self.image} card_names: {self.card_names} \n \
-            make_type: {self.make_type} tokens: {self.tokens} turns: {self.turns}\n \
-            sacrifice_on_activate: {self.sacrifice_on_activate} abilities: {self.abilities}\n \
-            effect_type: {self.effect_type} effects: {self.effects} activate_on_add: {self.activate_on_add} \
-            effect_to_activate: {self.effect_to_activate} enabled: {self.enabled} counters: {self.counters} was_added: {self.was_added}"
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
             "abilities": [a.as_dict() for a in self.abilities] if self.abilities else [],
             "activate_on_add": self.activate_on_add,
+            "ai_target_types": self.ai_target_types,
             "amount": self.amount,
             "amount_id": self.amount_id,
             "card_descriptions": self.card_descriptions,
@@ -4238,17 +4303,7 @@ class CardAbility:
         self.turns = info["turns"] if "turns" in info else -1
 
     def __repr__(self):
-        return f"self.id: {self.id}\n\
-                self.name: {self.name}\n\
-                self.amount: {self.amount}\n\
-                self.target_type: {self.target_type}\n\
-                self.description: {self.description}\n\
-                self.descriptive_id: {self.descriptive_id}\n\
-                self.keep_evolve: {self.keep_evolve}\n\
-                self.keep_power_increase: {self.keep_power_increase}\n\
-                self.keep_toughness_increase: {self.keep_toughness_increase}\n\
-                self.turns: {self.turns}\n\
-                self.enabled: {self.enabled}"
+        return f"{self.as_dict()}"
 
     def as_dict(self):
         return {

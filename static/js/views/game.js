@@ -1,19 +1,22 @@
 import * as PIXI from 'pixi.js'
-import { Bump } from './lib/bump.js';
-import { Card } from './Card.js';
-import { SVGRasterizer } from './SVGRasterizer.js';
-import * as Constants from './constants.js';
 import { GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
+import { Bump } from '../lib/bump.js';
+import * as Constants from '../Constants.js';
+import { Card } from '../components/Card.js';
+import { CardPile } from '../components/CardPile.js';
+import { GameNavigator } from '../components/GameNavigator.js';
+import { SVGRasterizer } from '../components/SVGRasterizer.js';
 
-const appWidth = 840;
-const appHeight = 803;
+const appWidth = 1585;
+const appHeight = 855;
 const avatarHeight = 128;
 const avatarWidth = 300;
-const cardContainerWidth = Card.cardWidth * 7 + 12;
+const cardContainerWidth = Card.cardWidth * 7 + 2 * 7;
 const gameDivID = "new_game";
 const oneThousandMS = 1000;
 const ropeHeight = 8;
+const scrollBoxWidth = 418;
 
 // move types recognized by the game rules engine
 const moveTypeActivateArtifact = "ACTIVATE_ARTIFACT";
@@ -30,7 +33,6 @@ const moveTypeUnselect = "UNSELECT";
 
 // strings shown to user (todo: localize)
 const gameOverMessage = "GAME OVER"
-const newGameString = "New Game";
 const menuString = "Menu";
 
 
@@ -49,30 +51,21 @@ export class GameUX {
  
     loadDataFromDOM() {
         this.playerType = document.getElementById("data_store").getAttribute("player_type");
-        this.allCards = JSON.parse(document.getElementById("card_store").getAttribute("all_cards"));
         this.username = document.getElementById("data_store").getAttribute("username");
     }
 
     loadTextures() {
-        this.artifactsTexture = PIXI.Texture.from("/static/images/relics.png");
+        this.artifactsTexture = PIXI.Texture.from("/static/images/artifacts.png");
         this.avatarTexture = PIXI.Texture.from("/static/images/avatar.png");
         this.bearTexture = PIXI.Texture.from("/static/images/bear.png");
         this.handTexture = PIXI.Texture.from("/static/images/hand.png");
         this.inPlayTexture = PIXI.Texture.from("/static/images/in_play.png");
-        this.menuTexture = PIXI.Texture.from("/static/images/menu.png");
         this.tigerTexture = PIXI.Texture.from("/static/images/tiger.png");        
     }
 
     setUpPIXIView() {
         this.bump = new Bump(PIXI); // keep a reference to the collision detector
-        PIXI.settings.FILTER_RESOLUTION = window.devicePixelRatio || 1;
-        PIXI.GRAPHICS_CURVES.adaptive = true
-        this.app = new PIXI.Application({
-            autoDensity: true,
-            height: appHeight, 
-            resolution: PIXI.settings.FILTER_RESOLUTION,
-            width: appWidth, 
-        });        
+        Constants.setUpPIXIApp(this, appHeight, appWidth)
         document.getElementById(gameDivID).appendChild(this.app.view);
         this.rasterizer = new SVGRasterizer(this.app);
     }
@@ -80,18 +73,17 @@ export class GameUX {
     renderStaticGameElements() {
         this.app.stage.addChild(this.background());
         const centerOfMobs = cardContainerWidth/2 - avatarWidth/2;
-        const artifactX = cardContainerWidth/2 + avatarWidth/2 + Constants.padding;
         this.opponentAvatar = this.avatar(centerOfMobs, Constants.padding);
-        const playerBoxHeight = avatarHeight + Constants.padding * 2;  // magic numbers includes top and bottom padding
-        this.artifactsOpponent = this.artifacts(artifactX, playerBoxHeight/2 - Card.cardHeight/2);
         const topOfMiddle = this.opponentAvatar.position.y + avatarHeight + Constants.padding
         this.inPlayOpponent = this.inPlayContainer(Constants.padding, topOfMiddle);
-        const middleOfMiddle = this.inPlayOpponent.position.y + Card.cardHeight + Constants.padding
+        const artifactX = this.inPlayOpponent.position.x + cardContainerWidth + Constants.padding * 8;
+        this.artifactsOpponent = this.artifacts(artifactX,  this.inPlayOpponent.position.y - Constants.padding * 8.5);
+        let gapHeight = 90;
+        this.artifacts = this.artifacts(artifactX, this.artifactsOpponent.position.y + Card.cardHeight + gapHeight);
+        const middleOfMiddle = this.inPlayOpponent.position.y + Card.cardHeight + Constants.padding;
         this.inPlay = this.inPlayContainer(Constants.padding, middleOfMiddle);
-        this.buttonMenu = this.menu(cardContainerWidth + Constants.padding * 2, topOfMiddle);
         const playerOneY = middleOfMiddle + Card.cardHeight + Constants.padding;
         this.playerAvatar = this.avatar(centerOfMobs, playerOneY);
-        this.artifacts = this.artifacts(artifactX, playerOneY + Constants.padding);
         this.handContainer = this.hand(Constants.padding, playerOneY + avatarHeight + Constants.padding);
         this.gameLogScrollbox = this.scrollbox()
     }
@@ -128,20 +120,11 @@ export class GameUX {
         return handContainer;
     }
 
-    menu(x, y) {
-        const menu = new PIXI.Sprite.from(this.menuTexture);
-        menu.position.x = x;
-        menu.position.y = y;
-        this.app.stage.addChild(menu);
-        return menu;
-    }
-
     scrollbox() {
-        const scrollboxHeight = Card.cardHeight * 1.25;
-        const scrollBoxWidth = appWidth - Constants.padding * 2;
+        const scrollboxHeight = avatarHeight - 2;
         const scrollbox = new Scrollbox({ boxWidth: scrollBoxWidth, boxHeight: scrollboxHeight, clampWheel: false, passiveWheel: false})
-        scrollbox.position.x = Constants.padding;
-        scrollbox.position.y = this.handContainer.position.y + Card.cardHeight + Constants.padding;
+        scrollbox.position.x = this.playerAvatar.position.x + avatarWidth + Constants.padding;
+        scrollbox.position.y = this.playerAvatar.position.y + 2;
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.tint = Constants.whiteColor
         background.width = scrollBoxWidth;
@@ -152,6 +135,7 @@ export class GameUX {
           new OutlineFilter(1, Constants.blackColor),
         ]
         this.app.stage.addChild(scrollbox);
+
         return scrollbox;
     }
 
@@ -166,15 +150,11 @@ export class GameUX {
     menuButton(game) {
         let button = Card.button(
             menuString, 
+            Constants.blueColor, 
             Constants.whiteColor, 
-            Constants.darkGrayColor, 
             0, 
             0,
-            () => { this.showMenu() }, 
-            null,
-            null,
-            true,
-            6
+            () => { this.showMenu() }
         );
         if (!this.isPlaying(game)) {
             button.buttonSprite.buttonMode = false;
@@ -183,7 +163,8 @@ export class GameUX {
         return button;
     }
 
-    showMenu() {
+    showMenu(title=null) {
+        const centerX = (Card.cardWidth * 7 + Constants.padding * 2) / 2;
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
 
@@ -199,31 +180,42 @@ export class GameUX {
         options.fontSize = 24;
         options.fill = Constants.whiteColor;
         options.align = "middle";
-        let name = new PIXI.Text(menuString, options);
-        name.position.x = appWidth/2 - name.width/2;
+        let name = new PIXI.Text(title || menuString, options);
+        name.position.x = centerX - name.width/2;
         name.position.y = 170
         container.addChild(name);
 
         let cage = Card.button(
-            newGameString, 
+            "Resign & Rematch", 
             Constants.redColor, 
             Constants.whiteColor, 
-            appWidth / 2, 
+            centerX, 
             name.position.y + name.height,
             () => { this.gameRoom.nextRoom()}, 
             container,
-            120
+            140
+        );
+
+        let leaveGameCage = Card.button(
+            "Leave Game", 
+            Constants.redColor, 
+            Constants.whiteColor, 
+            centerX, 
+            cage.position.y + cage.height,
+            () => { window.location.href = `/`}, 
+            container,
+            140
         );
 
         let cancelCage = Card.button(
             "Return to Game", 
             Constants.darkGrayColor, 
             Constants.whiteColor, 
-            appWidth / 2, 
-            cage.position.y + cage.height,
+            centerX, 
+            leaveGameCage.position.y + leaveGameCage.height,
             () => { this.app.stage.removeChild(container);}, 
             container,
-            120
+            140
         );
 
     }
@@ -231,6 +223,15 @@ export class GameUX {
     // render images that aren't in the cache, then refresh display
     refresh(game, message) {
         this.game = game;
+        if (game.is_reviewing) {
+            this.parentGame = game;
+            this.game = game.review_game;
+            this.messageNumber = null;
+            this.lastTextSprite = null;
+            this.gameLogScrollbox.parent.removeChild(this.gameLogScrollbox)
+            this.scrollboxBackground.parent.removeChild(this.scrollboxBackground)
+            this.gameLogScrollbox = this.scrollbox()
+        }
         if (this.opponent(game)) {
             let loadingImages = this.loadInPlayImages(game);
             loadingImages = this.loadHandAndSelectionImages(game) || loadingImages;
@@ -315,7 +316,7 @@ export class GameUX {
       let sprite = Card.sprite(card, this, game,  player);
       sprite.scale.set(1.5)
       sprite.position.x = Card.cardWidth + Constants.padding;
-      sprite.position.y = this.inPlay.position.y;
+      sprite.position.y = this.inPlay.position.y + Constants.padding;
       this.spellBeingCastSprite = sprite;
       this.app.stage.addChild(sprite)
       this.showArrowsForSpell(game, sprite, message, card);
@@ -350,12 +351,67 @@ export class GameUX {
         }
         if (this.opponent(game)) {
             this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
+            this.updateOpponentHand(game);
             this.updateOpponentArtifacts(game);
             this.updateOpponentInPlay(game);
+
+            const playerOneY = this.playerAvatar.position.y;
+            const playerTwoY = this.opponentAvatar.position.y;
+            if (this.opponentYardPile) {
+                this.opponentYardPile.clear()
+                this.opponentDeckPile.clear()
+                this.yardPile.clear()
+                this.deckPile.clear()
+                this.opponentYardPile = null;
+                this.opponentDeckPile = null;
+                this.yardPile = null;
+                this.deckPile = null;
+            }
+            this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile("Opponent's Yard", this.opponent(game).played_pile)})
+            this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
+            this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
+            this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile("My Deck", this.thisPlayer(game).deck, true)})
+
+            if (this.gameNavigator) {
+                this.gameNavigator.clear();
+                this.gameNavigator = null;
+            }
+            if (this.isPlayersTurn(game) || this.parentGame) {
+                this.gameNavigator = new GameNavigator(this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
+                    () => {
+                        let index = null;
+                        // the 2 is so players can't navigate before the initial join moves
+                        if (this.parentGame && this.parentGame.review_move_index > 2) {
+                            index = this.parentGame.review_move_index - 1;
+                        } else if (!this.parentGame) {
+                            index = this.game.moves.length - 1;
+                        }
+                        if (index) {
+                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                        }
+                    }, 
+                    () => {
+                        let index = null;
+                        if (this.parentGame && this.parentGame.review_move_index < this.parentGame.move_count) {
+                            index = this.parentGame.review_move_index + 1;
+                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                        } else {
+                            // alert("can't go forward from front")
+                        }
+
+                    },
+                    () => {
+                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index: -1});
+                        this.parentGame = null;
+                    })
+            }
         }
         this.renderEndTurnButton(game, message);
         if (this.opponent(game)) {
-            this.addMenuButton(game, this.endTurnButton.width);
+            this.addMenuButton(game);
+        }
+        if (this.parentGame) {
+            this.endTurnButton.buttonSprite.interactive = false;
         }
         this.maybeShowSpellStack(game);
         this.maybeShowGameOver(game);
@@ -363,9 +419,21 @@ export class GameUX {
         this.maybeShowCardSelectionView(game);
         this.maybeShowRope(game);
         this.elevateSpritesBeingCast();
+
+        // keep the view above newly rendered sprites
+        if (this.currentCardPile) {
+            this.currentCardPile.parent.removeChild(this.currentCardPile);
+            this.app.stage.addChild(this.currentCardPile);
+        }
         if (message.move_type == moveTypeEndTurn) {
             this.showChangeTurnAnimation(game)
         }
+    }
+
+
+    cardPile(x, y, game, labelText, cards, clickFunction) {
+        let cardPile = new CardPile(this, game, x, y, `${labelText} (${cards.length})`, clickFunction);
+        return cardPile;
     }
 
     removeCardsFromStage(game) {
@@ -395,8 +463,8 @@ export class GameUX {
         }        
     }
 
-    updateHand(game, index=0) {
-        for (let i=index;i<this.thisPlayer(game).hand.length;i++) {
+    updateHand(game) {
+        for (let i=0;i<this.thisPlayer(game).hand.length;i++) {
             const card = this.thisPlayer(game).hand[i];
             this.addHandCard(game, card, i)
         }
@@ -409,11 +477,27 @@ export class GameUX {
         this.app.stage.addChild(sprite);                
         if (this.thisPlayer(game).card_info_to_target && card.id == this.thisPlayer(game).card_info_to_target.card_id) {
             sprite.alpha = Constants.beingCastCardAlpha;
+                console.log(sprite.texture.textureCacheIds)
         }
     }
 
+    updateOpponentHand(game) {
+        for (let i=0;i<this.opponent(game).hand.length;i++) {
+            const card = this.opponent(game).hand[i];
+            this.addOpponentHandCard(game, card, i)
+        }
+    }
+
+    addOpponentHandCard(game, card, index) {
+        let sprite = Card.spriteCardBack(card, game, this);
+        let sliverWidth = 25;
+        sprite.position.x = sliverWidth*index + sprite.width / 2 + Constants.padding + this.opponentAvatar.position.x + avatarWidth;
+        sprite.position.y = Constants.padding + avatarHeight / 2;
+        this.app.stage.addChild(sprite);                
+    }
+
     updatePlayer(game, player, avatarSprite) {
-        let props = {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.blackColor};
+        let props = {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.blackColor};
         avatarSprite.player = player;
         avatarSprite.children = []
         let avatar;
@@ -439,27 +523,9 @@ export class GameUX {
         hp.position.y = username.height + username.position.y
         avatarSprite.addChild(hp);
 
-        let hand = hp;
-        if (player == this.opponent(game)) {
-            hand = new PIXI.Text("Hand: " + player.hand.length, props);
-            hand.position.x = Constants.padding + avatar.position.x + avatar.width;
-            hand.position.y = hp.height + hp.position.y;
-            avatarSprite.addChild(hand);        
-        }
-
-        let deck = new PIXI.Text("Deck: " + player.deck.length, props);
-        deck.position.x = Constants.padding + avatar.position.x + avatar.width;
-        deck.position.y = hand.height + hand.position.y;
-        avatarSprite.addChild(deck);
-
-        let playedPile = new PIXI.Text("Played Pile: " + player.played_pile.length, props);
-        playedPile.position.x = Constants.padding + avatar.position.x + avatar.width;
-        playedPile.position.y = deck.height + deck.position.y;
-        avatarSprite.addChild(playedPile);
-
         let mana = new PIXI.Text("Mana", props);
         mana.position.x = Constants.padding + avatar.position.x + avatar.width;
-        mana.position.y = playedPile.height + playedPile.position.y + Constants.padding;
+        mana.position.y = hp.height + hp.position.y + Constants.padding;
         avatarSprite.addChild(mana);
 
         let manaGems = Constants.manaGems(player.max_mana, player.mana);
@@ -470,6 +536,7 @@ export class GameUX {
         if (!player.can_be_clicked) {
             avatarSprite.filters = [Constants.cantBeClickedFilter()];                        
             avatarSprite.on("click", function (e) {})
+            avatarSprite.on("tap", function (e) {})
             avatarSprite.interactive = false;
             avatarSprite.buttonMode = true;
        } else {
@@ -484,6 +551,8 @@ export class GameUX {
                 let self = this;
                 avatarSprite
                     .on("click", function (e) {self.gameRoom.sendPlayMoveEvent(eventString, {});})
+                avatarSprite
+                    .on("tap", function (e) {self.gameRoom.sendPlayMoveEvent(eventString, {});})
             }
         }
 
@@ -513,8 +582,8 @@ export class GameUX {
 
         for (let card of player.artifacts) {
             let sprite = Card.spriteInPlay(card, this, game, player, false);
-            sprite.position.y = artifactsSprite.position.y + Card.cardHeight/2;
-            sprite.position.x = artifactsSprite.position.x + Card.cardWidth*index + Card.cardWidth/2;
+            sprite.position.y = artifactsSprite.position.y + Card.cardHeight/2 + 6;
+            sprite.position.x = artifactsSprite.position.x + Card.cardWidth*index + Card.cardWidth/2 + 3;
             this.app.stage.addChild(sprite);
             index++;
             if (cardIdToHide && card.id == cardIdToHide) {
@@ -557,12 +626,12 @@ export class GameUX {
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
         let sprite = Card.spriteInPlay(card, this, game, player, false);
-        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding + 4;
+        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding + 3;
         sprite.position.y = inPlaySprite.position.y + Card.cardHeight/2;
 
         if (cardIdToHide && card.id == cardIdToHide) {
             if (player == this.opponent(game)) {
-                sprite.filters = [Constants.targettableGlowFilter()];
+                sprite.filters = [Constants.targettingGlowFilter()];
             } else {
                 sprite.alpha = Constants.beingCastCardAlpha;
             }
@@ -570,13 +639,12 @@ export class GameUX {
         this.app.stage.addChild(sprite);        
     }
 
-    addMenuButton(game, width) {
+    addMenuButton(game) {
         if (!this.menuButtonAdded) {
             let menuButton = this.menuButton(game);
-            menuButton.width = width;
-            menuButton.position.x = this.buttonMenu.width / 2 - menuButton.width/2;
-            menuButton.position.y = this.buttonMenu.height - menuButton.height * 1.5 - Constants.padding;
-            this.buttonMenu.addChild(menuButton);
+            menuButton.position.x = appWidth - menuButton.width - Constants.padding;
+            menuButton.position.y = Constants.padding*5;
+            this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
         }
     }
@@ -584,7 +652,7 @@ export class GameUX {
     maybeShowGameOver(game) {
         if (this.opponent(game) && this.thisPlayer(game)) {
             if (this.opponent(game).hit_points <= 0 || this.thisPlayer(game).hit_points <= 0) {
-                alert(gameOverMessage);
+                this.showMenu(gameOverMessage);
             }
         }
     }
@@ -699,7 +767,7 @@ export class GameUX {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         let modalWidth = this.opponentAvatar.width;
         let modalHeight = this.inPlay.height * 2 + Constants.padding;
-        Constants.roundRectangle(background)
+        Constants.roundRectangle(background, .2)
         background.width = modalWidth;
         background.height = modalHeight;
         container.position.x = this.opponentAvatar.position.x;
@@ -718,17 +786,39 @@ export class GameUX {
         name.position.y = 80
         container.addChild(name);
 
-        let i = 1;                  
-        function myLoop() {        
-          setTimeout(function() {   
-            container.alpha -= .01
-            i++;                    
-            if (container.alpha > 0) {          
-              myLoop();            
-            }                     
-          }, 40-i)
+        var FADE_DURATION = .5 * oneThousandMS; 
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        function render(currTime) { 
+            // How opaque should head1 be?  Its fade started at currTime=0.
+            // Over FADE_DURATION ms, opacity goes from 0 to 1
+            var alpha = .9 - (currTime/FADE_DURATION);
+            container.alpha = alpha;
         }
-        myLoop();             
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                // This branch: executes for the first frame only.
+                // it sets the startTime, then renders at currTime = 0.0
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                // This branch: renders every frame, other than the 1st frame,
+                // with the new timeRunning value.
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            // make a request to the browser to execute the next
+            // animation frame, and the browser optimizes the rest.
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame); 
     }
 
     showArrow(fromSprite, toSprite, adjustment={"x":0, "y": 0}){
@@ -792,6 +882,9 @@ export class GameUX {
         }
 
         setTimeout(() => { 
+            if (this.parentGame) {
+                return;
+            }
             for (let sprite of this.app.stage.children) {
                 if (sprite.card) {
                     sprite.interactive = true;
@@ -859,14 +952,11 @@ export class GameUX {
 
     showRevealView(game) {
         this.showSelectCardView(game, "Opponent's Hand", null);
-        let makeDiv = document.getElementById("make_selector");
-        makeDiv.onclick = () => {
-            this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
-            this.showGame();
-            makeDiv.onclick = null
-        }
         this.selectCardContainer
                 .on('click',        e => {
+                    this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
+                })        
+                .on('tap',        e => {
                     this.gameRoom.sendPlayMoveEvent("HIDE_REVEALED_CARDS", {});
                 })        
     }
@@ -887,17 +977,35 @@ export class GameUX {
 
     showRiffleView(game, event_name) {
         let self = this;
-        this.showSelectCardView(game, "Top 3 Cards", card => {
+        this.showSelectCardView(game, `Top ${this.thisPlayer(game).card_choice_info.cards.length} Cards`, card => {
                 this.gameRoom.sendPlayMoveEvent(event_name, {"card":card.id});                
             });
         
     }
 
     showSelectCardView(game, title, card_on_click, cancelTitle=null) {
+        for (let sprite of this.app.stage.children)  {
+            sprite.interactive = false;
+        }
+
+        let cards = this.thisPlayer(game).card_choice_info.cards;
+
+        let loadingImages = this.rasterizer.loadCardImages(cards);
+        if (loadingImages) {
+            this.app.loader.load(() => {
+                this.finishShowSelectionView(cards, game, title, card_on_click, cancelTitle);
+                this.app.loader.reset()
+            });
+        } else {
+            this.finishShowSelectionView(cards, game, title, card_on_click, cancelTitle);                      
+        }
+    }
+
+    finishShowSelectionView(cards, game, title, card_on_click, cancelTitle) {
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         this.selectCardContainer = container;
-
+        let width = Card.cardWidth * 7 + Constants.padding * 2;
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         background.width = appWidth;
         background.height = appHeight;
@@ -911,21 +1019,23 @@ export class GameUX {
         options.fill = Constants.whiteColor;
         options.align = "middle";
         let name = new PIXI.Text(title, options);
-        name.position.x = appWidth/2 - name.width/2;
+        name.position.x = width/2 - name.width/2;
         name.position.y = 170
         container.addChild(name);
 
         const cardContainer = new PIXI.Container();
         this.selectCardInnerContainer = cardContainer
-        cardContainer.position.x = appWidth/2 - Card.cardWidth*1.5;
-
-        let cards = this.thisPlayer(game).card_choice_info.cards;
+        cardContainer.position.x = width/2 - Card.cardWidth*1.5;
         if (cards.length >= 6) {
             cardContainer.position.x = Card.cardWidth;            
         }
+        // Tinker has 2 cards
+        if (cards.length == 2) {
+            cardContainer.position.x = width/2 - Card.cardWidth;            
+        }
         // make global effect has 5 cards
         if (cards.length == 5) {
-            cardContainer.position.x = appWidth/2 - Card.cardWidth*2.5;            
+            cardContainer.position.x = width/2 - Card.cardWidth*2.5;            
         }
         cardContainer.position.y = name.position.y + 60;
         container.addChild(cardContainer);
@@ -941,7 +1051,7 @@ export class GameUX {
             text.position.x = Constants.padding * 2;
             text.position.y = text.height;
             const b = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-            Constants.roundRectangle(b)
+            Constants.roundRectangle(b, 2)
             b.width = text.width + Constants.padding * 4;
             b.height = text.height*3;
             b.tint = Constants.blueColor;
@@ -954,7 +1064,7 @@ export class GameUX {
                 .on("click", clickFunction)
                 .on("tap", clickFunction)
             const cage = new PIXI.Container();
-            cage.position.x = appWidth / 2 - b.width/2;
+            cage.position.x = width / 2 - b.width/2;
             cage.position.y = cardContainer.position.y + cardContainer.height + b.height;
             cage.addChild(b);
             cage.addChild(text);
@@ -965,6 +1075,80 @@ export class GameUX {
         }
     }
 
+    setInteraction(on) {
+        for (let sprite of this.app.stage.children)  {
+            sprite.interactive = on;
+        }
+    }
+
+    showCardPile(title, cards, isDeck=false) {
+        this.setInteraction(false)
+
+        if (isDeck) {
+            cards.sort((a, b) => (a.name > b.name) ? 1 : -1)
+        }
+
+        let loadingImages = this.rasterizer.loadCardImages(cards);
+        if (loadingImages) {
+            this.app.loader.load(() => {
+                this.finishShowCardPile(title, cards, isDeck)
+                this.app.loader.reset()
+            });
+        } else {
+            this.finishShowCardPile(title, cards, isDeck)                      
+        }
+    }
+
+    finishShowCardPile(title, cards, isDeck=false) {
+        const container = new PIXI.Container();
+        this.app.stage.addChild(container);
+        let width = Card.cardWidth * 7 + Constants.padding * 2;
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        background.width = appWidth;
+        background.height = appHeight;
+        background.tint = Constants.blackColor;
+        background.alpha = .7;
+        container.addChild(background);
+
+        const cardContainer = new PIXI.Container();
+        cardContainer.position.y = Constants.padding * 4;
+        container.addChild(cardContainer);
+
+        for (let i=0;i<cards.length;i++) {
+            this.addSelectViewCard(this.game, cards[i], cardContainer, () =>{}, i)                
+        }
+
+        let text = new PIXI.Text("Hide " + title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor});
+        text.position.x = Constants.padding * 2;
+        text.position.y = text.height;
+        const b = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        Constants.roundRectangle(b, 2)
+        b.width = text.width * 1.2;
+        cardContainer.position.x = Constants.padding * 6 + b.width;
+        b.height = text.height*3;
+        b.tint = Constants.blueColor;
+        b.buttonMode = true;
+        b.interactive = true;
+        const clickFunction = () => {
+            container.parent.removeChild(container);
+            this.currentCardPile = null;
+            this.setInteraction(true)
+        };
+        b
+            .on("click", clickFunction)
+            .on("tap", clickFunction)
+        const cage = new PIXI.Container();
+        cage.position.x = cardContainer.position.x - b.width - Constants.padding * 2;
+        cage.position.y = cardContainer.position.y;
+        cage.addChild(b);
+        cage.addChild(text);
+        cage.name = "button";
+        cage.text = text;
+        cage.buttonSprite = b;
+        container.addChild(cage);
+        this.currentCardPile = container;
+    }
+
     addSelectViewCard(game, card, cardContainer, card_on_click, index) {
         let cardSprite = Card.sprite(card, this, game, this.userOrP1(game), false, false, true);
         cardSprite.position.x = (Card.cardWidth + Constants.padding) *  (index % 8) + Card.cardWidth/2;
@@ -973,6 +1157,10 @@ export class GameUX {
         let self = this;
         cardSprite
             .on('click',        function (e) {
+                Card.onMouseout(cardSprite, self);
+                card_on_click(card);
+            })
+            .on('tap',        function (e) {
                 Card.onMouseout(cardSprite, self);
                 card_on_click(card);
             })
@@ -989,8 +1177,10 @@ export class GameUX {
             //  todo: cleaner if/then for Duplication Chamber/Upgrade Chamber/Mana Coffin
             if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
                 cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
             } else if (this.thisPlayer(game).card_info_to_target.card_id) {
                 cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
+                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
             } else {
                 let self = this;
                 cardSprite
@@ -1072,10 +1262,10 @@ export class GameUX {
 
     renderEndTurnButton(game, message) {
         if (this.turnLabel) {
-            this.buttonMenu.removeChild(this.turnLabel)
+            this.app.stage.removeChild(this.turnLabel)
         }
         if (this.endTurnButton) {
-            this.buttonMenu.removeChild(this.endTurnButton)
+            this.app.stage.removeChild(this.endTurnButton)
         }
 
         let clickFunction = () => {
@@ -1104,9 +1294,9 @@ export class GameUX {
                 buttonColor = Constants.lightRedColor;
             }
 
-            if (this.thisPlayer(game).card_info_to_target.effect_type) {
+            if (this.thisPlayer(game).card_info_to_target.effect_type && this.thisPlayer(game).card_info_to_target.effect_type != "spell_cast") {
                 buttonColor = Constants.menuGrayColor;
-                title = "Choose Target";
+                title = "Choosing Target";
             }
         } else {
             title = "Waiting...";
@@ -1121,6 +1311,8 @@ export class GameUX {
             }
         }
 
+        let buttonWidth = 160;
+
         let b = Card.button(
             title, 
             buttonColor, 
@@ -1128,18 +1320,20 @@ export class GameUX {
             23, 
             17,
             clickFunction, 
-            this.buttonMenu,
-            this.buttonMenu.width - Constants.padding * 6
+            this.app.stage,
+            buttonWidth
         );
-        b.position.x = b.parent.width/2 - b.width/2;
-        b.position.y = b.height / 2;
+        b.position.x = this.artifactsOpponent.position.x;
+        b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 4;
 
         if (this.isActivePlayer(game)) {
             if (this.thisPlayer(game).card_info_to_target.effect_type) {
-                b.interactive = false;
+                b.buttonSprite.interactive = false;
+                b.buttonSprite.buttonMode = false;
             }
         } else {
-            b.interactive = false;
+            b.buttonSprite.interactive = false;
+            b.buttonSprite.buttonMode = false;
         }
         if (!this.isPlaying(game)) {
             b.buttonSprite.buttonMode = false;
@@ -1148,12 +1342,12 @@ export class GameUX {
 
         this.endTurnButton = b;
 
-        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : textFillColor, align: "center"});
-        turnText.position.x = this.buttonMenu.width/2;
-        turnText.position.y = b.position.y + 60 + Constants.padding;
+        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.darkGrayColor, align: "center"});
+        turnText.position.x = b.position.x + buttonWidth + Constants.padding * 20;
+        turnText.position.y = b.position.y + b.height / 2;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;
-        this.buttonMenu.addChild(turnText);
+        this.app.stage.addChild(turnText);
 
     }
 
@@ -1180,7 +1374,7 @@ export class GameUX {
                 continue;
             }
             sprite.scale.set(1.5)
-            sprite.position.x = 100 + 20*index;
+            sprite.position.x = Card.cardWidth + Constants.padding + 20*index;
             sprite.position.y = this.inPlay.position.y + Constants.padding + 40*index;
             this.app.stage.addChild(sprite)
             this.spellStackSprites.push(sprite)
@@ -1188,6 +1382,11 @@ export class GameUX {
             let spellMessage = spell[0]
             this.showArrowsForSpell(game, sprite, spellMessage, card);
         }
+    }
+
+    isPlayersTurn(game) {
+        return (game.turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
+                || game.turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
     }
 
     isActivePlayer(game) {
@@ -1262,11 +1461,19 @@ export class GameUX {
         }
         for (let text of log_lines) {
             this.messageNumber += 1
-            let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 10});
+            let textSprite = new PIXI.Text(text, {wordWrap: true, wordWrapWidth: 360, fontSize: 14});
             textSprite.position.x = 5;
-            textSprite.position.y = this.messageNumber * 16 + 5;
-            this.scrollboxBackground.height = Math.max(Card.cardHeight*1.25, (this.messageNumber + 1) * 16);
+            textSprite.position.y = this.messageNumber * 20 + 5;
+            if (this.lastTextSprite) {
+                textSprite.position.y = this.lastTextSprite.position.y + this.lastTextSprite.height + Constants.padding;
+            }
+            this.scrollboxBackground.height = Math.max(this.playerAvatar.height, (this.messageNumber + 1) * 20);
+            if (this.lastTextSprite) {
+                textSprite.position.y = this.lastTextSprite.position.y + this.lastTextSprite.height + Constants.padding;
+                this.scrollboxBackground.height = Math.max(this.playerAvatar.height, textSprite.position.y + textSprite.height);
+            }
             this.gameLogScrollbox.content.addChild(textSprite);
+            this.lastTextSprite = textSprite
         }
         this.gameLogScrollbox.content.top += this.gameLogScrollbox.content.worldScreenHeight;
         this.gameLogScrollbox.update();
@@ -1286,11 +1493,12 @@ function onDragStart(event, cardSprite, gameUX, game) {
     if (!gameUX.isPlaying(game)) {
         return;
     }
-
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
     cardSprite.data = event.data;
+    cardSprite.data.firstPosition = Object.assign({}, cardSprite.data.global);
+
     cardSprite.off('mouseover', Card.onMouseover);
     cardSprite.off('mouseout', Card.onMouseout);
     Card.onMouseout(cardSprite, gameUX);
@@ -1379,6 +1587,10 @@ function onDragMove(dragSprite, gameUX, bump) {
 
     // take sprite out of the hand container so it can collide with other sprites when dragged
     let newPosition = dragSprite.data.getLocalPosition(dragSprite.parent);
+    const sensitivity = 40
+    if (Math.abs(dragSprite.data.firstPosition.y - dragSprite.position.y) + Math.abs(dragSprite.data.firstPosition.x - dragSprite.position.x) > sensitivity) {
+        Card.onMouseout(dragSprite, gameUX);
+    }
     dragSprite.position.x = newPosition.x;
     dragSprite.position.y = newPosition.y;
     let parent = dragSprite.parent;
@@ -1394,7 +1606,10 @@ function onDragMove(dragSprite, gameUX, bump) {
 
 function updateDraggedCardFilters(gameUX, cardSprite){
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
-    let newFilters = Constants.glowAndShadowFilters();
+    let newFilters = [
+        Constants.targettingGlowFilter(),
+        Constants.dropshadowFilter()
+    ];
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
@@ -1440,7 +1655,7 @@ function updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite) {
     }
 
     for (let mob of gameUX.app.stage.children) {
-        if (mob.card && dragSprite.card.id != mob.card.id && (!collidedSprite || !collidedSprite.card || mob.card.id != collidedSprite.card.id)) {
+        if (mob.card && !mob.isCardBack && dragSprite.card.id != mob.card.id && (!collidedSprite || !collidedSprite.card || mob.card.id != collidedSprite.card.id)) {
             if (mob.card.can_be_clicked) {
                 if (!hasCanBeClickedFilter(mob) || hasCantBeTargettedFilter(mob)) {
                     clearDragFilters(mob);
