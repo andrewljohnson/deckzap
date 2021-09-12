@@ -38,7 +38,8 @@ const menuString = "Menu";
 
 export class GameUX {
 
-    constructor() {
+    constructor(debug) {
+        this.debug = debug;
         // arrows that get temporarily drawn when attacking ans casting spells
         this.arrows = []
         // damage amounts used for animating damage effects on sprites
@@ -135,7 +136,9 @@ export class GameUX {
           new OutlineFilter(1, Constants.blackColor),
         ]
         this.app.stage.addChild(scrollbox);
-
+        if (!this.debug) {
+            scrollbox.alpha = 0;
+        }
         return scrollbox;
     }
 
@@ -374,39 +377,43 @@ export class GameUX {
 
 
     updateGameNavigator(game) {
-            if (this.gameNavigator) {
-                this.gameNavigator.clear();
-                this.gameNavigator = null;
-            }
-            if (this.isPlayersTurn(game) || this.parentGame) {
-                this.gameNavigator = new GameNavigator(this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
-                    () => {
-                        let index = null;
-                        // the 2 is so players can't navigate before the initial join moves
-                        if (this.parentGame && this.parentGame.review_move_index > 2) {
-                            index = this.parentGame.review_move_index - 1;
-                        } else if (!this.parentGame) {
-                            index = this.game.moves.length - 1;
-                        }
-                        if (index) {
-                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
-                        }
-                    }, 
-                    () => {
-                        let index = null;
-                        if (this.parentGame && this.parentGame.review_move_index < this.parentGame.move_count) {
-                            index = this.parentGame.review_move_index + 1;
-                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
-                        } else {
-                            // alert("can't go forward from front")
-                        }
+        if (!this.debug) {
+            return;
+        }
 
-                    },
-                    () => {
-                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index: -1});
-                        this.parentGame = null;
-                    })
-            }
+        if (this.gameNavigator) {
+            this.gameNavigator.clear();
+            this.gameNavigator = null;
+        }
+        if (this.isPlayersTurn(game) || this.parentGame) {
+            this.gameNavigator = new GameNavigator(this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
+                () => {
+                    let index = null;
+                    // the 2 is so players can't navigate before the initial join moves
+                    if (this.parentGame && this.parentGame.review_move_index > 2) {
+                        index = this.parentGame.review_move_index - 1;
+                    } else if (!this.parentGame) {
+                        index = this.game.moves.length - 1;
+                    }
+                    if (index) {
+                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                    }
+                }, 
+                () => {
+                    let index = null;
+                    if (this.parentGame && this.parentGame.review_move_index < this.parentGame.move_count) {
+                        index = this.parentGame.review_move_index + 1;
+                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                    } else {
+                        // alert("can't go forward from front")
+                    }
+
+                },
+                () => {
+                    this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index: -1});
+                    this.parentGame = null;
+                })
+        }
     }
 
 

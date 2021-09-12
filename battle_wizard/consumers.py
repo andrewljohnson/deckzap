@@ -9,8 +9,7 @@ from channels.generic.websocket import WebsocketConsumer
 from battle_wizard.game_objects import Game
 from battle_wizard.models import GameRecord
 from battle_wizard.data import all_cards
-
-DEBUG = True
+from deckzap.settings import DEBUG
 
 class BattleWizardMatchFinderConsumer(WebsocketConsumer):
 

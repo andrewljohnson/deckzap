@@ -113,9 +113,7 @@ class Game:
         has_action_selected = player.selected_mob() or player.selected_artifact() or player.selected_spell()
         if player.card_info_to_target["effect_type"] in ["mob_activated", "mob_comes_into_play"]:
             moves = self.add_resolve_mob_effects_moves(player, moves)
-        elif player.card_choice_info["choice_type"] == "make":
-            moves = self.add_resolve_make_moves(player, moves)
-        elif player.card_choice_info["choice_type"] == "make_with_option":
+        elif player.card_choice_info["choice_type"] in ["make", "make_with_option"]:
             moves = self.add_resolve_make_moves(player, moves)
             moves.append({"move_type": "CANCEL_MAKE", "username": self.ai})              
         elif player.card_choice_info["choice_type"] == "make_from_deck":
@@ -137,7 +135,9 @@ class Game:
                 moves.append({"move_type": "END_TURN", "username": self.ai})                
         elif len(self.stack) > 0 and not has_action_selected:
             moves = self.add_response_moves(player, moves)
-        else:
+
+        # can be zero here when there is a Make From Deck move with no targets in deck (at least)
+        if len(moves) == 0:
             moves = self.add_attack_and_play_card_moves(moves)
             if not has_action_selected:
                 moves.append({"move_type": "END_TURN", "username": self.ai})
@@ -2200,7 +2200,7 @@ class Player:
                     self.deck.append(c)
                 self.played_pile = [] 
             if len(self.deck) == 0 or len(self.hand) == self.game.max_hand_size:
-                continue
+                continueg
             card = self.deck.pop()
             self.hand.append(card)
             for m in self.in_play + self.artifacts:

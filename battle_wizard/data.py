@@ -83,7 +83,8 @@ def default_deck_dwarf_tinkerer():
             "Tame Shop Demon": 2,
             "Work in Progress": 2,
             "Side Project": 2,
-            "Tinker": 2
+            "Tinker": 5,
+            "Song of Rebirth": 5,
         }
     }
 

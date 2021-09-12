@@ -10,8 +10,10 @@ import { OpponentChooser } from '../js/views/OpponentChooser';
 import { TopDecks } from '../js/views/TopDecks';
 import { TopPlayers } from '../js/views/TopPlayers';
 
+
 if (window.location.pathname.startsWith("/play")) {
-	const gameUX = new GameUX();
+    const DEBUG = document.getElementById("data_store").getAttribute("debug");
+	const gameUX = new GameUX(DEBUG);
 	const gameRoom = new GameRoom(gameUX);
 	gameRoom.connect();
 } else if (window.location.pathname.startsWith("/choose_deck_for_match")) {

@@ -14,6 +14,7 @@ from battle_wizard.forms import SignUpForm
 from battle_wizard.models import Deck
 from battle_wizard.models import GameRecord
 from battle_wizard.models import GlobalDeck
+from deckzap.settings import DEBUG
 from django.contrib.auth import authenticate 
 from django.contrib.auth import login
 from django.contrib.auth import logout as logout_django
@@ -219,7 +220,8 @@ def play_game(request, player_type, game_record_id):
         "game_record_id": game_record_id,
         "player_type": player_type,
         "opponent_deck_id": opponent_deck_id,
-        "deck_id": deck_id
+        "deck_id": deck_id,
+        "debug": DEBUG
     }
 
     Analytics.log_amplitude(request, "Page View - Game", {"path":"/play/", "page":"play game", "player_type":player_type, "logged_in": request.user.is_authenticated})
