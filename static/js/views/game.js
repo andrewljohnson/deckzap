@@ -342,10 +342,13 @@ export class GameUX {
                     shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
                 }
                 this.app.ticker.add(incrementShockwaveTime)
-                this.spellBeingCastSprite.filters = [shockwave];
+                if (this.spellBeingCastSprite) {                    
+                    this.spellBeingCastSprite.filters = [shockwave];
+                }
+                // todo AI plays faster?
                 setTimeout(() => { 
                     this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
-                }, oneThousandMS);
+                }, 3.0 * oneThousandMS);
             } else {
                 this.finishCastSpell(card, game, player, message, incrementGodrayTime);
             }     
@@ -386,6 +389,58 @@ export class GameUX {
             return; 
         }
         this.clearArrows()
+        this.animateEffects(message, game)
+    }
+
+    animateEffects(message, game, refresh=true, show_effects=false) {
+        if (!this.thisPlayer(game) || !this.opponent(game)) {
+            return;
+        }
+        let IDsToAnimate = [];
+        for (let player of [this.thisPlayer(game), this.opponent(game)]) {
+            for (let card of player.hand.concat(player.in_play).concat(player.artifacts)) {
+                if (refresh && card.show_level_up) {
+                    IDsToAnimate.push(card.id);
+                }
+                if (show_effects) {
+                    for (let e of card.effects) {
+                        if (e.show_effect_animation) {
+                            IDsToAnimate.push(card.id);
+                        }
+                    }                    
+                }
+            }
+        }
+        let spritesToAnimate = [];
+        for (let sprite of this.app.stage.children) {
+            if (sprite.card && IDsToAnimate.includes(sprite.card.id)) {
+                spritesToAnimate.push(sprite);
+            }
+        }
+        for (let sprite of spritesToAnimate) {
+            let shockwave = new ShockwaveFilter();
+            let incrementShockwaveTime = () => {
+                shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+            }
+            this.app.ticker.add(incrementShockwaveTime)
+            sprite.filters = [shockwave];
+            setTimeout(() => { 
+                this.app.ticker.remove(incrementShockwaveTime);
+                if (refresh) {
+                    if (sprite === spritesToAnimate[spritesToAnimate.length - 1]) {                    
+                        this.refreshDisplayAfterAnyHandAnimations(message, game)
+                    }                    
+                }
+            }, oneThousandMS);
+        }
+        if (spritesToAnimate.length == 0) {        
+            if (refresh) {
+                this.refreshDisplayAfterAnyHandAnimations(message, game)
+            }        
+        }
+    }
+
+    refreshDisplayAfterAnyHandAnimations(message, game) {
         this.removeCardsFromStage(game)
         this.updateHand(game);
         this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
@@ -411,6 +466,7 @@ export class GameUX {
         if (opponentAttackAnimation) {
             opponentAttackAnimation()
         }
+        this.animateEffects(message, game, false, true);
      }
 
 
@@ -680,7 +736,7 @@ export class GameUX {
     }
 
     animateAttackOnPlayer(card, avatarSprite) {
-        var FADE_DURATION = this.fadeDuration();
+        var FADE_DURATION = this.attackDuration();
         
         // -1 is a flag to indicate if we are rendering the very 1st frame
         var startTime = -1.0; 
@@ -717,12 +773,12 @@ export class GameUX {
     }
 
     positionForTime(time, cardSprite, avatarSprite) {
-        let ratio = time * 2 / this.fadeDuration();
-        if (time > this.fadeDuration() / 2) {
+        let ratio = time * 2 / this.attackDuration();
+        if (time > this.attackDuration() / 2) {
             ratio = 2 - ratio
         }
         let bumpAdjustmentX = Card.cardWidth/2;
-        let bumpAdjustmentY = Card.cardHeight/2;
+        let bumpAdjustmentY = Card.cardHeight;
         if (avatarSprite.position.x > cardSprite.originalPosition.x) {
             bumpAdjustmentX = -Card.cardWidth/2;            
         }
@@ -731,15 +787,8 @@ export class GameUX {
         }
         let x = (1 - ratio) * cardSprite.originalPosition.x + ratio * (avatarSprite.position.x + bumpAdjustmentX)
         let y = (1 - ratio) * cardSprite.originalPosition.y + ratio * (avatarSprite.position.y + bumpAdjustmentY)
-        console.log({x, y})
-        console.log(ratio)
         return {x, y};
     }
-
-
-
-
-
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
         let sprite = Card.spriteInPlay(card, this, game, player, false);
@@ -893,8 +942,12 @@ export class GameUX {
 
     }
 
+    attackDuration () {
+        return 0.8 * oneThousandMS;
+    }
+
     fadeDuration () {
-        return 1.2 * oneThousandMS;
+        return 2.0 * oneThousandMS;
     }
 
     fadeAlphaForTime(t) {

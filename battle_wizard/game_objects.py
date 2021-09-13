@@ -440,18 +440,18 @@ class Game:
         if len(self.players) != 2:
             return
                        
-        for card in self.current_player().played_pile + self.opponent().played_pile:
+        for card in self.current_player().played_pile + self.opponent().played_pile + self.current_player().hand + self.opponent().hand:
             card.show_level_up = False
-        for spell in self.stack:
-            spell[1]["can_be_clicked"] = False
-        for card in self.opponent().in_play:
-            card.can_be_clicked = False
-        for card in self.current_player().in_play + self.current_player().artifacts:
+        for card in self.current_player().in_play + self.opponent().in_play + self.current_player().artifacts + self.opponent().artifacts:
+            for e in card.effects:
+                e.show_effect_animation = False
             card.can_be_clicked = False
             card.effects_can_be_clicked = []
         for card in self.current_player().hand:
             card.can_be_clicked = False
             card.needs_targets = False
+        for spell in self.stack:
+            spell[1]["can_be_clicked"] = False
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
         if move_type != "UNSELECT" and cancel_damage:
@@ -805,7 +805,7 @@ class Game:
             if card["card_type"] == spellCardType:
                 if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "target" and list(target_restrictions[0].values())[0] == "mob":
                     action = spell[0]
-                    if action["effect_targets"][0]["target_type"] == mobCardType:
+                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == mobCardType:
                         card["can_be_clicked"] = True
                 else:
                     card["can_be_clicked"] = True
@@ -1065,12 +1065,20 @@ class Game:
             for a in card.abilities:
                 if a.name == "Keep":
                     if card.power:
+                        old_power = card.power 
                         card.power += a.keep_power_increase
+                        if card.power > old_power:
+                            card.show_level_up = True
                     if card.toughness:
+                        old_toughness = card.toughness 
                         card.toughness += a.keep_toughness_increase
+                        if card.toughness > old_toughness:
+                            card.show_level_up = True
                     if a.keep_evolve:
                          evolved_card = self.current_player().add_to_deck(a.keep_evolve, 1, add_to_hand=True)
                          self.current_player().hand.remove(evolved_card)
+                         evolved_card.id = card.id
+                         evolved_card.show_level_up = True
                          self.current_player().hand[self.current_player().hand.index(card)] = evolved_card
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
@@ -1123,6 +1131,8 @@ class Game:
                 message = self.activate_artifact_on_hand_card(message, self.current_player().selected_artifact(), card, self.current_player().card_info_to_target["effect_index"])
                 self.unset_clickables(message["move_type"])
                 self.set_clickables()
+                # cards like Mana Coffin and Duplication Chamber
+                artifact.effects[0].show_effect_animation = True
                 return message
 
         if len(self.current_player().in_play + self.opponent().in_play) > 0:
@@ -2203,11 +2213,12 @@ class Player:
                     self.deck.append(c)
                 self.played_pile = [] 
             if len(self.deck) == 0 or len(self.hand) == self.game.max_hand_size:
-                continueg
+                continue
             card = self.deck.pop()
             self.hand.append(card)
             for m in self.in_play + self.artifacts:
                 for effect in m.effects_triggered():
+                    effect.show_effect_animation = True
                     if effect.name == "hp_damage_random":
                         choice = random.choice(["hp", "damage"])
                         if choice == "hp":
@@ -2467,13 +2478,17 @@ class Player:
     def do_card_effect_start_turn(self, card, effect):
         if effect.name == "damage" and effect.target_type == "self":
             self.damage(effect.amount)
+            effect.show_effect_animation = True
             message["log_lines"].append(f"{self.username} takes {effect.amount} damage from {card.name}.")
         elif effect.name == "take_control" and effect.target_type == "opponents_mob_random": # song dragon
             if len(self.game.opponent().in_play) > 0:
                 mob_to_target = random.choice(self.game.opponent().in_play)
                 self.do_take_control_effect_on_mob(mob_to_target.id)
+                effect.show_effect_animation = True
                 message["log_lines"].append(f"{self.username} takes control of {mob_to_target.name}.")
         elif effect.name == "gain_hp":
+            # cards like bright child vamp
+            effect.show_effect_animation = True
             self.do_heal_effect_on_player(self.username, effect.amount)
         else:
             print(f"unsupported start_turn triggered effect {effect}")
@@ -2481,6 +2496,8 @@ class Player:
     def do_card_effect_artifact_only_start_turn(self, r):
         for effect in r.effects_triggered():
             if effect.trigger == "start_turn":
+                # cards like Mana Battery
+                effect.show_effect_animation = True
                 if effect.name == "gain_hp_for_hand":
                     gained = 0
                     to_apply = max(len(self.hand) - 5, 0)
@@ -3423,8 +3440,10 @@ class Player:
                         card.show_level_up = True
 
         if card.card_type == spellCardType:
-            if not card.has_ability("Disappear"):
-                self.played_pile.append(card)            
+            if card.has_ability("Disappear"):
+                card.show_level_up = True
+            else:            
+                self.played_pile.append(card)
 
         spell_to_resolve["card_name"] = card.name
         spell_to_resolve["show_spell"] = card.as_dict()
@@ -3683,6 +3702,8 @@ class Player:
         for m in self.in_play + self.artifacts:
             for e in m.effects_triggered():
                 if e.name == "draw" and e.trigger == "start_turn":
+                    # effects like Studious Child Vamp
+                    e.show_effect_animation = True
                     draw_count += e.amount
         if self.has_brarium():
             draw_count -= 1
@@ -4250,6 +4271,7 @@ class CardEffect:
         self.name = info["name"] if "name" in info else None 
         self.power = info["power"] if "power" in info else None
         self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
+        self.show_effect_animation = info["show_effect_animation"] if "show_effect_animation" in info else False
         self.targetted_this_turn = info["targetted_this_turn"] if "targetted_this_turn" in info else []
         self.target_restrictions = info["target_restrictions"] if "target_restrictions" in info else []
         self.target_type = info["target_type"] if "target_type" in info else None
@@ -4287,6 +4309,7 @@ class CardEffect:
             "name": self.name,
             "power": self.power,
             "sacrifice_on_activate": self.sacrifice_on_activate,
+            "show_effect_animation": self.show_effect_animation,
             "targetted_this_turn": self.targetted_this_turn,
             "target_restrictions": self.target_restrictions,
             "target_type": self.target_type,

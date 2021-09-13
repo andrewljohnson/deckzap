@@ -222,6 +222,10 @@ export class Card {
            let damage = card.effects[0].amount;
            baseDescription = `All enemies take ${damage} damage end of your turn. Increase this each turn.`;
         }
+        if (card.name == "Tech Crashhouse") {
+           let amount = card.effects[0].amount;
+           baseDescription = `Draw a Townie for each time this has been cast (${amount}). Reduce their cost by 1.`;
+        }
         if (card.name == "Rolling Thunder") {
            let damage = card.effects[0].amount;
            baseDescription = `Deal ${damage} damage. Improves when cast.`;
