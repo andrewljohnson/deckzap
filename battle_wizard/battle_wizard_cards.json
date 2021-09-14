@@ -1487,7 +1487,7 @@
 				"target_type": "self",
 				"cost": 1,
 				"effect_to_activate": {
-					"name": "make_random_townie",
+					"name": "create_random_townie",
 					"effect_type": "activated",
 					"description": "Remove a counter: Add a Townie to your hand",
 					"target_type": "self",
@@ -1510,7 +1510,7 @@
 		"description": "You have an extra mana each turn.",
 		"effects": [
 			{
-				"name": "increase_max_mana",
+				"name": "mana_increase_max",
 				"effect_type": "enter_play",
 				"target_type": "self",
 				"amount": 1
@@ -1532,7 +1532,7 @@
 		"cost": 1,
 		"effects": [
 			{
-				"name": "make_random_townie_cheap",
+				"name": "create_random_townie_cheap",
 				"effect_type": "spell",
 				"target_type": "self",
 				"amount": 1
@@ -1841,7 +1841,7 @@
 		"cost": 2,
 		"description": "You get an extra mana each turn.",
 		"effects": [{
-			"name": "increase_max_mana",
+			"name": "mana_increase_max",
 			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 1

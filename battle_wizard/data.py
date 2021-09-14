@@ -1,6 +1,9 @@
 import json
 
 def all_cards(require_images=False, include_tokens=True):
+    """
+        Returns a list of all possible cards in the game. 
+    """
     json_data = open('battle_wizard/battle_wizard_cards.json')
     all_cards = json.load(json_data)
     subset = []

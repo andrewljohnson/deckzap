@@ -145,7 +145,7 @@ export class Card {
 	        for (let e of card.effects) {
 	            if (e.effect_type == "activated" && e.enabled) {
 	                activatedEffects.push(e)
-	                if (e.name == "attack" || e.name == "make_random_townie") {
+	                if (e.name == "attack" || e.name == "create_random_townie") {
 	                    attackEffect = e;
 	                }
 	            }
@@ -334,7 +334,7 @@ export class Card {
             let countersX = powerX + cw - Constants.padding * 4;
             let attackEffectOptions = Constants.textOptions(); 
             attackEffectOptions.fill = Constants.whiteColor;
-            if (attackEffect.name == "make_random_townie") {
+            if (attackEffect.name == "create_random_townie") {
                 Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
             } else {
                 Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
@@ -435,7 +435,7 @@ export class Card {
         for (let e of card.effects) {
             if (e.effect_type == "activated" && e.enabled) {
                 activatedEffects.push(e)
-                if (e.name == "attack" || e.name == "make_random_townie") {
+                if (e.name == "attack" || e.name == "create_random_townie") {
                     attackEffect = e;
                 }
             }
@@ -451,7 +451,7 @@ export class Card {
         }
 
         if (attackEffect) {
-            if (attackEffect.name == "make_random_townie") {
+            if (attackEffect.name == "create_random_townie") {
                 let attackEffectOptions = Constants.textOptions() 
                 Card.addCircledLabel(-Constants.padding * 8, Card.cardHeight / 2 - Constants.padding * 6, cardSprite, attackEffectOptions, attackEffect.counters, Constants.yellowColor);
             } else {

@@ -178,7 +178,7 @@
 		"cost": 3,
 		"description": "You have an extra mana each turn.",
 		"effects": [{
-			"name": "increase_max_mana",
+			"name": "mana_increase_max",
 			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
@@ -419,7 +419,7 @@
 			"name": "add_effects",
 			"target_type": "self_mobs",
 			"effects": [{
-				"name": "increase_max_mana",
+				"name": "mana_increase_max",
 				"effect_type": "spell",
 				"description": "You have an extra mana each turn.",
 				"amount": 1,
@@ -484,7 +484,7 @@
 		"effects": [{
 			"target_type": "any_player",
 			"effect_type": "spell",
-			"name": "reduce_mana",
+			"name": "mana_reduce",
 			"amount": 1
 		}]
 	},
@@ -636,25 +636,6 @@
 				"amount": 1
 			}
 		]
-	},
-		{
-		"name": "Master Time",
-		"race": "genie",
-		"cost": 8,
-		"card_type": "spell",
-		"description": "All your mobs get Fast (attack turn summoned).",
-		"effects": [{
-			"name": "add_player_abilities",
-			"effect_type": "spell",
-			"target_type": "new_self_mobs",
-			"abilities": [
-				{
-					"name": "Fast",
-					"description": "Fast",
-					"descriptive_id": "Fast"
-				}
-			]				
-		}]
 	},
 	{
 		"name": "Quiet Nature",
@@ -853,7 +834,7 @@
 		"cost": 2,
 		"description": "Add a Townie to your hand.",
 		"effects": [{
-			"name": "make_random_townie",
+			"name": "create_random_townie",
 			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 1
