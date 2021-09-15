@@ -45,7 +45,7 @@ def profile(request, username):
     decks = Deck.objects.filter(owner__username=username).order_by("-date_created")
 
     if len(decks) == 0:
-        add_initial_decks(username)
+        add_default_decks(username)
         decks = Deck.objects.filter(owner__username=username).order_by("-date_created")
 
     # todo use ID, not username, for when we allow changing usernames
@@ -89,7 +89,7 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
 
-def add_initial_decks(username):
+def add_default_decks(username):
     """
         The initial decks for a new player.
     """

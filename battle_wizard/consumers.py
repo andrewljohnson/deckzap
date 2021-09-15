@@ -6,10 +6,14 @@ import time
 
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.generic.websocket import WebsocketConsumer
+from battle_wizard.data import all_cards
+from battle_wizard.data import hash_for_deck
 from battle_wizard.game import Game
 from battle_wizard.models import GameRecord
-from battle_wizard.data import all_cards
+from battle_wizard.models import GlobalDeck
 from deckzap.settings import DEBUG
+from django.contrib.auth.models import User
+
 
 class BattleWizardMatchFinderConsumer(WebsocketConsumer):
 
@@ -135,12 +139,17 @@ class BattleWizardConsumer(WebsocketConsumer):
             "RESOLVE_MOB_EFFECT",
             "SELECT_ARTIFACT",
         ]
-        message = self.game.play_move(message, save=save)   
+        message = self.game.play_move(message, save=save, is_reviewing=self.is_reviewing)   
 
         if message["move_type"] == 'JOIN':
             if len(self.game.players) == 1 and self.game.player_type == "pvai":
                 message["username"] = self.ai
-                message = self.game.play_move(message, save=True)
+                message = self.game.play_move(message, save=True, is_reviewing=self.is_reviewing)
+
+            if len(self.game.players) == 2:
+                if not self.is_reviewing:
+                    self.save_to_database()
+
 
         game_object.game_json = self.game.as_dict()
         game_object.save()
@@ -164,6 +173,19 @@ class BattleWizardConsumer(WebsocketConsumer):
                             # print(self.game.players[1].selected_spell().name if self.game.players[1].selected_spell() else None)
                             print("running AI, choosing from moves: " + str(moves))
                             self.run_ai(moves)
+
+    def save_to_database(self):
+        game_record = GameRecord.objects.get(id=self.game.game_record_id)
+        game_record.date_started = datetime.datetime.now()
+        game_record.player_one = User.objects.get(username=self.game.players[0].username)
+        try:
+            game_record.player_two = User.objects.get(username=self.game.players[1].username)
+        except ObjectDoesNotExist:
+            game_record.player_two = User.objects.create(username=self.game.players[1].username)
+            game_record.player_two.save()
+        game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=hash_for_deck(self.game.players[0].deck_for_id_or_url(self.game.players[0].deck_id)))
+        game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=hash_for_deck(self.game.players[1].deck_for_id_or_url(self.game.players[1].deck_id)))
+        game_record.save()
 
     def run_ai(self, moves):
         self.ai_running = True
@@ -291,7 +313,6 @@ class BattleWizardConsumer(WebsocketConsumer):
     # todo move review_game and is_reviewing to consumer
     def navigate_game(self, original_message):
         review_game = Game("pvp", info={}, player_decks=self.decks)
-        review_game.is_review_game = True
         self.is_reviewing = True
         self.game.moves[0]["discipline"] = self.game.players[0].discipline
         self.game.moves[1]["discipline"] = self.game.players[1].discipline
@@ -303,7 +324,7 @@ class BattleWizardConsumer(WebsocketConsumer):
             if index > original_message["index"] - 1 and original_message["index"] > -1:
                 break
             move["log_lines"] = []
-            message = review_game.play_move(move)
+            message = review_game.play_move(move, is_reviewing=self.is_reviewing)
             if message["log_lines"] != []:
                 log_lines += message["log_lines"]
             index += 1

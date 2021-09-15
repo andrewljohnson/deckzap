@@ -13,6 +13,46 @@ def all_cards(require_images=False, include_tokens=True):
                 subset.append(c)
     return subset
 
+def all_abilities():
+    return [
+        {
+            "name": "Fast",
+            "descriptive_id": "Fast"
+        },
+        {
+            "name": "Syphon",
+            "descriptive_id": "Syphon"
+        },
+        {
+            "name": "Lurker",
+            "descriptive_id": "Lurker"
+        },
+        {
+            "name": "Shield",
+            "descriptive_id": "Shield"
+        },
+        {
+            "name": "Conjure",
+            "descriptive_id": "Conjure"
+        },
+        {
+            "name": "Guard",
+            "descriptive_id": "Guard"
+        },
+        {
+            "name": "Defend",
+            "descriptive_id": "Defend"
+        },
+        {
+            "name": "Fade",
+            "descriptive_id": "Fade"
+        },
+        {
+            "name": "Ambush",
+            "descriptive_id": "Ambush"
+        },
+    ]
+
 def hash_for_deck(deck):
     strings = []
     for key in deck["cards"]:

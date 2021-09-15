@@ -3,6 +3,13 @@ import datetime
 import random
 
 from battle_wizard.card import Card, CardEffect, CardAbility
+from battle_wizard.data import default_deck_genie_wizard 
+from battle_wizard.data import default_deck_dwarf_tinkerer
+from battle_wizard.data import default_deck_dwarf_bard
+from battle_wizard.data import default_deck_vampire_lich
+from battle_wizard.models import Deck
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class Player:
@@ -347,7 +354,7 @@ class Player:
 
     def play_mob(self, card):
         self.in_play.append(card)
-        self.game.update_for_mob_changes_zones(self)
+        self.update_for_mob_changes_zones()
 
         if self.fast_ability():
             card.abilities.append(self.fast_ability())          
@@ -356,8 +363,8 @@ class Player:
     def play_artifact(self, artifact):
         self.artifacts.append(artifact)
         artifact.turn_played = self.game.turn
-        # self.game.update_for_mob_changes_zones(self)
-        # self.update_for_mob_changes_zones(self.game.opponent())        
+        # self.update_for_mob_changes_zones(self)
+        # self.game.opponent().update_for_mob_changes_zones()        
 
     def fast_ability(self):
         for a in self.abilities:
@@ -408,7 +415,7 @@ class Player:
                 for idx, e in enumerate(effects):
                     if e.target_type == "opponents_mob_random" and len(self.game.opponent().in_play) == 0:
                         continue
-                    # todo think about this weird rpeated setting of effect_targets in message
+                    # todo think about this weird repeated setting of effect_targets in message
                     if not "effect_targets" in message:
                         effect_targets = []
                         if e.target_type == "self" or e.name == "fetch_card":  
@@ -663,12 +670,6 @@ class Player:
         if len(self.hand) < self.game.max_hand_size:
             self.add_to_deck(message["card"]["name"], 1, add_to_hand=True, card_cost=message["card"]["cost"])
         self.reset_card_choice_info()
-
-    def make_effect(self, message):
-        message["log_lines"].append(f"{message['username']} chose {message['card']['global_effect']}.")
-        self.game.global_effects.append(message["card"]["global_effect"])
-        self.reset_card_choice_info()
-        return message
 
     def cancel_make(self):
         for card in self.played_pile:
@@ -954,7 +955,101 @@ class Player:
         if did_kill and card.card_type == Card.mobCardType:
             self.game.remove_attack_for_mob(card)
 
-        self.game.update_for_mob_changes_zones(player)
+        player.update_for_mob_changes_zones()
+
+    def update_for_mob_changes_zones(self):
+
+        # code for War Scorpion
+        for e in self.in_play + self.artifacts:
+            effect = e.effect_with_trigger("mob_changes_zones")
+            if effect and effect.name == "toggle_symbiotic_fast":
+                abilities_to_remove = []
+                for ability in e.abilities:
+                    if ability.name == "Fast":
+                       abilities_to_remove.append(ability) 
+                for ability in abilities_to_remove:
+                    e.abilities.remove(ability)
+
+            # code for Spirit of the Stampede and Vamp Leader
+            if effect and effect.name == "set_token":
+                tokens_to_remove = []
+                for t in e.tokens:
+                    if t.id == e.id:
+                        tokens_to_remove.append(t)
+                for t in tokens_to_remove:
+                    e.tokens.remove(t)
+                e.do_add_token_effect_on_mob(effect, self, e, self)
+
+        anything_friendly_has_fast = False
+        for e in self.in_play:
+            if e.has_ability("Fast"):
+                anything_friendly_has_fast = True
+
+        for e in self.in_play:
+            effect = e.effect_with_trigger("mob_changes_zones")
+            if effect and effect.name == "toggle_symbiotic_fast":
+                if anything_friendly_has_fast:
+                    e.abilities.append(CardAbility({
+                        "name": "Fast",
+                        "descriptive_id": "Fast"
+                    }, len(e.abilities)))
+
+
+        # code for Arsenal artifact
+        for r in self.artifacts:
+            effect = r.effect_with_trigger("mob_changes_zones")
+            if effect and effect.name == "set_token" and effect.target_type == "self_mobs":
+                for e in self.game.opponent().in_play:
+                    for token in e.tokens:
+                        if token.id == r.id:
+                            e.tokens.remove(token)
+                            break
+
+                for e in self.game.current_player().in_play:
+                    for token in e.tokens:
+                        if token.id == r.id:
+                            e.tokens.remove(token)
+                            break
+
+                for e in self.in_play:
+                    e.do_add_token_effect_on_mob(effect, player, e, player)
+                    
+    def get_starting_deck(self):
+        if len(self.initial_deck):
+            self.deck = self.initial_deck
+        else:
+            card_names = []
+            deck_to_use = self.deck_for_id_or_url(self.deck_id)
+            for key in deck_to_use["cards"]:
+                for _ in range(0, deck_to_use["cards"][key]):
+                    card_names.append(key)
+            for card_name in card_names:
+                self.add_to_deck(card_name, 1)
+            random.shuffle(self.deck)
+            self.initial_deck = copy.deepcopy(self.deck)
+            self.discipline = deck_to_use["discipline"]
+
+    def deck_for_id_or_url(self, id_or_url):
+        try:
+            decks = Deck.objects.filter(owner=User.objects.get(username=self.username))
+        except ObjectDoesNotExist:
+            decks = []
+        deck_to_use = None
+        for d in decks:
+            if d.id == id_or_url:
+                deck_to_use = d.global_deck.deck_json
+        if id_or_url == "the_coven":
+            deck_to_use = default_deck_vampire_lich()
+        elif id_or_url == "keeper":
+            deck_to_use = default_deck_dwarf_tinkerer()
+        elif id_or_url == "townies":
+            deck_to_use = default_deck_dwarf_bard()
+        elif id_or_url == "draw_go":
+            deck_to_use = default_deck_genie_wizard()
+        else:
+            deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
+
+        return deck_to_use
 
     def legal_moves_for_ai(self):
         """

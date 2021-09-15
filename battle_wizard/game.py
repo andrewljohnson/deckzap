@@ -7,10 +7,7 @@ from battle_wizard.data import default_deck_genie_wizard
 from battle_wizard.data import default_deck_dwarf_tinkerer
 from battle_wizard.data import default_deck_dwarf_bard
 from battle_wizard.data import default_deck_vampire_lich
-from battle_wizard.data import hash_for_deck
-from battle_wizard.models import Deck
 from battle_wizard.models import GameRecord
-from battle_wizard.models import GlobalDeck
 from battle_wizard.player import Player
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -19,37 +16,33 @@ from django.core.exceptions import ObjectDoesNotExist
 class Game:
     def __init__(self, player_type, info=None, player_decks=None):
 
-        self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
-
-        self.player_type = info["player_type"] if info and "player_type" in info else player_type
-
-        # support 2 players
-        self.players = [Player(self, u) for u in info["players"]] if info and "players" in info else []
-        self.turn = int(info["turn"]) if info and "turn" in info else 0
-
         # player 0 always acts on even turns, player 1 acts on odd turns
         self.actor_turn = int(info["actor_turn"]) if info and "actor_turn" in info else 0
-
-        self.stack = info["stack"] if info and "stack" in info else []
-
+        # the ID of the GameRecord in the DB.
+        self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
+        # created by Make Effect
+        self.global_effects = info["global_effects"] if info and "global_effects" in info else []
+        # a list of all player-derived moves, sufficient to replay the game
+        self.moves = info["moves"] if info and "moves" in info else []
+        # the max number of cards a player can have
+        self.max_hand_size = 10
         # the next id to give a card when doing make_card effects
         # each card gets the next unusued integer
         self.next_card_id = int(info["next_card_id"]) if info and "next_card_id" in info else 0
-        # created by Make Effect
-        self.global_effects = info["global_effects"] if info and "global_effects" in info else []
-
+        # either pvp or pvai
+        self.player_type = info["player_type"] if info and "player_type" in info else player_type
+        # support 2 players
+        self.players = [Player(self, u) for u in info["players"]] if info and "players" in info else []
         # stack decks for unit testing
         self.player_decks = player_decks
-
-        self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()
+        # when True, a countdown timer starts for the active player
         self.show_rope = info["show_rope"] if info and "show_rope" in info else False
-        
-        self.max_hand_size = 10
-
-        # a list of all player-derived moves, sufficient to replay the game
-        self.moves = info["moves"] if info and "moves" in info else []
-        # when in review mode, the index of the move under review
-        self.is_review_game = info["is_review_game"] if info and "is_review_game" in info else False
+        # a stack of actions that need to be resolved in the game (spells, abilities, and attacks)
+        self.stack = info["stack"] if info and "stack" in info else []
+        # player 0 is the current player on even turns, player 1 is the current player on odd turns
+        self.turn = int(info["turn"]) if info and "turn" in info else 0
+        # the time the current turn started on
+        self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()        
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -66,7 +59,6 @@ class Game:
             "show_rope": self.show_rope, 
             "stack": self.stack, 
             "turn": self.turn, 
-            "is_review_game": self.is_review_game, 
             "turn_start_time": self.turn_start_time.__str__() if self.turn_start_time else None, 
         }
 
@@ -76,7 +68,7 @@ class Game:
     def opponent(self):
         return self.players[(self.actor_turn + 1) % 2]
 
-    def play_move(self, message, save=False):
+    def play_move(self, message, save=False, is_reviewing=False):
         move_type = message["move_type"]
         
         if move_type == 'GET_TIME':
@@ -103,7 +95,7 @@ class Game:
             self.moves.append(move_copy)
         
         if move_type == 'JOIN':
-            message = self.join(message)
+            message = self.join(message, is_reviewing)
         else:
             if (message["username"] != self.current_player().username):
                 print(f"can't {move_type} on opponent's turn")
@@ -132,7 +124,9 @@ class Game:
         elif move_type == 'CANCEL_MAKE':
             self.current_player().cancel_make()
         elif move_type == 'MAKE_EFFECT':
-            message = self.current_player().make_effect(message)        
+            message["log_lines"].append(f"{message['username']} chose {message['card']['global_effect']}.")
+            self.global_effects.append(message["card"]["global_effect"])
+            self.current_player().reset_card_choice_info()
         elif move_type == 'FETCH_CARD_FROM_PLAYED_PILE':
             message = self.current_player().fetch_card_from_played_pile(message)        
         elif move_type == 'FETCH_CARD':
@@ -177,7 +171,7 @@ class Game:
             if not anything_clickable and not "bot" in cp.username and len(self.stack) > 0:
                 return self.play_move({"move_type": "RESOLVE_NEXT_STACK", "username": cp.username})
 
-        if message and len(self.players) == 2 and not self.is_review_game:
+        if message and len(self.players) == 2 and not is_reviewing:
             game_object = GameRecord.objects.get(id=self.game_record_id)
             game_object.game_json = self.as_dict()
             if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
@@ -438,7 +432,7 @@ class Game:
             if card["card_type"] == Card.mobCardType:
                 card["can_be_clicked"] = True
 
-    def join(self, message):
+    def join(self, message, is_reviewing=False):
         join_occured = True
         if len(self.players) == 0:
             self.players.append(Player(self, message, new=True))            
@@ -457,14 +451,14 @@ class Game:
             join_occured = False
 
         if len(self.players) == 2 and join_occured:
-            self.start_game(message)
+            self.start_game(message, is_reviewing)
         return message
 
-    def start_game(self, message):
+    def start_game(self, message, is_reviewing=False):
         if len(self.player_decks[0]) > 0 or len(self.player_decks[1]) > 0 :
             self.start_test_stacked_deck_game(message)
         else:
-            self.start_constructed_game(message)
+            self.start_constructed_game(message, is_reviewing)
 
     def start_test_stacked_deck_game(self, message):
         if self.players[0].max_mana == 0: 
@@ -481,41 +475,11 @@ class Game:
 
             self.send_start_first_turn(message)
 
-    def start_constructed_game(self, message):
+    def start_constructed_game(self, message, is_reviewing=False):
         if self.players[0].max_mana == 0: 
             deck_hashes = []
             for x in range(0, 2):
-                if self.is_review_game:
-                    self.players[x].deck = self.players[x].initial_deck
-                else:
-                    try:
-                        decks = Deck.objects.filter(owner=User.objects.get(username=self.players[x].username))
-                    except ObjectDoesNotExist:
-                        decks = []
-                    deck_to_use = None
-                    for d in decks:
-                        if d.id == self.players[x].deck_id:
-                            deck_to_use = d.global_deck.deck_json
-                    if self.players[x].deck_id == "the_coven":
-                        deck_to_use = default_deck_vampire_lich()
-                    elif self.players[x].deck_id == "keeper":
-                        deck_to_use = default_deck_dwarf_tinkerer()
-                    elif self.players[x].deck_id == "townies":
-                        deck_to_use = default_deck_dwarf_bard()
-                    elif self.players[x].deck_id == "draw_go":
-                        deck_to_use = default_deck_genie_wizard()
-                    else:
-                        deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
-                    deck_hashes.append(hash_for_deck(deck_to_use))
-                    card_names = []
-                    for key in deck_to_use["cards"]:
-                        for _ in range(0, deck_to_use["cards"][key]):
-                            card_names.append(key)
-                    for card_name in card_names:
-                        self.players[x].add_to_deck(card_name, 1)
-                    random.shuffle(self.players[x].deck)
-                    self.players[x].initial_deck = copy.deepcopy(self.players[x].deck)
-                    self.players[x].discipline = deck_to_use["discipline"]
+                deck_hashes.append(self.players[x].get_starting_deck())
 
             self.current_player().get_starting_artifacts()
             self.opponent().get_starting_artifacts()
@@ -525,18 +489,6 @@ class Game:
                 self.players[x].draw(self.players[x].initial_hand_size())
 
             self.send_start_first_turn(message)
-            if not self.is_review_game:
-                game_record = GameRecord.objects.get(id=self.game_record_id)
-                game_record.date_started = datetime.datetime.now()
-                game_record.player_one = User.objects.get(username=self.players[0].username)
-                try:
-                    game_record.player_two = User.objects.get(username=self.players[1].username)
-                except ObjectDoesNotExist:
-                    game_record.player_two = User.objects.create(username=self.players[1].username)
-                    game_record.player_two.save()
-                game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[0])
-                game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=deck_hashes[1])
-                game_record.save()
 
     def send_start_first_turn(self, message):
         new_message = copy.deepcopy(message)
@@ -611,7 +563,7 @@ class Game:
                             self.current_player().hand.append(spell)
                             self.current_player().played_pile.remove(spell)
                 elif effect.name == "damage" and effect.trigger == "end_turn":
-                    message = self.current_player().do_damage_effect(effect, effect_targets, index, message)
+                    message["log_lines"] += self.current_player().do_damage_effect(self.current_player(), effect, effect_targets[index])
                 elif effect.name == "improve_damage_when_used":
                     # hax for Doomer, this would break if it didnt have two damage effects
                     mob.effects[0].amount += 1
@@ -1071,63 +1023,6 @@ class Game:
         self.current_player().reset_card_choice_info()
         return message
 
-    def update_for_mob_changes_zones(self, player):
-
-        # code for War Scorpion
-        for e in player.in_play + player.artifacts:
-            effect = e.effect_with_trigger("mob_changes_zones")
-            if effect and effect.name == "toggle_symbiotic_fast":
-                abilities_to_remove = []
-                for ability in e.abilities:
-                    if ability.name == "Fast":
-                       abilities_to_remove.append(ability) 
-                for ability in abilities_to_remove:
-                    e.abilities.remove(ability)
-
-            # code for Spirit of the Stampede and Vamp Leader
-            if effect and effect.name == "set_token":
-                tokens_to_remove = []
-                for t in e.tokens:
-                    if t.id == e.id:
-                        tokens_to_remove.append(t)
-                for t in tokens_to_remove:
-                    e.tokens.remove(t)
-                e.do_add_token_effect_on_mob(effect, player, e, player)
-
-        anything_friendly_has_fast = False
-        for e in player.in_play:
-            if e.has_ability("Fast"):
-                anything_friendly_has_fast = True
-
-        for e in player.in_play:
-            effect = e.effect_with_trigger("mob_changes_zones")
-            if effect and effect.name == "toggle_symbiotic_fast":
-                if anything_friendly_has_fast:
-                    e.abilities.append(CardAbility({
-                        "name": "Fast",
-                        "descriptive_id": "Fast"
-                    }, len(e.abilities)))
-
-
-        # code for Arsenal artifact
-        for r in player.artifacts:
-            effect = r.effect_with_trigger("mob_changes_zones")
-            if effect and effect.name == "set_token" and effect.target_type == "self_mobs":
-                for e in self.opponent().in_play:
-                    for token in e.tokens:
-                        if token.id == r.id:
-                            e.tokens.remove(token)
-                            break
-
-                for e in self.current_player().in_play:
-                    for token in e.tokens:
-                        if token.id == r.id:
-                            e.tokens.remove(token)
-                            break
-
-                for e in player.in_play:
-                    e.do_add_token_effect_on_mob(effect, player, e, player)
-                    
     def resolve_combat(self, attacking_card, defending_card):
         if attacking_card.shielded:
             attacking_card.shielded = False
@@ -1138,8 +1033,8 @@ class Game:
             if attacking_card.damage < attacking_card.toughness_with_tokens() and defending_card.has_ability("DamageTakeControl"):
                 self.current_player().in_play.remove(attacking_card)
                 self.opponent().in_play.append(attacking_card)
-                self.update_for_mob_changes_zones(self.current_player())
-                self.update_for_mob_changes_zones(self.opponent())
+                self.current_player().update_for_mob_changes_zones()
+                self.opponent().update_for_mob_changes_zones()
         if defending_card.shielded:
             defending_card.shielded = False
         else:
@@ -1153,8 +1048,8 @@ class Game:
             if defending_card.damage < defending_card.toughness_with_tokens() and attacking_card.has_ability("DamageTakeControl"):
                 self.opponent().in_play.remove(defending_card)
                 self.current_player().in_play.append(defending_card)
-                self.update_for_mob_changes_zones(self.current_player())
-                self.update_for_mob_changes_zones(self.opponent())
+                self.current_player().update_for_mob_changes_zones()
+                self.opponent().update_for_mob_changes_zones()
         
         if attacking_card.damage >= attacking_card.toughness_with_tokens():
             self.current_player().send_card_to_played_pile(attacking_card, did_kill=True)

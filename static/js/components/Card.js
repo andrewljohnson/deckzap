@@ -186,7 +186,7 @@ export class Card {
         let color = Constants.darkGrayColor;
         if ("abilities" in card) {
 	        for (let a of card.abilities) {
-	            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
+	            if (!["Starts in Play", "die_to_top_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
 	                if (a.description) {
 	                    abilitiesText += a.description;
 	                    color = Constants.blackColor;
