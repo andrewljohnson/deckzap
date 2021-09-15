@@ -595,7 +595,7 @@ class Game:
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
             # this works because all end_turn triggered effects dont have targets to choose
-            effect_targets = self.current_player().unchosen_targets_for_card(mob, self.current_player().username, effect_type="triggered")            
+            effect_targets = mob.unchosen_targets(self.current_player(), effect_type="triggered")            
             index = 0
             for effect in mob.effects_triggered():
                 if effect.name == "spell_from_yard":

@@ -316,77 +316,7 @@ class Player:
         spell_to_resolve = to_resolve[0]
         spell_to_resolve["log_lines"] = []
         card = Card(to_resolve[1])
-
-        for e in self.in_play + self.artifacts:
-            for idx, effect in enumerate(e.effects_triggered()):
-                if effect.trigger == "friendly_card_played" and effect.target_type == "this":
-                    e.do_add_tokens_effect(e, effect, {idx: {"id": e.id, "target_type":"mob"}}, idx)
-
-        spell_to_resolve["log_lines"].append(f"{self.username} plays {card.name}.")
-
-        spell_to_resolve = self.play_mob_or_artifact(card, spell_to_resolve)
-
-        if card.card_type == Card.mobCardType and card.has_ability("Shield"):
-            card.shielded = True
-
-        if len(card.effects) > 0 and card.card_type != Card.mobCardType:
-            if not "effect_targets" in spell_to_resolve:
-                spell_to_resolve["effect_targets"] = []
-
-            for target in self.unchosen_targets_for_card(card, spell_to_resolve["username"]):
-                spell_to_resolve["effect_targets"].append(target)
-
-            for idx, target in enumerate(card.effects_spell() + card.effects_enter_play()):
-                spell_to_resolve = card.do_effect(self, card.effects[idx], spell_to_resolve, spell_to_resolve["effect_targets"], idx)
-           
-            if len(spell_to_resolve["effect_targets"]) == 0:
-                spell_to_resolve["effect_targets"] = None
-
-            if len(card.effects) == 2:
-                if card.effects[1].name == "improve_damage_when_used":
-                    # hack for Rolling Thunder
-                    card.effects[0].amount += 1
-                    card.show_level_up = True
-                if card.effects[1].name == "improve_effect_amount_when_cast":
-                    # hack for Tech Crashhouse
-                    card.effects[0].amount += 1
-                    card.show_level_up = True
-                if card.effects[1].name == "improve_effect_when_cast":
-                    # hack for Tame Shop Demon
-                    old_level = card.level
-                    card.level += 1
-                    card.level = min(card.level, len(card.effects[0].card_names)-1)
-                    if card.level > old_level:
-                        card.show_level_up = True
-
-        if card.card_type == Card.spellCardType:
-            if card.has_ability("Disappear"):
-                card.show_level_up = True
-            else:            
-                self.played_pile.append(card)
-
-        spell_to_resolve["card_name"] = card.name
-        spell_to_resolve["show_spell"] = card.as_dict()
-
-        return spell_to_resolve
-
-    def unchosen_targets_for_card(self, card, username, effect_type="cast"):
-        effect_targets = []
-        effects = card.effects_spell() + card.effects_enter_play()
-        if effect_type == "triggered":
-            effects = card.effects_triggered()
-        for idx, e in enumerate(effects):
-            if e.target_type == "self":           
-                effect_targets.append({"id": username, "target_type":"player"})
-            elif e.target_type == "opponent":          
-                effect_targets.append({"id": self.game.opponent().username, "target_type":"player"})
-            elif e.target_type == "opponents_mobs":          
-                effect_targets.append({"target_type":"opponents_mobs"})
-            elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "self_mobs" or e.target_type == "all":          
-                effect_targets.append({"target_type": e.target_type})
-            elif e.target_type in ["all_cards_in_deck", "all_cards_in_played_pile"]:          
-                effect_targets.append({"target_type": "player", "id": self.username})
-        return effect_targets
+        return card.resolve(self, spell_to_resolve)
 
     def play_mob_or_artifact(self, card, spell_to_resolve, do_effects=True):
         if card.card_type == Card.mobCardType:

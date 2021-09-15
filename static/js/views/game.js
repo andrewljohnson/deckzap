@@ -475,7 +475,6 @@ export class GameUX {
         this.animateEffects(message, false, true);
      }
 
-
     updateGameNavigator(game) {
         if (!this.debug) {
             return;
