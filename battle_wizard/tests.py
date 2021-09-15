@@ -1,5 +1,5 @@
 from django.test import TestCase
-from battle_wizard.game_objects import Game
+from battle_wizard.game import Game
 from battle_wizard.jsonDB import JsonDB
 import os
 import time
@@ -232,7 +232,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        self.assertEqual(len(game.legal_moves_for_ai(game.current_player())), 1)
+        self.assertEqual(len(game.current_player().legal_moves_for_ai()), 1)
 
     def test_town_wizard_makes(self):
         """

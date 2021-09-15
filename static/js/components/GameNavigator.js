@@ -11,7 +11,7 @@ export class GameNavigator {
         let backButtonColor = Constants.darkGrayColor;
         // the 2 is so players can't navigate before the initial join moves
         if ((!pixiUX.parentGame && pixiUX.game.moves.length > 2 ) || 
-            (pixiUX.parentGame && pixiUX.parentGame.review_move_index > 2)) {
+            (pixiUX.parentGame && pixiUX.review_move_index > 2)) {
             backButtonColor = Constants.blueColor
         }
 		let backButton = Card.button(
@@ -24,13 +24,13 @@ export class GameNavigator {
         )
         pixiUX.app.stage.addChild(backButton);
         if (pixiUX.parentGame && 
-            pixiUX.parentGame.review_move_index <= 2) {
+            pixiUX.review_move_index <= 2) {
             backButton.interactive = false;
         }
 
         let forwardButtonColor = Constants.darkGrayColor;
-        if (pixiUX.parentGame && 
-            pixiUX.parentGame.review_move_index < pixiUX.parentGame.move_count) {
+        if (pixiUX.is_reviewing && 
+            pixiUX.review_move_index < pixiUX.parentGame.moves.length) {
             forwardButtonColor = Constants.blueColor
         }
 		let forwardButton = Card.button(
@@ -43,12 +43,12 @@ export class GameNavigator {
         )
         pixiUX.app.stage.addChild(forwardButton);
         if (!pixiUX.parentGame || 
-            pixiUX.parentGame.review_move_index == pixiUX.parentGame.move_count) {
+            pixiUX.review_move_index == pixiUX.parentGame.moves.length) {
             backButton.interactive = false;
         }
 
         let resumeButtonColor = Constants.darkGrayColor;
-        if (pixiUX.game && pixiUX.game.is_review_game) {
+        if (pixiUX.is_reviewing) {
             resumeButtonColor = Constants.blueColor
         }
         let resumeButton = Card.button(

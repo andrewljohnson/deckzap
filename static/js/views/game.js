@@ -226,9 +226,13 @@ export class GameUX {
     // render images that aren't in the cache, then refresh display
     refresh(game, message) {
         this.game = game;
-        if (game.is_reviewing) {
+        if (message["move_type"] == "NAVIGATE_GAME") {
+            this.review_move_index = message["index"];
+            this.is_reviewing = message["index"] != -1
+        }
+        if (this.is_reviewing) {
             this.parentGame = game;
-            this.game = game.review_game;
+            this.game = message["review_game"];
             this.messageNumber = null;
             this.lastTextSprite = null;
             this.gameLogScrollbox.parent.removeChild(this.gameLogScrollbox)
@@ -348,7 +352,7 @@ export class GameUX {
                 // todo AI plays faster?
                 setTimeout(() => { 
                     this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
-                }, 3.0 * oneThousandMS);
+                }, oneThousandMS);
             } else {
                 this.finishCastSpell(card, game, player, message, incrementGodrayTime);
             }     
@@ -389,10 +393,11 @@ export class GameUX {
             return; 
         }
         this.clearArrows()
-        this.animateEffects(message, game)
+        this.animateEffects(message)
     }
 
-    animateEffects(message, game, refresh=true, show_effects=false) {
+    animateEffects(message, refresh=true, show_effects=false) {
+        const game = this.game;
         if (!this.thisPlayer(game) || !this.opponent(game)) {
             return;
         }
@@ -428,19 +433,20 @@ export class GameUX {
                 this.app.ticker.remove(incrementShockwaveTime);
                 if (refresh) {
                     if (sprite === spritesToAnimate[spritesToAnimate.length - 1]) {                    
-                        this.refreshDisplayAfterAnyHandAnimations(message, game)
+                        this.refreshDisplayAfterAnyHandAnimations(message)
                     }                    
                 }
             }, oneThousandMS);
         }
         if (spritesToAnimate.length == 0) {        
             if (refresh) {
-                this.refreshDisplayAfterAnyHandAnimations(message, game)
+                this.refreshDisplayAfterAnyHandAnimations(message)
             }        
         }
     }
 
-    refreshDisplayAfterAnyHandAnimations(message, game) {
+    refreshDisplayAfterAnyHandAnimations(message) {
+        const game = this.game;
         this.removeCardsFromStage(game)
         this.updateHand(game);
         this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
@@ -466,7 +472,7 @@ export class GameUX {
         if (opponentAttackAnimation) {
             opponentAttackAnimation()
         }
-        this.animateEffects(message, game, false, true);
+        this.animateEffects(message, false, true);
      }
 
 
@@ -483,8 +489,8 @@ export class GameUX {
                 () => {
                     let index = null;
                     // the 2 is so players can't navigate before the initial join moves
-                    if (this.parentGame && this.parentGame.review_move_index > 2) {
-                        index = this.parentGame.review_move_index - 1;
+                    if (this.parentGame && this.review_move_index > 2) {
+                        index = this.review_move_index - 1;
                     } else if (!this.parentGame) {
                         index = this.game.moves.length - 1;
                     }
@@ -494,8 +500,8 @@ export class GameUX {
                 }, 
                 () => {
                     let index = null;
-                    if (this.parentGame && this.parentGame.review_move_index < this.parentGame.move_count) {
-                        index = this.parentGame.review_move_index + 1;
+                    if (this.parentGame && this.review_move_index < this.parentGame.moves.length) {
+                        index = this.review_move_index + 1;
                         this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
                     } else {
                         // alert("can't go forward from front")

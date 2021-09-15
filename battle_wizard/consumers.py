@@ -6,7 +6,7 @@ import time
 
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.generic.websocket import WebsocketConsumer
-from battle_wizard.game_objects import Game
+from battle_wizard.game import Game
 from battle_wizard.models import GameRecord
 from battle_wizard.data import all_cards
 from deckzap.settings import DEBUG
@@ -89,6 +89,7 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.room_group_name = 'room_%s' % self.game_record_id
         self.moves = []
         self.ai_running = False
+        self.is_reviewing = False
         self.last_move_time = None
         self.decks = [[], []]
 
@@ -110,7 +111,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         if message["move_type"] == 'NAVIGATE_GAME':
             message["log_lines"] = []
-            message = self.game.navigate_game(message, self)  
+            message = self.navigate_game(message)  
             self.send_game_message(self.game.as_dict(), message)
             return
 
@@ -122,7 +123,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         info = game_object.game_json
         info["game_record_id"] = self.game_record_id
-        self.game = Game(self.player_type, info=info, ai=self.ai, player_decks=self.decks)        
+        self.game = Game(self.player_type, info=info, player_decks=self.decks)        
 
 
         message["log_lines"] = []
@@ -135,12 +136,19 @@ class BattleWizardConsumer(WebsocketConsumer):
             "SELECT_ARTIFACT",
         ]
         message = self.game.play_move(message, save=save)   
+
+        if message["move_type"] == 'JOIN':
+            if len(self.game.players) == 1 and self.game.player_type == "pvai":
+                message["username"] = self.ai
+                message = self.game.play_move(message, save=True)
+
         game_object.game_json = self.game.as_dict()
         game_object.save()
+
         if message:
             self.send_game_message(self.game.as_dict(), message)
 
-            if message["move_type"] == "GET_TIME" and not self.game.is_reviewing:
+            if message["move_type"] == "GET_TIME" and not self.is_reviewing:
                 # run AI if it's the AI's move or if the other player just chose their discipline
                 if self.player_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
                     (self.game.players[0].discipline != None and self.game.players[1].discipline == None)):                     
@@ -148,7 +156,7 @@ class BattleWizardConsumer(WebsocketConsumer):
                     if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
                         time_for_next_move = True
                     self.game.set_clickables()
-                    moves = self.game.legal_moves_for_ai(self.game.players[1])
+                    moves = self.game.players[1].legal_moves_for_ai()
                     if (time_for_next_move or len(moves) == 1) and not self.ai_running:
                         if self.game.players[0].hit_points > 0 and self.game.players[1].hit_points > 0: 
                             # print(self.game.players[1].selected_mob().name if self.game.players[1].selected_mob() else None)
@@ -275,11 +283,37 @@ class BattleWizardConsumer(WebsocketConsumer):
             Gets called once per recipient of a message.
         '''
         message = event['message']
-        # prevent circular refs from reviewing
-        if message["game"] and message["game"]["is_reviewing"]:
-            message["game"]["move_count"] = len(message["game"]["moves"])
-            del message["game"]["moves"]  
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'payload': message
         }))
+
+    # todo move review_game and is_reviewing to consumer
+    def navigate_game(self, original_message):
+        review_game = Game("pvp", info={}, player_decks=self.decks)
+        review_game.is_review_game = True
+        self.is_reviewing = True
+        self.game.moves[0]["discipline"] = self.game.players[0].discipline
+        self.game.moves[1]["discipline"] = self.game.players[1].discipline
+        self.game.moves[0]["initial_deck"] = [c.as_dict() for c in self.game.players[0].initial_deck]
+        self.game.moves[1]["initial_deck"] = [c.as_dict() for c in self.game.players[1].initial_deck]
+        index = 0
+        log_lines = []
+        for move in self.game.moves:
+            if index > original_message["index"] - 1 and original_message["index"] > -1:
+                break
+            move["log_lines"] = []
+            message = review_game.play_move(move)
+            if message["log_lines"] != []:
+                log_lines += message["log_lines"]
+            index += 1
+        original_message["log_lines"] = log_lines  
+        username = original_message['username']
+        if original_message["index"] == -1:
+            self.is_reviewing = False
+            original_message["log_lines"].append(f"{username} resumed the game.")
+        else:
+            original_message["review_game"] = review_game.as_dict()
+            original_message["log_lines"].append(f"{username} navigated the game to move {original_message['index']}.")
+        return original_message
+
