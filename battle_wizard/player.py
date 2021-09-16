@@ -427,7 +427,8 @@ class Player:
                         elif e.target_type == "opponents_mob_random":           
                             effect_targets.append({"id": random.choice(self.game.opponent().in_play).id, "target_type":"mob"})
                         message["effect_targets"] = effect_targets
-                    message = card.do_effect(self, e, message, message["effect_targets"], idx)
+                    message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self.current_player(), e, effect_targets[idx])) 
+
         return message
 
     def resolve_mob_effect(self, card_id, message):
@@ -441,7 +442,7 @@ class Player:
                 if e.target_type == "self":           
                     effect_targets.append({"id": message["username"], "target_type":"player"})
                 message["effect_targets"] = effect_targets
-            message = card.do_effect(self, e, message, message["effect_targets"], idx)
+            message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self.current_player(), e, message["effect_targets"][idx])) 
         
         self.reset_card_info_to_target()
         return message

@@ -947,26 +947,24 @@ class Game:
             message["log_lines"].append(f"{self.current_player().username} uses {artifact.name} on {defending_card.name}")
             effect_targets = []
             effect_targets.append({"id": defending_card.id, "target_type": "mob"})
-            message = artifact.do_effect(self.current_player(), e, message, effect_targets, 0)
+            artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, effect_targets[0])
             self.current_player().reset_card_info_to_target()
             if artifact.has_ability("multi_mob_attack"):
                 e.targetted_this_turn.append(effect_targets[0])
         elif "hand_card" in message:
             hand_card = self.current_player().in_hand_card(message["hand_card"])
             message["log_lines"].append(f"{self.current_player().username} uses {artifact.name} on {hand_card.name}")
-            effect_targets = []
-            effect_targets.append({"id": hand_card.id, "target_type": "hand_card"})
-            message = artifact.do_effect(self.current_player(), e, message, effect_targets, 0)
+            artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {"id": hand_card.id, "target_type": "hand_card"})
             self.current_player().reset_card_info_to_target()
         else:
             if e.target_type == "self":
-                message = artifact.do_effect(self.current_player(), e, message, [{"id": message["username"], "target_type": "player"}], 0)
+                message["log_lines"].append(artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {"id": message["username"], "target_type": "player"}))
             elif e.target_type == "opponent":
-                message = artifact.do_effect(self.current_player(), e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
-            elif e.target_type == "all":
-                message = artifact.do_effect(self.current_player(), e, message, [{"id": self.opponent().username, "target_type": "player"}], 0)
+                message["log_lines"].append(artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {"id": self.opponent().username, "target_type": "player"}))
+            elif e.target_type == "all":  # Disk of Death only, maybe rename from all
+                message["log_lines"].append(artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {})) 
             elif e.target_type == "artifact_in_deck":
-                message = artifact.do_effect(self.current_player(), e, message, [{"id": message["username"], "target_type": e.target_type}], 0)
+                message["log_lines"].append(artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {"id": message["username"], "target_type": e.target_type})) 
             elif e.target_type == "self_mob":
                 message = self.select_mob_target_for_artifact_activated_effect(artifact, message)
             else:
@@ -976,7 +974,7 @@ class Game:
                 message["log_lines"].append(f"{self.current_player().username} uses {artifact.name} on {target_player.username}")
                 message["effect_targets"] = []
                 message["effect_targets"].append({"id": target_player.username, "target_type": "player"})
-                message = artifact.do_effect(self.current_player(), e, message, message["effect_targets"], 0)
+                message["log_lines"].append(artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, message["effect_targets"][0])) 
                 self.current_player().reset_card_info_to_target()
                 if artifact.has_ability("multi_mob_attack"):
                     e.targetted_this_turn.append(message["effect_targets"][0])
@@ -1003,13 +1001,10 @@ class Game:
 
         if e.name == "pump_power":
             # todo don't hardcode for Infernus
-            message["log_lines"].append(f"{self.current_player().username} pumps {mob.name} +1/+0.")
-            effect_targets = []
-            effect_targets.append({"id": mob.id, "target_type":e.target_type})
-            message = mob.do_effect(self.current_player(), e, message, effect_targets, 0)
+            message["log_lines"].append(mob.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {"id": mob.id, "target_type":e.target_type})) 
         elif e.name == "unwind":
             if "defending_card" in message:
-                message = mob.do_effect(self.current_player(), e, message, message["effect_targets"], 0)
+                message["log_lines"].append(mob.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, message["effect_targets"][0])) 
                 self.current_player().reset_card_info_to_target()
                 mob.can_activate_abilities = False
             else:
