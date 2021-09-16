@@ -48,7 +48,7 @@ class Card:
 
         self.spell_effect_defs = []
         self.enter_play_effect_defs = []
-        # self.leave_play_effect_defs = []
+        self.leave_play_effect_defs = []
         self.activated_effect_defs = []
         # self.triggered_effect_defs = []
         for effect in self.effects:
@@ -56,8 +56,8 @@ class Card:
                 self.spell_effect_defs.append(self.effect_def_for_id(effect))
             if effect.effect_type == "enter_play":
                 self.enter_play_effect_defs.append(self.effect_def_for_id(effect))
-            # if effect.effect_type == "leave_play":
-            #     self.leave_play_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "leave_play":
+                 self.leave_play_effect_defs.append(self.effect_def_for_id(effect))
             if effect.effect_type == "activated":
                 self.activated_effect_defs.append(self.effect_def_for_id(effect))
             # if effect.effect_type == "triggered":
@@ -125,6 +125,8 @@ class Card:
             return self.do_create_random_townie_effect_cheap
         elif name == "damage":
             return self.do_damage_effect
+        elif name == "decrease_max_mana":
+            return self.do_decrease_max_mana_effect
         elif name == "discard_random":
             return self.do_discard_random_effect_on_player
         elif name in ["decost_card_next_turn", "duplicate_card_next_turn", "upgrade_card_next_turn"]:
@@ -144,6 +146,8 @@ class Card:
             return self.do_entwine_effect
         elif name == "equip_to_mob":
             return self.do_enable_equip_to_mob_effect
+        elif name == "evolve":
+            return self.do_evolve_effect
         elif name == "fetch_card":
             return self.do_fetch_card_effect_on_player
         elif name == "fetch_card_into_play":
@@ -182,6 +186,10 @@ class Card:
             return self.do_pump_power_effect_on_mob
         elif name == "redirect_mob_spell":
            return self.do_redirect_mob_spell_effect
+        elif name == "remove_tokens":
+            return self.do_remove_tokens_effect
+        elif name == "remove_player_abilities":
+            return self.do_remove_player_abilities_effect
         elif name == "riffle":
             return self.do_riffle_effect
         elif name == "set_can_attack":
@@ -403,10 +411,9 @@ class Card:
                 self.do_add_token_effect_on_mob(effect, effect_owner, target_mob, controller)
             return [f"{effect_owner.username} adds {str(effect.tokens[0])} to {target_mob.name}."]
 
-    def do_add_token_effect_on_mob(self, effect_owner, effect, target_info):
+    def do_add_token_effect_on_mob(self, effect, effect_owner, target_mob, controller):
         token = copy.deepcopy(effect.tokens[0])
         token.id = effect.id
-        target_mob, controller = effect_owner.game.get_in_play_for_id(target_info["id"])
         if token.multiplier and token.multiplier == "half_self_mobs":
             for x in range(0, math.floor(len(effect_owner.in_play)/2)):
                 target_mob.tokens.append(token)
@@ -570,7 +577,7 @@ class Card:
     def do_damage_effect(self, effect_owner, effect, target_info):
         damage_amount = effect.amount 
         target_type = target_info["target_type"]
-        target_id = target_info["id"]
+        target_id = target_info["id"] if "id" in target_info else None
         if effect.amount_id == "hand":            
             damage_amount = len(effect_owner.hand)
         elif effect.amount_id:
@@ -579,12 +586,12 @@ class Card:
             target_player = Card.player_for_username(effect_owner.game, target_id)
             return self.do_damage_effect_on_player(effect_owner, target_player, effect.amount, effect.amount_id)
         elif target_type == "opponents_mobs":
-            return self.damage_mobs(effect_owner.game, effect_owner.game.opponent().in_play, damage_amount, effect_owner.username, f"{effect_owner.game.opponent().username}'s mobs", message)
+            return self.damage_mobs(effect_owner.game, effect_owner.game.opponent().in_play, damage_amount, effect_owner.username, f"{effect_owner.game.opponent().username}'s mobs")
         elif target_type == "all_mobs" or target_type == "all":
             damage_taker = "all mobs"
             if target_type == "all":
                 damage_taker = "all mobs and players"
-            log_lines = self.damage_mobs(effect_owner.game.players[0].in_play + effect_owner.game.players[1].in_play, damage_amount, effect_owner.username, damage_taker, message)
+            log_lines = self.damage_mobs(effect_owner.game.players[0].in_play + effect_owner.game.players[1].in_play, damage_amount, effect_owner.username, damage_taker)
             if target_type == "all":
                 effect_owner.game.players[0].damage(damage_amount)
                 effect_owner.game.players[1].damage(damage_amount)
@@ -632,6 +639,12 @@ class Card:
             target_card.damage_to_show += damage_amount
             if target_card.damage >= target_card.toughness_with_tokens():
                 controller.send_card_to_played_pile(target_card, did_kill=True)
+
+    def do_decrease_max_mana_effect(self, effect_owner, effect, target_info):
+        # Mana Shrub leaves play
+        if effect.enabled:
+            effect_owner.max_mana -= effect.amount
+            effect_owner.mana = min(effect_owner.max_mana, effect_owner.mana)
 
     def do_discard_random_effect_on_player(self, effect_owner, effect, target_info):
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
@@ -743,6 +756,34 @@ class Card:
             p.draw(3)
         return [f"{effect_owner.username} casts {self.name}."]
  
+    def do_evolve_effect(self, effect_owner, effect, target_info):
+        if "did_kill" in target_info and target_info["did_kill"]:
+            evolver_card = None
+            previous_card = None
+            for c in Card.all_card_objects():
+                if c.name == "Warty Evolver":
+                    evolver_card = c
+                if self.name == c.name:
+                    previous_card = c
+            self.evolve(previous_card, evolver_card)
+
+    def evolve(self, previous_card, evolver_card=None):
+        evolve_cards = []
+        for c in Card.all_card_objects():
+            if not c.is_token and c.cost > previous_card.cost and c.cost < previous_card.cost + 2 and c.card_type == self.card_type:
+                evolve_cards.append(c)
+        if len(evolve_cards) > 0:
+            evolved_card = random.choice(evolve_cards)
+            self.name = evolved_card.name
+            self.image = evolved_card.image
+            self.description = evolved_card.description
+            self.effects = evolved_card.effects
+            if evolver_card:
+                self.effects.append(evolver_card.effects[0])
+            self.abilities = evolved_card.abilities
+            self.power = evolved_card.power
+            self.toughness = evolved_card.toughness
+
     def do_fetch_card_effect_on_player(self, effect_owner, effect, target_info):
         if Card.artifactCardType in effect.target_type:
             self.display_deck_artifacts(effect_owner, effect.target_restrictions)
@@ -997,6 +1038,8 @@ class Card:
         return [f"{target_player.username} gets {effect.amount} mana."]
 
     def do_make_token_effect(self, effect_owner, effect, target_info):
+        if "did_kill" in target_info and not target_info["did_kill"]:
+            return
         player = Card.player_for_username(effect_owner.game, target_info["id"])
         for x in range(0, effect.amount):
             if len(player.in_play) == 7:
@@ -1072,6 +1115,23 @@ class Card:
 
         stack_spell[0]["effect_targets"][0]["id"] = effect_owner.game.next_card_id - 1
         return[f"{stack_spell[1]['name']} was redirected to a newly summoned {token_card_name}."]
+
+    def do_remove_player_abilities_effect(self, effect_owner, effect, target_info):
+        ability_to_remove = None
+        # todo this should loop over the abilities in e, in the future there could be more than 1 ability to remove
+        for a in effect_owner.abilities:
+            if a.id == self.id:
+                ability_to_remove = a
+        effect_owner.abilities.remove(a)
+
+    def do_remove_tokens_effect(self, effect_owner, effect, target_info):
+        if e.target_type == "self_mobs":
+            for mob in effect_owner.in_play:
+                tokens_to_keep = []
+                for token in mob.tokens:
+                    if token.id != self.id:
+                        tokens_to_keep.append(token)
+                mob.tokens = tokens_to_keep
 
     def do_riffle_effect(self, effect_owner, effect, target_info):
         player = effect_owner
@@ -1533,20 +1593,6 @@ class Card:
                 return e
         return None
 
-    def do_changes_sides_effects(self, player):
-        equip_effect_id = None
-        artifact_ids = [r.id for r in player.artifacts]
-        for token in self.tokens:
-            if token.id in artifact_ids:                
-                for r in player.artifacts:
-                    if token.id == r.id:
-                        r.do_unequip_from_mob_effect(player)
-
-        for e in self.effects_leave_play():
-            if e.name == "decrease_max_mana" and e.enabled:
-                player.max_mana -= e.amount
-                player.mana = min(player.max_mana, player.mana)
-
     def do_leaves_play_effects(self, player, did_kill=True):
         equip_effect_id = None
         artifact_ids = [r.id for r in player.artifacts]
@@ -1556,47 +1602,13 @@ class Card:
                     if token.id == r.id:
                         r.do_unequip_from_mob_effect(player)
 
-        for e in self.effects_leave_play():
-            if e.name == "decrease_max_mana" and e.enabled:
-                player.max_mana -= e.amount
-                player.mana = min(player.max_mana, player.mana)
-            if e.name == "damage" and e.target_type == "opponent":
-                player.game.opponent().damage(e.amount)                                
-            if e.name == "damage" and e.target_type == "self":
-                player.damage(e.amount)                
-            if e.name == "make_token" and did_kill:
-                self.do_make_token_effect(player, e, {"id": player.username})
-            if e.name == "remove_tokens":
-                player.do_remove_tokens_effect(self, e)
-            if e.name == "remove_player_abilities":
-                player.remove_abilities(self, e)
-            if e.name == "evolve" and did_kill:
-                evolver_card = None
-                previous_card = None
-                for c in Card.all_card_objects():
-                    if c.name == "Warty Evolver":
-                        evolver_card = c
-                    if self.name == c.name:
-                        previous_card = c
-                self.evolve(previous_card, evolver_card)
-
-    def evolve(self, previous_card, evolver_card=None):
-        evolve_cards = []
-        for c in Card.all_card_objects():
-            if not c.is_token and c.cost > previous_card.cost and c.cost < previous_card.cost + 2 and c.card_type == self.card_type:
-                evolve_cards.append(c)
-        if len(evolve_cards) > 0:
-            evolved_card = random.choice(evolve_cards)
-            self.name = evolved_card.name
-            self.image = evolved_card.image
-            self.description = evolved_card.description
-            self.effects = evolved_card.effects
-            if evolver_card:
-                self.effects.append(evolver_card.effects[0])
-            self.abilities = evolved_card.abilities
-            self.power = evolved_card.power
-            self.toughness = evolved_card.toughness
-
+        for idx, effect_def in enumerate(self.leave_play_effect_defs):
+            target_info = {"id": player.username, "did_kill": did_kill}
+            if self.effects_leave_play()[idx]["target_type"] == "self":
+                target_info = {"id": player.username, "target_type": "player", "did_kill": did_kill}
+            elif self.effects_leave_play()[idx]["target_type"] == "opponent":
+                target_info = {"id": player.game.opponent().username, "target_type": "player", "did_kill": did_kill}
+            self.resolve_effect(effect_def, player, self.effects_leave_play()[idx], target_info)
 
     def effects_leave_play(self):
         return [e for e in self.effects if e.effect_type == "leave_play"]

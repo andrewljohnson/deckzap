@@ -213,23 +213,6 @@ class Player:
                         effect.counters -= 1
                         amount_to_spend -= 1
 
-    def do_remove_tokens_effect(self, card, e):
-        if e.target_type == "self_mobs":
-            for mob in self.in_play:
-                tokens_to_keep = []
-                for token in mob.tokens:
-                    if token.id != card.id:
-                        tokens_to_keep.append(token)
-                mob.tokens = tokens_to_keep
-
-    def remove_abilities(self, card, e):
-        ability_to_remove = None
-        # todo this should  loop over the abilities in e, in the future there could be more than 1 ability to remove
-        for a in self.abilities:
-            if a.id == card.id:
-                ability_to_remove = a
-        self.abilities.remove(a)
-
     def artifact_in_play(self, card_id):
         for card in self.artifacts:
             if card.id == card_id:
@@ -427,7 +410,7 @@ class Player:
                         elif e.target_type == "opponents_mob_random":           
                             effect_targets.append({"id": random.choice(self.game.opponent().in_play).id, "target_type":"mob"})
                         message["effect_targets"] = effect_targets
-                    message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self.current_player(), e, effect_targets[idx])) 
+                    message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, effect_targets[idx])) 
 
         return message
 
