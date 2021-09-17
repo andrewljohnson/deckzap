@@ -2,12 +2,13 @@ import copy
 import datetime
 import random
 
-from battle_wizard.card import Card, CardAbility
+from battle_wizard.card import Card
 from battle_wizard.data import default_deck_genie_wizard 
 from battle_wizard.data import default_deck_dwarf_tinkerer
 from battle_wizard.data import default_deck_dwarf_bard
 from battle_wizard.data import default_deck_vampire_lich
 from battle_wizard.player import Player
+from battle_wizard.player_ai import PlayerAI
 
 
 class Game:
@@ -29,7 +30,13 @@ class Game:
         # either pvp or pvai
         self.player_type = info["player_type"] if info and "player_type" in info else player_type
         # support 2 players
-        self.players = [Player(self, u) for u in info["players"]] if info and "players" in info else []
+        self.players = []
+        if info and "players" in info:
+            for u in info["players"]:
+                if u["is_ai"]:                    
+                    self.players.append(PlayerAI(self, u))
+                else:
+                    self.players.append(Player(self, u))
         # stack decks for unit testing
         self.player_decks = player_decks
         # when True, a countdown timer starts for the active player
@@ -425,7 +432,7 @@ class Game:
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
             if self.player_type == "pvai":                        
-                self.players.append(Player(self, message, new=True, bot=message["username"]))
+                self.players.append(PlayerAI(self, message, new=True))
                 self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
             else:
                 self.players.append(Player(self, message, new=True))

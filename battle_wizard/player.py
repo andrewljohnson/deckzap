@@ -15,11 +15,11 @@ from django.core.exceptions import ObjectDoesNotExist
 class Player:
 
     def __init__(self, game, info, new=False, bot=None):
+        self.is_ai = False
         self.username = info["username"]
         self.discipline = info["discipline"] if "discipline" in info else None
         self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.initial_deck = [Card(c_info) for c_info in info["initial_deck"]] if "initial_deck" in info else []
-        self.bot = bot
 
         self.game = game
         if new:
@@ -68,6 +68,7 @@ class Player:
             "deck_id": self.deck_id,
             "card_info_to_target": self.card_info_to_target,
             "hand": [c.as_dict() for c in self.hand],
+            "is_ai": self.is_ai,
             "in_play": [c.as_dict() for c in self.in_play],
             "initial_deck": [c.as_dict() for c in self.initial_deck],
             "artifacts": [c.as_dict() for c in self.artifacts],

@@ -560,15 +560,16 @@ class Card:
 
     def deactivate_instrument(self):
         # todo: don't hardcode for Lute
-        ability_to_remove = None
-        for a in self.effects:
-            if a.effect_type == "activated" and a.was_added:
-                ability_to_remove = a
-        self.effects.remove(ability_to_remove)
+        #ability_to_remove = None
+        #for a in self.effects:
+        #    if a.effect_type == "activated" and a.was_added:
+        #        ability_to_remove = a
+        #self.effects.remove(ability_to_remove)
+        self.effects.pop(0)
+        self.activated_effect_defs.pop(0)
         for a in self.effects:
             if a.effect_type == "activated":
                 a.enabled = True
-                break
         self.description = self.original_description
         # self.can_activate_abilities = True        
 
@@ -740,11 +741,13 @@ class Card:
         for e in self.effects_activated():
             if e.effect_to_activate:
                 e.enabled = False
+        print(effect)
         activated_effect = copy.deepcopy(effect.effect_to_activate)
         activated_effect.id = self.id
         activated_effect.enabled = True
         self.description = activated_effect.description
         self.effects.insert(0, activated_effect)
+        self.activated_effect_defs.insert(0,self.effect_def_for_id(activated_effect))
         self.can_activate_abilities = True
         return [f"{effect_owner.username} activates {self.name}."]
 

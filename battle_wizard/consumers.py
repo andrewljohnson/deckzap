@@ -93,9 +93,7 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.room_group_name = 'room_%s' % self.game_record_id
         self.game = None
         self.moves = []
-        self.ai_running = False
         self.is_reviewing = False
-        self.last_move_time = None
         self.decks = [[], []]
 
         async_to_sync(self.channel_layer.group_add)(
@@ -141,7 +139,6 @@ class BattleWizardConsumer(WebsocketConsumer):
             "SELECT_ARTIFACT",
         ]
         message = self.game.play_move(message, save=save, is_reviewing=self.is_reviewing)   
-        print(f" in consumer after play move, {self.game.current_player().card_info_to_target}")
 
         if message and message["move_type"] == 'JOIN':
             if len(self.game.players) == 1 and self.game.player_type == "pvai":
@@ -165,23 +162,9 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         if message:
             self.send_game_message(self.game.as_dict(), message)
-
             if message["move_type"] == "GET_TIME" and not self.is_reviewing:
-                # run AI if it's the AI's move or if the other player just chose their discipline
-                if self.player_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
-                    (self.game.players[0].discipline != None and self.game.players[1].discipline == None)):                     
-                    time_for_next_move = False
-                    if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
-                        time_for_next_move = True
-                    self.game.set_clickables()
-                    moves = self.game.players[1].legal_moves_for_ai()
-                    if (time_for_next_move or len(moves) == 1) and not self.ai_running:
-                        if self.game.players[0].hit_points > 0 and self.game.players[1].hit_points > 0: 
-                            # print(self.game.players[1].selected_mob().name if self.game.players[1].selected_mob() else None)
-                            # print(self.game.players[1].selected_artifact().name if self.game.players[1].selected_artifact() else None)
-                            # print(self.game.players[1].selected_spell().name if self.game.players[1].selected_spell() else None)
-                            print("running AI, choosing from moves: " + str(moves))
-                            self.run_ai(moves)
+                if self.player_type == "pvai":
+                    self.game.players[1].maybe_run_ai(self)
 
     def save_to_database(self):
         game_record = GameRecord.objects.get(id=self.game.game_record_id)
@@ -195,89 +178,6 @@ class BattleWizardConsumer(WebsocketConsumer):
         game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=hash_for_deck(self.game.players[0].deck_for_id_or_url(self.game.players[0].deck_id)))
         game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=hash_for_deck(self.game.players[1].deck_for_id_or_url(self.game.players[1].deck_id)))
         game_record.save()
-
-    def run_ai(self, moves):
-        self.ai_running = True
-        self.last_move_time = datetime.datetime.now()
-        if self.ai == "random_bot":
-            chosen_move = random.choice(moves)
-        elif self.ai == "pass_bot":
-            chosen_move = self.pass_move()
-        elif self.ai == "aggro_bot":
-            chosen_move = self.aggro_bot_move(moves)
-        else:
-            print(f"Unknown AI bot: {self.ai}")
-
-        print("AI playing " + str(chosen_move))
-        chosen_move["log_lines"] = []
-        message = self.game.play_move(chosen_move, save=True)    
-        self.send_game_message(self.game.as_dict(), message)
-        self.ai_running = False
-
-
-    def aggro_bot_move(self, moves):
-        chosen_move = random.choice(moves)
-        while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
-            chosen_move = random.choice(moves) 
-
-        good_moves = []
-        for move in moves:
-            if move["move_type"] == "SELECT_MOB":
-                good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "SELECT_CARD_IN_HAND":
-                being_cast = self.game.current_player().in_hand_card(move["card"])
-                if being_cast.card_type in ["mob", "artifact"]:                        
-                    if len(being_cast.effects) > 0:
-                        if "opponents_mob" in being_cast.effects[0].ai_target_types and self.game.opponent().has_mob_target():
-                            good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "PLAY_CARD":
-                being_cast = self.game.current_player().in_hand_card(move["card"])
-                target, _ = self.game.get_in_play_for_id(move["effect_targets"][0].id)
-                if target in self.game.opponent().in_play: 
-                    if len(being_cast.effects) > 0:
-                        if "opponents_mob" in being_cast.effects[0].ai_target_types:
-                            good_moves.insert(0, move)
-
-                if target in self.game.current_player().in_play: 
-                    if len(being_cast.effects) > 0:
-                        if "self_mob" in being_cast.effects[0].ai_target_types:
-                            good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "RESOLVE_MOB_EFFECT":
-                chosen_move = move
-                coming_into_play, _ = self.game.get_in_play_for_id(move["card"])
-                target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
-                if target and target.id in [card.id for card in self.game.current_player().in_play]: 
-                    pass
-                elif target and target.id in [card.id for card in self.game.opponent().in_play]:
-                    if len(coming_into_play.effects) > 0:
-                        if "opponents_mob" in coming_into_play.effects[0].ai_target_types:
-                            good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "SELECT_OPPONENT":
-                good_moves.insert(0, move)
-
-        # don't let aggrobot select unfavorable spells to cast
-        # instead, prefer to pass the turn
-        if len(good_moves) > 0:
-            chosen_move = good_moves[0]
-        elif chosen_move["move_type"] == "SELECT_CARD_IN_HAND":
-            being_cast = self.game.current_player().in_hand_card(chosen_move["card"])
-            if len(being_cast.effects) > 0:
-                if ("opponents_mob" in being_cast.effects[0].ai_target_types and not "opponent" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_mob_target()) or \
-                   ("self_mob" in being_cast.effects[0].ai_target_types and not self.game.current_player().has_mob_target()) or \
-                   ("opponents_artifact" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_artifact_target()):
-                    chosen_move = self.pass_move()
-
-        return chosen_move
-            
-    def pass_move(self):
-        if len (self.game.stack) > 0:
-            return {"move_type": "RESOLVE_NEXT_STACK", "username": self.ai}                              
-        else:
-            return {"move_type": "END_TURN", "username": self.ai}
 
     def send_game_message(self, game_dict, message):
         # send current-game-related message to players
