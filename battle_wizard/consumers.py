@@ -149,7 +149,7 @@ class BattleWizardConsumer(WebsocketConsumer):
                 if not self.is_reviewing:
                     self.save_to_database()
 
-        if save and len(self.game.players) == 2 and not self.is_reviewing:
+        if len(self.game.players) == 2 and not self.is_reviewing:
             if self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
                 game_object.date_finished = datetime.datetime.now()
                 if self.game.players[0].hit_points <= 0 and self.game.players[1].hit_points >= 0:

@@ -345,9 +345,10 @@ class Card:
         print(f"Resolve effect: {effect.name}");
         if effect.counters >= 1:
             effect.counters -= 1
-        effect_def(effect_owner, effect, target_info)
+        log_lines = effect_def(effect_owner, effect, target_info)
         effect_owner.spend_mana(effect.cost)
         effect_owner.hit_points -= effect.cost_hp
+        return log_lines
 
     def do_add_abilities_effect(self, effect_owner, effect, target_info):
         ability = copy.deepcopy(effect.abilities[0])
@@ -741,7 +742,6 @@ class Card:
         for e in self.effects_activated():
             if e.effect_to_activate:
                 e.enabled = False
-        print(effect)
         activated_effect = copy.deepcopy(effect.effect_to_activate)
         activated_effect.id = self.id
         activated_effect.enabled = True
@@ -882,11 +882,13 @@ class Card:
         # Rolling Thunder
         self.effects[0].amount += 1
         self.show_level_up = True
+        return [f"{self.name} gets improved to deal {self.effects[0].amount} damage."]
 
     def do_improve_effect_amount_when_cast_effect(self, effect_owner, effect, target_info):
         # Tech Crashhouse
         self.effects[0].amount += 1
         self.show_level_up = True
+        return [f"{self.name} gets improved to {self.effects[0].amount} Townies made."]
 
     def do_improve_effect_when_cast_effect(self, effect_owner, effect, target_info):
         # Tame Shop Demon
@@ -895,6 +897,7 @@ class Card:
         self.level = min(self.level, len(self.effects[0].card_names)-1)
         if self.level > old_level:
             self.show_level_up = True
+        return [f"{self.name} levels up."]
 
     def do_kill_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "mob" or effect.target_type == "artifact" or effect.target_type == "mob_or_artifact":
@@ -1028,6 +1031,8 @@ class Card:
         
         for c in player.card_choice_info["cards"]:
             c.cost = max(0, c.cost-reduce_cost)
+
+        return [f"{self.name} made a card."]
     
     def make_from_deck(self, player):
         '''
@@ -1052,6 +1057,8 @@ class Card:
             player.card_choice_info = {"cards": [card1, card2], "choice_type": "make_from_deck"}
         else:
             player.card_choice_info = {"cards": [card1], "choice_type": "make_from_deck"}
+
+        return [f"{self.name} made a card from their deck."]
 
     def do_mana_effect_on_player(self, effect_owner, effect, target_info):
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
@@ -1094,7 +1101,7 @@ class Card:
         if old_max_mana == target_player.max_mana:
             if len(self.effects) == 2 and self.effects[1].name == "decrease_max_mana":
                 self.effects[1].enabled = False
-        return [f"{target_player.username} increases max mana by {effect.amount}."]
+        return [f"{target_player.username} increases their max mana by {effect.amount}."]
 
     def do_mana_set_max_effect(self, effect_owner, effect, target_info):
         for p in game.players:

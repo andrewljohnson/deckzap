@@ -148,7 +148,7 @@ class Game:
                 message = self.attack(message)          
             else:  
                 self.actor_turn += 1
-                self.current_player().play_card(self.stack[-1][0]["card"], message)
+                message = self.current_player().play_card(self.stack[-1][0]["card"], message)
         elif move_type == 'ACTIVATE_ARTIFACT':
             message = self.activate_artifact(message)            
         elif move_type == 'ACTIVATE_MOB':
