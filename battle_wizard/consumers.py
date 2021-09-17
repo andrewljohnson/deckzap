@@ -91,6 +91,7 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
         self.game_record_id = self.scope['url_route']['kwargs']['game_record_id']
         self.room_group_name = 'room_%s' % self.game_record_id
+        self.game = None
         self.moves = []
         self.ai_running = False
         self.is_reviewing = False
@@ -127,8 +128,8 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         info = game_object.game_json
         info["game_record_id"] = self.game_record_id
-        self.game = Game(self.player_type, info=info, player_decks=self.decks)        
-
+        if not self.game:
+            self.game = Game(self.player_type, info=info, player_decks=self.decks)        
 
         message["log_lines"] = []
         save = message["move_type"] not in [
@@ -140,8 +141,9 @@ class BattleWizardConsumer(WebsocketConsumer):
             "SELECT_ARTIFACT",
         ]
         message = self.game.play_move(message, save=save, is_reviewing=self.is_reviewing)   
+        print(f" in consumer after play move, {self.game.current_player().card_info_to_target}")
 
-        if message["move_type"] == 'JOIN':
+        if message and message["move_type"] == 'JOIN':
             if len(self.game.players) == 1 and self.game.player_type == "pvai":
                 message["username"] = self.ai
                 message = self.game.play_move(message, save=True, is_reviewing=self.is_reviewing)
@@ -150,6 +152,13 @@ class BattleWizardConsumer(WebsocketConsumer):
                 if not self.is_reviewing:
                     self.save_to_database()
 
+        if save and len(self.game.players) == 2 and not self.is_reviewing:
+            if self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
+                game_object.date_finished = datetime.datetime.now()
+                if self.game.players[0].hit_points <= 0 and self.game.players[1].hit_points >= 0:
+                    game_object.winner = User.objects.get(username=self.game.players[1].username)
+                elif self.game.players[1].hit_points <= 0 and self.game.players[0].hit_points >= 0:
+                    game_object.winner = User.objects.get(username=self.game.players[0].username)
 
         game_object.game_json = self.game.as_dict()
         game_object.save()

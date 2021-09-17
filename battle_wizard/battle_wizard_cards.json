@@ -4,13 +4,15 @@
 		"discipline": "none",
 		"image": "water-fountain.svg",
 		"card_type": "artifact",
-		"description": "Gain 1 hp per card in hand more than 5, at beginning of your turn, to a maximum of 30.",
+		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30.",
 		"cost": 3,
 		"effects": [{
-			"name": "gain_hp_for_hand",
+			"name": "heal",
+			"amount_id": "hand_less_amount",
 			"target_type": "self",
 			"effect_type": "triggered",
-			"trigger": "start_turn"
+			"trigger": "start_turn",
+			"amount": 5
 		}]
 	},
 	{
@@ -18,10 +20,11 @@
 		"discipline": "magic",
 		"image": "voodoo-doll.svg",
 		"card_type": "artifact",
-		"description": "Opponent loses 1 life per card in hand at beginning of your turn.",
+		"description": "Opponent loses 1 hit point per card in hand at beginning of your turn.",
 		"cost": 3,
 		"effects": [{
-			"name": "lose_hp_for_hand",
+			"name": "damage",
+			"amount_id": "hand",
 			"target_type": "opponent",
 			"trigger": "start_turn",
 			"effect_type": "triggered"
@@ -38,20 +41,6 @@
 			"name": "reduce_cost",
 			"target_type": "spell",
 			"trigger": "draw",
-			"effect_type": "triggered"
-		}]
-	},
-	{
-		"name": "Ice Prison",
-		"discipline": "magic",
-		"image": "frozen-block.svg",
-		"card_type": "artifact",
-		"description": "Each player may only untap one mob that attacked last turn.",
-		"cost": 5,
-		"effects": [{
-			"name": "stop_mob_renew",
-			"target_type": "all_players",
-			"trigger": "start_turn",
 			"effect_type": "triggered"
 		}]
 	},
@@ -423,7 +412,7 @@
 		"image": "moebius-star.svg",
 		"discipline": "magic",
 		"cost": 1,
-		"description": "Pay 1, draw a card and lose 2 life.",
+		"description": "Pay 1, draw a card and lose 2 hit points.",
 		"abilities": [
 			{
 				"name": "Starts in play, max 1.",
@@ -919,11 +908,35 @@
 		"card_type": "artifact",
 		"description": "Replace your normal draw with a choice of 3 cards.",
 		"cost": 2,
-		"effects": [{
-			"name": "replace_draw_with_make",
-			"trigger": "draw",
-			"effect_type": "triggered"
-		}]
+		"effects": [
+			{
+				"name": "add_player_abilities",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"abilities": [
+					{
+						"name": "Reduce Draw",
+						"description": "Reduce Draw",
+						"descriptive_id": "Reduce Draw"
+					}
+				]
+			},			
+			{
+				"name": "remove_player_abilities",
+				"effect_type": "leave_play",
+				"target_type": "self",
+				"abilities": [
+					{
+						"descriptive_id": "Reduce Draw"
+					}
+				]				
+			},
+			{
+				"name": "make_from_deck",
+				"trigger": "start_turn",
+				"effect_type": "triggered"
+			}
+		]
 	},
 	{
 		"name": "Counter Mob",
@@ -1745,7 +1758,7 @@
 		"image": "angel-outfit.svg",
 		"card_type": "spell",
 		"cost": 1,
-		"description": "Kill a mob. Its controller gains life equal to its toughness.",
+		"description": "Kill a mob. Its controller gains hit points equal to its toughness.",
 		"effects": [
 			{
 				"name": "gain_for_toughness",
@@ -1810,6 +1823,7 @@
 		{
 			"name": "duplicate_card_next_turn",
 			"effect_type": "triggered",
+			"trigger": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -1830,6 +1844,7 @@
 		{
 			"name": "upgrade_card_next_turn",
 			"effect_type": "triggered",
+			"trigger": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -1945,6 +1960,7 @@
 		{
 			"name": "decost_card_next_turn",
 			"effect_type": "triggered",
+			"trigger": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -1967,7 +1983,7 @@
 		"discipline": "magic",
 		"card_type": "mob",
 		"image": "female-vampire.svg",
-		"description": "When you draw, gain 1 HP, or deal 1 damage to an enemy (random).",
+		"description": "When you draw, gain 1 hit point, or deal 1 damage to an enemy (random).",
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
@@ -2063,11 +2079,26 @@
 		"toughness": 4,
 		"cost": 3,
 		"description": "Replace your normal draw with a choice of 3 cards.",
-		"effects": [{
-			"name": "replace_draw_with_make",
-			"trigger": "draw",
-			"effect_type": "triggered"
-		}]
+		"effects": [
+			{
+				"name": "add_tokens",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"tokens": [{
+					"draw_modifier": -1
+				}]
+			},
+			{
+				"name": "remove_tokens",
+				"effect_type": "leave_play",
+				"target_type": "self"
+			},
+			{
+				"name": "make_from_deck",
+				"trigger": "start_turn",
+				"effect_type": "triggered"
+			}
+		]
 	},
 	{
 		"name": "Solid Vamp Minion",
@@ -2077,9 +2108,9 @@
 		"power": 4,
 		"toughness": 4,
 		"cost": 3,
-		"description": "Gain 2 HP at the start of your turn.",
+		"description": "Gain 2 hit points at the start of your turn.",
 		"effects": [{
-			"name": "gain_hp",
+			"name": "heal",
 			"target_type": "self",
 			"effect_type": "triggered",
 			"trigger": "start_turn",

@@ -7,10 +7,7 @@ from battle_wizard.data import default_deck_genie_wizard
 from battle_wizard.data import default_deck_dwarf_tinkerer
 from battle_wizard.data import default_deck_dwarf_bard
 from battle_wizard.data import default_deck_vampire_lich
-from battle_wizard.models import GameRecord
 from battle_wizard.player import Player
-from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
 
 
 class Game:
@@ -107,6 +104,7 @@ class Game:
         elif move_type == 'END_TURN':
             message = self.end_turn(message)
         elif move_type == 'SELECT_CARD_IN_HAND':
+            print(f"SELECT_CARD_IN_HAND for {self.current_player().username}")
             message = self.current_player().select_card_in_hand(message)
         elif move_type == 'PLAY_CARD_IN_HAND':
             message = self.play_card_in_hand(message)
@@ -170,20 +168,6 @@ class Game:
                     anything_clickable = True
             if not anything_clickable and not "bot" in cp.username and len(self.stack) > 0:
                 return self.play_move({"move_type": "RESOLVE_NEXT_STACK", "username": cp.username})
-
-        if message and len(self.players) == 2 and not is_reviewing:
-            game_object = GameRecord.objects.get(id=self.game_record_id)
-            game_object.game_json = self.as_dict()
-            if self.players[0].hit_points <= 0 or self.players[1].hit_points <= 0:
-                game_object.date_finished = datetime.datetime.now()
-                if self.players[0].hit_points <= 0 and self.players[1].hit_points >= 0:
-                    game_object.winner = User.objects.get(username=self.players[1].username)
-                elif self.players[1].hit_points <= 0 and self.players[0].hit_points >= 0:
-                    game_object.winner = User.objects.get(username=self.players[0].username)
-            game_object.save()
-        else:
-            # if message is None, the move was a no-op, like SELECT_CARD_IN_HAND on an uncastable card
-            pass
 
         if move_type != 'JOIN' or len(self.players) == 2:
             self.set_clickables()
@@ -271,7 +255,7 @@ class Game:
         if cp.card_info_to_target["effect_type"]:
             return
 
-        if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_mob_for_effect", "select_mob_for_ice_prison"]:
+        if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_mob_for_effect"]:
             for c in cp.card_choice_info["cards"]:
                 c.can_be_clicked = True
             return
@@ -657,17 +641,6 @@ class Game:
                 return None
             message["defending_card"] = message["card"]
             message = self.select_mob_target_for_spell(cp.selected_spell(), message)
-        elif len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] == "select_mob_for_ice_prison":
-             selected_card = cp.in_play_card(message["card"])
-             chose_card = False
-             if selected_card:
-                for c in cp.card_choice_info["cards"]:
-                    if c.id == selected_card.id:
-                        selected_card.attacked = False
-                        cp.reset_card_choice_info()
-                        chose_card = True
-             if not chose_card:
-                print("can't select that mob to un-attack for ice prison")
         elif cp.controls_mob(message["card"]):
             card, _ = self.get_in_play_for_id(message["card"])
             if card == cp.selected_mob():                

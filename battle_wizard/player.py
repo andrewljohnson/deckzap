@@ -175,7 +175,7 @@ class Player:
                     if effect.name == "hp_damage_random":
                         choice = random.choice(["hp", "damage"])
                         if choice == "hp":
-                            return m.do_heal_effect_on_player(self, 1)
+                            return m.do_heal_effect_on_player(self, {"amount": 1})
                         elif choice == "damage":
                             targets = [self.game.opponent()]
                             for m in self.game.opponent().in_play:
@@ -362,6 +362,12 @@ class Player:
                 return a
         return None 
 
+    def reduce_draw_ability(self):
+        for a in self.abilities:
+            if a.descriptive_id == "Reduce Draw":
+                return a
+        return None 
+
     def target_or_do_mob_effects(self, card, message, username, is_activated_effect=False):
         effects = card.effects_enter_play()
         if is_activated_effect:
@@ -425,17 +431,10 @@ class Player:
                 if e.target_type == "self":           
                     effect_targets.append({"id": message["username"], "target_type":"player"})
                 message["effect_targets"] = effect_targets
-            message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self.current_player(), e, message["effect_targets"][idx])) 
+            message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, message["effect_targets"][idx])) 
         
         self.reset_card_info_to_target()
         return message
-
-    # todo: make a has_effect method instead of checking name
-    def has_brarium(self):
-        for a in self.artifacts + self.in_play:
-            if a.name == "Brarium" or a.name == "Enthralled Maker":
-                return True
-        return False
 
     def start_turn(self, message):
         self.game.turn_start_time = datetime.datetime.now()
@@ -443,7 +442,6 @@ class Player:
         self.draw_for_turn()
         message = self.do_start_turn_card_effects_and_abilities(message)
         self.refresh_mana_for_turn()
-        self.maybe_do_ice_prison()
         return message
 
     def draw_for_turn(self):
@@ -451,22 +449,12 @@ class Player:
             return
 
         draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
-        for m in self.in_play + self.artifacts:
-            for e in m.effects_triggered():
-                if e.name == "draw" and e.trigger == "start_turn":
-                    # effects like Studious Child Vamp
-                    e.show_effect_animation = True
-                    draw_count += e.amount
-        if self.has_brarium():
-            draw_count -= 1
-            if draw_count > 0:
-                if self.discipline != "tech" or self.game.turn > 1:
-                    self.draw(draw_count)
-            if len(self.hand) < 10:                        
-                Card({}).do_make_from_deck_effect(self)
-        else:
-            if self.discipline != "tech" or self.game.turn > 1:
-                self.draw(draw_count)
+
+        if self.reduce_draw_ability():
+            draw_count -= 1            
+
+        if self.discipline != "tech" or self.game.turn > 1:
+            self.draw(draw_count)
 
     def do_start_turn_card_effects_and_abilities(self, message):
         for card in self.in_play + self.artifacts:
@@ -482,19 +470,18 @@ class Player:
                 }
                 message["log_lines"] += card.do_add_token_effect_on_mob(CardEffect(effect), self, card, self)
 
-            if not Card.is_under_ice_prison(self.game):
-                card.attacked = False
+            card.attacked = False
 
             card.can_activate_abilities = True
 
-            for effect in card.effects_triggered():
-                if effect.trigger == "start_turn" and effect.name != "draw":
-                    message["log_lines"] += card.do_effect_start_turn(self, effect)
+            for idx, effect in enumerate(card.effects_triggered()):
+                if effect.trigger == "start_turn":
+                    effect.show_effect_animation = True
+                    message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
 
         for r in self.artifacts:
             r.can_activate_abilities = True
             r.effects_exhausted = {}
-            message["log_lines"] += r.do_effect_artifact_only_start_turn(self)
         return message
 
     def refresh_mana_for_turn(self):
@@ -508,16 +495,6 @@ class Player:
         self.mana = 0
         self.mana += self.max_mana
         self.mana = min(self.max_max_mana(), self.mana)
-
-    def maybe_do_ice_prison(self):
-        if not Card.is_under_ice_prison(self.game):
-            return
-        mobs_to_select_from = []
-        for e in self.in_play:
-            if e.attacked:
-                mobs_to_select_from.append(e)
-        if len(mobs_to_select_from) > 0:
-            self.card_choice_info = {"cards": mobs_to_select_from, "choice_type": "select_mob_for_ice_prison"}
 
     def controls_artifact(self, card_id):
         for c in self.artifacts:
@@ -767,6 +744,7 @@ class Player:
             print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_mana()}")                        
             return None
 
+        print (f"settting  self.card_info_to_target card_id to {card.id}")
         self.card_info_to_target["card_id"] = card.id
         self.card_info_to_target["effect_type"] = "spell_cast"
         # todo this is hardcoded, cant support multiple effects per card?
@@ -774,6 +752,7 @@ class Player:
 
         self.game.unset_clickables(message["move_type"])
         self.game.set_clickables()
+        print (f"set  self.card_info_to_target card_id to {self.card_info_to_target}")
         return message
 
     def set_targets_for_mob_effect(self, target_restrictions):
@@ -899,9 +878,6 @@ class Player:
         if card in self.in_play:
             self.in_play.remove(card)
         card.do_leaves_play_effects(self, did_kill=did_kill)
-
-        # if card.id == self.card_info_to_target["card_id"]:
-        #    self.reset_card_info_to_target()
 
         player = self
         if self.username != card.owner_username:
@@ -1061,11 +1037,6 @@ class Player:
             moves = self.add_resolve_fetch_card_moves(moves)
         elif self.card_choice_info["choice_type"] == "fetch_into_hand_from_played_pile":
             moves = self.add_resolve_fetch_card_from_played_pile_moves(moves)
-        elif self.card_choice_info["choice_type"] == "select_mob_for_ice_prison":
-            moves = self.add_select_mob_for_ice_prison_moves(moves)
-            if len(moves) == 0:
-                moves = self.add_attack_and_play_card_moves(moves)
-                moves.append({"move_type": "END_TURN", "username": self.username})                
         elif len(self.game.stack) > 0 and not has_action_selected:
             moves = self.add_response_moves(moves)
 
@@ -1097,12 +1068,6 @@ class Player:
             else:
                 # hack for siz pop and stiff wind
                 moves[-1]["effect_targets"].append({"id": self.username, "target_type":"player"})
-        return moves
-
-    def add_select_mob_for_ice_prison_moves(self, moves):
-        for card in self.in_play:
-            if card.can_be_clicked:
-                moves.append({"card":card.id, "move_type": "SELECT_MOB", "username": self.username})
         return moves
 
     def add_resolve_mob_effects_moves(self, moves):
