@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
 <div id=new_game></div>
-<div id="data_store" player_type = {{player_type}} game_record_id = {{game_record_id}} username = {{request.user.username}} ai = {{ai}} deck_id = {{deck_id}} opponent_deck_id = {{opponent_deck_id}}></div>
+<div id="data_store" player_type = {{player_type}} debug = {{debug}} game_record_id = {{game_record_id}} username = {{request.user.username}} ai = {{ai}} deck_id = {{deck_id}} opponent_deck_id = {{opponent_deck_id}}></div>
 {% endblock content %}

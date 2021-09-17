@@ -6,11 +6,14 @@ import time
 
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.generic.websocket import WebsocketConsumer
-from battle_wizard.game_objects import Game
-from battle_wizard.models import GameRecord
 from battle_wizard.data import all_cards
+from battle_wizard.data import hash_for_deck
+from battle_wizard.game import Game
+from battle_wizard.models import GameRecord
+from battle_wizard.models import GlobalDeck
+from deckzap.settings import DEBUG
+from django.contrib.auth.models import User
 
-DEBUG = True
 
 class BattleWizardMatchFinderConsumer(WebsocketConsumer):
 
@@ -88,9 +91,9 @@ class BattleWizardConsumer(WebsocketConsumer):
         self.ai = self.scope['url_route']['kwargs']['ai'] if 'ai' in self.scope['url_route']['kwargs'] else None
         self.game_record_id = self.scope['url_route']['kwargs']['game_record_id']
         self.room_group_name = 'room_%s' % self.game_record_id
+        self.game = None
         self.moves = []
-        self.ai_running = False
-        self.last_move_time = None
+        self.is_reviewing = False
         self.decks = [[], []]
 
         async_to_sync(self.channel_layer.group_add)(
@@ -111,7 +114,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         if message["move_type"] == 'NAVIGATE_GAME':
             message["log_lines"] = []
-            message = self.game.navigate_game(message, self)  
+            message = self.navigate_game(message)  
             self.send_game_message(self.game.as_dict(), message)
             return
 
@@ -123,8 +126,8 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         info = game_object.game_json
         info["game_record_id"] = self.game_record_id
-        self.game = Game(self.player_type, info=info, ai=self.ai, player_decks=self.decks)        
-
+        if not self.game:
+            self.game = Game(self.player_type, info=info, player_decks=self.decks)        
 
         message["log_lines"] = []
         save = message["move_type"] not in [
@@ -135,112 +138,46 @@ class BattleWizardConsumer(WebsocketConsumer):
             "RESOLVE_MOB_EFFECT",
             "SELECT_ARTIFACT",
         ]
-        message = self.game.play_move(message, save=save)   
-        if save: 
-            game_object.game_json = self.game.as_dict()
+        message = self.game.play_move(message, save=save, is_reviewing=self.is_reviewing)   
+
+        if message and message["move_type"] == 'JOIN':
+            if len(self.game.players) == 1 and self.game.player_type == "pvai":
+                message["username"] = self.ai
+                message = self.game.play_move(message, save=True, is_reviewing=self.is_reviewing)
+
+            if len(self.game.players) == 2:
+                if not self.is_reviewing:
+                    self.save_to_database()
+
+        if len(self.game.players) == 2 and not self.is_reviewing:
+            if self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
+                game_object.date_finished = datetime.datetime.now()
+                if self.game.players[0].hit_points <= 0 and self.game.players[1].hit_points >= 0:
+                    game_object.winner = User.objects.get(username=self.game.players[1].username)
+                elif self.game.players[1].hit_points <= 0 and self.game.players[0].hit_points >= 0:
+                    game_object.winner = User.objects.get(username=self.game.players[0].username)
+
+        game_object.game_json = self.game.as_dict()
         game_object.save()
+
         if message:
             self.send_game_message(self.game.as_dict(), message)
+            if message["move_type"] == "GET_TIME" and not self.is_reviewing:
+                if self.player_type == "pvai":
+                    self.game.players[1].maybe_run_ai(self)
 
-            if message["move_type"] == "GET_TIME" and not self.game.is_reviewing:
-                # run AI if it's the AI's move or if the other player just chose their discipline
-                if self.player_type == "pvai" and (self.game.current_player() == self.game.players[1] or \
-                    (self.game.players[0].discipline != None and self.game.players[1].discipline == None)):                     
-                    time_for_next_move = False
-                    if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
-                        time_for_next_move = True
-                    self.game.set_clickables()
-                    moves = self.game.legal_moves_for_ai(self.game.players[1])
-                    if (time_for_next_move or len(moves) == 1) and not self.ai_running:
-                        if self.game.players[0].hit_points > 0 and self.game.players[1].hit_points > 0: 
-                            # print(self.game.players[1].selected_mob().name if self.game.players[1].selected_mob() else None)
-                            # print(self.game.players[1].selected_artifact().name if self.game.players[1].selected_artifact() else None)
-                            # print(self.game.players[1].selected_spell().name if self.game.players[1].selected_spell() else None)
-                            print("running AI, choosing from moves: " + str(moves))
-                            self.run_ai(moves)
-
-    def run_ai(self, moves):
-        self.ai_running = True
-        self.last_move_time = datetime.datetime.now()
-        if self.ai == "random_bot":
-            chosen_move = random.choice(moves)
-        elif self.ai == "pass_bot":
-            chosen_move = self.pass_move()
-        elif self.ai == "aggro_bot":
-            chosen_move = self.aggro_bot_move(moves)
-        else:
-            print(f"Unknown AI bot: {self.ai}")
-
-        print("AI playing " + str(chosen_move))
-        chosen_move["log_lines"] = []
-        message = self.game.play_move(chosen_move, save=True)    
-        self.send_game_message(self.game.as_dict(), message)
-        self.ai_running = False
-
-
-    def aggro_bot_move(self, moves):
-        chosen_move = random.choice(moves)
-        while len(moves) > 1 and chosen_move["move_type"] == "END_TURN":
-            chosen_move = random.choice(moves) 
-
-        good_moves = []
-        for move in moves:
-            if move["move_type"] == "SELECT_MOB":
-                good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "SELECT_CARD_IN_HAND":
-                being_cast = self.game.current_player().in_hand_card(move["card"])
-                if being_cast.card_type in ["mob", "artifact"]:                        
-                    if len(being_cast.effects) > 0:
-                        if "opponents_mob" in being_cast.effects[0].ai_target_types and self.game.opponent().has_mob_target():
-                            good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "PLAY_CARD":
-                being_cast = self.game.current_player().in_hand_card(move["card"])
-                target, _ = self.game.get_in_play_for_id(move["effect_targets"][0].id)
-                if target in self.game.opponent().in_play: 
-                    if len(being_cast.effects) > 0:
-                        if "opponents_mob" in being_cast.effects[0].ai_target_types:
-                            good_moves.insert(0, move)
-
-                if target in self.game.current_player().in_play: 
-                    if len(being_cast.effects) > 0:
-                        if "self_mob" in being_cast.effects[0].ai_target_types:
-                            good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "RESOLVE_MOB_EFFECT":
-                chosen_move = move
-                coming_into_play, _ = self.game.get_in_play_for_id(move["card"])
-                target, _ = self.game.get_in_play_for_id(move["effect_targets"][0]["id"])
-                if target and target.id in [card.id for card in self.game.current_player().in_play]: 
-                    pass
-                elif target and target.id in [card.id for card in self.game.opponent().in_play]:
-                    if len(coming_into_play.effects) > 0:
-                        if "opponents_mob" in coming_into_play.effects[0].ai_target_types:
-                            good_moves.insert(0, move)
-        for move in moves:
-            if move["move_type"] == "SELECT_OPPONENT":
-                good_moves.insert(0, move)
-
-        # don't let aggrobot select unfavorable spells to cast
-        # instead, prefer to pass the turn
-        if len(good_moves) > 0:
-            chosen_move = good_moves[0]
-        elif chosen_move["move_type"] == "SELECT_CARD_IN_HAND":
-            being_cast = self.game.current_player().in_hand_card(chosen_move["card"])
-            if len(being_cast.effects) > 0:
-                if ("opponents_mob" in being_cast.effects[0].ai_target_types and not "opponent" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_mob_target()) or \
-                   ("self_mob" in being_cast.effects[0].ai_target_types and not self.game.current_player().has_mob_target()) or \
-                   ("opponents_artifact" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_artifact_target()):
-                    chosen_move = self.pass_move()
-
-        return chosen_move
-            
-    def pass_move(self):
-        if len (self.game.stack) > 0:
-            return {"move_type": "RESOLVE_NEXT_STACK", "username": self.ai}                              
-        else:
-            return {"move_type": "END_TURN", "username": self.ai}
+    def save_to_database(self):
+        game_record = GameRecord.objects.get(id=self.game.game_record_id)
+        game_record.date_started = datetime.datetime.now()
+        game_record.player_one = User.objects.get(username=self.game.players[0].username)
+        try:
+            game_record.player_two = User.objects.get(username=self.game.players[1].username)
+        except ObjectDoesNotExist:
+            game_record.player_two = User.objects.create(username=self.game.players[1].username)
+            game_record.player_two.save()
+        game_record.player_one_deck = GlobalDeck.objects.get(cards_hash=hash_for_deck(self.game.players[0].deck_for_id_or_url(self.game.players[0].deck_id)))
+        game_record.player_two_deck = GlobalDeck.objects.get(cards_hash=hash_for_deck(self.game.players[1].deck_for_id_or_url(self.game.players[1].deck_id)))
+        game_record.save()
 
     def send_game_message(self, game_dict, message):
         # send current-game-related message to players
@@ -277,11 +214,36 @@ class BattleWizardConsumer(WebsocketConsumer):
             Gets called once per recipient of a message.
         '''
         message = event['message']
-        # prevent circular refs from reviewing
-        if message["game"] and message["game"]["is_reviewing"]:
-            message["game"]["move_count"] = len(message["game"]["moves"])
-            del message["game"]["moves"]  
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'payload': message
         }))
+
+    # todo move review_game and is_reviewing to consumer
+    def navigate_game(self, original_message):
+        review_game = Game("pvp", info={}, player_decks=self.decks)
+        self.is_reviewing = True
+        self.game.moves[0]["discipline"] = self.game.players[0].discipline
+        self.game.moves[1]["discipline"] = self.game.players[1].discipline
+        self.game.moves[0]["initial_deck"] = [c.as_dict() for c in self.game.players[0].initial_deck]
+        self.game.moves[1]["initial_deck"] = [c.as_dict() for c in self.game.players[1].initial_deck]
+        index = 0
+        log_lines = []
+        for move in self.game.moves:
+            if index > original_message["index"] - 1 and original_message["index"] > -1:
+                break
+            move["log_lines"] = []
+            message = review_game.play_move(move, is_reviewing=self.is_reviewing)
+            if message["log_lines"] != []:
+                log_lines += message["log_lines"]
+            index += 1
+        original_message["log_lines"] = log_lines  
+        username = original_message['username']
+        if original_message["index"] == -1:
+            self.is_reviewing = False
+            original_message["log_lines"].append(f"{username} resumed the game.")
+        else:
+            original_message["review_game"] = review_game.as_dict()
+            original_message["log_lines"].append(f"{username} navigated the game to move {original_message['index']}.")
+        return original_message
+

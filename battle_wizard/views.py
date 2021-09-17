@@ -14,6 +14,7 @@ from battle_wizard.forms import SignUpForm
 from battle_wizard.models import Deck
 from battle_wizard.models import GameRecord
 from battle_wizard.models import GlobalDeck
+from deckzap.settings import DEBUG
 from django.contrib.auth import authenticate 
 from django.contrib.auth import login
 from django.contrib.auth import logout as logout_django
@@ -44,7 +45,7 @@ def profile(request, username):
     decks = Deck.objects.filter(owner__username=username).order_by("-date_created")
 
     if len(decks) == 0:
-        add_initial_decks(username)
+        add_default_decks(username)
         decks = Deck.objects.filter(owner__username=username).order_by("-date_created")
 
     # todo use ID, not username, for when we allow changing usernames
@@ -88,7 +89,7 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
 
-def add_initial_decks(username):
+def add_default_decks(username):
     """
         The initial decks for a new player.
     """
@@ -219,7 +220,8 @@ def play_game(request, player_type, game_record_id):
         "game_record_id": game_record_id,
         "player_type": player_type,
         "opponent_deck_id": opponent_deck_id,
-        "deck_id": deck_id
+        "deck_id": deck_id,
+        "debug": DEBUG
     }
 
     Analytics.log_amplitude(request, "Page View - Game", {"path":"/play/", "page":"play game", "player_type":player_type, "logged_in": request.user.is_authenticated})
@@ -322,7 +324,7 @@ def top_players(request):
 
 def player_records():
     players = {}
-    complete_games = GameRecord.objects.filter(winner__isnull=False)
+    complete_games = GameRecord.objects.filter(winner__isnull=False).filter(player_two__isnull=False).filter(player_one__isnull=False)
     for game in complete_games:
         for player in [game.player_one, game.player_two]:
             if player.username not in players:
@@ -358,7 +360,7 @@ def top_decks(request):
 
 def deck_records(request):
     decks = {}
-    complete_games = GameRecord.objects.filter(winner__isnull=False)
+    complete_games = GameRecord.objects.filter(winner__isnull=False).filter(player_two__isnull=False).filter(player_one__isnull=False)
     for game in complete_games:
         for info in [(game.player_one, game.player_one_deck), (game.player_two, game.player_two_deck)]:
             player = info[0]

@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import { GlowFilter, GodrayFilter, OutlineFilter } from 'pixi-filters';
+import { GlowFilter, GodrayFilter, OutlineFilter, ShockwaveFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 import { Bump } from '../lib/bump.js';
 import * as Constants from '../Constants.js';
@@ -38,7 +38,8 @@ const menuString = "Menu";
 
 export class GameUX {
 
-    constructor() {
+    constructor(debug) {
+        this.debug = debug;
         // arrows that get temporarily drawn when attacking ans casting spells
         this.arrows = []
         // damage amounts used for animating damage effects on sprites
@@ -135,13 +136,15 @@ export class GameUX {
           new OutlineFilter(1, Constants.blackColor),
         ]
         this.app.stage.addChild(scrollbox);
-
+        if (!this.debug) {
+            scrollbox.alpha = 0;
+        }
         return scrollbox;
     }
 
     background() {
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-        background.width = appWidth;
+        background.width = appWidth; 
         background.height = appHeight;
         background.tint = Constants.lightGrayColor;
         return background;
@@ -150,7 +153,7 @@ export class GameUX {
     menuButton(game) {
         let button = Card.button(
             menuString, 
-            Constants.blueColor, 
+            0x4444FF, 
             Constants.whiteColor, 
             0, 
             0,
@@ -186,7 +189,7 @@ export class GameUX {
         container.addChild(name);
 
         let cage = Card.button(
-            "Resign & Rematch", 
+            "Rematch", 
             Constants.redColor, 
             Constants.whiteColor, 
             centerX, 
@@ -213,19 +216,23 @@ export class GameUX {
             Constants.whiteColor, 
             centerX, 
             leaveGameCage.position.y + leaveGameCage.height,
-            () => { this.app.stage.removeChild(container);}, 
+            () => { this.app.stage.removeChild(container);this.menu=null;}, 
             container,
             140
         );
-
+        this.menu = container;
     }
 
     // render images that aren't in the cache, then refresh display
     refresh(game, message) {
         this.game = game;
-        if (game.is_reviewing) {
+        if (message["move_type"] == "NAVIGATE_GAME") {
+            this.review_move_index = message["index"];
+            this.is_reviewing = message["index"] != -1
+        }
+        if (this.is_reviewing) {
             this.parentGame = game;
-            this.game = game.review_game;
+            this.game = message["review_game"];
             this.messageNumber = null;
             this.lastTextSprite = null;
             this.gameLogScrollbox.parent.removeChild(this.gameLogScrollbox)
@@ -308,128 +315,226 @@ export class GameUX {
         this.refreshDisplay(message);
     }
 
-    showCardThatWasCast(card, game, player, message) {
-      let godray = new GodrayFilter();
-      let incrementGodrayTime = () => {
-        godray.time += this.app.ticker.elapsedMS / oneThousandMS;
-      }
-      let sprite = Card.sprite(card, this, game,  player);
-      sprite.scale.set(1.5)
-      sprite.position.x = Card.cardWidth + Constants.padding;
-      sprite.position.y = this.inPlay.position.y + Constants.padding;
-      this.spellBeingCastSprite = sprite;
-      this.app.stage.addChild(sprite)
-      this.showArrowsForSpell(game, sprite, message, card);
-      this.app.ticker.add(incrementGodrayTime)
-      this.app.stage.filters = [godray];
-      this.isShowingCastAnimation = true;
-      setTimeout(() => { 
-            this.clearArrows()
-            this.isShowingCastAnimation = false;
-            this.app.stage.filters = []; 
-            this.app.ticker.remove(incrementGodrayTime)
-            this.app.stage.removeChild(sprite)
-            if (this.needsToShowMakeViews) {
-                this.needsToShowMakeViews = false;
-                this.showSelectionViews(this.game);
-                this.makeCardsInteractive(game)
+    showCardThatWasCast(card, game, player, message, showArrows=true) {
+        let godray = new GodrayFilter();
+        let incrementGodrayTime = () => {
+            godray.time += this.app.ticker.elapsedMS / oneThousandMS;
+        }
+        if (card.show_level_up) {
+            if (card.level) {
+                card.level -= 1
+            } else {
+                card.effects[0].amount -= 1            
             }
-            this.spellBeingCastSprite = null;
+        }
+        let sprite = Card.sprite(card, this, game,  player);
+        sprite.scale.set(1.5)
+        sprite.position.x = Card.cardWidth + Constants.padding;
+        sprite.position.y = this.inPlay.position.y + Constants.padding;
+        this.spellBeingCastSprite = sprite;
+        this.app.stage.addChild(sprite)
+        if (showArrows) {
+            this.showArrowsForSpell(game, sprite, message, card);
+        }
+        this.app.ticker.add(incrementGodrayTime)
+        this.app.stage.filters = [godray];
+        this.isShowingCastAnimation = true;
+        setTimeout(() => { 
+            if (card.show_level_up) {
+                let shockwave = new ShockwaveFilter();
+                let incrementShockwaveTime = () => {
+                    shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+                }
+                this.app.ticker.add(incrementShockwaveTime)
+                if (this.spellBeingCastSprite) {                    
+                    this.spellBeingCastSprite.filters = [shockwave];
+                }
+                // todo AI plays faster?
+                setTimeout(() => { 
+                    this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
+                }, oneThousandMS);
+            } else {
+                this.finishCastSpell(card, game, player, message, incrementGodrayTime);
+            }     
         }, oneThousandMS);
 
     }
 
+    finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime=null) {
+        this.isShowingCastAnimation = false;
+        this.app.stage.filters = []; 
+        this.app.ticker.remove(incrementGodrayTime)
+        this.app.stage.removeChild(this.spellBeingCastSprite)
+        this.spellBeingCastSprite = null;                
+        this.clearArrows()
+        if (card.show_level_up) {
+            if(incrementShockwaveTime) {
+                this.app.ticker.remove(incrementShockwaveTime);
+            }
+            if (card.level != null) {
+                card.level += 1;
+            } else {
+                card.effects[0].amount += 1            
+            }
+            card.show_level_up = false;
+            this.showCardThatWasCast(card, game, player, message, false);
+        } else {
+            if (this.needsToShowMakeViews) {
+                this.needsToShowMakeViews = false;
+                this.showSelectionViews(game);
+                this.makeCardsInteractive(game)
+            }
+        }
+    }
+
     refreshDisplay(message) {
         const game = this.game;
+        if (!this.thisPlayer(game) || !this.opponent(game)) {
+            return; 
+        }
         this.clearArrows()
+        this.animateEffects(message)
+    }
+
+    animateEffects(message, refresh=true, show_effects=false) {
+        const game = this.game;
+        if (!this.thisPlayer(game) || !this.opponent(game)) {
+            return;
+        }
+        let IDsToAnimate = [];
+        for (let player of [this.thisPlayer(game), this.opponent(game)]) {
+            for (let card of player.hand.concat(player.in_play).concat(player.artifacts)) {
+                if (refresh && card.show_level_up) {
+                    IDsToAnimate.push(card.id);
+                }
+                if (show_effects) {
+                    for (let e of card.effects) {
+                        if (e.show_effect_animation) {
+                            IDsToAnimate.push(card.id);
+                        }
+                    }                    
+                }
+            }
+        }
+        let spritesToAnimate = [];
+        for (let sprite of this.app.stage.children) {
+            if (sprite.card && IDsToAnimate.includes(sprite.card.id)) {
+                spritesToAnimate.push(sprite);
+            }
+        }
+        for (let sprite of spritesToAnimate) {
+            let shockwave = new ShockwaveFilter();
+            let incrementShockwaveTime = () => {
+                shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+            }
+            this.app.ticker.add(incrementShockwaveTime)
+            sprite.filters = [shockwave];
+            setTimeout(() => { 
+                this.app.ticker.remove(incrementShockwaveTime);
+                if (refresh) {
+                    if (sprite === spritesToAnimate[spritesToAnimate.length - 1]) {                    
+                        this.refreshDisplayAfterAnyHandAnimations(message)
+                    }                    
+                }
+            }, oneThousandMS);
+        }
+        if (spritesToAnimate.length == 0) {        
+            if (refresh) {
+                this.refreshDisplayAfterAnyHandAnimations(message)
+            }        
+        }
+    }
+
+    refreshDisplayAfterAnyHandAnimations(message) {
+        const game = this.game;
         this.removeCardsFromStage(game)
-        if (this.thisPlayer(game)) {
-            this.updateHand(game);
-            this.updatePlayer(game, this.thisPlayer(game), this.playerAvatar);
-            this.updateThisPlayerArtifacts(game);
-            this.updateThisPlayerInPlay(game);
-        }
-        if (this.opponent(game)) {
-            this.updatePlayer(game, this.opponent(game), this.opponentAvatar);
-            this.updateOpponentHand(game);
-            this.updateOpponentArtifacts(game);
-            this.updateOpponentInPlay(game);
-
-            const playerOneY = this.playerAvatar.position.y;
-            const playerTwoY = this.opponentAvatar.position.y;
-            if (this.opponentYardPile) {
-                this.opponentYardPile.clear()
-                this.opponentDeckPile.clear()
-                this.yardPile.clear()
-                this.deckPile.clear()
-                this.opponentYardPile = null;
-                this.opponentDeckPile = null;
-                this.yardPile = null;
-                this.deckPile = null;
-            }
-            this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile("Opponent's Yard", this.opponent(game).played_pile)})
-            this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
-            this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
-            this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile("My Deck", this.thisPlayer(game).deck, true)})
-
-            if (this.gameNavigator) {
-                this.gameNavigator.clear();
-                this.gameNavigator = null;
-            }
-            if (this.isPlayersTurn(game) || this.parentGame) {
-                this.gameNavigator = new GameNavigator(this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
-                    () => {
-                        let index = null;
-                        // the 2 is so players can't navigate before the initial join moves
-                        if (this.parentGame && this.parentGame.review_move_index > 2) {
-                            index = this.parentGame.review_move_index - 1;
-                        } else if (!this.parentGame) {
-                            index = this.game.moves.length - 1;
-                        }
-                        if (index) {
-                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
-                        }
-                    }, 
-                    () => {
-                        let index = null;
-                        if (this.parentGame && this.parentGame.review_move_index < this.parentGame.move_count) {
-                            index = this.parentGame.review_move_index + 1;
-                            this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
-                        } else {
-                            // alert("can't go forward from front")
-                        }
-
-                    },
-                    () => {
-                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index: -1});
-                        this.parentGame = null;
-                    })
-            }
-        }
+        this.updateHand(game);
+        this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
+        this.updateThisPlayerArtifacts(game);
+        let thisPlayerAttackAnimation = this.updateThisPlayerInPlay(game);
+        this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
+        this.updateOpponentHand(game);
+        this.updateOpponentArtifacts(game);
+        let opponentAttackAnimation = this.updateOpponentInPlay(game);
+        this.updateCardPiles(game);
         this.renderEndTurnButton(game, message);
-        if (this.opponent(game)) {
-            this.addMenuButton(game);
+        this.addMenuButton(game);
+        this.updateGameNavigator(game);
+        this.maybeShowSpellStack(game);
+        this.maybeShowGameOver(game);
+        this.maybeShowAttackIntent(game);
+        this.maybeShowCardSelectionView(game);
+        this.maybeShowRope(game);
+        this.elevateTopZViews(game, message);
+        if (thisPlayerAttackAnimation) {
+            thisPlayerAttackAnimation()
+        }
+        if (opponentAttackAnimation) {
+            opponentAttackAnimation()
+        }
+        this.animateEffects(message, false, true);
+     }
+
+    updateGameNavigator(game) {
+        if (!this.debug) {
+            return;
+        }
+        if (this.gameNavigator) {
+            this.gameNavigator.clear();
+            this.gameNavigator = null;
+        }
+        if (this.isPlayersTurn(game) || this.parentGame) {
+            this.gameNavigator = new GameNavigator(this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
+                () => {
+                    let index = null;
+                    // the 2 is so players can't navigate before the initial join moves
+                    if (this.parentGame && this.review_move_index > 2) {
+                        index = this.review_move_index - 1;
+                    } else if (!this.parentGame) {
+                        index = this.game.moves.length - 1;
+                    }
+                    if (index) {
+                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                    }
+                }, 
+                () => {
+                    let index = null;
+                    if (this.parentGame && this.review_move_index < this.parentGame.moves.length) {
+                        index = this.review_move_index + 1;
+                        this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
+                    } else {
+                        // alert("can't go forward from front")
+                    }
+
+                },
+                () => {
+                    this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index: -1});
+                    this.parentGame = null;
+                })
         }
         if (this.parentGame) {
             this.endTurnButton.buttonSprite.interactive = false;
         }
-        this.maybeShowSpellStack(game);
-        this.maybeShowGameOver(game);
-        this.maybeShowAttack(game);
-        this.maybeShowCardSelectionView(game);
-        this.maybeShowRope(game);
-        this.elevateSpritesBeingCast();
-
-        // keep the view above newly rendered sprites
-        if (this.currentCardPile) {
-            this.currentCardPile.parent.removeChild(this.currentCardPile);
-            this.app.stage.addChild(this.currentCardPile);
-        }
-        if (message.move_type == moveTypeEndTurn) {
-            this.showChangeTurnAnimation(game)
-        }
     }
 
+    updateCardPiles(game) {
+        const playerOneY = this.playerAvatar.position.y;
+        const playerTwoY = this.opponentAvatar.position.y;
+        if (this.opponentYardPile) {
+            this.opponentYardPile.clear()
+            this.opponentDeckPile.clear()
+            this.yardPile.clear()
+            this.deckPile.clear()
+            this.opponentYardPile = null;
+            this.opponentDeckPile = null;
+            this.yardPile = null;
+            this.deckPile = null;
+        }
+        this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile("Opponent's Yard", this.opponent(game).played_pile)})
+        this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
+        this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
+        this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile("My Deck", this.thisPlayer(game).deck, true)})
+    }
 
     cardPile(x, y, game, labelText, cards, clickFunction) {
         let cardPile = new CardPile(this, game, x, y, `${labelText} (${cards.length})`, clickFunction);
@@ -477,7 +582,6 @@ export class GameUX {
         this.app.stage.addChild(sprite);                
         if (this.thisPlayer(game).card_info_to_target && card.id == this.thisPlayer(game).card_info_to_target.card_id) {
             sprite.alpha = Constants.beingCastCardAlpha;
-                console.log(sprite.texture.textureCacheIds)
         }
     }
 
@@ -496,7 +600,7 @@ export class GameUX {
         this.app.stage.addChild(sprite);                
     }
 
-    updatePlayer(game, player, avatarSprite) {
+    updatePlayer(game, player, opponent, avatarSprite) {
         let props = {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.blackColor};
         avatarSprite.player = player;
         avatarSprite.children = []
@@ -557,7 +661,7 @@ export class GameUX {
         }
 
         if (player.damage_to_show > 0) {
-           this.damageSprite(avatarSprite, player.username, player.damage_to_show);
+            this.damageSprite(avatarSprite, player.username, player.damage_to_show);
         }
     }
 
@@ -593,14 +697,14 @@ export class GameUX {
     }
 
     updateThisPlayerInPlay(game) {
-        this.updateInPlay(game, this.thisPlayer(game), this.inPlay);
+        return this.updateInPlay(game, this.thisPlayer(game), this.opponent(game), this.opponentAvatar, this.inPlay);
     }
 
     updateOpponentInPlay(game) {
-        this.updateInPlay(game, this.opponent(game), this.inPlayOpponent);
+        return this.updateInPlay(game, this.opponent(game), this.thisPlayer(game), this.playerAvatar, this.inPlayOpponent);
     }
 
-    updateInPlay(game, player, inPlaySprite) {
+    updateInPlay(game, player, opponent, opponentAvatarSprite, inPlaySprite) {
         let cardIdToHide = null
         for (let card of player.in_play) {
             if (player.card_info_to_target.card_id && card.id == player.card_info_to_target.card_id && player.card_info_to_target["effect_type"] != "mob_comes_into_play" && player.card_info_to_target["effect_type"] != "mob_activated") {
@@ -618,10 +722,77 @@ export class GameUX {
         } else if (inPlayLength == 5 || inPlayLength == 6) { 
             index = 1
         }
+        let spriteToAnimate = null;
         for (let card of player.in_play) {
-            this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
+            let sprite = this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
+            if (opponent.damage_to_show > 0) {
+                let twoMovesAgo = game.moves[game.moves.length - 2];           
+                if (sprite.card.id == twoMovesAgo["card"]) {
+                    spriteToAnimate = sprite;
+                }
+            }
             index++;
         }
+        if (spriteToAnimate) {
+            return () =>  {
+                this.animateAttackOnPlayer(spriteToAnimate, opponentAvatarSprite);
+            }
+        }
+    }
+
+    animateAttackOnPlayer(card, avatarSprite) {
+        var FADE_DURATION = this.attackDuration();
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        var self = this;
+        card.originalPosition = {x: card.position.x, y: card.position.y};
+        card.parent.removeChild(card);
+        this.app.stage.addChild(card);
+        function render(currTime) { 
+            // How opaque should head1 be?  Its fade started at currTime=0.
+            // Over FADE_DURATION ms, opacity goes from 0 to 1
+            card.position = self.positionForTime(currTime, card, avatarSprite);
+        }
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                // This branch: executes for the first frame only.
+                // it sets the startTime, then renders at currTime = 0.0
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                // This branch: renders every frame, other than the 1st frame,
+                // with the new timeRunning value.
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame);         
+    }
+
+    positionForTime(time, cardSprite, avatarSprite) {
+        let ratio = time * 2 / this.attackDuration();
+        if (time > this.attackDuration() / 2) {
+            ratio = 2 - ratio
+        }
+        let bumpAdjustmentX = Card.cardWidth/2;
+        let bumpAdjustmentY = Card.cardHeight;
+        if (avatarSprite.position.x > cardSprite.originalPosition.x) {
+            bumpAdjustmentX = -Card.cardWidth/2;            
+        }
+        if (avatarSprite.position.y > cardSprite.originalPosition.y) {
+            bumpAdjustmentY = -Card.cardHeight/2;            
+        }
+        let x = (1 - ratio) * cardSprite.originalPosition.x + ratio * (avatarSprite.position.x + bumpAdjustmentX)
+        let y = (1 - ratio) * cardSprite.originalPosition.y + ratio * (avatarSprite.position.y + bumpAdjustmentY)
+        return {x, y};
     }
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
@@ -636,14 +807,15 @@ export class GameUX {
                 sprite.alpha = Constants.beingCastCardAlpha;
             }
         }
-        this.app.stage.addChild(sprite);        
+        this.app.stage.addChild(sprite);     
+        return sprite;   
     }
 
     addMenuButton(game) {
         if (!this.menuButtonAdded) {
             let menuButton = this.menuButton(game);
             menuButton.position.x = appWidth - menuButton.width - Constants.padding;
-            menuButton.position.y = Constants.padding*5;
+            menuButton.position.y = this.endTurnButton.position.y;
             this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
         }
@@ -657,7 +829,7 @@ export class GameUX {
         }
     }
 
-    maybeShowAttack(game) {
+    maybeShowAttackIntent(game) {
         if (game.stack.length > 0 && game.stack[game.stack.length - 1][0].move_type == moveTypeAttack) {
             let attack = game.stack[game.stack.length - 1][0];
             let attacking_id = attack.card;
@@ -749,8 +921,8 @@ export class GameUX {
         sprite.filters = [godray];
     }
 
-    // put arrows and spell being cast above other refreshed sprites
-    elevateSpritesBeingCast() {    
+    // put arrows, menus, card selection views, and spell being cast above other refreshed sprites
+    elevateTopZViews(game, message) {    
         if (this.spellBeingCastSprite) {
             this.app.stage.removeChild(this.spellBeingCastSprite);
             this.app.stage.addChild(this.spellBeingCastSprite);
@@ -759,6 +931,38 @@ export class GameUX {
             this.app.stage.removeChild(arrow);
             this.app.stage.addChild(arrow);
         }
+        // keep the views above newly rendered sprites
+        if (this.currentCardPile) {
+            this.currentCardPile.parent.removeChild(this.currentCardPile);
+            this.app.stage.addChild(this.currentCardPile);
+        }
+        if (this.menu) {
+            this.menu.parent.removeChild(this.menu);
+            this.app.stage.addChild(this.menu);
+        }
+
+        if (message.move_type == moveTypeEndTurn && this.thisPlayer(game) == this.turnPlayer(game)) {
+            this.showChangeTurnAnimation(game)
+        }
+
+    }
+
+    attackDuration () {
+        return 0.8 * oneThousandMS;
+    }
+
+    fadeDuration () {
+        return 2.0 * oneThousandMS;
+    }
+
+    fadeAlphaForTime(t) {
+        if (t <= this.fadeDuration()/2) {
+            return 1;
+        }
+        if (t <= this.fadeDuration()*.99) {
+            return (1 - t / this.fadeDuration() ) * 2;
+        }
+        return 0;
     }
 
     showChangeTurnAnimation(game) {
@@ -766,7 +970,7 @@ export class GameUX {
         this.app.stage.addChild(container);
         const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
         let modalWidth = this.opponentAvatar.width;
-        let modalHeight = this.inPlay.height * 2 + Constants.padding;
+        let modalHeight = this.inPlay.height + Constants.padding;
         Constants.roundRectangle(background, .2)
         background.width = modalWidth;
         background.height = modalHeight;
@@ -781,22 +985,22 @@ export class GameUX {
         options.fontSize = 32;
         options.fill = Constants.whiteColor;
         options.align = "middle";
-        let name = new PIXI.Text(this.activePlayer(game).username + "'s turn", options);
+        let name = new PIXI.Text("YOUR TURN", options);
         name.position.x = modalWidth/2 - name.width/2;
         name.position.y = 80
         container.addChild(name);
 
-        var FADE_DURATION = .5 * oneThousandMS; 
+        var FADE_DURATION = this.fadeDuration();
         
         // -1 is a flag to indicate if we are rendering the very 1st frame
         var startTime = -1.0; 
         
         // render current frame (whatever frame that may be)
+        var self = this;
         function render(currTime) { 
             // How opaque should head1 be?  Its fade started at currTime=0.
             // Over FADE_DURATION ms, opacity goes from 0 to 1
-            var alpha = .9 - (currTime/FADE_DURATION);
-            container.alpha = alpha;
+            container.alpha = self.fadeAlphaForTime(currTime);
         }
         function eachFrame() {
             var timeRunning = (new Date()).getTime() - startTime;
@@ -813,8 +1017,6 @@ export class GameUX {
                 return;
             }
         
-            // make a request to the browser to execute the next
-            // animation frame, and the browser optimizes the rest.
             window.requestAnimationFrame(eachFrame);
         };
 
@@ -1323,6 +1525,11 @@ export class GameUX {
             this.app.stage,
             buttonWidth
         );
+        b.id = "endTurnButton";
+        if (buttonColor == Constants.redColor) {
+            this.damageSprite(b, "endTurnButton", 2);                    
+
+        }
         b.position.x = this.artifactsOpponent.position.x;
         b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 4;
 
@@ -1342,14 +1549,30 @@ export class GameUX {
 
         this.endTurnButton = b;
 
-        let turnText = new PIXI.Text(`${this.thisPlayer(game).username} is Active\n(Turn ${game.turn})`, {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.darkGrayColor, align: "center"});
+        let humanTurn = (Math.floor(game.turn/2) + 1);
+        let textTitle = this.turnTitle(game);
+        let turnText = new PIXI.Text(textTitle, {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.darkGrayColor, align: "center"});
         turnText.position.x = b.position.x + buttonWidth + Constants.padding * 20;
         turnText.position.y = b.position.y + b.height / 2;
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;
         this.app.stage.addChild(turnText);
-
     }
+
+    turnTitle(game) {
+        let humanTurn = (Math.floor(game.turn/2) + 1);
+        if (humanTurn == 1) {
+            return`${this.turnPlayer(game).username}'s 1st turn`
+        } else if (humanTurn == 2) {
+            return `${this.turnPlayer(game).username}'s 2nd turn`
+        } else if (humanTurn == 3) {
+            return `${this.turnPlayer(game).username}'s 3rd turn`
+        } else {
+            return `${this.turnPlayer(game).username}'s ${humanTurn}th turn`
+        }
+    }
+
+
 
     maybeShowSpellStack(game) {
         if (game.stack.length == 0) {
@@ -1387,6 +1610,13 @@ export class GameUX {
     isPlayersTurn(game) {
         return (game.turn % 2 == 0 && this.userOrP1(game).username == game.players[0].username
                 || game.turn % 2 == 1 && this.userOrP1(game).username == game.players[1].username)
+    }
+
+    turnPlayer(game) {
+        if (game.turn % 2 == 0) {
+            return game.players[0]
+        }
+        return game.players[1]
     }
 
     isActivePlayer(game) {

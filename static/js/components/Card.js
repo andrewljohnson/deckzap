@@ -145,7 +145,7 @@ export class Card {
 	        for (let e of card.effects) {
 	            if (e.effect_type == "activated" && e.enabled) {
 	                activatedEffects.push(e)
-	                if (e.name == "attack" || e.name == "make_random_townie") {
+	                if (e.name == "attack" || e.name == "create_random_townie") {
 	                    attackEffect = e;
 	                }
 	            }
@@ -186,7 +186,7 @@ export class Card {
         let color = Constants.darkGrayColor;
         if ("abilities" in card) {
 	        for (let a of card.abilities) {
-	            if (!["Starts in Play", "die_to_top_deck", "discard_random_to_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
+	            if (!["Starts in Play", "die_to_top_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
 	                if (a.description) {
 	                    abilitiesText += a.description;
 	                    color = Constants.blackColor;
@@ -221,6 +221,10 @@ export class Card {
         if (card.name == "Doomer") {
            let damage = card.effects[0].amount;
            baseDescription = `All enemies take ${damage} damage end of your turn. Increase this each turn.`;
+        }
+        if (card.name == "Tech Crashhouse") {
+           let amount = card.effects[0].amount;
+           baseDescription = `Draw a Townie for each time this has been cast (${amount}). Reduce their cost by 1.`;
         }
         if (card.name == "Rolling Thunder") {
            let damage = card.effects[0].amount;
@@ -330,7 +334,7 @@ export class Card {
             let countersX = powerX + cw - Constants.padding * 4;
             let attackEffectOptions = Constants.textOptions(); 
             attackEffectOptions.fill = Constants.whiteColor;
-            if (attackEffect.name == "make_random_townie") {
+            if (attackEffect.name == "create_random_townie") {
                 Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
             } else {
                 Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
@@ -431,7 +435,7 @@ export class Card {
         for (let e of card.effects) {
             if (e.effect_type == "activated" && e.enabled) {
                 activatedEffects.push(e)
-                if (e.name == "attack" || e.name == "make_random_townie") {
+                if (e.name == "attack" || e.name == "create_random_townie") {
                     attackEffect = e;
                 }
             }
@@ -447,7 +451,7 @@ export class Card {
         }
 
         if (attackEffect) {
-            if (attackEffect.name == "make_random_townie") {
+            if (attackEffect.name == "create_random_townie") {
                 let attackEffectOptions = Constants.textOptions() 
                 Card.addCircledLabel(-Constants.padding * 8, Card.cardHeight / 2 - Constants.padding * 6, cardSprite, attackEffectOptions, attackEffect.counters, Constants.yellowColor);
             } else {

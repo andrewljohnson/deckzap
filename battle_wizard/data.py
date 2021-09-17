@@ -1,6 +1,9 @@
 import json
 
 def all_cards(require_images=False, include_tokens=True):
+    """
+        Returns a list of all possible cards in the game. 
+    """
     json_data = open('battle_wizard/battle_wizard_cards.json')
     all_cards = json.load(json_data)
     subset = []
@@ -9,6 +12,46 @@ def all_cards(require_images=False, include_tokens=True):
             if "image" in c or not require_images:
                 subset.append(c)
     return subset
+
+def all_abilities():
+    return [
+        {
+            "name": "Fast",
+            "descriptive_id": "Fast"
+        },
+        {
+            "name": "Syphon",
+            "descriptive_id": "Syphon"
+        },
+        {
+            "name": "Lurker",
+            "descriptive_id": "Lurker"
+        },
+        {
+            "name": "Shield",
+            "descriptive_id": "Shield"
+        },
+        {
+            "name": "Conjure",
+            "descriptive_id": "Conjure"
+        },
+        {
+            "name": "Guard",
+            "descriptive_id": "Guard"
+        },
+        {
+            "name": "Defend",
+            "descriptive_id": "Defend"
+        },
+        {
+            "name": "Fade",
+            "descriptive_id": "Fade"
+        },
+        {
+            "name": "Ambush",
+            "descriptive_id": "Ambush"
+        },
+    ]
 
 def hash_for_deck(deck):
     strings = []
