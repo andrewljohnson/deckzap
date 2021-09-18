@@ -469,7 +469,7 @@ class Player:
                     "tokens": [token],
                     "id": None
                 }
-                message["log_lines"] += card.do_add_token_effect_on_mob(CardEffect(effect), self, card, self)
+                message["log_lines"] += card.do_add_token_effect_on_mob(CardEffect(effect, 0), self, card, self)
 
             card.attacked = False
 
@@ -478,7 +478,6 @@ class Player:
             for idx, effect in enumerate(card.effects_triggered()):
                 if effect.trigger == "start_turn":
                     effect.show_effect_animation = True
-                    print(effect)
                     message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
 
         for r in self.artifacts:
@@ -746,7 +745,6 @@ class Player:
             print(f"can't select, card costs too much - costs {card.cost}, mana available {self.current_mana()}")                        
             return None
 
-        print (f"settting  self.card_info_to_target card_id to {card.id}")
         self.card_info_to_target["card_id"] = card.id
         self.card_info_to_target["effect_type"] = "spell_cast"
         # todo this is hardcoded, cant support multiple effects per card?
@@ -754,7 +752,6 @@ class Player:
 
         self.game.unset_clickables(message["move_type"])
         self.game.set_clickables()
-        print (f"set  self.card_info_to_target card_id to {self.card_info_to_target}")
         return message
 
     def set_targets_for_mob_effect(self, target_restrictions):
@@ -989,6 +986,7 @@ class Player:
                 self.add_to_deck(card_name, 1)
             random.shuffle(self.deck)
             self.initial_deck = copy.deepcopy(self.deck)
+            print(deck_to_use)
             self.discipline = deck_to_use["discipline"]
 
     def deck_for_id_or_url(self, id_or_url):

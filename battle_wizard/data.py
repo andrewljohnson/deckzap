@@ -11,6 +11,14 @@ def all_cards(require_images=False, include_tokens=True):
         if include_tokens or ("is_token" not in c or c["is_token"] == False):
             if "image" in c or not require_images:
                 subset.append(c)
+
+    json_data = open('battle_wizard/old_cards.json')
+    all_cards = json.load(json_data)
+    for c in all_cards:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                subset.append(c)
+
     return subset
 
 def all_abilities():

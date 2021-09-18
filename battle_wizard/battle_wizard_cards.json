@@ -181,7 +181,7 @@
 		"name": "Training Master",
 		"image": "coronation.svg",
 		"discipline": "none",
-		"card_type": "magic",
+		"card_type": "mob",
 		"power": 3,
 		"toughness": 3,
 		"cost": 3,

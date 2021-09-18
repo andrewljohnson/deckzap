@@ -426,6 +426,7 @@ class Card:
         return [f"{target_mob.name} gets {token}."]
 
     def do_attack_effect(self, effect_owner, effect, target_info):
+        target_id = target_info["id"]
         target_player = Card.player_for_username(effect_owner.game, target_id)            
         #todo fix hardcoding attack effect, is every attack effect from a weapon?
         if target_info["target_type"] == "player":
@@ -433,7 +434,7 @@ class Card:
             log_lines = self.do_attack_effect_on_player(effect_owner, target_player, effect.power, effect.amount_id)
         else:
             target_mob, controller = effect_owner.game.get_in_play_for_id(target_info["id"])
-            log_lines = self.do_attack_effect_on_mob(effect_owner, target_mob, controller, effect.power)
+            log_lines = self.do_attack_effect_on_mob(effect_owner, effect, target_mob, controller, effect.power)
         if effect.counters == 0:
             if effect.was_added:
                 self.deactivate_weapon()
@@ -454,13 +455,13 @@ class Card:
         self.description = self.original_description
         # self.can_activate_abilities = True        
 
-    def do_attack_effect_on_player(self, effect_owner, effect, target_info):
+    def do_attack_effect_on_player(self, effect_owner, target_player, power, amount_id):
         self.do_damage_effect_on_player(effect_owner, target_player, power, amount_id)
         self.do_attack_abilities(effect_owner)
         return [f"{effect_owner.username} attacks {target_id} for {power} damage."]
 
-    def do_attack_effect_on_mob(self, effect_owner, effect, target_info):
-        target_mob.damage(amount)
+    def do_attack_effect_on_mob(self, effect_owner, effect, target_mob, controller, amount):
+        self.do_damage_effect_on_player(effect_owner, effect_owner, target_mob.power)
         self.do_damage_effect_on_mob(target_mob, controller, amount)
         return [f"{effect_owner.username} attacks {target_mob.name} for {amount} damage."]
 
@@ -926,8 +927,8 @@ class Card:
                         cards_to_kill.append((card, player))
             for card_tuple in cards_to_kill: 
                 self.do_kill_effect_on_mob(card_tuple[0], card_tuple[1])
-            if len(card_ids_to_kill) > 0:
-                return [f"{effect_owner.username} kills stuff ({len(card_ids_to_kill)})."]
+            if len(cards_to_kill) > 0:
+                return [f"{effect_owner.username} kills stuff ({len(cards_to_kill)})."]
 
     def do_kill_effect_on_mob(self, target_mob, controller):
         controller.send_card_to_played_pile(target_mob, did_kill=True)
@@ -1293,7 +1294,7 @@ class Card:
             if len(opponent.in_play) > 0:
                 mob_to_target = random.choice(opponent.in_play)
                 self.do_take_control_effect_on_mob(effect_owner, mob_to_target, opponent)
-                log_lines.append(f"{player.username} takes control of {mob_to_target.name}.")
+                log_lines = [f"{effect_owner.username} takes control of {mob_to_target.name}."]
         else:
             target_mob, controller = effect_owner.game.get_in_play_for_id(target_info["id"])
             log_lines = [f"{effect_owner.username} takes control of {target_mob.name}."]

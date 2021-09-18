@@ -111,7 +111,6 @@ class Game:
         elif move_type == 'END_TURN':
             message = self.end_turn(message)
         elif move_type == 'SELECT_CARD_IN_HAND':
-            print(f"SELECT_CARD_IN_HAND for {self.current_player().username}")
             message = self.current_player().select_card_in_hand(message)
         elif move_type == 'PLAY_CARD_IN_HAND':
             message = self.play_card_in_hand(message)
@@ -396,7 +395,7 @@ class Game:
         elif target_type == "opponents_mob":
             self.opponent().set_targets_for_player_mob_effect(target_restrictions)
         elif target_type == "self_mob":
-            self.current_player().set_targets_for_player_mob_effect(target_restrictions)
+            self.current_player().set_targets_for_player_mob_effect(target_restrictions, self.current_player())
         elif target_type == "being_cast_mob":
             self.set_targets_for_being_cast_mob_effect()
         elif target_type == "being_cast_spell":
