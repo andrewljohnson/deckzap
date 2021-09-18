@@ -2081,17 +2081,26 @@
 		"description": "Replace your normal draw with a choice of 3 cards.",
 		"effects": [
 			{
-				"name": "add_tokens",
+				"name": "add_player_abilities",
 				"effect_type": "enter_play",
 				"target_type": "self",
-				"tokens": [{
-					"draw_modifier": -1
-				}]
-			},
+				"abilities": [
+					{
+						"name": "Reduce Draw",
+						"description": "Reduce Draw",
+						"descriptive_id": "Reduce Draw"
+					}
+				]
+			},			
 			{
-				"name": "remove_tokens",
+				"name": "remove_player_abilities",
 				"effect_type": "leave_play",
-				"target_type": "self"
+				"target_type": "self",
+				"abilities": [
+					{
+						"descriptive_id": "Reduce Draw"
+					}
+				]				
 			},
 			{
 				"name": "make_from_deck",

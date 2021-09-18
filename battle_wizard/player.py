@@ -176,7 +176,7 @@ class Player:
                     if effect.name == "hp_damage_random":
                         choice = random.choice(["hp", "damage"])
                         if choice == "hp":
-                            return m.do_heal_effect_on_player(self, {"amount": 1})
+                            return m.do_heal_effect_on_player(self, CardEffect({"amount": 1}, m.id))
                         elif choice == "damage":
                             targets = [self.game.opponent()]
                             for m in self.game.opponent().in_play:
@@ -185,7 +185,7 @@ class Player:
                             if choice == targets[0]:
                                 m.do_damage_effect_on_player(self, choice, 1)
                             else:
-                                self.do_damage_effect_on_mob(choice, self.game.opponent(), 1)
+                                m.do_damage_effect_on_mob(choice, self.game.opponent(), 1)
 
             for r in self.artifacts:
                 for effect in r.effects_triggered():
@@ -478,6 +478,7 @@ class Player:
             for idx, effect in enumerate(card.effects_triggered()):
                 if effect.trigger == "start_turn":
                     effect.show_effect_animation = True
+                    print(effect)
                     message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
 
         for r in self.artifacts:

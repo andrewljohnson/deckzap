@@ -675,7 +675,6 @@ class Card:
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
         amount = effect.amount_id
         amount_id = effect.amount_id
-        target_player, e.amount, e.amount_id
         discard_amount = amount 
         if amount_id == "hand":            
             discard_amount = len(target_player.hand)
@@ -701,12 +700,15 @@ class Card:
         return [f"{self.name} doubles the power of {target_mob.name}."]
 
     def do_draw_effect_on_player(self, effect_owner, effect, target_info):
-        target_player = Card.player_for_username(effect_owner.game, target_info["id"])
+        if effect.target_type == "self":
+            target_id = effect_owner.username
+        else:
+            target_id = target_info["id"]
+        target_player = Card.player_for_username(effect_owner.game, target_id)
         amount_to_draw = effect.amount
         if effect.multiplier == "self_mobs":
             amount_to_draw = amount * len(effect_owner.in_play)
-        if "do_effect" not in target_info or target_info["do_effect"]:
-            target_player.draw(amount_to_draw)
+        target_player.draw(amount_to_draw)
         return [f"{target_player.username} draws {amount_to_draw} from {self.name}."]
 
     def do_draw_if_damaged_opponent_effect_on_player(self, effect_owner, effect, target_info):
@@ -1135,7 +1137,7 @@ class Card:
 
         villager_card = Card({})
         token_card_name = "Willing Villager"
-        villager_card.do_make_token_effect(effect_owner, CardEffect({"amount":1, "card_name": token_card_name, "card_names":[]}, {"id": effect_owner.username}))
+        villager_card.do_make_token_effect(effect_owner, CardEffect({"amount":1, "card_name": token_card_name, "card_names":[]}, 0), {"id": effect_owner.username})
 
         # the card was countered by a different counterspell
         if not stack_spell:
@@ -1263,7 +1265,7 @@ class Card:
         if len(nonspells) > 0:
             to_summon = random.choice(nonspells)
             target_player.hand.remove(to_summon)
-            message = target_player.play_mob_or_artifact(to_summon, {"log_lines":[]}, do_effects=False)
+            message = effect_owner.play_mob_or_artifact(to_summon, {"log_lines":[]}, do_effects=False)
             message["log_lines"].append(f"{to_summon.name} was summoned for {effect_owner.username}.")
             return message["log_lines"]
 
@@ -1555,9 +1557,9 @@ class Card:
     def do_leaves_play_effects(self, player, did_kill=True):
         for idx, effect_def in enumerate(self.leave_play_effect_defs):
             target_info = {"id": player.username, "did_kill": did_kill}
-            if self.effects_leave_play()[idx]["target_type"] == "self":
+            if self.effects_leave_play()[idx].target_type == "self":
                 target_info = {"id": player.username, "target_type": "player", "did_kill": did_kill}
-            elif self.effects_leave_play()[idx]["target_type"] == "opponent":
+            elif self.effects_leave_play()[idx].target_type == "opponent":
                 target_info = {"id": player.game.opponent().username, "target_type": "player", "did_kill": did_kill}
             self.resolve_effect(effect_def, player, self.effects_leave_play()[idx], target_info)
 
