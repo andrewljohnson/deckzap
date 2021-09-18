@@ -241,9 +241,9 @@ class PlayerAI(Player):
             
     def pass_move(self):
         if len (self.game.stack) > 0:
-            return {"move_type": "RESOLVE_NEXT_STACK", "username": self.ai}                              
+            return {"move_type": "RESOLVE_NEXT_STACK", "username": self.username}                              
         else:
-            return {"move_type": "END_TURN", "username": self.ai}
+            return {"move_type": "END_TURN", "username": self.username}
 
     def maybe_run_ai(self, consumer):
         # run AI if it's the AI's move or if the other player just chose their discipline

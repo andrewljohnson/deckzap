@@ -554,7 +554,7 @@ class Game:
                             self.current_player().hand.append(spell)
                             self.current_player().played_pile.remove(spell)
                 elif effect.name == "damage" and effect.trigger == "end_turn":
-                    message["log_lines"] += self.current_player().do_damage_effect(self.current_player(), effect, effect_targets[index])
+                    message["log_lines"] += mob.do_damage_effect(self.current_player(), effect, effect_targets[index])
                 elif effect.name == "improve_damage_when_used":
                     # hax for Doomer, this would break if it didnt have two damage effects
                     mob.effects[0].amount += 1

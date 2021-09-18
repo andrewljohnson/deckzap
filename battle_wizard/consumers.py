@@ -147,7 +147,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
             if len(self.game.players) == 2:
                 if not self.is_reviewing:
-                    self.save_to_database()
+                    self.save_to_database(game_object)
 
         if len(self.game.players) == 2 and not self.is_reviewing:
             if self.game.players[0].hit_points <= 0 or self.game.players[1].hit_points <= 0:
@@ -166,8 +166,7 @@ class BattleWizardConsumer(WebsocketConsumer):
                 if self.player_type == "pvai":
                     self.game.players[1].maybe_run_ai(self)
 
-    def save_to_database(self):
-        game_record = GameRecord.objects.get(id=self.game.game_record_id)
+    def save_to_database(self, game_record):
         game_record.date_started = datetime.datetime.now()
         game_record.player_one = User.objects.get(username=self.game.players[0].username)
         try:
