@@ -135,9 +135,9 @@ class Game:
         elif move_type == 'FETCH_CARD_FROM_PLAYED_PILE':
             message = self.current_player().fetch_card_from_played_pile(message)        
         elif move_type == 'FETCH_CARD':
-            message = self.current_player().fetch_card(message, Card.Constants.artifactCardType)        
+            message = self.current_player().fetch_card(message, Constants.artifactCardType)        
         elif move_type == 'FETCH_CARD_INTO_PLAY':
-            message = self.current_player().fetch_card(message, Card.Constants.artifactCardType, into_play=True)        
+            message = self.current_player().fetch_card(message, Constants.artifactCardType, into_play=True)        
         elif move_type == 'FINISH_RIFFLE':
             message = self.current_player().finish_riffle(message)        
         # moves that get triggered indirectly from game UX actions (e.g. SELECT_MOB twice could be an ATTACK)
@@ -313,9 +313,9 @@ class Game:
             card.needs_targets = card.needs_targets_for_spell()
             if cp.current_mana() >= card.cost:
                 card.can_be_clicked = True
-                if card.card_type == Card.Constants.artifactCardType:
+                if card.card_type == Constants.artifactCardType:
                     card.can_be_clicked = len(cp.artifacts) != 3
-                if card.card_type == Card.Constants.spellCardType and card.needs_mob_or_artifact_target():
+                if card.card_type == Constants.spellCardType and card.needs_mob_or_artifact_target():
                     card.can_be_clicked = False
                     if len(cp.in_play + opp.in_play) > 0:
                         for mob in cp.in_play + opp.in_play:
@@ -333,19 +333,19 @@ class Game:
                                         card.can_be_clicked = True
                             else:
                                 card.can_be_clicked = True
-                if card.card_type == Card.Constants.spellCardType and card.needs_mob_target():
+                if card.card_type == Constants.spellCardType and card.needs_mob_target():
                     card.can_be_clicked = False
                     if len(cp.in_play + opp.in_play) > 0:
                         for mob in cp.in_play + opp.in_play:
                             if not mob.has_ability("Lurker"):
                                 card.can_be_clicked = True
-                if card.card_type == Card.Constants.spellCardType and card.needs_artifact_target():
+                if card.card_type == Constants.spellCardType and card.needs_artifact_target():
                     card.can_be_clicked = False if len(cp.artifacts) == 0 and len(opp.artifacts) == 0 else True
-                if card.card_type == Card.Constants.spellCardType and card.needs_stack_target():
+                if card.card_type == Constants.spellCardType and card.needs_stack_target():
                     card.can_be_clicked = card.has_stack_target(self)
-                if card.card_type == Card.Constants.mobCardType and not cp.can_summon():
+                if card.card_type == Constants.mobCardType and not cp.can_summon():
                     card.can_be_clicked = False
-                if card.card_type != Card.Constants.spellCardType and len(self.stack) > 0:
+                if card.card_type != Constants.spellCardType and len(self.stack) > 0:
                     card.can_be_clicked = False
                     if card.has_ability("Conjure"):
                         card.can_be_clicked = True
@@ -356,7 +356,7 @@ class Game:
                             card.can_be_clicked = True
                 if card.has_ability("Instrument Required") and not cp.has_instrument():
                     card.can_be_clicked = False
-                if card.card_type == Card.Constants.spellCardType and len(self.stack) > 0 and card.card_subtype == "turn-only":
+                if card.card_type == Constants.spellCardType and len(self.stack) > 0 and card.card_subtype == "turn-only":
                     card.can_be_clicked = False    
 
     def get_in_play_for_id(self, card_id):
@@ -409,10 +409,10 @@ class Game:
     def set_targets_for_being_cast_spell_effect(self, target_restrictions):
         for spell in self.stack:
             card = spell[1]
-            if card["card_type"] == Card.Constants.spellCardType:
+            if card["card_type"] == Constants.spellCardType:
                 if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "target" and list(target_restrictions[0].values())[0] == "mob":
                     action = spell[0]
-                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Card.Constants.mobCardType:
+                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
                         card["can_be_clicked"] = True
                 else:
                     card["can_be_clicked"] = True
@@ -420,7 +420,7 @@ class Game:
     def set_targets_for_being_cast_mob_effect(self):
         for spell in self.stack:
             card = spell[1]
-            if card["card_type"] == Card.Constants.mobCardType:
+            if card["card_type"] == Constants.mobCardType:
                 card["can_be_clicked"] = True
 
     def join(self, message, is_reviewing=False):
@@ -544,7 +544,7 @@ class Game:
                 if effect.name == "spell_from_yard":
                     spells = []
                     for card in self.current_player().played_pile:
-                        if card.card_type == Card.Constants.spellCardType:
+                        if card.card_type == Constants.spellCardType:
                             spells.append(card)
                     if len(spells) == 0:
                         continue
@@ -613,7 +613,7 @@ class Game:
         if selected_spell:
             effect = selected_spell.effects[0]
             stack_spell_card = Card(stack_spell[1])
-            if effect.target_type == "being_cast_mob" and stack_spell_card.card_type != Card.Constants.mobCardType:
+            if effect.target_type == "being_cast_mob" and stack_spell_card.card_type != Constants.mobCardType:
                 print(f"can't select non-mob with mob-counterspell")
                 return None
             return self.select_stack_target(selected_spell, message, "PLAY_CARD")

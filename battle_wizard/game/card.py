@@ -19,7 +19,7 @@ class Card:
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
         self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
-        self.card_type = info["card_type"] if "card_type" in info else Card.Constants.mobCardType
+        self.card_type = info["card_type"] if "card_type" in info else Constants.mobCardType
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
         self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
@@ -252,13 +252,13 @@ class Card:
 
     @staticmethod
     def modify_new_card(card, game):
-        if card.card_type == Card.Constants.spellCardType:            
+        if card.card_type == Constants.spellCardType:            
             if 'spells_cost_more' in game.global_effects:
                 card.cost += game.global_effects.count('spells_cost_more')
             if 'spells_cost_less' in game.global_effects:
                 card.cost -= game.global_effects.count('spells_cost_less')
                 card.cost = max(0, card.cost)
-        elif card.card_type == Card.Constants.mobCardType:            
+        elif card.card_type == Constants.mobCardType:            
             if 'mobs_cost_more' in game.global_effects:
                 card.cost += game.global_effects.count('mobs_cost_more')
             if 'mobs_cost_less' in game.global_effects:
@@ -284,13 +284,13 @@ class Card:
 
         spell_to_resolve["log_lines"].append(f"{player.username} plays {self.name}.")
 
-        if self.card_type != Card.Constants.spellCardType:
+        if self.card_type != Constants.spellCardType:
             spell_to_resolve = player.play_mob_or_artifact(self, spell_to_resolve)
 
-        if self.card_type == Card.Constants.mobCardType and self.has_ability("Shield"):
+        if self.card_type == Constants.mobCardType and self.has_ability("Shield"):
             self.shielded = True
 
-        if len(self.effects) > 0 and self.card_type != Card.Constants.mobCardType:
+        if len(self.effects) > 0 and self.card_type != Constants.mobCardType:
             if not "effect_targets" in spell_to_resolve:
                 spell_to_resolve["effect_targets"] = []
 
@@ -310,7 +310,7 @@ class Card:
             if len(spell_to_resolve["effect_targets"]) == 0:
                 spell_to_resolve["effect_targets"] = None
 
-        if self.card_type == Card.Constants.spellCardType:
+        if self.card_type == Constants.spellCardType:
             if self.has_ability("Disappear"):
                 self.show_level_up = True
             else:            
@@ -476,7 +476,7 @@ class Card:
 
         if self.has_ability("Syphon"):
             effect_owner.hit_points += self.power_with_tokens(effect_owner)
-            effect_owner.hit_points = min(Player.max_hit_points, effect_owner.hit_points)
+            effect_owner.hit_points = min(effect_owner.max_hit_points, effect_owner.hit_points)
         if self.has_ability("discard_random"):
             ability = None
             for a in self.abilities:
@@ -728,7 +728,7 @@ class Card:
         effect_owner.spend_mana(amount)
         dead_mobs = []
         for card in effect_owner.played_pile:
-            if card.card_type == Card.Constants.mobCardType:
+            if card.card_type == Constants.mobCardType:
                 dead_mobs.append(card)
         random.shuffle(dead_mobs)
         choices = ["draw", "resurrect"]
@@ -799,7 +799,7 @@ class Card:
             self.toughness = evolved_card.toughness
 
     def do_fetch_card_effect_on_player(self, effect_owner, effect, target_info):
-        if Card.Constants.artifactCardType in effect.target_type:
+        if Constants.artifactCardType in effect.target_type:
             self.display_deck_artifacts(effect_owner, effect.target_restrictions, "fetch_artifact_into_hand")
         elif effect.target_type == "all_cards_in_deck":
             self.display_deck_for_fetch(effect_owner)
@@ -812,7 +812,7 @@ class Card:
         return [f"{effect_owner.username} fetches a card with {self.name}."]
 
     def do_fetch_card_into_play_effect_on_player(self, effect_owner, effect, target_info):
-        if Card.Constants.artifactCardType in effect.target_type:
+        if Constants.artifactCardType in effect.target_type:
             self.display_deck_artifacts(effect_owner, effect.target_restrictions, "fetch_artifact_into_play")
         else:
             print("can't fetch unsupported type")
@@ -822,7 +822,7 @@ class Card:
     def display_deck_artifacts(self, target_player, target_restrictions, choice_type):
         artifacts = []
         for card in target_player.deck:
-            if card.card_type == Card.Constants.artifactCardType:
+            if card.card_type == Constants.artifactCardType:
                 if len(target_restrictions) == 0 or \
                     (list(target_restrictions[0].keys())[0] == "needs_weapon" and card.has_ability("Weapon")) or \
                     (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
@@ -848,7 +848,7 @@ class Card:
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
         if target_mob:
             controller.hit_points += target_mob.toughness_with_tokens()
-            controller.hit_points = min (Player.max_hit_points, controller.hit_points)
+            controller.hit_points = min(controller.max_hit_points, controller.hit_points)
 
     def do_heal_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self":
@@ -864,7 +864,7 @@ class Card:
         """
                             gained = 0
                     to_apply = max(len(player.hand) - 5, 0)
-                    while player.hit_points < Player.max_hit_points and to_apply > 0:
+                    while player.hit_points < player.max_hit_points and to_apply > 0:
                         player.hit_points += 1
                         to_apply -= 1
                         gained += 1  
@@ -874,7 +874,7 @@ class Card:
             amount = max(len(target_player.hand) - effect.amount, 0)
         if amount > 0:
             target_player.hit_points += amount
-            target_player.hit_points = min(target_player.hit_points, Player.max_hit_points)
+            target_player.hit_points = min(target_player.hit_points, target_player.max_hit_points)
             return [f"{target_player.username} heals {amount}."]
 
     def do_heal_effect_on_mob(self, target_mob, amount):
@@ -1009,13 +1009,13 @@ class Card:
             return
 
         requiredMobCost = None
-        if player.game.turn <= 10 and make_type == Card.Constants.mobCardType:
+        if player.game.turn <= 10 and make_type == Constants.mobCardType:
             requiredMobCost = math.floor(player.game.turn / 2) + 1
 
         all_game_cards = Card.all_card_objects(require_images=True, include_tokens=False)
         banned_cards = ["Make Spell", "Make Spell+", "Make Mob", "Make Mob+"]
         card1 = None 
-        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == Card.Constants.mobCardType and card1.cost != requiredMobCost): 
+        while not card1 or card1.name in banned_cards or (make_type != "any" and card1.card_type != make_type) or (requiredMobCost and make_type == Constants.mobCardType and card1.cost != requiredMobCost): 
             card1 = random.choice(all_game_cards)
         card2 = None
         while not card2 or card2.name in banned_cards or (make_type != "any" and card2.card_type != make_type) or card2 == card1:
@@ -1031,7 +1031,7 @@ class Card:
         player.card_choice_info["effect_card_id"] = self.id
        
         # todo: hax for Find Artifact
-        if make_type == Card.Constants.artifactCardType:
+        if make_type == Constants.artifactCardType:
             for c in player.card_choice_info["cards"]:
                 c.cost = min(3, c.cost)
         
@@ -1206,7 +1206,7 @@ class Card:
             mobs = []
             target_player = effect_owner
             for c in target_player.deck:
-                if c.card_type == Card.Constants.mobCardType:
+                if c.card_type == Constants.mobCardType:
                     mobs.append(c)
 
             if len(mobs) > 0:
@@ -1222,7 +1222,7 @@ class Card:
         elif effect.target_type == "all_players" and effect.amount == -1:
             mobs = []
             for c in Card.all_card_objects():
-                if c.card_type == Card.Constants.mobCardType:
+                if c.card_type == Constants.mobCardType:
                     mobs.append(c)
             for p in effect_owner.game.players:
                 while len(p.in_play) < 7:
@@ -1246,7 +1246,7 @@ class Card:
         if effect.target_type == "self" and effect.amount == 1:
             artifacts = []
             for c in target_player.deck:
-                if c.card_type == Card.Constants.artifactCardType:
+                if c.card_type == Constants.artifactCardType:
                     artifacts.append(c)
 
             if len(artifacts) > 0:
@@ -1265,7 +1265,7 @@ class Card:
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
         nonspells = []
         for card in target_player.hand:
-            if card.card_type != Card.Constants.spellCardType:
+            if card.card_type != Constants.spellCardType:
                 nonspells.append(card)
         if len(nonspells) > 0:
             to_summon = random.choice(nonspells)
@@ -1456,16 +1456,16 @@ class Card:
                 continue
             if e.target_type == "being_cast":
                 return True
-            if e.target_type == "being_cast_mob" and card.card_type == Card.Constants.mobCardType:
+            if e.target_type == "being_cast_mob" and card.card_type == Constants.mobCardType:
                 return True
-            if e.target_type == "being_cast_spell" and card.card_type == Card.Constants.spellCardType:
+            if e.target_type == "being_cast_spell" and card.card_type == Constants.spellCardType:
                 if len(e.target_restrictions) > 0 and list(e.target_restrictions[0].keys())[0] == "target" and list(e.target_restrictions[0].values())[0] == "mob":
                     action = spell[0]
-                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Card.Constants.mobCardType:
+                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
                         return True
                 else:
                     return True
-            if e.target_type == "being_cast_artifact" and card.card_type == Card.Constants.artifactCardType:
+            if e.target_type == "being_cast_artifact" and card.card_type == Constants.artifactCardType:
                 return True
         return False
 

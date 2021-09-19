@@ -258,7 +258,6 @@ def build_deck(request):
             deck = global_deck_object.deck_json
             deck["title"] = global_deck_object.deck_json["title"]
 
-
     cards = all_cards(require_images=True, include_tokens=False)
     cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     Analytics.log_amplitude(request, "Page View - View Deck", {"path":"/build_deck/", "page":"build deck", "deck_id":deck_id})
