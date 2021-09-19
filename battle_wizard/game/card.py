@@ -1151,12 +1151,16 @@ class Card:
         return[f"{stack_spell[1]['name']} was redirected to a newly summoned {token_card_name}."]
 
     def do_remove_player_abilities_effect(self, effect_owner, effect, target_info):
+        if "did_kill" in target_info and not target_info["did_kill"]:
+            return
         ability_to_remove = None
         # todo this should loop over the abilities in e, in the future there could be more than 1 ability to remove
+        print(effect_owner.abilities)
         for a in effect_owner.abilities:
             if a.id == self.id:
                 ability_to_remove = a
-        effect_owner.abilities.remove(a)
+        print(ability_to_remove)
+        effect_owner.abilities.remove(ability_to_remove)
 
     def do_remove_tokens_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self_mobs":
@@ -1360,7 +1364,7 @@ class Card:
         controller.game.remove_attack_for_mob(target_mob)
         new_card = Card.factory_reset_card(target_mob, controller)
         player = controller.game.players[0]
-        if new_card.owner_username != player.username:
+        if target_mob.owner_username != player.username:
             player = controller.game.players[1]
         player.hand.append(new_card)  
 

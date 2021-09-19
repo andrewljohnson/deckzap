@@ -15,6 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 class Player:
 
+    max_hit_points = 30
 
     def __init__(self, game, info, new=False, bot=None):
         self.is_ai = False
