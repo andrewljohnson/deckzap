@@ -388,7 +388,7 @@ class Player:
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["opponents_mob"]:
-                if self.game.has_target_for_opponents_mob_effect(effects[0].target_restrictions):
+                if self.game.opponent().has_target_for_mob_effect(effects[0].target_restrictions):
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
@@ -402,12 +402,13 @@ class Player:
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             else:
+                effect_targets = []
+                has_targets = "effect_targets" in message
                 for idx, e in enumerate(effects):
                     if e.target_type == "opponents_mob_random" and len(self.game.opponent().in_play) == 0:
                         continue
                     # todo think about this weird repeated setting of effect_targets in message
-                    if not "effect_targets" in message:
-                        effect_targets = []
+                    if not has_targets:
                         if e.target_type == "self" or e.name == "fetch_card":  
                             effect_targets.append({"id": username, "target_type":"player"})
                         elif e.target_type == "this":           
@@ -819,7 +820,7 @@ class Player:
         for card in self.hand:
             card.can_be_clicked = True
 
-    def set_targets_for_player_mob_effect(self, target_restrictions, player):
+    def set_targets_for_player_mob_effect(self, target_restrictions):
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "needs_guard":
             set_targets = False
             for e in self.in_play:
@@ -937,7 +938,8 @@ class Player:
                         tokens_to_remove.append(t)
                 for t in tokens_to_remove:
                     e.tokens.remove(t)
-                e.do_add_token_effect_on_mob(effect, self, e, self)
+                if e.card_type == "mob":
+                    e.do_add_token_effect_on_mob(effect, self, e, self)
 
         anything_friendly_has_fast = False
         for e in self.in_play:
@@ -971,7 +973,7 @@ class Player:
                             break
 
                 for e in self.in_play:
-                    e.do_add_token_effect_on_mob(effect, player, e, player)
+                    e.do_add_token_effect_on_mob(effect, self, e, self)
                     
     def get_starting_deck(self):
         if len(self.initial_deck):

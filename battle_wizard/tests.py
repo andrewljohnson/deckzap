@@ -170,26 +170,6 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.current_player().in_play), 1)
         self.assertEqual(len(game.opponent().in_play), 0)
 
-    def test_mind_manacles_gains_fast(self):
-        """
-            Tests Mind Manacles mob gains Fast if the player has it from casting Master Time
-        """
-        game = self.game_for_decks([["Stone Elemental"], ["Mind Manacles", "Master Time"]])
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        for x in range(0, 9):
-            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 2, "log_lines":[]})        
-        self.assertEqual(game.opponent().hit_points, 30)
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        self.assertEqual(game.opponent().hit_points, 28)
-
     def test_removed_attacked_after_combat_death(self):
         """
             Tests if a mob that dies in combat gets the attacked flag reset properly.

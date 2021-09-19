@@ -395,7 +395,7 @@ class Game:
         elif target_type == "opponents_mob":
             self.opponent().set_targets_for_player_mob_effect(target_restrictions)
         elif target_type == "self_mob":
-            self.current_player().set_targets_for_player_mob_effect(target_restrictions, self.current_player())
+            self.current_player().set_targets_for_player_mob_effect(target_restrictions)
         elif target_type == "being_cast_mob":
             self.set_targets_for_being_cast_mob_effect()
         elif target_type == "being_cast_spell":
