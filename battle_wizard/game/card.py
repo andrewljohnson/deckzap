@@ -512,7 +512,11 @@ class Card:
             return None
 
     def do_create_random_townie_effect(self, effect_owner, effect, target_info):
-        return self.do_create_random_townie_effect_with_reduce_cost(effect_owner, effect, target_info, 0)
+        log_lines = self.do_create_random_townie_effect_with_reduce_cost(effect_owner, effect, target_info, 0)
+        #todo fix hardcoding
+        if effect.counters == 0:
+            self.deactivate_instrument()
+        return log_lines
         
     def do_create_random_townie_effect_cheap(self, effect_owner, effect, target_info):
         return self.do_create_random_townie_effect_with_reduce_cost(effect_owner, effect, target_info, 1)
@@ -529,9 +533,6 @@ class Card:
         for x in range(0, effect.amount):
             t = random.choice(townies)
             player.add_to_deck(t.name, 1, add_to_hand=True, reduce_cost=reduce_cost)
-        #todo fix hardcoding
-        if effect.counters == 0 and self.name == "Lute":
-            self.deactivate_instrument()
         if effect.amount == 1:
             return [f"{player.username} makes {effect.amount} Townie."]
         return [f"{player.username} makes {effect.amount} Townies."]
@@ -1558,10 +1559,6 @@ class Card:
     def effects_triggered(self):
         return [e for e in self.effects if e.effect_type == "triggered"]
 
-    def effects_start_turn_draw(self):
-         # effects like Studious Child Vamp
-        return [e for e in self.effects if e.name == "draw" and e.trigger == "start_turn"]
-
     def effects_spell(self):
         return [e for e in self.effects if e.effect_type == "spell"]
 
@@ -1596,7 +1593,7 @@ class CardEffect:
         self.card_descriptions = info["card_descriptions"] if "card_descriptions" in info else []
         self.card_name = info["card_name"] if "card_name" in info else None
         self.card_names = info["card_names"] if "card_names" in info else []
-        self.counters = info["counters"] if "counters" in info else 0
+        self.counters = info["counters"] if "counters" in info else -1
         self.cost = info["cost"] if "cost" in info else 0
         self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
         self.description = info["description"] if "description" in info else None
