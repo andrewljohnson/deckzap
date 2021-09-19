@@ -1,7 +1,7 @@
 import datetime
 import random
-from battle_wizard.player import Player
-from battle_wizard.card import Card
+from battle_wizard.game.player import Player
+from battle_wizard.game.card import Card
 
 
 class PlayerAI(Player):

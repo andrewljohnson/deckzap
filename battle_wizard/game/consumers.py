@@ -6,9 +6,9 @@ import time
 
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.generic.websocket import WebsocketConsumer
-from battle_wizard.data import all_cards
-from battle_wizard.data import hash_for_deck
-from battle_wizard.game import Game
+from battle_wizard.game.data import all_cards
+from battle_wizard.game.data import hash_for_deck
+from battle_wizard.game.game import Game
 from battle_wizard.models import GameRecord
 from battle_wizard.models import GlobalDeck
 from deckzap.settings import DEBUG

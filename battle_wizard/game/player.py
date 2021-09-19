@@ -2,11 +2,12 @@ import copy
 import datetime
 import random
 
-from battle_wizard.card import Card, CardEffect, CardAbility
-from battle_wizard.data import default_deck_genie_wizard 
-from battle_wizard.data import default_deck_dwarf_tinkerer
-from battle_wizard.data import default_deck_dwarf_bard
-from battle_wizard.data import default_deck_vampire_lich
+from battle_wizard.game.card import Card, CardEffect, CardAbility
+from battle_wizard.game.data import Constants
+from battle_wizard.game.data import default_deck_genie_wizard 
+from battle_wizard.game.data import default_deck_dwarf_tinkerer
+from battle_wizard.game.data import default_deck_dwarf_bard
+from battle_wizard.game.data import default_deck_vampire_lich
 from battle_wizard.models import Deck
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,16 +15,20 @@ from django.core.exceptions import ObjectDoesNotExist
 
 class Player:
 
+    max_hit_points = 30
+
     def __init__(self, game, info, new=False, bot=None):
         self.is_ai = False
         self.username = info["username"]
         self.discipline = info["discipline"] if "discipline" in info else None
         self.deck_id = info["deck_id"] if "deck_id" in info else None
+
+        # used for replays, todo: use a random seed to make replays easier per @silberman
         self.initial_deck = [Card(c_info) for c_info in info["initial_deck"]] if "initial_deck" in info else []
 
         self.game = game
         if new:
-            self.hit_points = 30
+            self.hit_points = Player.max_hit_points
             self.damage_this_turn = 0
             self.damage_to_show = 0
             self.mana = 0
@@ -310,7 +315,7 @@ class Player:
         return card.resolve(self, spell_to_resolve)
 
     def play_mob_or_artifact(self, card, spell_to_resolve, do_effects=True):
-        if card.card_type == Card.mobCardType:
+        if card.card_type == Card.Constants.mobCardType:
             if len(card.effects) > 0 and do_effects:
                 self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
             for c in self.in_play + self.artifacts:
@@ -330,7 +335,7 @@ class Player:
                                         self.game.opponent().send_card_to_played_pile(mob, did_kill=True)
                                 spell_to_resolve["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {mob.name}.")
             self.play_mob(card)
-        elif card.card_type == Card.artifactCardType:
+        elif card.card_type == Card.Constants.artifactCardType:
             self.play_artifact(card)
             if card.has_ability("Slow Artifact"):
                 card.effects_exhausted.append(card.effects[0].name)
@@ -665,7 +670,7 @@ class Player:
         for c in self.deck:
             if c.id == message['card']:
                 card = c
-        if card_type == Card.artifactCardType:
+        if card_type == Card.Constants.artifactCardType:
             if into_play:
                 self.play_artifact(card)
             else:
@@ -730,16 +735,16 @@ class Player:
         if card.needs_artifact_target() and len(self.artifacts) == 0 and len(self.game.opponent().artifacts) == 0 :
             print(f"can't select artifact targetting spell with no artifacts in play")
             return None
-        elif card.card_type == Card.spellCardType and card.needs_mob_target() and not has_mob_target:
+        elif card.card_type == Card.Constants.spellCardType and card.needs_mob_target() and not has_mob_target:
             print(f"can't select mob targetting spell with no mobs without Lurker in play")
             return None
         elif card.has_ability("Instrument Required") and not self.has_instrument():
             print(f"can't cast {card.name} without having an Instument")
             return None
-        elif card.card_type == Card.artifactCardType and not self.can_play_artifact():
+        elif card.card_type == Card.Constants.artifactCardType and not self.can_play_artifact():
             print(f"can't play artifact")
             return None
-        elif card.card_type == Card.mobCardType and not self.can_summon():
+        elif card.card_type == Card.Constants.mobCardType and not self.can_summon():
             print(f"can't play Mob because can_summon is false")
             return None
         elif card.cost > self.current_mana():
@@ -912,7 +917,7 @@ class Player:
         if not card.is_token:
             player.played_pile.append(new_card)
 
-        if did_kill and card.card_type == Card.mobCardType:
+        if did_kill and card.card_type == Card.Constants.mobCardType:
             self.game.remove_attack_for_mob(card)
 
         player.update_for_mob_changes_zones()
