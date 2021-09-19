@@ -108,8 +108,6 @@ class Card:
         name = effect.name
         if name == "add_mob_abilities" or name == "add_player_abilities":
             return self.do_add_abilities_effect          
-        elif name == "add_effects":
-            return self.do_add_effects_effect         
         elif name == "add_random_mob_ability":
             return self.do_add_random_ability_effect_on_mobs
         elif name == "add_tokens":
@@ -361,31 +359,6 @@ class Card:
             target_player.abilities.append(ability)
             target_player.abilities[-1].id = self.id
             return [f"{target_player.username} gets {self.description}."]
-
-    def do_add_effects_effect(self, effect_owner, effect, target_info):
-        log_lines = []
-        if effect.target_type == "self_mobs":
-            for c in effect_owner.in_play:
-                for effect_effect in effect.effects:
-                    effect_effect.enabled = False
-                    self.do_add_effect_effect_on_mob(effect_effect, target_mob, controller)
-        elif effect.target_type == "opponents_mob":
-                for idx, effect_effect in enumerate(effect.effects):
-                    if effect_effect.name == "take_control":
-                        target_mob, controller = effect_owner.game.get_in_play_for_id(target_info["id"])
-                        log_lines.append(f"{effect_owner.username} takes control of {target_mob.name} with {self.name}.")
-                        self.do_add_effect_effect_on_mob(effect_effect, target_mob, controller)
-                        self.do_take_control_effect_on_mob(effect_owner, target_mob, controller)
-        # todo better log message
-        return log_lines
-
-    def do_add_effect_effect_on_mob(self, effect, target_mob, controller):
-        target_mob.effects.insert(0, effect)
-        target_mob.added_descriptions.append(effect.description)
-        if effect.activate_on_add:
-            # todo: make this generic if we add other added
-            if effect.name == "mana_increase_max":
-                target_mob.do_mana_increase_max_effect_on_player(controller, effect.amount)
 
     def do_add_random_ability_effect_on_mobs(self, effect_owner, effect, target_info):
         for card in effect_owner.in_play:

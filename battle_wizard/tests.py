@@ -806,38 +806,6 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.opponent().in_play[0].can_be_clicked, False)
         self.assertEqual(game.current_player().selected_spell(), None)
 
-    def test_gnomish_piper(self):
-        """
-            Test Gnomish Piper lets you attack with the mob.
-        """
-        game = self.game_for_decks([["Stone Elemental", "Stone Elemental"], ["Gnomish Piper"]])
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        for card in game.players[1].hand:
-            game.players[1].mana += card.cost
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 2, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
-        self.assertEqual(len(game.opponent().in_play), 0)
-
-    def test_gnomish_piper_gives_back(self):
-        """
-            Test Gnomish Piper gives back the mob.
-        """
-        game = self.game_for_decks([["Stone Elemental"], ["Gnomish Piper"]])
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        for card in game.players[1].hand:
-            game.players[1].mana += card.cost
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        self.assertEqual(len(game.opponent().in_play), 1)
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        self.assertEqual(len(game.opponent().in_play), 0)
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        self.assertEqual(game.current_player().in_play[0].name, "Stone Elemental")
-
     def test_akbars_pan_pipes(self):
         """
             Test Akbar's Pan Pipes makes a token,

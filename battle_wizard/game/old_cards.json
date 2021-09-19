@@ -407,29 +407,6 @@
 		}]
 	},
 	{
-		"name": "Nature's Blessing",
-		"race": "elf",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "All your mobs provide a mana each turn",
-		"effects": [{
-			"name": "add_effects",
-			"target_type": "self_mobs",
-			"effects": [{
-				"name": "mana_increase_max",
-				"effect_type": "spell",
-				"description": "You have an extra mana each turn.",
-				"amount": 1,
-				"activate_on_add": true
-			},
-			{
-				"name": "decrease_max_mana",
-				"amount": 1,
-				"effect_type": "leave_play"
-			}]
-		}]
-	},
-	{
 		"name": "Nature Rises",
 		"race": "elf",
 		"cost": 6,
@@ -966,42 +943,6 @@
 			{
 				"name": "Guard",
 				"descriptive_id": "Guard"
-			}
-		]
-	},
-	{
-		"name": "Gnomish Piper",
-		"race": "gnome",
-		"class": "bard",
-		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
-		"cost": 4,
-		"description": "Gain control of a mob this turn. It gets Ambush.",
-		"abilities": [			
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			}
-		],
-		"effects": [
-			{
-				"name": "add_effects",
-				"target_type": "opponents_mob",
-				"effect_type": "enter_play",
-				"effects": [{
-					"name": "take_control",
-					"effect_type": "enter_play",
-					"effect_type": "effects",
-					"turns": 1
-				}]
-			},
-			{
-				"name": "add_mob_abilities",
-				"effect_type": "enter_play",
-				"target_type": "opponents_mob",
-				"abilities": [{"name": "Ambush", "descriptive_id": "Ambush", "enabled": true}],
-				"turns": 1
 			}
 		]
 	},
