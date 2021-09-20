@@ -51,6 +51,7 @@ class Card:
         self.activated_effect_defs = []
         self.start_turn_effect_defs = []
         self.end_turn_effect_defs = []
+        self.draw_effect_defs = []
 
         # self.triggered_effect_defs = []
         for effect in self.effects:
@@ -66,6 +67,8 @@ class Card:
                 self.start_turn_effect_defs.append(self.effect_def_for_id(effect))
             if effect.effect_type == "triggered" and effect.trigger == "end_turn": 
                 self.end_turn_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "triggered" and effect.trigger == "draw": 
+                self.draw_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -157,7 +160,9 @@ class Card:
             return self.do_fetch_card_into_play_effect_on_player
         elif name == "gain_for_toughness":
             return self.do_gain_for_toughness_effect
-        elif name == "heal":
+        elif name == "hp_damage_random":
+            return self.do_hp_damage_random_effect
+        elif name == "heal":            
             return self.do_heal_effect
         elif name == "improve_damage_all_effects_when_used":
             return self.do_improve_damage_when_used_effect            
@@ -191,6 +196,8 @@ class Card:
             return self.do_pump_power_effect_on_mob
         elif name == "redirect_mob_spell":
            return self.do_redirect_mob_spell_effect
+        elif name == "reduce_cost":
+           return self.do_reduce_cost_effect
         elif name == "remove_tokens":
             return self.do_remove_tokens_effect
         elif name == "remove_player_abilities":
@@ -857,6 +864,20 @@ class Card:
         target_mob.damage_this_turn = max(target_mob.damage_this_turn, 0)
         return [f"{target_mob.name} heals {amount}."]
 
+    def do_hp_damage_random_effect(self, effect_owner, effect, target_info):
+        choice = random.choice(["hp", "damage"])
+        if choice == "hp":
+            return self.do_heal_effect_on_player(effect_owner, CardEffect({"amount": 1}, self.id))
+        elif choice == "damage":
+            targets = [self.my_opponent()]
+            for m in self.my_opponent().in_play:
+                targets.append(m)
+            choice = random.choice(targets)
+            if choice == targets[0]:
+                m.do_damage_effect_on_player(targets[0], choice, 1)
+            else:
+                m.do_damage_effect_on_mob(choice, self.my_opponent(), 1)
+
     def do_improve_damage_when_used_effect(self, effect_owner, effect, target_info):
         # Rolling Thunder
         self.effects[0].amount += 1
@@ -1149,6 +1170,12 @@ class Card:
                     if token.id != self.id:
                         tokens_to_keep.append(token)
                 mob.tokens = tokens_to_keep
+
+    def do_reduce_cost_effect(self, effect_owner, effect, target_info):
+        if not effect.target_type or self.card_type == effect.target_type:
+            self.cost -= 1
+            self.cost = max(0, self.cost)
+
 
     def do_riffle_effect(self, effect_owner, effect, target_info):
         player = effect_owner
@@ -1586,7 +1613,9 @@ class Card:
     def effects_activated(self):
         return [e for e in self.effects if e.effect_type == "activated"]
 
-    def effects_triggered(self):
+    def effects_triggered(self, trigger=None):
+        if trigger:
+            return [e for e in self.effects if e.effect_type == "triggered" and e.trigger == trigger]
         return [e for e in self.effects if e.effect_type == "triggered"]
 
     def effects_spell(self):

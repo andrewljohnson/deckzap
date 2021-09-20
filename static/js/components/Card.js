@@ -264,10 +264,7 @@ export class Card {
         }
 
         if (baseDescription || abilitiesText.length) {
-            // todo don't hardcode hide description for Infernus
-            // todo don't hardcode hide description for Winding One
-            if ((card.card_type == Constants.mobCardType && activatedEffects.length == 0) ||
-                card.card_type != Constants.mobCardType || card.turn_played == -1) {
+            if (card.card_type != Constants.mobCardType || card.turn_played == -1) {
                 cardSprite.addChild(description);
             }
         }

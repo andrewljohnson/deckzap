@@ -1,24 +1,5 @@
 [
 	{
-		"name": "Time Winder",
-		"race": "genie",
-		"card_type": "Mob",
-		"description": "✦✦✦: return a mob to its owner's hand.",
-		"power": 0,
-		"toughness": 2,
-		"cost": 3,
-		"abilities": [
-			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
-		],
-		"effects": [{
-				"name": "unwind",
-				"description": "✦✦✦: unwind a mob.",
-				"effect_type": "activated",
-				"target_type": "MOB",
-				"cost": 3
-		}]
-	},
-	{
 		"name": "Pine Treant",
 		"race": "elf",
 		"card_type": "mob",
@@ -339,25 +320,6 @@
 			"target_type": "self",
 			"amount": 4
 		}]	
-	},
-	{
-		"name": "Infernus",
-		"race": "genie",
-		"card_type": "mob",
-		"description": "Ability: pay 1, give this +1/+0",
-		"power": 5,
-		"toughness": 5,
-		"cost": 5,
-		"abilities": [
-			{"name": "Evade Guard", "descriptive_id": "Evade Guard"}
-		],
-		"effects": [{
-				"name": "pump_power",
-				"effect_type": "activated",
-				"target_type": "this",
-				"cost": 1,
-				"amount": 1		
-		}]
 	},
 	{
 		"name": "Nature's Guardian",
@@ -1123,27 +1085,6 @@
 				"target_type": "self_mobs"
 			}
 		]
-	},
-	{
-		"name": "Dazzling Solo",
-		"race": "gnome",
-		"class": "bard",
-		"cost": 10,
-		"card_type": "spell",
-		"description": "Gain control of all artifacts and mobs this turn. All of your mobs and artifacts get Fast.",
-		"abilities": [
-				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
-		],
-		"effects": [{
-			"name": "take_control",
-			"effect_type": "spell",
-			"target_type": "all",
-			"abilities": [
-				{
-					"name": "Fast",
-					"descriptive_id": "Fast"
-			}]
-		}]
 	},
 	{ 
 		"name": "Game Maker",

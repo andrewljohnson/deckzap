@@ -133,7 +133,6 @@ class BattleWizardConsumer(WebsocketConsumer):
         save = message["move_type"] not in [
             "ATTACK", 
             "ACTIVATE_ARTIFACT", 
-            "ACTIVATE_MOB",
             "PLAY_CARD",
             "RESOLVE_MOB_EFFECT",
             "SELECT_ARTIFACT",

@@ -150,8 +150,6 @@ class Game:
                 message = self.current_player().play_card(self.stack[-1][0]["card"], message)
         elif move_type == 'ACTIVATE_ARTIFACT':
             message = self.activate_artifact(message)            
-        elif move_type == 'ACTIVATE_MOB':
-            message = self.activate_mob(message)            
         elif move_type == 'HIDE_REVEALED_CARDS':
             message = self.hide_revealed_cards(message)            
         elif move_type == 'PLAY_CARD':
@@ -162,7 +160,7 @@ class Game:
              self.current_player().reset_card_info_to_target()
 
         # e.g. just pass if you bolt an attacker and you have nothing else to do
-        if move_type in ['ACTIVATE_ARTIFACT', 'ACTIVATE_MOB', 'PLAY_CARD', 'ATTACK']:
+        if move_type in ['ACTIVATE_ARTIFACT', 'PLAY_CARD', 'ATTACK']:
             cp = self.current_player()
             opp = self.opponent()
             anything_clickable = False
@@ -547,20 +545,13 @@ class Game:
 
     def remove_temporary_effects(self):
         for p in [[self.current_player(), self.opponent()], [self.opponent(), self.current_player()]]:
-            mobs_to_switch_sides = []
             for c in p[0].in_play:
                 perm_effects = []
                 for e in c.effects:
                     e.turns -= 1
-                    if e.turns == 0:
-                        if e.name == "take_control":
-                            mobs_to_switch_sides.append(c)                        
-                    else:
+                    if e.turns != 0:
                         perm_effects.append(e)
                 c.effects = perm_effects
-            for c in mobs_to_switch_sides:
-                p[0].in_play.remove(c)
-                p[1].in_play.append(c)
 
     def play_card_in_hand(self, message):
         card = None
@@ -788,10 +779,9 @@ class Game:
                 if info["target_type"] == "player":
                     print(f"already attacked {target_player.username} with {self.current_player().selected_artifact().name}")
                     return None                
-            if effect.name == "attack":
-                if target_player.has_guard():
-                    print(f"can't attack {target_player.username} because a Mob has Guard")
-                    return None                
+            if not target_player.can_be_clicked:
+                print(f"can't attack {target_player.username}, probably because a Mob has Guard")
+                return
             using_artifact = True
             message = self.select_player_target(target_player.username, self.current_player().selected_artifact(), message, "ACTIVATE_ARTIFACT")
         else:
@@ -935,35 +925,6 @@ class Game:
             self.current_player().send_card_to_played_pile(artifact, did_kill=True)
         return message
 
-    def activate_mob(self, message):
-        card_id = message["card"]
-        mob, _ = self.get_in_play_for_id(card_id)
-        if not mob.can_activate_abilities:
-            print(f"can't activate, already used {mob}")
-            return None
-
-        activated_effect_index = message["effect_index"]
-        e = mob.enabled_activated_effects()[activated_effect_index]
-
-        for a in mob.abilities:
-            if a.descriptive_id == "Lurker":
-                a.enabled = False
-
-        if e.name == "pump_power":
-            # todo don't hardcode for Infernus
-            message["log_lines"].append(mob.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {"id": mob.id, "target_type":e.target_type})) 
-        elif e.name == "unwind":
-            if "defending_card" in message:
-                message["log_lines"].append(mob.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, message["effect_targets"][0])) 
-                self.current_player().reset_card_info_to_target()
-                mob.can_activate_abilities = False
-            else:
-                message["log_lines"].append(f"{self.current_player().username} activates {mob.name}.")
-                message = self.current_player().target_or_do_mob_effects(mob, message, self.current_player().username, is_activated_effect=True)
-        else:
-            print(f"unsupported mob effect {e}")
-        return message
-
     def hide_revealed_cards(self, message):
         self.current_player().reset_card_choice_info()
         return message
@@ -1083,9 +1044,6 @@ class Game:
 
     def select_mob_target_for_artifact_activated_effect(self, artifact_with_effect_to_target, message):
         return self.select_mob_target(artifact_with_effect_to_target, message, "ACTIVATE_ARTIFACT", activated_effect=True)
-
-    def select_mob_target_for_mob_activated_effect(self, artifact_with_effect_to_target, message):
-        return self.select_mob_target(artifact_with_effect_to_target, message, "ACTIVATE_MOB", activated_effect=True)
 
     def select_player_target(self, username, card_with_effect_to_target, message, move_type):
         new_message = copy.deepcopy(message)
