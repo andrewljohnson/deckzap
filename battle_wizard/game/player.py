@@ -106,6 +106,17 @@ class Player:
                 return True
         return False
 
+    def has_opponents_mob_target(self):
+        for mob in self.my_opponent().in_play:
+            if not mob.has_ability("Lurker"):
+                return True
+        return False
+
+    def my_opponent(self):
+        if self == self.game.players[0]:
+            return self.game.players[1]
+        return self.game.players[0]
+
     def has_mob_target(self):
         for mob in self.in_play:
             if not mob.has_ability("Lurker"):
@@ -184,14 +195,14 @@ class Player:
                         if choice == "hp":
                             return m.do_heal_effect_on_player(self, CardEffect({"amount": 1}, m.id))
                         elif choice == "damage":
-                            targets = [self.game.opponent()]
-                            for m in self.game.opponent().in_play:
+                            targets = [self.my_opponent()]
+                            for m in self.my_opponent().in_play:
                                 targets.append(m)
                             choice = random.choice(targets)
                             if choice == targets[0]:
                                 m.do_damage_effect_on_player(self, choice, 1)
                             else:
-                                m.do_damage_effect_on_mob(choice, self.game.opponent(), 1)
+                                m.do_damage_effect_on_mob(choice, self.my_opponent(), 1)
 
             for r in self.artifacts:
                 for effect in r.effects_triggered():
@@ -267,7 +278,7 @@ class Player:
                     if card.has_ability("Fast"):
                         return True
                     if card.has_ability("Ambush"):
-                        for card in self.game.opponent().in_play:
+                        for card in self.my_opponent().in_play:
                             if not card.has_ability("Lurker"):
                                 return True
                     return False
@@ -324,8 +335,8 @@ class Player:
                     # Spouty Gas Ball code
                     if c.effects_triggered()[0].trigger == "play_friendly_mob":
                         if c.effects_triggered()[0].name == "damage" and c.effects_triggered()[0].target_type == "opponents_mob_random":
-                            if len(self.game.opponent().in_play) > 0:
-                                mob = random.choice(self.game.opponent().in_play)
+                            if len(self.my_opponent().in_play) > 0:
+                                mob = random.choice(self.my_opponent().in_play)
                                 if mob.shielded:
                                     mob.shielded = False
                                 else:
@@ -333,7 +344,7 @@ class Player:
                                     mob.damage_this_turn += c.effects_triggered()[0].amount
                                     mob.damage_to_show += c.effects_triggered()[0].amount
                                     if mob.damage >= mob.toughness_with_tokens():
-                                        self.game.opponent().send_card_to_played_pile(mob, did_kill=True)
+                                        self.my_opponent().send_card_to_played_pile(mob, did_kill=True)
                                 spell_to_resolve["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {mob.name}.")
             self.play_mob(card)
         elif card.card_type == Constants.artifactCardType:
@@ -354,7 +365,7 @@ class Player:
         self.artifacts.append(artifact)
         artifact.turn_played = self.game.turn
         # self.update_for_mob_changes_zones(self)
-        # self.game.opponent().update_for_mob_changes_zones()        
+        # self.my_opponent().update_for_mob_changes_zones()        
 
     def fast_ability(self):
         for a in self.abilities:
@@ -394,7 +405,7 @@ class Player:
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["opponents_mob"]:
-                if self.game.opponent().has_target_for_mob_effect(effects[0].target_restrictions):
+                if self.my_opponent().has_target_for_mob_effect(effects[0].target_restrictions):
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
@@ -411,7 +422,7 @@ class Player:
                 effect_targets = []
                 has_targets = "effect_targets" in message
                 for idx, e in enumerate(effects):
-                    if e.target_type == "opponents_mob_random" and len(self.game.opponent().in_play) == 0:
+                    if e.target_type == "opponents_mob_random" and len(self.my_opponent().in_play) == 0:
                         continue
                     # todo think about this weird repeated setting of effect_targets in message
                     if not has_targets:
@@ -422,7 +433,7 @@ class Player:
                         elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "self_mobs":           
                             effect_targets.append({"target_type": e.target_type})
                         elif e.target_type == "opponents_mob_random":           
-                            effect_targets.append({"id": random.choice(self.game.opponent().in_play).id, "target_type":"mob"})
+                            effect_targets.append({"id": random.choice(self.my_opponent().in_play).id, "target_type":"mob"})
                         message["effect_targets"] = effect_targets
                     message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, effect_targets[idx])) 
 
@@ -728,12 +739,12 @@ class Player:
                 artifact.effects[0].show_effect_animation = True
                 return message
 
-        if len(self.in_play + self.game.opponent().in_play) > 0:
-            for mob in self.in_play + self.game.opponent().in_play:
+        if len(self.in_play + self.my_opponent().in_play) > 0:
+            for mob in self.in_play + self.my_opponent().in_play:
                 if not mob.has_ability("Lurker"):
                     has_mob_target = True
 
-        if card.needs_artifact_target() and len(self.artifacts) == 0 and len(self.game.opponent().artifacts) == 0 :
+        if card.needs_artifact_target() and len(self.artifacts) == 0 and len(self.my_opponent().artifacts) == 0 :
             print(f"can't select artifact targetting spell with no artifacts in play")
             return None
         elif card.card_type == Constants.spellCardType and card.needs_mob_target() and not has_mob_target:
@@ -797,7 +808,7 @@ class Player:
                 card.can_be_clicked = True
         self.can_be_clicked = True
 
-    def set_targets_for_attack_effect(self, effect):
+    def set_targets_for_any_enemy_effect(self, effect):
         # todo artifacts might eventually need evade guard
         guard_mobs_without_lurker = []
         for card in self.in_play:
@@ -887,7 +898,7 @@ class Player:
         player = self
         if self.username != card.owner_username:
             if self == self.game.current_player():
-                player = self.game.opponent()
+                player = self.my_opponent()
             else:
                 player = self.game.current_player()
 
@@ -965,7 +976,7 @@ class Player:
         for r in self.artifacts:
             effect = r.effect_with_trigger("mob_changes_zones")
             if effect and effect.name == "set_token" and effect.target_type == "self_mobs":
-                for e in self.game.opponent().in_play:
+                for e in self.my_opponent().in_play:
                     for token in e.tokens:
                         if token.id == r.id:
                             e.tokens.remove(token)
@@ -993,7 +1004,6 @@ class Player:
                 self.add_to_deck(card_name, 1)
             random.shuffle(self.deck)
             self.initial_deck = copy.deepcopy(self.deck)
-            print(deck_to_use)
             self.discipline = deck_to_use["discipline"]
 
     def deck_for_id_or_url(self, id_or_url):
@@ -1080,7 +1090,7 @@ class Player:
     def add_resolve_mob_effects_moves(self, moves):
         mob_to_target = self.selected_mob()
         effect_type = self.card_info_to_target["effect_type"]
-        for card in self.game.opponent().in_play + self.in_play:
+        for card in self.my_opponent().in_play + self.in_play:
             if card.can_be_clicked and mob_to_target.id != card.id:
                 effect_target = {"id": card.id, "target_type":"mob"}
                 moves = self.add_effect_resolve_move(mob_to_target, effect_target, effect_type, moves)
@@ -1131,7 +1141,7 @@ class Player:
         for artifact in self.artifacts:
             if artifact.can_be_clicked:
                 moves.append({"card":artifact.id, "move_type": "SELECT_ARTIFACT", "username": self.username, "effect_index": 0})
-        for artifact in self.game.opponent().artifacts:
+        for artifact in self.my_opponent().artifacts:
             if artifact.can_be_clicked:
                 moves.append({"card":artifact.id, "move_type": "SELECT_ARTIFACT", "username": self.username, "effect_index": 0})
         for artifact in self.artifacts:
@@ -1151,7 +1161,7 @@ class Player:
                 mob.effects_activated()[0].cost <= self.current_mana():
                 # todo maybe mobs will have multiple effects, only have Winding One right now
                 moves.append({"card":mob.id, "move_type": "ACTIVATE_MOB", "username": self.username, "effect_index": 0})
-        for mob in self.game.opponent().in_play:
+        for mob in self.my_opponent().in_play:
             if mob.can_be_clicked:
                 moves.append({"card":mob.id , "move_type": "SELECT_MOB", "username": self.username})
         for card in self.hand:
@@ -1165,7 +1175,7 @@ class Player:
                     moves.append({"card":card.id , "move_type": "SELECT_CARD_IN_HAND", "username": self.username})
         if self.can_be_clicked:
             moves.append({"move_type": "SELECT_SELF", "username": self.username})
-        if self.game.opponent().can_be_clicked:
+        if self.my_opponent().can_be_clicked:
             moves.append({"move_type": "SELECT_OPPONENT", "username": self.username, "card": self.card_info_to_target["card_id"]})
         return moves
 

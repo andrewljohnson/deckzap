@@ -980,6 +980,7 @@
 		"effects": [{
 			"name": "spell_from_yard",
 			"effect_type": "triggered",
+			"trigger": "end_turn",
 			"target_type": "self",
 			"amount": 1
 		}]
@@ -1803,7 +1804,8 @@
 		"effects": [{
 			"name": "evolve",
 			"effect_type": "leave_play",
-			"target_type": "self"
+			"target_type": "self",
+			"original_name": "Warty Evolver"
 		}]
 	},
 	{
@@ -2248,7 +2250,7 @@
 				"amount": 1
 			},
 			{
-				"name": "improve_damage_when_used",
+				"name": "do_improve_damage_all_effects_when_used",
 				"effect_type": "triggered",
 				"amount": 1
 			}

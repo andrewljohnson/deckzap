@@ -50,6 +50,7 @@ class Card:
         self.leave_play_effect_defs = []
         self.activated_effect_defs = []
         self.start_turn_effect_defs = []
+        self.end_turn_effect_defs = []
 
         # self.triggered_effect_defs = []
         for effect in self.effects:
@@ -63,6 +64,8 @@ class Card:
                 self.spell_effect_defs.append(self.effect_def_for_id(effect))
             if effect.effect_type == "triggered" and effect.trigger == "start_turn": 
                 self.start_turn_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "triggered" and effect.trigger == "end_turn": 
+                self.end_turn_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -156,6 +159,8 @@ class Card:
             return self.do_gain_for_toughness_effect
         elif name == "heal":
             return self.do_heal_effect
+        elif name == "improve_damage_all_effects_when_used":
+            return self.do_improve_damage_when_used_effect            
         elif name == "improve_damage_when_used":
             return self.do_improve_damage_when_used_effect            
         elif name == "improve_effect_amount_when_cast":
@@ -194,6 +199,8 @@ class Card:
             return self.do_riffle_effect
         elif name == "set_can_attack":
             return self.do_set_can_attack_effect           
+        elif name == "spell_from_yard":
+            return self.do_spell_from_yard_effect           
         elif name == "stack_counter":
            return  self.do_counter_card_effect
         elif name == "store_mana":
@@ -399,7 +406,7 @@ class Card:
     def do_attack_effect(self, effect_owner, effect, target_info):
         target_id = target_info["id"]
         target_player = Card.player_for_username(effect_owner.game, target_id)            
-        #todo fix hardcoding attack effect, is every attack effect from a weapon?
+        # todo fix hardcoding attack effect, is every attack effect from a weapon?
         if target_info["target_type"] == "player":
             target_player = Card.player_for_username(effect_owner.game, target_info["id"])
             log_lines = self.do_attack_effect_on_player(effect_owner, target_player, effect.power, effect.amount_id)
@@ -513,7 +520,6 @@ class Card:
 
     def do_create_random_townie_effect(self, effect_owner, effect, target_info):
         log_lines = self.do_create_random_townie_effect_with_reduce_cost(effect_owner, effect, target_info, 0)
-        #todo fix hardcoding
         if effect.counters == 0:
             self.deactivate_instrument()
         return log_lines
@@ -538,19 +544,12 @@ class Card:
         return [f"{player.username} makes {effect.amount} Townies."]
 
     def deactivate_instrument(self):
-        # todo: don't hardcode for Lute
-        #ability_to_remove = None
-        #for a in self.effects:
-        #    if a.effect_type == "activated" and a.was_added:
-        #        ability_to_remove = a
-        #self.effects.remove(ability_to_remove)
         self.effects.pop(0)
         self.activated_effect_defs.pop(0)
         for a in self.effects:
             if a.effect_type == "activated":
                 a.enabled = True
         self.description = self.original_description
-        # self.can_activate_abilities = True        
 
     def do_damage_effect(self, effect_owner, effect, target_info):
         damage_amount = effect.amount 
@@ -749,7 +748,7 @@ class Card:
             evolver_card = None
             previous_card = None
             for c in Card.all_card_objects():
-                if c.name == "Warty Evolver":
+                if c.name == effect.original_name:
                     evolver_card = c
                 if self.name == c.name:
                     previous_card = c
@@ -861,6 +860,14 @@ class Card:
     def do_improve_damage_when_used_effect(self, effect_owner, effect, target_info):
         # Rolling Thunder
         self.effects[0].amount += 1
+        self.show_level_up = True
+        return [f"{self.name} gets improved to deal {self.effects[0].amount} damage."]
+
+    def do_improve_damage_all_effects_when_used_effect(self, effect_owner, effect, target_info):
+        # Doomer
+        for e in self.effects:
+            if e.name == "damage":
+                effect.amount += 1
         self.show_level_up = True
         return [f"{self.name} gets improved to deal {self.effects[0].amount} damage."]
 
@@ -1129,11 +1136,9 @@ class Card:
             return
         ability_to_remove = None
         # todo this should loop over the abilities in e, in the future there could be more than 1 ability to remove
-        print(effect_owner.abilities)
         for a in effect_owner.abilities:
             if a.id == self.id:
                 ability_to_remove = a
-        print(ability_to_remove)
         effect_owner.abilities.remove(ability_to_remove)
 
     def do_remove_tokens_effect(self, effect_owner, effect, target_info):
@@ -1162,6 +1167,20 @@ class Card:
             return [f"{player.username} lets their mobs attack again this turn."]          
         else:
             print(f"e.target_type {target_type} not supported for set_can_attack")
+
+    def do_spell_from_yard_effect(self, effect_owner, effect, target_info):
+        spells = []
+        for card in effect_owner.played_pile:
+            if card.card_type == Constants.spellCardType:
+                spells.append(card)
+        if len(spells) == 0:
+            return
+        else:
+            if len(effect_owner.hand) < effect_owner.game.max_hand_size:
+                spell = random.choice(spells)
+                effect_owner.hand.append(spell)
+                effect_owner.played_pile.remove(spell)
+                return [f"{self.name} returns {spell.name} to {effect_owner.username}'s hand."]
 
     def do_store_card_for_next_turn_effect(self, effect_owner, effect, target_info):
         for c in effect_owner.hand:
@@ -1447,6 +1466,18 @@ class Card:
                 return True
         return False
 
+    def needs_opponent_mob_target_for_spell(self):
+        e = self.effects_spell()[0]
+        if e.target_type in ["opponents_mob"]:
+            return True
+        return False
+
+    def needs_opponent_mob_target_for_spell(self):
+        e = self.effects_spell()[0]
+        if e.target_type in ["opponents_mob"]:
+            return True
+        return False
+
     def needs_mob_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]
         if e.target_type in ["mob", "opponents_mob", "self_mob"]:
@@ -1515,7 +1546,6 @@ class Card:
 
     def toughness_with_tokens(self):
         toughness = self.toughness
-        print(self.name)
         for t in self.tokens:
             toughness += t.toughness_modifier
         return toughness
@@ -1605,6 +1635,7 @@ class CardEffect:
         self.make_type = info["make_type"] if "make_type" in info else None
         self.multiplier = info["multiplier"] if "multiplier" in info else None
         self.name = info["name"] if "name" in info else None 
+        self.original_name = info["original_name"] if "original_name" in info else None 
         self.power = info["power"] if "power" in info else None
         self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
         self.show_effect_animation = info["show_effect_animation"] if "show_effect_animation" in info else False
@@ -1643,6 +1674,7 @@ class CardEffect:
             "make_type": self.make_type,
             "multiplier": self.multiplier,
             "name": self.name,
+            "original_name": self.original_name,
             "power": self.power,
             "sacrifice_on_activate": self.sacrifice_on_activate,
             "show_effect_animation": self.show_effect_animation,

@@ -623,6 +623,8 @@ class GameObjectTests(TestCase):
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
+        for c in game.players[1].in_play:
+            print(f"IN TEST: {c.name} has can_be_clicked {c.can_be_clicked}")
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().hit_points, 27)
         game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
@@ -983,7 +985,7 @@ class GameObjectTests(TestCase):
         game = self.game_for_decks([["Mana Battery", "Winding One", "Winding One"], []])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().artifacts), 1)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 0)
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, -1)
         for x in range(0,3):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})

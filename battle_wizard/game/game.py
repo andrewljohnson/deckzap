@@ -105,7 +105,6 @@ class Game:
             if (message["username"] != self.current_player().username):
                 print(f"can't {move_type} on opponent's turn")
                 return None
-            self.unset_clickables(move_type)
         if move_type == 'START_FIRST_TURN':
             message = self.current_player().start_turn(message)            
         # moves sent by the game UX via buttons and card clicks
@@ -177,6 +176,7 @@ class Game:
                 return self.play_move({"move_type": "RESOLVE_NEXT_STACK", "username": cp.username})
 
         if move_type != 'JOIN' or len(self.players) == 2:
+            self.unset_clickables(move_type)
             self.set_clickables()
 
         return message
@@ -258,7 +258,7 @@ class Game:
                     if card.has_ability("Guard") or not opp.has_guard() or selected_mob.has_ability("Evade Guard"):
                         if not card.has_ability("Lurker"):
                             card.can_be_clicked = True
-        
+
         if cp.card_info_to_target["effect_type"]:
             return
 
@@ -334,11 +334,7 @@ class Game:
                             else:
                                 card.can_be_clicked = True
                 if card.card_type == Constants.spellCardType and card.needs_mob_target():
-                    card.can_be_clicked = False
-                    if len(cp.in_play + opp.in_play) > 0:
-                        for mob in cp.in_play + opp.in_play:
-                            if not mob.has_ability("Lurker"):
-                                card.can_be_clicked = True
+                    card.can_be_clicked = cp.has_mob_target()
                 if card.card_type == Constants.spellCardType and card.needs_artifact_target():
                     card.can_be_clicked = False if len(cp.artifacts) == 0 and len(opp.artifacts) == 0 else True
                 if card.card_type == Constants.spellCardType and card.needs_stack_target():
@@ -349,11 +345,8 @@ class Game:
                     card.can_be_clicked = False
                     if card.has_ability("Conjure"):
                         card.can_be_clicked = True
-                if card.name == "Mind Manacles":
-                    card.can_be_clicked = False
-                    for e in opp.in_play:
-                        if not e.has_ability("Lurker"):
-                            card.can_be_clicked = True
+                if card.card_type == Constants.spellCardType and card.needs_opponent_mob_target_for_spell():
+                    card.can_be_clicked = cp.has_opponents_mob_target()
                 if card.has_ability("Instrument Required") and not cp.has_instrument():
                     card.can_be_clicked = False
                 if card.card_type == Constants.spellCardType and len(self.stack) > 0 and card.card_subtype == "turn-only":
@@ -373,8 +366,8 @@ class Game:
         if target_type == "any_player":
             self.opponent().can_be_clicked = True
             self.current_player().can_be_clicked = True
-        elif target_type == "any_enemy" and effect and effect.name == "attack":
-            self.opponent().set_targets_for_attack_effect(effect)
+        elif target_type == "any_enemy":
+            self.opponent().set_targets_for_any_enemy_effect(effect)
         elif target_type == "any_enemy":
             self.opponent().set_targets_for_damage_effect()
         elif target_type == "any":
@@ -539,27 +532,12 @@ class Game:
         for mob in self.current_player().in_play + self.current_player().artifacts:
             # this works because all end_turn triggered effects dont have targets to choose
             effect_targets = mob.unchosen_targets(self.current_player(), effect_type="triggered")            
-            index = 0
-            for effect in mob.effects_triggered():
-                if effect.name == "spell_from_yard":
-                    spells = []
-                    for card in self.current_player().played_pile:
-                        if card.card_type == Constants.spellCardType:
-                            spells.append(card)
-                    if len(spells) == 0:
-                        continue
-                    else:
-                        if len(self.current_player().hand) < self.max_hand_size:
-                            spell = random.choice(spells)
-                            self.current_player().hand.append(spell)
-                            self.current_player().played_pile.remove(spell)
-                elif effect.name == "damage" and effect.trigger == "end_turn":
-                    message["log_lines"] += mob.do_damage_effect(self.current_player(), effect, effect_targets[index])
-                elif effect.name == "improve_damage_when_used":
-                    # hax for Doomer, this would break if it didnt have two damage effects
-                    mob.effects[0].amount += 1
-                    mob.effects[1].amount += 1
-                index += 1
+            for idx, effect in enumerate(mob.effects_triggered()):
+                if effect.trigger == "end_turn":
+                    effect.show_effect_animation = True
+                    log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
+                    if log_lines:
+                        [message["log_lines"].append(line) for line in log_lines]
 
         self.turn += 1
         self.actor_turn += 1
@@ -709,20 +687,9 @@ class Game:
         return message
 
     def activate_artifact_on_mob(self, message, defending_card, defending_player, effect_index):
-        if defending_card.has_ability("Lurker"):
-            print(f"can't target mob with Lurker")
-            return None                
-        effect = self.current_player().selected_artifact().effects[effect_index]
-        if effect.name == "attack":
-            if defending_player.has_guard() and not defending_card.has_ability("Guard"):
-                return None                
-
-            for info in effect.targetted_this_turn:
-                if info["target_type"] == "mob":
-                    card, _ = self.get_in_play_for_id(info["id"])
-                    if info["id"] == defending_card.id:
-                        print(f"already attacked {defending_card.name} with {self.current_player().selected_artifact().name}")
-                        return None                
+        if not defending_card.can_be_clicked:
+            print(f"{defending_card.name} can't be targetted with {self.current_player().selected_artifact().name}")
+            return
 
         message["move_type"] = "ACTIVATE_ARTIFACT"
         message["effect_index"] = effect_index
@@ -733,6 +700,9 @@ class Game:
         return message      
 
     def activate_artifact_on_hand_card(self, message, artifact, hand_card, effect_index):
+        if not hand_card.can_be_clicked:
+            return
+
         message["move_type"] = "ACTIVATE_ARTIFACT"
         message["effect_index"] = effect_index
         message["card"] = self.current_player().selected_artifact().id
