@@ -53,6 +53,7 @@ class Card:
         self.end_turn_effect_defs = []
         self.draw_effect_defs = []
         self.play_friendly_mob_effect_defs = []
+        self.sent_to_played_piled_effect_defs = []
 
         # self.triggered_effect_defs = []
         for effect in self.effects:
@@ -72,6 +73,8 @@ class Card:
                 self.draw_effect_defs.append(self.effect_def_for_id(effect))
             if effect.effect_type == "triggered" and effect.trigger == "play_friendly_mob": 
                 self.play_friendly_mob_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "triggered" and effect.trigger == "sent_to_played_pile": 
+                self.sent_to_played_piled_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -195,6 +198,10 @@ class Card:
             return self.do_mana_set_max_effect
         elif name == "mob_to_artifact":
             return self.do_mob_to_artifact_effect
+        elif name == "preserve_stats":
+            return self.do_preserve_stats_effect
+        elif name == "preserve_effect_improvement":
+            return self.do_preserve_effect_improvement_effect
         elif name == "pump_power":
             return self.do_pump_power_effect_on_mob
         elif name == "redirect_mob_spell":
@@ -576,12 +583,12 @@ class Card:
             return self.do_damage_effect_on_player(effect_owner, target_player, effect.amount, effect.amount_id)
         elif target_type == "opponents_mobs":
             return self.damage_mobs(effect_owner.game, effect_owner.game.opponent().in_play, damage_amount, effect_owner.username, f"{effect_owner.game.opponent().username}'s mobs")
-        elif target_type == "opponents_mob_random":
+        elif effect.target_type == "opponents_mob_random":
             if len(effect_owner.my_opponent().in_play) > 0:
                 mob = random.choice(effect_owner.my_opponent().in_play)
-                target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
-                log_lines = [f"{effect_owner.username} deals {damage_amount} damage to {target_mob.name}."]
-                self.do_damage_effect_on_mob(target_mob, controller, effect.amount, effect.amount_id)
+                _, controller = effect_owner.game.get_in_play_for_id(mob.id)
+                log_lines = [f"{effect_owner.username} deals {damage_amount} damage to {mob.name}."]
+                self.do_damage_effect_on_mob(mob, controller, effect.amount, effect.amount_id)
                 return log_lines
         elif target_type == "all_mobs" or target_type == "all":
             damage_taker = "all mobs"
@@ -1133,6 +1140,31 @@ class Card:
         target_player.max_mana -= max(effect.amount, 0)
         target_player.mana = min(target_player.mana, target_player.max_mana)
         return [f"{target_player.username} decreases max mana by {effect.amount}."]
+
+    def do_preserve_effect_improvement_effect(self, effect_owner, effect, target_info):
+        new_card = Card.factory_reset_card(self, effect_owner)
+        old_effect_amount = self.effects[0].amount 
+        old_level = self.level
+        print([a for a in dir(self) if not a.startswith('__') and not callable(getattr(self, a))])
+        for a in dir(self):
+            if not a.startswith('__') and not callable(getattr(self, a)):
+                setattr(self, a, getattr(new_card, a))
+        self.effects[0].amount = old_effect_amount
+        # hax - does this more belong in factory_reset_card?
+        self.level = old_level
+
+    def do_preserve_stats_effect(self, effect_owner, effect, target_info):
+        new_card = Card.factory_reset_card(self, effect_owner)
+        old_power = self.power
+        old_toughness = self.toughness
+        old_level = self.level
+        print([a for a in dir(self) if not a.startswith('__') and not callable(getattr(self, a))])
+        for a in dir(self):
+            if not a.startswith('__') and not callable(getattr(self, a)):
+                setattr(self, a, getattr(new_card, a))
+        self.power = old_power
+        self.toughness = old_toughness
+        self.level = old_level
 
     def do_pump_power_effect_on_mob(self, effect_owner, effect, target_info):
         target_mob, _ = effect_owner.game.get_in_play_for_id(target_info['id'])

@@ -312,25 +312,9 @@ class Player:
                 self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
             for c in self.in_play + self.artifacts:
                 for idx, effect in enumerate(c.effects_triggered("play_friendly_mob")):
-                    if effect.trigger == "start_turn":
-                        effect.show_effect_animation = True
-                        message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
+                    effect.show_effect_animation = True
+                    spell_to_resolve["log_lines"].append(c.resolve_effect(c.play_friendly_mob_effect_defs[idx], self, effect, {}))
 
-                if len(c.effects_triggered()) > 0:
-                    # Spouty Gas Ball code
-                    if c.effects_triggered()[0].trigger == "play_friendly_mob":
-                        if c.effects_triggered()[0].name == "damage" and c.effects_triggered()[0].target_type == "opponents_mob_random":
-                            if len(self.my_opponent().in_play) > 0:
-                                mob = random.choice(self.my_opponent().in_play)
-                                if mob.shielded:
-                                    mob.shielded = False
-                                else:
-                                    mob.damage += c.effects_triggered()[0].amount
-                                    mob.damage_this_turn += c.effects_triggered()[0].amount
-                                    mob.damage_to_show += c.effects_triggered()[0].amount
-                                    if mob.damage >= mob.toughness_with_tokens():
-                                        self.my_opponent().send_card_to_played_pile(mob, did_kill=True)
-                                spell_to_resolve["log_lines"].append(f"{c.name} deal {c.effects_triggered()[0].amount} damage to {mob.name}.")
             self.play_mob(card)
         elif card.card_type == Constants.artifactCardType:
             self.play_artifact(card)
@@ -893,28 +877,23 @@ class Player:
         # hax - Warty Evolver and maybe other cards that evolve on death
         did_evolve = card.has_effect("evolve")
 
-        new_card = card
-        if not did_evolve:
-            new_card = Card.factory_reset_card(card, player)
-            # hax
-            if new_card.name in ["Rolling Thunder", "Dwarf Council"]:
-                new_card.effects[0].amount = card.effects[0].amount 
-            elif new_card.name == "Fidget Spinner":
-                new_card.power = card.power
-                new_card.toughness = card.toughness
-            # hax - does this more belong in factory_reset_card?
-            new_card.level = card.level
+        if did_evolve:
+            card.attacked = False
+            card.damage = 0
+            card.damage_to_show = 0
+            card.damage_this_turn = 0
+            card.turn_played = -1
+            card.added_descriptions = ["Evolves."]
         else:
-            new_card.attacked = False
-            new_card.damage = 0
-            new_card.damage_to_show = 0
-            new_card.damage_this_turn = 0
-            new_card.turn_played = -1
-            new_card.added_descriptions = ["Evolves."]
-
-
+            # these effects override the normal factory_reset
+            if len(card.effects_triggered("sent_to_played_pile")) > 0:
+                for idx, effect in enumerate(card.effects_triggered("sent_to_played_pile")):
+                    effect.show_effect_animation = True
+                    card.resolve_effect(card.sent_to_played_piled_effect_defs[idx], self, effect, {}) 
+            else:
+                card = Card.factory_reset_card(card, player)
         if not card.is_token:
-            player.played_pile.append(new_card)
+            player.played_pile.append(card)
 
         if did_kill and card.card_type == Constants.mobCardType:
             self.game.remove_attack_for_mob(card)

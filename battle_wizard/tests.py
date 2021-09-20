@@ -1032,7 +1032,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(25, game.players[1].hit_points)
 
-
     def test_tame_shop_demon(self):
         """
             Test Tame Shop Demon

@@ -1197,6 +1197,13 @@
 				"keep_power_increase": 1,
 				"keep_toughness_increase": 1
 			}
+		],
+		"effects": [
+			{
+				"name": "preserve_stats",
+				"effect_type": "triggered",
+				"trigger": "sent_to_played_pile"
+			}		
 		]
 	},
 	{
@@ -1217,6 +1224,11 @@
 			"name": "improve_damage_when_used",
 			"effect_type": "spell",
 			"amount": 1
+		},
+		{
+			"name": "preserve_effect_improvement",
+			"effect_type": "triggered",
+			"trigger": "sent_to_played_pile"
 		}]
 	},
 	{
@@ -1555,7 +1567,12 @@
 				"name": "improve_effect_amount_when_cast",
 				"effect_type": "spell",
 				"amount": 1
-			}
+			},
+			{
+				"name": "preserve_effect_improvement",
+				"effect_type": "triggered",
+				"trigger": "sent_to_played_pile"
+			}		
 		]
 	},
 	{
