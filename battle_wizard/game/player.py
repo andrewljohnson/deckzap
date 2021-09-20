@@ -311,6 +311,11 @@ class Player:
             if len(card.effects) > 0 and do_effects:
                 self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
             for c in self.in_play + self.artifacts:
+                for idx, effect in enumerate(c.effects_triggered("play_friendly_mob")):
+                    if effect.trigger == "start_turn":
+                        effect.show_effect_animation = True
+                        message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
+
                 if len(c.effects_triggered()) > 0:
                     # Spouty Gas Ball code
                     if c.effects_triggered()[0].trigger == "play_friendly_mob":
@@ -477,10 +482,9 @@ class Player:
 
             card.can_activate_abilities = True
 
-            for idx, effect in enumerate(card.effects_triggered()):
-                if effect.trigger == "start_turn":
-                    effect.show_effect_animation = True
-                    message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
+            for idx, effect in enumerate(card.effects_triggered("start_turn")):
+                effect.show_effect_animation = True
+                message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
 
         for r in self.artifacts:
             r.can_activate_abilities = True

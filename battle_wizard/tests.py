@@ -1048,3 +1048,16 @@ class GameObjectTests(TestCase):
         self.assertEqual("Awesomerachaun", game.players[0].in_play[1].name)
 
 
+    def test_spouty_gas_ball(self):
+        """
+            Test Spouty Gas Ball pings.
+        """
+        game = self.game_for_decks([["Spouty Gas Ball", "Stone Elemental"], ["Stone Elemental"]])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        self.assertEqual(game.opponent().in_play[0].damage, 1)

@@ -52,6 +52,7 @@ class Card:
         self.start_turn_effect_defs = []
         self.end_turn_effect_defs = []
         self.draw_effect_defs = []
+        self.play_friendly_mob_effect_defs = []
 
         # self.triggered_effect_defs = []
         for effect in self.effects:
@@ -69,6 +70,8 @@ class Card:
                 self.end_turn_effect_defs.append(self.effect_def_for_id(effect))
             if effect.effect_type == "triggered" and effect.trigger == "draw": 
                 self.draw_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "triggered" and effect.trigger == "play_friendly_mob": 
+                self.play_friendly_mob_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -573,6 +576,13 @@ class Card:
             return self.do_damage_effect_on_player(effect_owner, target_player, effect.amount, effect.amount_id)
         elif target_type == "opponents_mobs":
             return self.damage_mobs(effect_owner.game, effect_owner.game.opponent().in_play, damage_amount, effect_owner.username, f"{effect_owner.game.opponent().username}'s mobs")
+        elif target_type == "opponents_mob_random":
+            if len(effect_owner.my_opponent().in_play) > 0:
+                mob = random.choice(effect_owner.my_opponent().in_play)
+                target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
+                log_lines = [f"{effect_owner.username} deals {damage_amount} damage to {target_mob.name}."]
+                self.do_damage_effect_on_mob(target_mob, controller, effect.amount, effect.amount_id)
+                return log_lines
         elif target_type == "all_mobs" or target_type == "all":
             damage_taker = "all mobs"
             if target_type == "all":
