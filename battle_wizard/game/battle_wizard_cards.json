@@ -535,7 +535,13 @@
 		],
 		"effects": [
 			{
-				"name": "toggle_symbiotic_fast",
+				"name": "remove_symbiotic_fast",
+				"effect_type": "triggered",
+				"target_type": "self",
+				"trigger": "mob_changes_zones"
+			},
+			{
+				"name": "add_symbiotic_fast",
 				"effect_type": "triggered",
 				"target_type": "self",
 				"trigger": "mob_changes_zones"
@@ -878,8 +884,17 @@
 		"effects": [
 			{
 				"name": "store_mana",
-				"target_type": "self",
 				"trigger": "start_turn",
+				"effect_type": "triggered"
+			},
+			{
+				"name": "use_stored_mana",
+				"trigger": "spend_mana",
+				"effect_type": "triggered"
+			},
+			{
+				"name": "augment_mana",
+				"trigger": "check_mana",
 				"effect_type": "triggered"
 			}
 		]
@@ -1137,8 +1152,7 @@
 		"cost": 10,
 		"effects": [{
 			"name": "refresh_mana",
-			"target_type": "self",
-			"trigger": "mana_exhausted",
+			"trigger": "spend_mana",
 			"effect_type": "triggered"
 		}]
 	},

@@ -681,7 +681,7 @@ class GameObjectTests(TestCase):
             Test Gird for Battle.
         """
         game = self.game_for_decks([["Gird for Battle", "Arsenal", "Arsenal", "Arsenal", "Arsenal", "Arsenal", "Arsenal", "Arsenal"], []])
-        game.players[0].mana = 5
+        game.players[0].mana = game.players[0].hand[0].cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 1)
         self.assertEqual(len(game.current_player().artifacts), 1)
@@ -961,16 +961,16 @@ class GameObjectTests(TestCase):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(game.current_player().mana, 4)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 3)
         self.assertEqual(game.current_player().current_mana(), 7)
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 3)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().mana, 1)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 3)
         self.assertEqual(game.current_player().current_mana(), 4)
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 3)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 2, "log_lines":[]})
         self.assertEqual(game.current_player().mana, 0)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 1)
         self.assertEqual(game.current_player().current_mana(), 1)
+        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 1)
 
     def test_spell_archaeologist(self):
         """

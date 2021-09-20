@@ -23,6 +23,7 @@ class Player:
         self.username = info["username"]
         self.discipline = info["discipline"] if "discipline" in info else None
         self.deck_id = info["deck_id"] if "deck_id" in info else None
+        self.card_mana = 0
 
         # used for replays, todo: use a random seed to make replays easier per @silberman
         self.initial_deck = [Card(c_info) for c_info in info["initial_deck"]] if "initial_deck" in info else []
@@ -136,14 +137,15 @@ class Player:
         return False
 
     def current_mana(self):
-        return self.mana + self.mana_from_artifacts()
+        return self.mana + self.mana_from_cards()
 
-    def mana_from_artifacts(self):
-        mana = 0
+    def mana_from_cards(self):
         for artifact in self.artifacts:
-            for effect in artifact.effects:
-                if effect.name == "store_mana":
-                    mana += effect.counters
+            for idx, effect in enumerate(artifact.effects_triggered("check_mana")):
+                effect.show_effect_animation = True
+                artifact.resolve_effect(artifact.check_mana_effect_defs[idx], self, effect, {})
+        mana = self.card_mana
+        self.card_mana = 0
         return mana
 
     def add_to_deck(self, card_name, count, add_to_hand=False, card_cost=None, reduce_cost=0):
@@ -202,14 +204,9 @@ class Player:
             amount_to_spend -= 1
 
         for artifact in self.artifacts:
-            for effect in artifact.effects:
-                if effect.name == "refresh_mana":
-                    if self.mana == 0:
-                        self.mana = self.max_mana
-                elif effect.name == "store_mana":
-                    while amount_to_spend > 0 and effect.counters > 0:                        
-                        effect.counters -= 1
-                        amount_to_spend -= 1
+            for idx, effect in enumerate(artifact.effects_triggered("spend_mana")):
+                effect.show_effect_animation = True
+                artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend})
 
     def artifact_in_play(self, card_id):
         for card in self.artifacts:
@@ -395,7 +392,7 @@ class Player:
                         continue
                     # todo think about this weird repeated setting of effect_targets in message
                     if not has_targets:
-                        if e.target_type == "self" or e.name == "fetch_card":  
+                        if e.target_type in ["self", "all_cards_in_deck", "artifact", "all_cards_in_played_pile"]:  
                             effect_targets.append({"id": username, "target_type":"player"})
                         elif e.target_type == "this":           
                             effect_targets.append({"id": card.id, "target_type":"mob"})
@@ -901,63 +898,11 @@ class Player:
         player.update_for_mob_changes_zones()
 
     def update_for_mob_changes_zones(self):
-
-        # code for War Scorpion
         for e in self.in_play + self.artifacts:
-            effect = e.effect_with_trigger("mob_changes_zones")
-            if effect and effect.name == "toggle_symbiotic_fast":
-                abilities_to_remove = []
-                for ability in e.abilities:
-                    if ability.name == "Fast":
-                       abilities_to_remove.append(ability) 
-                for ability in abilities_to_remove:
-                    e.abilities.remove(ability)
-
-            # code for Spirit of the Stampede and Vamp Leader
-            if effect and effect.name == "set_token":
-                tokens_to_remove = []
-                for t in e.tokens:
-                    if t.id == e.id:
-                        tokens_to_remove.append(t)
-                for t in tokens_to_remove:
-                    e.tokens.remove(t)
-                if e.card_type == "mob":
-                    e.do_add_token_effect_on_mob(effect, self, e, self)
-
-        anything_friendly_has_fast = False
-        for e in self.in_play:
-            if e.has_ability("Fast"):
-                anything_friendly_has_fast = True
-
-        for e in self.in_play:
-            effect = e.effect_with_trigger("mob_changes_zones")
-            if effect and effect.name == "toggle_symbiotic_fast":
-                if anything_friendly_has_fast:
-                    e.abilities.append(CardAbility({
-                        "name": "Fast",
-                        "descriptive_id": "Fast"
-                    }, len(e.abilities)))
-
-
-        # code for Arsenal artifact
-        for r in self.artifacts:
-            effect = r.effect_with_trigger("mob_changes_zones")
-            if effect and effect.name == "set_token" and effect.target_type == "self_mobs":
-                for e in self.my_opponent().in_play:
-                    for token in e.tokens:
-                        if token.id == r.id:
-                            e.tokens.remove(token)
-                            break
-
-                for e in self.game.current_player().in_play:
-                    for token in e.tokens:
-                        if token.id == r.id:
-                            e.tokens.remove(token)
-                            break
-
-                for e in self.in_play:
-                    e.do_add_token_effect_on_mob(effect, self, e, self)
-                    
+            for idx, effect in enumerate(e.effects_triggered("mob_changes_zones")):
+                effect.show_effect_animation = True
+                e.resolve_effect(e.mob_changes_zones_effect_defs[idx], self, effect, {})                     
+    
     def get_starting_deck(self):
         if len(self.initial_deck):
             self.deck = self.initial_deck

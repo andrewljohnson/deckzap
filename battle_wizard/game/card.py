@@ -54,6 +54,9 @@ class Card:
         self.draw_effect_defs = []
         self.play_friendly_mob_effect_defs = []
         self.sent_to_played_piled_effect_defs = []
+        self.mob_changes_zones_effect_defs = []
+        self.spend_mana_effect_defs = []
+        self.check_mana_effect_defs = []
 
         # self.triggered_effect_defs = []
         for effect in self.effects:
@@ -75,6 +78,12 @@ class Card:
                 self.play_friendly_mob_effect_defs.append(self.effect_def_for_id(effect))
             if effect.effect_type == "triggered" and effect.trigger == "sent_to_played_pile": 
                 self.sent_to_played_piled_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "triggered" and effect.trigger == "mob_changes_zones": 
+                self.mob_changes_zones_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "triggered" and effect.trigger == "spend_mana": 
+                self.spend_mana_effect_defs.append(self.effect_def_for_id(effect))
+            if effect.effect_type == "triggered" and effect.trigger == "check_mana": 
+                self.check_mana_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -126,6 +135,8 @@ class Card:
             return self.do_add_tokens_effect
         elif name == "attack":
             return self.do_attack_effect
+        elif name == "augment_mana":
+            return self.do_augment_mana_effect
         elif name == "buff_power_toughness_from_mana":
             return self.do_buff_power_toughness_from_mana_effect
         elif name == "create_card":
@@ -208,6 +219,10 @@ class Card:
            return self.do_redirect_mob_spell_effect
         elif name == "reduce_cost":
            return self.do_reduce_cost_effect
+        elif name == "refresh_mana":
+            return self.do_refresh_mana_effect
+        elif name == "use_stored_mana":
+            return self.do_use_stored_mana_effect
         elif name == "remove_tokens":
             return self.do_remove_tokens_effect
         elif name == "remove_player_abilities":
@@ -234,6 +249,12 @@ class Card:
             return self.do_take_extra_turn_effect_on_player
         elif name == "take_control":
             return self.do_take_control_effect
+        elif name == "add_symbiotic_fast":
+            return self.do_add_symbiotic_fast_effect
+        elif name == "remove_symbiotic_fast":
+            return self.do_remove_symbiotic_fast_effect
+        elif name == "set_token":
+            return self.do_set_token_effect
         elif name == "unwind":
             return self.do_unwind_effect
         elif name == "upgrade_card_next_turn":
@@ -367,8 +388,10 @@ class Card:
         if effect.counters >= 1:
             effect.counters -= 1
         log_lines = effect_def(effect_owner, effect, target_info)
-        effect_owner.spend_mana(effect.cost)
-        effect_owner.hit_points -= effect.cost_hp
+        if effect.cost > 0:
+            effect_owner.spend_mana(effect.cost)
+        if effect.cost_hp > 0:
+            effect_owner.hit_points -= effect.cost_hp
         return log_lines
 
     def do_add_abilities_effect(self, effect_owner, effect, target_info):
@@ -436,6 +459,13 @@ class Card:
             else:
                 controller.send_card_to_played_pile(self, did_kill=True)
         return log_lines
+
+    def do_augment_mana_effect(self, effect_owner, effect, target_info):
+        store_effect = None
+        for e in self.effects:
+            if e.name == "store_mana":
+                store_effect = e
+        effect_owner.card_mana += store_effect.counters
 
     def deactivate_weapon(self):
         # todo: don't hardcode for dagger
@@ -1218,7 +1248,20 @@ class Card:
             self.cost -= 1
             self.cost = max(0, self.cost)
 
+    def do_refresh_mana_effect(self, effect_owner, effect, target_info):
+        if effect_owner.mana == 0:
+            effect_owner.mana = effect_owner.max_mana
 
+    def do_use_stored_mana_effect(self, effect_owner, effect, target_info):
+        amount_to_spend = target_info["amount_to_spend"]
+        store_effect = None
+        for e in self.effects:
+            if e.name == "store_mana":
+                store_effect = e
+        while amount_to_spend > 0 and store_effect.counters > 0:                        
+            store_effect.counters -= 1
+            amount_to_spend -= 1
+    
     def do_riffle_effect(self, effect_owner, effect, target_info):
         player = effect_owner
         top_cards = []
@@ -1265,6 +1308,7 @@ class Card:
         if counters > effect.counters:
             log_lines = [f"{self.name} stores {counters - effect.counters} mana."]   
         effect.counters = min(3, counters)
+        print (f"do_store_mana_effect with effect.counters now {effect.counters} and self.effects[0].counters {self.effects[0].counters}")
         return log_lines
 
     def do_summon_from_deck_effect_on_player(self, effect_owner, effect, target_info):
@@ -1346,6 +1390,51 @@ class Card:
         effect_owner.hit_points = effect_owner.game.opponent().hit_points
         effect_owner.game.opponent().hit_points = cp_hp
         return [f"{effect_owner.username} uses {self.name} to switch hit points with {effect_owner.game.opponent().username}."]
+
+    def do_add_symbiotic_fast_effect(self, effect_owner, effect, target_info):
+        anything_friendly_has_fast = False
+        for e in effect_owner.in_play:
+            if e.has_ability("Fast"):
+                anything_friendly_has_fast = True
+
+        if anything_friendly_has_fast:
+            self.abilities.append(CardAbility({
+                "name": "Fast",
+                "descriptive_id": "Fast"
+            }, len(self.abilities)))
+
+    def do_remove_symbiotic_fast_effect(self, effect_owner, effect, target_info):
+        abilities_to_remove = []
+        for ability in self.abilities:
+            if ability.name == "Fast":
+               abilities_to_remove.append(ability) 
+        for ability in abilities_to_remove:
+            self.abilities.remove(ability)
+
+    def do_set_token_effect(self, effect_owner, effect, target_info):
+        tokens_to_remove = []
+        for t in self.tokens:
+            if t.id == self.id:
+                tokens_to_remove.append(t)
+        for t in tokens_to_remove:
+            self.tokens.remove(t)
+        
+        if self.card_type == "mob": # code for Spirit of the Stampede and Vamp Leader
+            self.do_add_token_effect_on_mob(effect, effect_owner, self, effect_owner)
+        elif effect.target_type == "self_mobs": # Arsenal
+            for e in effect_owner.my_opponent().in_play:
+                for token in e.tokens:
+                    if token.id == self.id:
+                        e.tokens.remove(token)
+                        break
+
+            for e in effect_owner.in_play:
+                for token in e.tokens:
+                    if token.id == self.id:
+                        e.tokens.remove(token)
+                        break
+            for mob in effect_owner.in_play:
+                mob.do_add_token_effect_on_mob(effect, effect_owner, mob, effect_owner)
 
     def do_take_control_effect(self, effect_owner, effect, target_info):
         # e, effect_owner, target_mob
