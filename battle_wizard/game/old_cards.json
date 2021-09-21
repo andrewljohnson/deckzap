@@ -32,16 +32,19 @@
 		"toughness": 5,
 		"cost": 5,
 		"description": "Get a 1/2 dryad token with Guard when this dies.",
-		"abilities": [
-				{"name": "Guard", "descriptive_id": "Guard"}
-		],
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Oak Dryad",
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target_override"
+		}
+		]
 	},
 	{
 		"name": "Oak Dryad",
@@ -51,9 +54,13 @@
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		]	
 	},
 	{
 		"name": "Summon-Happy Genie",
@@ -227,9 +234,13 @@
 		"power": 1,
 		"toughness": 3,
 		"cost": 1,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		]	
 	},
 	{
 		"name": "Largest Gorilla in the Forest",
@@ -266,9 +277,13 @@
 		"power": 3,
 		"toughness": 5,
 		"cost": 4,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		]	
 	},
 
 	{
@@ -311,14 +326,16 @@
 		"toughness": 4,
 		"cost": 6,
 		"description": "Draw 4 cards.",
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		],
 		"effects": [{
 			"name": "draw",
 			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 4
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target_override"
 		}]	
 	},
 	{
@@ -328,9 +345,13 @@
 		"power": 8,
 		"toughness": 8,
 		"cost": 6,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		]	
 	},
 	{
 		"name": "Make Mob+",
@@ -878,19 +899,19 @@
 		"toughness": 8,
 		"cost": 8,
 		"description": "Get an 8/8 mob with Guard when this dies.",
-		"abilities": [			
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			}
-		],
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Great Guardian Reborn",
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target_override"
+		}
+	]
 	},
 	{
 		"name": "Great Guardian Reborn",
@@ -901,12 +922,13 @@
 		"power": 8,
 		"toughness": 8,
 		"cost": 8,
-		"abilities": [			
+		"effects": [
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
 			}
-		]
+		]	
 	},
 	{
 		"name": "Gnomish Militia",
@@ -917,19 +939,19 @@
 		"toughness": 5,
 		"cost": 5,
 		"description": "Add 2 Town Rangers to your hand.",
-		"abilities": [			
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			}
-		],
 		"effects": [{
 				"name": "create_card",
 				"card_name": "Town Ranger",
 				"effect_type": "enter_play",
 				"target_type": "self",
 				"amount": 2
-		}]
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target_override"
+		}		
+		]
 	},
 	{
 		"name": "Resonant Frequency",
@@ -959,10 +981,6 @@
 		"description": "Gain control of a random mob at the beginning of your turn.",
 		"abilities": [			
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
-			{
 				"name": "Instrument Required",
 				"descriptive_id": "Instrument Required"
 			}
@@ -972,7 +990,13 @@
 				"trigger": "start_turn",
 				"effect_type": "triggered",
 				"target_type": "opponents_mob_random"
+			},
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
 			}
+
 		]
 	},
 	{
@@ -1002,11 +1026,14 @@
 		"toughness": 8,
 		"cost": 8,
 		"description": "Draw 2 cards. Draw an extra card each turn. As long as you control an instrument, you can't be reduced to less than 1 hit point.",
-		"abilities": [			
+		"effects": [
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		],	
+		"abilities": [			
 			{
 				"name": "Instrument Required",
 				"descriptive_id": "Instrument Required"
@@ -1046,7 +1073,13 @@
 						"descriptive_id": "Can't Die"
 					}
 				]				
+			},
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
 			}
+
 		]
 	},
 	{
@@ -1104,42 +1137,6 @@
 		}]
 	},
 	{
-		"name": "Dagger",
-		"card_type": "artifact",
-		"image": "bone-knife.svg",
-		"discipline": "magic",
-		"cost": 1,
-		"description": "Pay 2, make this a 1 power weapon with 2 charges.",
-		"original_description": "Pay 2, make this a 1 power weapon with 2 charges.",
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			},
-			{
-				"name": "Weapon",
-				"descriptive_id": "Weapon"
-			}
-		],
-		"effects": [{
-				"name": "enable_activated_effect",
-				"effect_type": "activated",
-				"target_type": "self",
-				"cost": 2,
-				"effect_to_activate": {
-					"name": "attack",
-					"effect_type": "activated",
-					"description": "Remove a counter: Attack an enemy for 1 damage.",
-					"target_type": "any_enemy",
-					"counters": 2,
-					"cost": 0,
-					"power": 1,
-					"was_added": true
-				}
-		}]
-	},
-	
-	{
 		"name": "Stone Elemental",
 		"discipline": "magic",
 		"card_type": "mob",
@@ -1155,26 +1152,14 @@
 		"power": 1,
 		"toughness": 5,
 		"cost": 2,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
-	},
-	{
-		"name": "Hide",
-		"discipline": "magic",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Target mob gains Lurker.",
-		"effects": [ 
+		"effects": [
 			{
-				"name": "add_mob_abilities",
-				"effect_type": "spell",
-				"target_type": "mob",
-				"abilities": [{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}],
-				"ai_target_types": ["self_mob"]
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
 			}
-		]
-	},	
+		]	
+	},
 	{
 		"name": "Prayer Beads",
 		"card_type": "artifact",
@@ -1194,5 +1179,32 @@
 				"cost": 1,
 				"amount": 2
 		}]
-	}
+	},
+	{
+		"name": "Hide",
+		"discipline": "magic",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "Target mob gains Lurker.",
+		"effects": [ 
+			{
+				"name": "add_mob_effects",
+				"effect_type": "spell",
+				"target_type": "mob",
+				"effects": [
+					{
+						"name": "lose_lurker",
+						"effect_type": "triggered",
+						"trigger": "after_attack"
+					},
+					{
+						"name": "make_untargettable",
+						"effect_type": "triggered",
+						"trigger": "select_mob_target"
+					}
+				],
+				"ai_target_types": ["self_mob"]
+			}
+		]
+	}	
 ]

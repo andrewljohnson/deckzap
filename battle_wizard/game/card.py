@@ -57,33 +57,45 @@ class Card:
         self.mob_changes_zones_effect_defs = []
         self.spend_mana_effect_defs = []
         self.check_mana_effect_defs = []
+        self.after_attack_effect_defs = []
+        self.select_mob_target_effect_defs = []
+        self.select_mob_target_override_effect_defs = []
 
         # self.triggered_effect_defs = []
         for effect in self.effects:
-            if effect.effect_type == "activated":
-                self.activated_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "enter_play":
-                self.enter_play_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "leave_play":
-                 self.leave_play_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "spell":
-                self.spell_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "start_turn": 
-                self.start_turn_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "end_turn": 
-                self.end_turn_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "draw": 
-                self.draw_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "play_friendly_mob": 
-                self.play_friendly_mob_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "sent_to_played_pile": 
-                self.sent_to_played_piled_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "mob_changes_zones": 
-                self.mob_changes_zones_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "spend_mana": 
-                self.spend_mana_effect_defs.append(self.effect_def_for_id(effect))
-            if effect.effect_type == "triggered" and effect.trigger == "check_mana": 
-                self.check_mana_effect_defs.append(self.effect_def_for_id(effect))
+            self.create_effect_def(effect)
+
+    def create_effect_def(self, effect):
+        if effect.effect_type == "activated":
+            self.activated_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "enter_play":
+            self.enter_play_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "leave_play":
+             self.leave_play_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "spell":
+            self.spell_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "start_turn": 
+            self.start_turn_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "end_turn": 
+            self.end_turn_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "draw": 
+            self.draw_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "play_friendly_mob": 
+            self.play_friendly_mob_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "sent_to_played_pile": 
+            self.sent_to_played_piled_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "mob_changes_zones": 
+            self.mob_changes_zones_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "spend_mana": 
+            self.spend_mana_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "check_mana": 
+            self.check_mana_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "after_attack": 
+            self.after_attack_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "select_mob_target": 
+            self.select_mob_target_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "select_mob_target_override": 
+            self.select_mob_target_override_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -129,12 +141,14 @@ class Card:
         name = effect.name
         if name == "add_mob_abilities" or name == "add_player_abilities":
             return self.do_add_abilities_effect          
+        elif name == "add_mob_effects":
+            return self.do_add_mob_effects_effect
         elif name == "add_random_mob_ability":
             return self.do_add_random_ability_effect_on_mobs
+        elif name == "add_symbiotic_fast":
+            return self.do_add_symbiotic_fast_effect
         elif name == "add_tokens":
             return self.do_add_tokens_effect
-        elif name == "attack":
-            return self.do_attack_effect
         elif name == "augment_mana":
             return self.do_augment_mana_effect
         elif name == "buff_power_toughness_from_mana":
@@ -175,6 +189,8 @@ class Card:
             return self.do_fetch_card_effect_on_player
         elif name == "fetch_card_into_play":
             return self.do_fetch_card_into_play_effect_on_player
+        elif name == "force_attack_guard_first":
+            return self.do_force_attack_guard_first_effect
         elif name == "gain_for_toughness":
             return self.do_gain_for_toughness_effect
         elif name == "hp_damage_random":
@@ -191,6 +207,8 @@ class Card:
             return self.do_improve_effect_when_cast_effect            
         elif name == "kill":
             return self.do_kill_effect
+        elif name == "lose_lurker":
+            return self.do_lose_lurker_effect
         elif name == "make":
             return self.do_make_effect
         elif name == "make_cheap_with_option":
@@ -199,6 +217,8 @@ class Card:
             return self.do_make_from_deck_effect
         elif name == "make_token":
             return self.do_make_token_effect
+        elif name == "make_untargettable":
+            return self.do_make_untargettable_effect
         elif name == "mana":
             return self.do_mana_effect_on_player
         elif name == "mana_increase_max":
@@ -221,8 +241,8 @@ class Card:
            return self.do_reduce_cost_effect
         elif name == "refresh_mana":
             return self.do_refresh_mana_effect
-        elif name == "use_stored_mana":
-            return self.do_use_stored_mana_effect
+        elif name == "remove_symbiotic_fast":
+            return self.do_remove_symbiotic_fast_effect
         elif name == "remove_tokens":
             return self.do_remove_tokens_effect
         elif name == "remove_player_abilities":
@@ -231,6 +251,8 @@ class Card:
             return self.do_riffle_effect
         elif name == "set_can_attack":
             return self.do_set_can_attack_effect           
+        elif name == "set_token":
+            return self.do_set_token_effect
         elif name == "spell_from_yard":
             return self.do_spell_from_yard_effect           
         elif name == "stack_counter":
@@ -249,16 +271,12 @@ class Card:
             return self.do_take_extra_turn_effect_on_player
         elif name == "take_control":
             return self.do_take_control_effect
-        elif name == "add_symbiotic_fast":
-            return self.do_add_symbiotic_fast_effect
-        elif name == "remove_symbiotic_fast":
-            return self.do_remove_symbiotic_fast_effect
-        elif name == "set_token":
-            return self.do_set_token_effect
         elif name == "unwind":
             return self.do_unwind_effect
         elif name == "upgrade_card_next_turn":
             return self.do_upgrade_card_next_turn_effect
+        elif name == "use_stored_mana":
+            return self.do_use_stored_mana_effect
         else:
             print(f"UNSUPPORTED EFFECT NAME: {name}")
 
@@ -407,6 +425,14 @@ class Card:
             target_player.abilities[-1].id = self.id
             return [f"{target_player.username} gets {self.description}."]
 
+    def do_add_mob_effects_effect(self, effect_owner, effect, target_info):
+        target_id = target_info["id"]
+        target_mob, controller = effect_owner.game.get_in_play_for_id(target_id)
+        for e in effect.effects:
+            target_mob.effects.append(e)
+            target_mob.create_effect_def(e)            
+        return [f"{target_mob.name} gets {effect.name}."]
+
     def do_add_random_ability_effect_on_mobs(self, effect_owner, effect, target_info):
         for card in effect_owner.in_play:
             self.do_add_random_ability_effect_on_mob(card)
@@ -443,53 +469,6 @@ class Card:
             controller.send_card_to_played_pile(target_mob, did_kill=True)
         return [f"{target_mob.name} gets {token}."]
 
-    def do_attack_effect(self, effect_owner, effect, target_info):
-        target_id = target_info["id"]
-        target_player = Card.player_for_username(effect_owner.game, target_id)            
-        # todo fix hardcoding attack effect, is every attack effect from a weapon?
-        if target_info["target_type"] == "player":
-            target_player = Card.player_for_username(effect_owner.game, target_info["id"])
-            log_lines = self.do_attack_effect_on_player(effect_owner, target_player, effect.power, effect.amount_id)
-        else:
-            target_mob, controller = effect_owner.game.get_in_play_for_id(target_info["id"])
-            log_lines = self.do_attack_effect_on_mob(effect_owner, effect, target_mob, controller, effect.power)
-        if effect.counters == 0:
-            if effect.was_added:
-                self.deactivate_weapon()
-            else:
-                controller.send_card_to_played_pile(self, did_kill=True)
-        return log_lines
-
-    def do_augment_mana_effect(self, effect_owner, effect, target_info):
-        store_effect = None
-        for e in self.effects:
-            if e.name == "store_mana":
-                store_effect = e
-        effect_owner.card_mana += store_effect.counters
-
-    def deactivate_weapon(self):
-        # todo: don't hardcode for dagger
-        ability_to_remove = None
-        for a in self.effects:
-            if a.effect_type == "activated" and a.was_added:
-                ability_to_remove = a
-        self.effects.remove(ability_to_remove)
-        for a in self.effects:
-            if a.effect_type == "activated":
-                a.enabled = True
-        self.description = self.original_description
-        # self.can_activate_abilities = True        
-
-    def do_attack_effect_on_player(self, effect_owner, target_player, power, amount_id):
-        self.do_damage_effect_on_player(effect_owner, target_player, power, amount_id)
-        self.do_attack_abilities(effect_owner)
-        return [f"{effect_owner.username} attacks {target_player.username} for {power} damage."]
-
-    def do_attack_effect_on_mob(self, effect_owner, effect, target_mob, controller, amount):
-        self.do_damage_effect_on_player(effect_owner, effect_owner, target_mob.power)
-        self.do_damage_effect_on_mob(target_mob, controller, amount)
-        return [f"{effect_owner.username} attacks {target_mob.name} for {amount} damage."]
-
     def do_attack_abilities(self, effect_owner):
         if self.has_ability("DamageDraw"):
             ability = None
@@ -516,6 +495,13 @@ class Card:
                     "amount": 1
                 }, 0), {"id": effect_owner.game.opponent().username })
  
+    def do_augment_mana_effect(self, effect_owner, effect, target_info):
+        store_effect = None
+        for e in self.effects:
+            if e.name == "store_mana":
+                store_effect = e
+        effect_owner.card_mana += store_effect.counters
+
     def do_buff_power_toughness_from_mana_effect(self, effect_owner, effect, target_info):
         mana_count = effect_owner.current_mana()
         effect_owner.spend_mana(effect_owner.current_mana())
@@ -851,7 +837,6 @@ class Card:
         for card in target_player.deck:
             if card.card_type == Constants.artifactCardType:
                 if len(target_restrictions) == 0 or \
-                    (list(target_restrictions[0].keys())[0] == "needs_weapon" and card.has_ability("Weapon")) or \
                     (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
                     artifacts.append(card)
         if len(artifacts) > 0:
@@ -871,11 +856,29 @@ class Card:
         else:
             return None
 
+    def do_force_attack_guard_first_effect(self, effect_owner, effect, target_info):
+        guard_mobs = []
+        for mob in effect_owner.my_opponent().in_play:
+            for effect in mob.effects:
+                if effect.name == "force_attack_guard_first" and mob.can_be_clicked:
+                    guard_mobs.append(mob)
+
+        if len(guard_mobs) > 0:
+            for mob in effect_owner.my_opponent().in_play:
+                mob.can_be_clicked = mob in guard_mobs
+            effect_owner.my_opponent().can_be_clicked = False
+
+
     def do_gain_for_toughness_effect(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
         if target_mob:
             controller.hit_points += target_mob.toughness_with_tokens()
             controller.hit_points = min(controller.max_hit_points, controller.hit_points)
+
+    def do_lose_lurker_effect(self, effect_owner, effect, target_info):
+        for effect in self.effects:
+            if effect.name == "make_untargettable":
+                effect.enabled = False
 
     def do_heal_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self":
@@ -1147,6 +1150,10 @@ class Card:
         else:
             return [f"{self.name} makes {effect.amount} tokens for {player.username}."]
 
+    def do_make_untargettable_effect(self, effect_owner, effect, target_info):
+        if effect.enabled:
+            self.can_be_clicked = False
+    
     def do_mana_increase_max_effect_on_player(self, effect_owner, effect, target_info):
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
         old_max_mana = target_player.max_mana
@@ -1641,37 +1648,6 @@ class Card:
         if e.target_type in ["mob", "opponents_mob", "self_mob"]:
             return True
         return False
-
-    def needs_and_doesnt_have_legal_attack_targets(self, game):
-        if not self.has_ability("multi_mob_attack"):  
-            return False                  
-        return not self.has_targets_for_attack_effect(game, self.effects[0])
-
-    def has_targets_for_attack_effect(self, game, effect):
-        # todo artifacts might eventually need evade guard
-        guard_mobs_without_lurker = []
-        clickable_ids = []
-        for card in game.opponent().in_play:
-            if card.has_ability("Guard") and not card.has_ability("Lurker"):
-                guard_mobs_without_lurker.append(card)
-        if len(guard_mobs_without_lurker) == 0:
-            for card in game.opponent().in_play:
-                if not card.has_ability("Lurker"):
-                     clickable_ids.append(card.id)
-            # todo this assumes card ids never clash with usernames
-            clickable_ids.append(game.opponent().username)
-        else:
-            for card in guard_mobs_without_lurker:
-                clickable_ids.append(card.id)
-
-        for info in effect.targetted_this_turn:
-            if info["target_type"] == "player" and info["id"] in clickable_ids:
-                clickable_ids.remove(info["id"])
-            else:
-                card, _ = game.get_in_play_for_id(info["id"])
-                if card and card.id in clickable_ids:
-                    clickable_ids.remove(card.id)
-        return len(clickable_ids) > 0
 
     def needs_self_mob_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]

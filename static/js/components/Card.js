@@ -186,7 +186,7 @@ export class Card {
         let color = Constants.darkGrayColor;
         if ("abilities" in card) {
 	        for (let a of card.abilities) {
-	            if (!["Starts in Play", "die_to_top_deck", "multi_mob_attack", "Weapon"].includes(a.descriptive_id)) {
+	            if (!["Starts in Play"].includes(a.descriptive_id)) {
 	                if (a.description) {
 	                    abilitiesText += a.description;
 	                    color = Constants.blackColor;
@@ -311,14 +311,6 @@ export class Card {
             typeOptions.fill = Constants.whiteColor;
 
             let typeName = card.card_type;
-            if ("abilities" in card) {
-	            for (let a of card.abilities) {
-	                if ("Weapon" == a.descriptive_id) {
-	                    typeName = a.descriptive_id;
-	                }
-	            }
-            }
-
             let type = new PIXI.Text(typeName.charAt(0).toUpperCase() + typeName.slice(1), typeOptions);
             type.position.x = typeX + 20;
             type.position.y = typeY + 6
@@ -365,8 +357,8 @@ export class Card {
 
     static spriteInPlay(card, pixiUX, game, player, dont_attach_listeners) {
         let cardTexture = Card.cardTextureInPlay;
-        for (let a of card.abilities) {
-            if (a.name == "Guard") {
+        for (let e of card.effects) {
+            if (e.name == "force_attack_guard_first") {
                 cardTexture = Card.cardTextureInPlayGuard;
             }                    
         }
@@ -785,9 +777,6 @@ export class Card {
                 }                    
                 if (a.name == "Unique") {
                     abilityText.text = "Unique - only one Unique card is allowed per deck.";
-                }                    
-                if (a.name == "Weapon") {
-                    abilityText.text = "Weapon - Weapons can be used to attack players and mobs.";
                 }                    
                 if (a.name == "Instrument") {
                     abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";

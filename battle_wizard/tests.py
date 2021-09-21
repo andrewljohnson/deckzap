@@ -102,7 +102,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 26)
 
     def test_unwind_mana_shrub(self):
@@ -215,7 +215,11 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
         legal_moves = PlayerAI(game, game.current_player().as_dict()).legal_moves_for_ai()
+        print(legal_moves)
         self.assertEqual(len(legal_moves), 1)
+        self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)
+        self.assertEqual(game.opponent().can_be_clicked, False)
+
 
     def test_town_wizard_makes(self):
         """
@@ -307,7 +311,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 28)
         self.assertEqual(len(game.opponent().hand), 0)
         self.assertEqual(len(game.opponent().played_pile), 1)
@@ -402,7 +406,7 @@ class GameObjectTests(TestCase):
         game.players[0].mana = 2
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 3)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 3, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 4)
@@ -553,7 +557,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 28)
 
     def test_mana_storm(self):
@@ -581,7 +585,7 @@ class GameObjectTests(TestCase):
         game = self.game_for_decks([deck1,deck2])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})        
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})        
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})        
         self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points - 2)
         for x in range(0,4):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
@@ -591,7 +595,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})        
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})        
         self.assertEqual(game.current_player().hit_points, game.current_player().max_hit_points)
 
 
@@ -609,60 +613,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(game.current_player()), 3)
-
-    def test_multishot_bow(self):
-        """
-            Test Multishot Bow can attack multiple times, but not the same thing twice.
-        """
-        game = self.game_for_decks([["Multishot Bow"], ["Orc", "Orc"]])
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})        
-        for card in game.players[1].hand:
-            game.players[1].mana += card.cost
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 2, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        for card in game.players[0].hand:
-            game.players[0].mana += card.cost
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, 27)
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2, "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, 24)
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, 24)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 2)
-        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
-        self.assertEqual(game.opponent().hit_points, 27)
-        self.assertEqual(game.current_player().artifacts[0].effects[0].counters, 1)
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
-        self.assertEqual(len(game.current_player().artifacts), 1)
-        self.assertEqual(game.opponent().hit_points, 27)
-
-    def test_multishot_guard(self):
-        """
-            Test Multishot Bow obeys Guard on mobs
-        """
-        game = self.game_for_decks([["Multishot Bow"], ["Air Elemental", "Orc"]])
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        for card in game.players[1].hand:
-            game.players[1].mana += card.cost
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 2, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        for card in game.players[0].hand:
-            game.players[0].mana += card.cost
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2, "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, game.current_player().max_hit_points)
-        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
-        self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points)
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, game.current_player().max_hit_points - 1)
 
     def test_enraged_stomper(self):
         """
@@ -804,9 +754,9 @@ class GameObjectTests(TestCase):
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        self.assertEqual(game.opponent().in_play[0].can_be_clicked, False)
-        self.assertEqual(game.current_player().selected_spell(), None)
+        for card in game.players[1].hand:
+            game.players[1].mana += card.cost
+        self.assertEqual(game.current_player().hand[0].can_be_clicked, False)
 
     def test_akbars_pan_pipes(self):
         """
@@ -929,11 +879,11 @@ class GameObjectTests(TestCase):
             game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
             game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 28)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 23)
 
     def test_lightning_elemental(self):

@@ -146,11 +146,14 @@
 		"power": 3,
 		"toughness": 2,
 		"cost": 5,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Ambush",
 				"descriptive_id": "Ambush"
@@ -173,9 +176,13 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 2,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		]	
 	},
 	{
 		"name": "Training Master",
@@ -200,7 +207,18 @@
 		"power": 3,
 		"toughness": 4,
 		"cost": 3,
-		"abilities": [{"name": "Lurker", "descriptive_id": "Lurker"}]
+		"effects": [
+			{
+				"name": "lose_lurker",
+				"effect_type": "triggered",
+				"trigger": "after_attack"
+			},
+			{
+				"name": "make_untargettable",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		]	
 	},
 	{
 		"name": "Lightning Elemental",
@@ -699,32 +717,6 @@
 				"descriptive_id": "Stomp"
 			}
 		]
-	},
-	{
-		"name": "Multishot Bow",
-		"image": "striking-arrows.svg",
-		"discipline": "none",
-		"card_type": "artifact",
-		"cost": 4,
-		"description": "Attack multiple times, only attacks each enemy once a turn.",
-		"abilities": [
-			{
-				"name": "Weapon",
-				"descriptive_id": "Weapon"
-			},
-			{
-				"name": "multi_mob_attack",
-				"descriptive_id": "multi_mob_attack"
-			}
-		],
-		"effects": [{
-					"name": "attack",
-					"effect_type": "activated",
-					"target_type": "any_enemy",
-					"counters": 4,
-					"cost": 0,
-					"power": 3
-		}]
 	},
 	{
 
@@ -1668,14 +1660,17 @@
 		"cost": 1,
 		"abilities": [
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
-			{
 				"name": "Townie",
 				"descriptive_id": "Townie"
 			}
-		]
+		],
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		]	
 	},
 	{
 		"name": "Town Fighter",

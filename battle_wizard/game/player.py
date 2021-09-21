@@ -108,10 +108,7 @@ class Player:
         return False
 
     def has_opponents_mob_target(self):
-        for mob in self.my_opponent().in_play:
-            if not mob.has_ability("Lurker"):
-                return True
-        return False
+        return len(self.my_opponent().in_play) > 0
 
     def my_opponent(self):
         if self == self.game.players[0]:
@@ -119,16 +116,10 @@ class Player:
         return self.game.players[0]
 
     def has_mob_target(self):
-        for mob in self.in_play:
-            if not mob.has_ability("Lurker"):
-                return True
-        return False
+        return len(self.my_opponent().in_play) + len(self.in_play) > 0
 
     def has_artifact_target(self):
-        for mob in self.artifacts:
-            if not mob.has_ability("Lurker"):
-                return True
-        return False
+        return len(self.my_opponent().artifacts) + len(self.artifacts) > 0
 
     def has_defend(self):
         for c in self.in_play:
@@ -255,9 +246,8 @@ class Player:
                     if card.has_ability("Fast"):
                         return True
                     if card.has_ability("Ambush"):
-                        for card in self.my_opponent().in_play:
-                            if not card.has_ability("Lurker"):
-                                return True
+                        if len(self.my_opponent().in_play) > 0:
+                            return True
                     return False
         
                 if len(self.game.stack) == 0 or card.has_ability("Instant Attack"):
@@ -531,12 +521,6 @@ class Player:
     def reset_card_choice_info(self):
         self.card_choice_info = {"cards": [], "choice_type": None, "effect_card_id": None}
 
-    def has_guard(self):
-        for c in self.in_play:
-            if c.has_ability("Guard") and not c.has_ability("Lurker"):
-                return True
-        return False
-
     def has_instrument(self):
         for c in self.artifacts:
             if c.has_ability("Instrument"):
@@ -709,15 +693,13 @@ class Player:
                 return message
 
         if len(self.in_play + self.my_opponent().in_play) > 0:
-            for mob in self.in_play + self.my_opponent().in_play:
-                if not mob.has_ability("Lurker"):
-                    has_mob_target = True
+            has_mob_target = True
 
         if card.needs_artifact_target() and len(self.artifacts) == 0 and len(self.my_opponent().artifacts) == 0 :
             print(f"can't select artifact targetting spell with no artifacts in play")
             return None
         elif card.card_type == Constants.spellCardType and card.needs_mob_target() and not has_mob_target:
-            print(f"can't select mob targetting spell with no mobs without Lurker in play")
+            print(f"can't select mob targetting spell with no targettable mobs in play")
             return None
         elif card.has_ability("Instrument Required") and not self.has_instrument():
             print(f"can't cast {card.name} without having an Instument")
@@ -745,8 +727,7 @@ class Player:
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
             for card in self.in_play:
                 if card.power_with_tokens(self.opponent()) >= list(target_restrictions[0].values())[0]:
-                    if not card.has_ability("Lurker"):
-                        card.can_be_clicked = True
+                    card.can_be_clicked = True
             return
 
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "min_cost":
@@ -756,8 +737,7 @@ class Player:
             return
 
         for card in self.in_play:
-            if not card.has_ability("Lurker"):
-                card.can_be_clicked = True
+            card.can_be_clicked = True
 
     def set_targets_for_artifact_effect(self, target_restrictions):
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "min_cost":
@@ -773,24 +753,13 @@ class Player:
 
     def set_targets_for_damage_effect(self):
         for card in self.in_play:
-            if not card.has_ability("Lurker"):
-                card.can_be_clicked = True
+            card.can_be_clicked = True
         self.can_be_clicked = True
 
     def set_targets_for_any_enemy_effect(self, effect):
-        # todo artifacts might eventually need evade guard
-        guard_mobs_without_lurker = []
         for card in self.in_play:
-            if card.has_ability("Guard") and not card.has_ability("Lurker"):
-                guard_mobs_without_lurker.append(card)
-        if len(guard_mobs_without_lurker) == 0:
-            for card in self.in_play:
-                if not card.has_ability("Lurker"):
-                    card.can_be_clicked = True
-            self.can_be_clicked = True
-        else:
-            for card in guard_mobs_without_lurker:
-                card.can_be_clicked = True
+            card.can_be_clicked = True
+        self.can_be_clicked = True
 
         if effect:
             for info in effect.targetted_this_turn:
@@ -810,26 +779,23 @@ class Player:
             set_targets = False
             for e in self.in_play:
                 if e.id != self.card_info_to_target["card_id"]:
-                    if not e.has_ability("Lurker"):
-                        if e.has_ability("Guard"):
-                            set_targets = True
-                            e.can_be_clicked = True
+                    if e.has_effect("force_attack_guard_first"):
+                        set_targets = True
+                        e.can_be_clicked = True
             return
 
         set_targets = False
         for card in self.in_play:
             if card.id != self.card_info_to_target["card_id"]:
-                if not card.has_ability("Lurker"):
-                    card.can_be_clicked = True
-                    set_targets = True
+                card.can_be_clicked = True
+                set_targets = True
 
     def has_target_for_mob_effect(self, target_restrictions):
         if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
             for e in self.in_play:
                 if e.id != self.card_info_to_target["card_id"]:
-                    if e.has_ability("Guard"):
-                        if not e.has_ability("Lurker"):
-                            return True
+                    if e.has_effect("force_attack_guard_first"):
+                        return True
             return False
 
         if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
@@ -838,10 +804,7 @@ class Player:
                     return True
             return False
 
-        for e in self.in_play:
-            if not e.has_ability("Lurker"):
-                return True
-        return False
+        return len(self.in_play) > 0
 
     def clear_artifact_effects_targetted_this_turn(self):
         # for Multishot Bow

@@ -38,20 +38,12 @@ def all_abilities():
             "descriptive_id": "Syphon"
         },
         {
-            "name": "Lurker",
-            "descriptive_id": "Lurker"
-        },
-        {
             "name": "Shield",
             "descriptive_id": "Shield"
         },
         {
             "name": "Conjure",
             "descriptive_id": "Conjure"
-        },
-        {
-            "name": "Guard",
-            "descriptive_id": "Guard"
         },
         {
             "name": "Defend",
