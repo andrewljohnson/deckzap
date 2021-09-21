@@ -152,7 +152,7 @@
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
-				"trigger": "select_mob_target_override"
+				"trigger": "select_mob_target"
 			},
 			{
 				"name": "drain_hp",
@@ -160,13 +160,16 @@
 				"description_expanded": "Gain hit points when this deals damage.",
 				"effect_type": "triggered",
 				"trigger": "after_deals_damage"
+			},
+			{
+				"name": "add_ambush",
+				"description": "Ambush",
+				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
+				"effect_type": "enter_play"
 			}
+
 		],	
 		"abilities": [
-			{
-				"name": "Ambush",
-				"descriptive_id": "Ambush"
-			},
 			{
 				"name": "Shield",
 				"descriptive_id": "Shield"
@@ -187,7 +190,7 @@
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
-				"trigger": "select_mob_target_override"
+				"trigger": "select_mob_target"
 			}
 		]	
 	},
@@ -223,7 +226,7 @@
 			{
 				"name": "make_untargettable",
 				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"trigger": "select_mob_target_override"
 			}
 		]	
 	},
@@ -554,13 +557,13 @@
 		"power": 2,
 		"toughness": 2,
 		"cost": 1,
-		"abilities": [
-			{
-				"name": "Ambush",
-				"descriptive_id": "Ambush"
-			}
-		],
 		"effects": [
+			{
+				"name": "add_ambush",
+				"description": "Ambush",
+				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
+				"effect_type": "enter_play"
+			},
 			{
 				"name": "remove_symbiotic_fast",
 				"effect_type": "triggered",
@@ -1702,7 +1705,7 @@
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
-				"trigger": "select_mob_target_override"
+				"trigger": "select_mob_target"
 			}
 		]	
 	},

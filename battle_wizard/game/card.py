@@ -16,7 +16,8 @@ class Card:
         self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
         self.attacked = info["attacked"] if "attacked" in info else False
         self.can_activate_abilities = info["can_activate_abilities"] if "can_activate_abilities" in info else True
-        self.can_attack = info["attacked"] if "attacked" in info else False
+        self.can_attack_mobs = info["can_attack_mobs"] if "can_attack_mobs" in info else False
+        self.can_attack_players = info["can_attack_players"] if "can_attack_players" in info else False
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
         self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
@@ -111,7 +112,8 @@ class Card:
             "added_descriptions": self.added_descriptions,
             "attacked": self.attacked,
             "can_activate_abilities": self.can_activate_abilities,
-            "can_attack": self.can_attack,
+            "can_attack_mobs": self.can_attack_mobs,
+            "can_attack_players": self.can_attack_players,
             "can_be_clicked": self.can_be_clicked,
             "card_for_effect": self.card_for_effect.as_dict() if self.card_for_effect else None,
             "card_subtype": self.card_subtype,
@@ -145,7 +147,9 @@ class Card:
 
     def effect_def_for_id(self, effect):
         name = effect.name
-        if name == "add_fast":
+        if name == "add_ambush":
+            return self.do_add_ambush_effect          
+        elif name == "add_fast":
             return self.do_add_fast_effect          
         elif name == "add_mob_abilities" or name == "add_player_abilities":
             return self.do_add_abilities_effect          
@@ -310,7 +314,8 @@ class Card:
                 new_card = copy.deepcopy(c)
         if evolved:
             card.attacked = False
-            card.can_attack = False
+            card.can_attack_mobs = False
+            card.can_attack_players = False
             card.damage = 0
             card.damage_to_show = 0
             card.damage_this_turn = 0
@@ -424,7 +429,10 @@ class Card:
         return log_lines
 
     def do_add_fast_effect(self, effect_owner, effect, target_info):
-        self.can_attack = True
+        self.can_attack_players = True
+
+    def do_add_ambush_effect(self, effect_owner, effect, target_info):
+        self.can_attack_mobs = True
 
     def do_add_abilities_effect(self, effect_owner, effect, target_info):
         ability = copy.deepcopy(effect.abilities[0])
@@ -880,16 +888,16 @@ class Card:
 
     def do_force_attack_guard_first_effect(self, effect_owner, effect, target_info):
         guard_mobs = []
-        for mob in effect_owner.my_opponent().in_play:
+        for mob in effect_owner.in_play:
+            print(f"mob.name {mob.name} {mob.can_be_clicked}")
             for effect in mob.effects:
                 if effect.name == "force_attack_guard_first" and mob.can_be_clicked:
                     guard_mobs.append(mob)
-
+        print(f"len(guard_mobs) {len(guard_mobs)}")
         if len(guard_mobs) > 0:
-            for mob in effect_owner.my_opponent().in_play:
+            for mob in effect_owner.in_play:
                 mob.can_be_clicked = mob in guard_mobs
-            effect_owner.my_opponent().can_be_clicked = False
-
+            effect_owner.can_be_clicked = False
 
     def do_gain_for_toughness_effect(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
@@ -1175,6 +1183,8 @@ class Card:
     def do_make_untargettable_effect(self, effect_owner, effect, target_info):
         if effect.enabled:
             self.can_be_clicked = False
+            if effect_owner.my_opponent().selected_mob():
+                effect_owner.game.set_attack_clicks(omit_mobs=[self])
     
     def do_mana_increase_max_effect_on_player(self, effect_owner, effect, target_info):
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
@@ -1304,7 +1314,8 @@ class Card:
         if effect.target_type == "self_mobs":
             player = effect_owner
             for e in player.in_play:
-                e.can_attack = True
+                e.can_attack_mobs = True
+                e.can_attack_players = True
                 e.attacked = False
             return [f"{player.username} lets their mobs attack again this turn."]          
         else:
@@ -1355,10 +1366,6 @@ class Card:
                 target_player.in_play.append(mob_to_summon)
                 target_player.update_for_mob_changes_zones()
                 mob_to_summon.turn_played = target_player.game.turn   
-                if target_player.fast_ability():
-                    mob_to_summon.abilities.append(target_player.fast_ability())          
-                # todo: maybe support comes into play effects
-                # target_player.target_or_do_mob_effects(mob_to_summon, {}, target_player.username)     
         elif effect.target_type == "all_players" and effect.amount == -1:
             mobs = []
             for c in Card.all_card_objects():
@@ -1372,10 +1379,6 @@ class Card:
                     p.in_play.append(mob_to_summon)
                     p.update_for_mob_changes_zones()
                     mob_to_summon.turn_played = effect_owner.game.turn     
-                    if p.fast_ability():
-                        mob_to_summon.abilities.append(p.fast_ability())                            
-                    # todo: maybe support comes into play effects
-                    # p.target_or_do_mob_effects(mob_to_summon, {}, p.username)     
         if effect.target_type == "self":
             return [f"{effect_owner.username} summons something from their deck."]
         else:
@@ -1438,7 +1441,8 @@ class Card:
                 ), 
                 {"id": self.id}
             )
-            self.can_attack = True
+            self.can_attack_mobs = True
+            self.can_attack_players = True
 
     def add_fast_effect_info(self):
         return {
@@ -1488,12 +1492,8 @@ class Card:
         opponent = effect_owner.game.opponent()
         if effect.target_type == "all":
             while len(opponent.in_play) > 0 and len(effect_owner.in_play) < 7:
-                if len(effect.abilities) and effect.abilities[0].descriptive_id == "Fast":
-                    opponent.in_play[0].abilities.append(copy.deepcopy(effect.abilities[0]))
                 self.do_take_control_effect_on_mob(effect_owner, opponent.in_play[0], opponent)
             while len(opponent.artifacts) > 0 and len(effect_owner.artifacts) < 3:
-                if len(effect.abilities) and effect.abilities[0].descriptive_id == "Fast":
-                    opponent.artifacts[0].effects_exhausted = {}
                 self.do_take_control_effect_on_artifact(effect_owner, opponent.artifacts[0], opponent)
             log_lines = [f"{effect_owner.username} takes control everything."]
         elif effect.target_type == "opponents_mob_random": # song dragon
@@ -1514,11 +1514,15 @@ class Card:
         effect_owner.game.players[1].update_for_mob_changes_zones()
         target_mob.turn_played = effect_owner.game.turn
         target_mob.attacked = False
-        if effect_owner.fast_ability():
-            target_mob.abilities.append(effect_owner.fast_ability())       
-        if target_mob.has_ability("Fast") or target_mob.has_ability("Ambush"):
-            target_mob.can_attack = True
+        target_mob.can_attack_mobs = False
+        target_mob.can_attack_players = False
         target_mob.do_leaves_play_effects(controller, did_kill=False)
+
+        def_index = 0
+        for e in target_mob.effects:
+            if e.effect_type == "enter_play" and e.target_type == None:
+                self.resolve_effect(target_mob.enter_play_effect_defs[def_index], effect_owner, e, {}) 
+                def_index += 1
 
     def do_take_control_effect_on_artifact(self, effect_owner, target_artifact, controller):
         controller.artifacts.remove(target_artifact)

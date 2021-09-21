@@ -755,9 +755,6 @@ export class Card {
                 if (a.name == "Instant Attack") {
                     abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
                 }                    
-                if (a.name == "Ambush") {
-                    abilityText.text = "Ambush - Ambush mobs may attack other mobs the turn they come into play.";
-                }                    
                 if (a.name == "Instrument Required") {
                     abilityText.text = "Instrument Required - You must have an Instrument in play to play Card.";
                 }                    

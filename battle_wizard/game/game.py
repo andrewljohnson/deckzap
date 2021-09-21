@@ -235,24 +235,7 @@ class Game:
                 if len(selected_spell.effects) > 0:     
                     self.set_targets_for_target_type(selected_spell.effects[0].target_type, selected_spell.effects[0].target_restrictions)
         elif cp.card_info_to_target["effect_type"] in ["mob_at_ready"]:
-            selected_mob = cp.selected_mob()
-            for spell in self.stack:
-                spell_card = spell[1]
-                action = spell[0]
-                if action["move_type"] == "ATTACK" and action["username"] != cp.username:
-                    attacker, _ = self.get_in_play_for_id(action["card"])     
-                    if attacker:
-                        attacker.can_be_clicked = True
-            if len(self.stack) == 0 or selected_mob.has_ability("Instant Attack"):
-                only_has_ambush_attack = False
-                if not selected_mob.has_ability("Fast"):
-                    if selected_mob.has_ability("Ambush"):
-                        if selected_mob.turn_played == self.turn:
-                            only_has_ambush_attack = True
-                if not only_has_ambush_attack:
-                    opp.can_be_clicked = True
-                for card in opp.in_play:
-                    card.can_be_clicked = True
+            self.set_attack_clicks()
 
         if not cp.card_info_to_target["effect_type"]:
             if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_mob_for_effect"]:
@@ -343,14 +326,35 @@ class Game:
 
         self.do_set_clickables_effects()
 
-    def do_set_clickables_effects(self):
-        for m in self.current_player().in_play:
-            for idx, effect in enumerate(m.effects_triggered("select_mob_target")):
-                m.resolve_effect(m.select_mob_target_effect_defs[idx], self.current_player(), effect, {}) 
+    def set_attack_clicks(self, omit_mobs=[]):
+        cp = self.current_player()
+        opp = self.opponent()
+        selected_mob = cp.selected_mob()
+        for spell in self.stack:
+            spell_card = spell[1]
+            action = spell[0]
+            if action["move_type"] == "ATTACK" and action["username"] != cp.username:
+                attacker, _ = self.get_in_play_for_id(action["card"])     
+                if attacker:
+                    attacker.can_be_clicked = True
+        if len(self.stack) == 0 or selected_mob.has_ability("Instant Attack"):
+            if selected_mob.can_attack_players:
+                opp.can_be_clicked = True
+            for card in opp.in_play:
+                if selected_mob.can_attack_mobs and not card in omit_mobs:
+                    card.can_be_clicked = True
 
+    def do_set_clickables_effects(self):
+
+        # this currently handles Guard
+        for m in self.opponent().in_play:
+            for idx, effect in enumerate(m.effects_triggered("select_mob_target")):
+                m.resolve_effect(m.select_mob_target_effect_defs[idx], self.opponent(), effect, {}) 
+
+        # this currently handles Lurker
         for m in self.opponent().in_play:
             for idx, effect in enumerate(m.effects_triggered("select_mob_target_override")):
-                m.resolve_effect(m.select_mob_target_override_effect_defs[idx], self.current_player(), effect, {}) 
+                m.resolve_effect(m.select_mob_target_override_effect_defs[idx], self.opponent(), effect, {}) 
 
     def get_in_play_for_id(self, card_id):
         """
@@ -622,14 +626,7 @@ class Game:
         elif cp.controls_mob(message["card"]):
             card, _ = self.get_in_play_for_id(message["card"])
             if card == cp.selected_mob():                
-                only_has_ambush_attack = False
-                if not card.has_ability("Fast"):
-                    if card.has_ability("Ambush"):
-                        if card.turn_played == self.turn:
-                            only_has_ambush_attack = True
-                if only_has_ambush_attack:
-                    print(f"can't attack opponent because a mob only has Ambush")
-                elif not card.can_be_clicked:                        
+                if not card.can_be_clicked:                        
                     self.current_player().reset_card_info_to_target()
                     print(f"can't attack opponent because a mob probably has Guard and the client let through a bad move")
                 else:                 
@@ -786,22 +783,14 @@ class Game:
         else:
             if self.current_player().selected_mob():
                 card = self.current_player().selected_mob()
-                only_has_ambush_attack = False
-                if not card.has_effect("add_fast"):
-                    if card.has_ability("Ambush"):
-                        if card.turn_played == self.turn:
-                            only_has_ambush_attack = True
-                if not only_has_ambush_attack:
+                if self.opponent().can_be_clicked:
                     message["card"] = card.id
                     message["card_name"] = card.name
                     message["move_type"] = "ATTACK"
                     message = self.play_move(message)                    
                     self.current_player().reset_card_info_to_target()
-                elif only_has_ambush_attack:
-                    print(f"can't attack opponent because the mob only has ambush")
-                    return None
                 else:
-                    print(f"can't attack opponent probably because a Mob has Guard and the client let through a bad move")
+                    print(f"can't attack opponent probably because a Mob has Guard or this Mob has Ambush, and the client let through a bad move")
                     return None
         return message
 
@@ -844,7 +833,9 @@ class Game:
             return message
 
         attacking_card.attacked = True
-        attacking_card.can_attack = False
+        attacking_card.can_attack_mobs = False
+        attacking_card.can_attack_players = False
+
         self.unset_clickables(message["move_type"])
         self.set_clickables()
         

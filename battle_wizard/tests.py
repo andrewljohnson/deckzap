@@ -546,14 +546,17 @@ class GameObjectTests(TestCase):
         """
             Test you can attack past a mob with Guard+Lurker.
         """
-        game = self.game_for_decks([["Stone Elemental", "Hide"], ["Air Elemental"]])
+        game = self.game_for_decks([["Stone Elemental"], ["Air Elemental", "Hide"]])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.players[1].mana = game.players[1].hand[0].cost
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        for card in game.players[1].hand:
+            game.players[1].mana += card.cost
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 28)
@@ -1037,7 +1040,7 @@ class GameObjectTests(TestCase):
 
     def test_wind_of_mercury(self):
         """
-            Test add_fast effect of Inferno Elemental
+            Test add_fast to a mob with Wind of Mercury
         """
 
         deck1 = ["Stone Elemental", "Wind of Mercury"]
@@ -1054,3 +1057,21 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points - game.players[0].in_play[0].power_with_tokens(game.players[0]))
+
+    def test_tameish_sabretooth(self):
+        """
+            Test add_ambush effect of Tame-ish Sabretooth
+        """
+
+        deck1 = ["Stone Elemental"]
+        deck2 = ["Tame-ish Sabretooth"]
+        game = self.game_for_decks([deck1, deck2])
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})    
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        for card in game.players[1].hand:
+            game.players[1].mana += card.cost
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})    
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})    
+        self.assertEqual(game.opponent().can_be_clicked, False)
+        self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)
+

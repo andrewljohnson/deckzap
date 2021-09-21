@@ -233,7 +233,7 @@ class Player:
     def can_select_for_attack(self, card_id):
         for card in self.in_play:
             if card.id == card_id:
-                if card.attacked or not card.can_attack:
+                if card.attacked or not (card.can_attack_mobs or card.can_attack_players):
                     return False
                 if card.power_with_tokens(self) <= 0:
                     return False
@@ -305,8 +305,6 @@ class Player:
         self.in_play.append(card)
         self.update_for_mob_changes_zones()
 
-        if self.fast_ability():
-            card.abilities.append(self.fast_ability())          
         card.turn_played = self.game.turn
 
     def play_artifact(self, artifact):
@@ -314,13 +312,6 @@ class Player:
         artifact.turn_played = self.game.turn
         # self.update_for_mob_changes_zones(self)
         # self.my_opponent().update_for_mob_changes_zones()        
-
-    def fast_ability(self):
-        for a in self.abilities:
-            if a.descriptive_id == "Fast":
-                new_a = copy.deepcopy(a)
-                return a
-        return None 
 
     def cant_die_ability(self):
         for a in self.abilities:
@@ -444,7 +435,8 @@ class Player:
                 message["log_lines"] += card.do_add_token_effect_on_mob(CardEffect(effect, 0), self, card, self)
 
             card.attacked = False
-            card.can_attack = True
+            card.can_attack_mobs = True
+            card.can_attack_players = True
 
             card.can_activate_abilities = True
 

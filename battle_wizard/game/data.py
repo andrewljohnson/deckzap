@@ -44,11 +44,7 @@ def all_abilities():
         {
             "name": "Fade",
             "descriptive_id": "Fade"
-        },
-        {
-            "name": "Ambush",
-            "descriptive_id": "Ambush"
-        },
+        }
     ]
 
 def hash_for_deck(deck):
