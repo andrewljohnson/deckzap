@@ -16,6 +16,7 @@ class Card:
         self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
         self.attacked = info["attacked"] if "attacked" in info else False
         self.can_activate_abilities = info["can_activate_abilities"] if "can_activate_abilities" in info else True
+        self.can_attack = info["attacked"] if "attacked" in info else False
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
         self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
@@ -45,6 +46,7 @@ class Card:
         self.toughness = info["toughness"] if "toughness" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
+        # card.effects get mapped into these lists of defs defined on Card
         self.activated_effect_defs = []
         self.after_attack_effect_defs = []
         self.after_deals_damage_effect_defs = []
@@ -109,6 +111,7 @@ class Card:
             "added_descriptions": self.added_descriptions,
             "attacked": self.attacked,
             "can_activate_abilities": self.can_activate_abilities,
+            "can_attack": self.can_attack,
             "can_be_clicked": self.can_be_clicked,
             "card_for_effect": self.card_for_effect.as_dict() if self.card_for_effect else None,
             "card_subtype": self.card_subtype,
@@ -142,7 +145,9 @@ class Card:
 
     def effect_def_for_id(self, effect):
         name = effect.name
-        if name == "add_mob_abilities" or name == "add_player_abilities":
+        if name == "add_fast":
+            return self.do_add_fast_effect          
+        elif name == "add_mob_abilities" or name == "add_player_abilities":
             return self.do_add_abilities_effect          
         elif name == "add_mob_effects":
             return self.do_add_mob_effects_effect
@@ -305,6 +310,7 @@ class Card:
                 new_card = copy.deepcopy(c)
         if evolved:
             card.attacked = False
+            card.can_attack = False
             card.damage = 0
             card.damage_to_show = 0
             card.damage_this_turn = 0
@@ -416,6 +422,9 @@ class Card:
         if effect.cost_hp > 0:
             effect_owner.hit_points -= effect.cost_hp
         return log_lines
+
+    def do_add_fast_effect(self, effect_owner, effect, target_info):
+        self.can_attack = True
 
     def do_add_abilities_effect(self, effect_owner, effect, target_info):
         ability = copy.deepcopy(effect.abilities[0])
@@ -1293,6 +1302,7 @@ class Card:
         if effect.target_type == "self_mobs":
             player = effect_owner
             for e in player.in_play:
+                e.can_attack = True
                 e.attacked = False
             return [f"{player.username} lets their mobs attack again this turn."]          
         else:
@@ -1412,22 +1422,39 @@ class Card:
     def do_add_symbiotic_fast_effect(self, effect_owner, effect, target_info):
         anything_friendly_has_fast = False
         for e in effect_owner.in_play:
-            if e.has_ability("Fast"):
+            if e.has_effect("add_fast"):
                 anything_friendly_has_fast = True
 
         if anything_friendly_has_fast:
-            self.abilities.append(CardAbility({
-                "name": "Fast",
-                "descriptive_id": "Fast"
-            }, len(self.abilities)))
+            self.do_add_mob_effects_effect(
+                effect_owner, 
+                CardEffect(
+                    {
+                        "effects": [self.add_fast_effect_info()]
+                    }, 
+                    self.id
+                ), 
+                {"id": self.id}
+            )
+            self.can_attack = True
 
+    def add_fast_effect_info(self):
+        return {
+            "name": "add_fast",
+            "description": "Fast",
+            "description_expanded": "Fast mobs may attack the turn they come into play.",
+            "effect_type": "enter_play"
+        }        
+
+    # todo fix that this doesn't check for an ID or something?
     def do_remove_symbiotic_fast_effect(self, effect_owner, effect, target_info):
-        abilities_to_remove = []
-        for ability in self.abilities:
-            if ability.name == "Fast":
-               abilities_to_remove.append(ability) 
-        for ability in abilities_to_remove:
-            self.abilities.remove(ability)
+        effects_to_remove = []
+        for effect in self.effects:
+            if effect.name == "add_fast":
+               effects_to_remove.append(effect)
+               break 
+        for effect in effects_to_remove:
+            self.effect.remove(effect)
 
     def do_set_token_effect(self, effect_owner, effect, target_info):
         tokens_to_remove = []
@@ -1484,10 +1511,11 @@ class Card:
         effect_owner.game.players[0].update_for_mob_changes_zones()
         effect_owner.game.players[1].update_for_mob_changes_zones()
         target_mob.turn_played = effect_owner.game.turn
+        target_mob.attacked = False
         if effect_owner.fast_ability():
             target_mob.abilities.append(effect_owner.fast_ability())       
         if target_mob.has_ability("Fast") or target_mob.has_ability("Ambush"):
-            target_mob.attacked = False
+            target_mob.can_attack = True
         target_mob.do_leaves_play_effects(controller, did_kill=False)
 
     def do_take_control_effect_on_artifact(self, effect_owner, target_artifact, controller):

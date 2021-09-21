@@ -233,7 +233,7 @@ class Player:
     def can_select_for_attack(self, card_id):
         for card in self.in_play:
             if card.id == card_id:
-                if card.attacked:
+                if card.attacked or not card.can_attack:
                     return False
                 if card.power_with_tokens(self) <= 0:
                     return False
@@ -241,15 +241,7 @@ class Player:
                     if t.set_can_act == False:
                         return False                                                
                 if card.has_ability("Defend") and self.game.defendable_attack_on_stack(card):
-                    return True
-                if card.turn_played == self.game.turn:
-                    if card.has_ability("Fast"):
-                        return True
-                    if card.has_ability("Ambush"):
-                        if len(self.my_opponent().in_play) > 0:
-                            return True
-                    return False
-        
+                    return True        
                 if len(self.game.stack) == 0 or card.has_ability("Instant Attack"):
                     return True
                 return False
@@ -390,6 +382,8 @@ class Player:
                             effect_targets.append({"target_type": e.target_type})
                         elif e.target_type == "opponents_mob_random":           
                             effect_targets.append({"id": random.choice(self.my_opponent().in_play).id, "target_type":"mob"})
+                        elif e.target_type == None:           
+                            effect_targets.append({})
                         message["effect_targets"] = effect_targets
                     message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, effect_targets[idx])) 
 
@@ -450,6 +444,7 @@ class Player:
                 message["log_lines"] += card.do_add_token_effect_on_mob(CardEffect(effect, 0), self, card, self)
 
             card.attacked = False
+            card.can_attack = True
 
             card.can_activate_abilities = True
 

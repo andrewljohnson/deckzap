@@ -30,10 +30,6 @@ def all_cards(require_images=False, include_tokens=True):
 def all_abilities():
     return [
         {
-            "name": "Fast",
-            "descriptive_id": "Fast"
-        },
-        {
             "name": "Shield",
             "descriptive_id": "Shield"
         },

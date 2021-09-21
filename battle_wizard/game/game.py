@@ -787,7 +787,7 @@ class Game:
             if self.current_player().selected_mob():
                 card = self.current_player().selected_mob()
                 only_has_ambush_attack = False
-                if not card.has_ability("Fast"):
+                if not card.has_effect("add_fast"):
                     if card.has_ability("Ambush"):
                         if card.turn_played == self.turn:
                             only_has_ambush_attack = True
@@ -844,6 +844,7 @@ class Game:
             return message
 
         attacking_card.attacked = True
+        attacking_card.can_attack = False
         self.unset_clickables(message["move_type"])
         self.set_clickables()
         

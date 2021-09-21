@@ -363,15 +363,13 @@ class GameObjectTests(TestCase):
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        self.assertTrue(not game.current_player().in_play[0].has_ability("Fast"))
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
         self.assertEqual(len(game.current_player().in_play), 2)
-        self.assertTrue(game.current_player().in_play[0].has_ability("Fast"))
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        self.assertTrue(not game.current_player().in_play[0].has_ability("Fast"))
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points - game.players[0].in_play[0].power_with_tokens(game.players[0]) - game.players[0].in_play[1].power_with_tokens(game.players[0]))
 
     def test_berserk_monkey(self):
         """
@@ -1011,7 +1009,7 @@ class GameObjectTests(TestCase):
 
     def test_doomer_drain(self):
         """
-            Test Drain ability of Riftwalker Djinn
+            Test Drain effect of Doomer
         """
 
         deck1 = ["Doomer"]
@@ -1022,3 +1020,17 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})        
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points)
+
+    def test_inferno_element_fast(self):
+        """
+            Test add_fast effect of Inferno Elemental
+        """
+
+        deck1 = ["Inferno Elemental"]
+        deck2 = []
+        game = self.game_for_decks([deck1, deck2])
+        game.players[0].mana = game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points - game.players[0].in_play[0].power_with_tokens(game.players[0]))

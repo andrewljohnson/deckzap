@@ -72,19 +72,21 @@
 		"toughness": 2,
 		"cost": 5,
 		"description": "Your opponent gets two 1/1 elemental tokens.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "make_token",
+				"card_name": "Elemental",
+				"target_type": "opponent",
+				"effect_type": "enter_play",
+				"amount": 2
+			},
+			{
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
-		],
-		"effects": [{
-			"name": "make_token",
-			"card_name": "Elemental",
-			"target_type": "opponent",
-			"effect_type": "enter_play",
-			"amount": 2
-		}]
+		]
 	},
 	{
 		"name": "Elemental",
@@ -253,12 +255,14 @@
 		"power": 8,
 		"toughness": 8,
 		"cost": 9,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
-		]
+		]	
 	},
 	{
 		"name": "Tame-ish Sabretooth",
@@ -531,10 +535,12 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
 		]
 	},
@@ -546,17 +552,20 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 6,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "unwind",
+				"effect_type": "enter_play",
+				"target_type": "all_mobs"
+			},
+			{
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
-		],
-		"effects": [{
-			"name": "unwind",
-			"effect_type": "enter_play",
-			"target_type": "all_mobs"
-		}]	
+
+		]	
 	},
 	{
 		"name": "Make Spell+",
@@ -1115,10 +1124,6 @@
 		"description": "All your other mobs get +3/+3 and may attack again.",
 		"abilities": [			
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
-			{
 				"name": "Instrument Required",
 				"descriptive_id": "Instrument Required"
 			}
@@ -1138,7 +1143,14 @@
 				"name": "set_can_attack",
 				"effect_type": "enter_play",
 				"target_type": "self_mobs"
+			},
+			{
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
+			
 		]
 	},
 	{ 

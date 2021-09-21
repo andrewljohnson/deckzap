@@ -749,9 +749,6 @@ export class Card {
                 if (a.name == "Shield") {
                     abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
                 }                    
-                if (a.name == "Fast") {
-                    abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
-                }                    
                 if (a.name == "Conjure") {
                     abilityText.text = "Conjure - Conjure mobs may be played as instants.";
                 }                    
@@ -792,9 +789,6 @@ export class Card {
         }
     	if (card.effects) {
 	        for (let e of card.effects) {
-                if (card.name == "LionKin") {
-                    console.log(e);
-                }
 	            if (e.name == "evolve") {
 	                let effectText = new PIXI.Text("", options);
 	                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
