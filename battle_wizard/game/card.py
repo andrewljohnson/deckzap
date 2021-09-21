@@ -444,7 +444,9 @@ class Card:
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_id)
         for e in effect.effects:
             target_mob.effects.append(e)
-            target_mob.create_effect_def(e)            
+            target_mob.create_effect_def(e)
+            if e.effect_type == "enter_play":
+                self.resolve_effect(target_mob.enter_play_effect_defs[-1], effect_owner, e, {}) 
         return [f"{target_mob.name} gets {effect.name}."]
 
     def do_add_random_ability_effect_on_mobs(self, effect_owner, effect, target_info):
