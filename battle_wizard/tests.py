@@ -575,9 +575,9 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})        
         self.assertEqual(game.current_player().max_mana, 0)
 
-    def test_riftwalker_djinn_syphon(self):
+    def test_riftwalker_djinn_drain(self):
         """
-            Test Syphon ability of Riftwalker Djinn
+            Test Drain ability of Riftwalker Djinn
         """
 
         deck1 = ["Town Fighter"]
@@ -597,7 +597,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})        
         self.assertEqual(game.current_player().hit_points, game.current_player().max_hit_points)
-
 
     def test_animal_trainer(self):
         """
@@ -996,7 +995,6 @@ class GameObjectTests(TestCase):
         self.assertEqual("Leprechaun", game.players[0].in_play[0].name)
         self.assertEqual("Awesomerachaun", game.players[0].in_play[1].name)
 
-
     def test_spouty_gas_ball(self):
         """
             Test Spouty Gas Ball pings.
@@ -1010,3 +1008,17 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
         self.assertEqual(game.opponent().in_play[0].damage, 1)
+
+    def test_doomer_drain(self):
+        """
+            Test Drain ability of Riftwalker Djinn
+        """
+
+        deck1 = ["Doomer"]
+        deck2 = ["Stone Elemental"]
+        game = self.game_for_decks([deck1, deck2])
+        game.players[0].hit_points = 29
+        game.players[0].mana = game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points)

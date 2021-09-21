@@ -149,18 +149,23 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
+			},
+			{
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
 			}
 		],	
 		"abilities": [
 			{
 				"name": "Ambush",
 				"descriptive_id": "Ambush"
-			},
-			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
 			},
 			{
 				"name": "Shield",
@@ -179,6 +184,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -1667,6 +1674,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -2072,13 +2081,16 @@
 		"power": 2,
 		"toughness": 4,
 		"cost": 2,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Defend",
-				"descriptive_id": "Defend"
+				"name": "allow_defend_response",
+				"description": "Defend",
+				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
+				"effect_type": "triggered",
+				"trigger": "declared_attack"
 			}
 		]
-	},
+	},   
 	{
 		"name": "OG Vamp",
 		"image": "resting-vampire.svg",
@@ -2087,11 +2099,16 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 2,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			},
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Fast",
 				"descriptive_id": "Fast"
@@ -2201,11 +2218,16 @@
 		"power": 5,
 		"toughness": 5,
 		"cost": 4,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			},
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Defend",
 				"descriptive_id": "Defend"
@@ -2260,7 +2282,7 @@
 		"card_type": "artifact",
 		"image": "extra-time.svg",
 		"cost": 6,
-		"description": "Syphon. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
+		"description": "Drain. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
 		"effects": [{
 				"name": "damage",
 				"target_type": "opponent",
@@ -2279,6 +2301,13 @@
 				"name": "do_improve_damage_all_effects_when_used",
 				"effect_type": "triggered",
 				"amount": 1
+			},
+			{
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
 			}
 		]
 	},
@@ -2290,11 +2319,16 @@
 		"power": 4,
 		"toughness": 12,
 		"cost": 9,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			},
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Conjure",
 				"descriptive_id": "Conjure"

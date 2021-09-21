@@ -45,21 +45,22 @@ class Card:
         self.toughness = info["toughness"] if "toughness" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
-        self.spell_effect_defs = []
-        self.enter_play_effect_defs = []
-        self.leave_play_effect_defs = []
         self.activated_effect_defs = []
-        self.start_turn_effect_defs = []
-        self.end_turn_effect_defs = []
-        self.draw_effect_defs = []
-        self.play_friendly_mob_effect_defs = []
-        self.sent_to_played_piled_effect_defs = []
-        self.mob_changes_zones_effect_defs = []
-        self.spend_mana_effect_defs = []
-        self.check_mana_effect_defs = []
         self.after_attack_effect_defs = []
+        self.after_deals_damage_effect_defs = []
+        self.check_mana_effect_defs = []
+        self.draw_effect_defs = []
+        self.enter_play_effect_defs = []
+        self.end_turn_effect_defs = []
+        self.leave_play_effect_defs = []
+        self.mob_changes_zones_effect_defs = []
+        self.play_friendly_mob_effect_defs = []
         self.select_mob_target_effect_defs = []
         self.select_mob_target_override_effect_defs = []
+        self.sent_to_played_piled_effect_defs = []
+        self.spell_effect_defs = []
+        self.spend_mana_effect_defs = []
+        self.start_turn_effect_defs = []
 
         # self.triggered_effect_defs = []
         for effect in self.effects:
@@ -96,6 +97,8 @@ class Card:
             self.select_mob_target_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "triggered" and effect.trigger == "select_mob_target_override": 
             self.select_mob_target_override_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "triggered" and effect.trigger == "after_deals_damage": 
+            self.after_deals_damage_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -171,6 +174,8 @@ class Card:
             return self.do_store_card_for_next_turn_effect
         elif name == "double_power":
             return self.do_double_power_effect_on_mob
+        elif name == "drain_hp":
+            return self.do_drain_hp_effect
         elif name == "draw":
             return self.do_draw_effect_on_player
         elif name == "draw_if_damaged_opponent":
@@ -480,9 +485,6 @@ class Card:
             else:
                 effect_owner.draw(ability.amount)
 
-        if self.has_ability("Syphon"):
-            effect_owner.hit_points += self.power_with_tokens(effect_owner)
-            effect_owner.hit_points = min(effect_owner.max_hit_points, effect_owner.hit_points)
         if self.has_ability("discard_random"):
             ability = None
             for a in self.abilities:
@@ -586,6 +588,11 @@ class Card:
 
     def do_damage_effect(self, effect_owner, effect, target_info):
         damage_amount = effect.amount 
+
+        # todo this might need to come later in method, and/or make sure damage was dealt
+        for idx, e in enumerate(self.effects_triggered("after_deals_damage")):
+            self.resolve_effect(self.after_deals_damage_effect_defs[idx], effect_owner, e, {"damage": damage_amount}) 
+
         target_type = target_info["target_type"] if "target_type" in target_info else None
         target_id = target_info["id"] if "id" in target_info else None
         if effect.amount_id == "hand":            
@@ -716,6 +723,10 @@ class Card:
         target_mob.power += target_mob.power_with_tokens(controller)
         return [f"{self.name} doubles the power of {target_mob.name}."]
 
+    def do_drain_hp_effect(self, effect_owner, effect, target_info):
+        effect_owner.hit_points += target_info["damage"]
+        effect_owner.hit_points = min(effect_owner.max_hit_points, effect_owner.hit_points)
+    
     def do_draw_effect_on_player(self, effect_owner, effect, target_info):
         if effect.target_type == "self":
             target_id = effect_owner.username
@@ -1763,6 +1774,7 @@ class CardEffect:
         self.cost = info["cost"] if "cost" in info else 0
         self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
         self.description = info["description"] if "description" in info else None
+        self.description_expanded = info["description_expanded"] if "description_expanded" in info else None
         self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.effect_to_activate = CardEffect(info["effect_to_activate"], info["effect_to_activate"]["id"] if "id" in info["effect_to_activate"] else 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
@@ -1801,6 +1813,7 @@ class CardEffect:
             "cost": self.cost,
             "cost_hp": self.cost_hp,
             "description": self.description,
+            "description_expanded": self.description_expanded,
             "effects": [e.as_dict() for e in self.effects] if self.effects else [],
             "effect_to_activate": self.effect_to_activate.as_dict() if self.effect_to_activate else None,
             "effect_type": self.effect_type,

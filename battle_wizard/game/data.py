@@ -34,10 +34,6 @@ def all_abilities():
             "descriptive_id": "Fast"
         },
         {
-            "name": "Syphon",
-            "descriptive_id": "Syphon"
-        },
-        {
             "name": "Shield",
             "descriptive_id": "Shield"
         },

@@ -182,21 +182,21 @@ export class Card {
 
         }            
 
-        let abilitiesText = "";
+        let effectsText = "";
         let color = Constants.darkGrayColor;
-        if ("abilities" in card) {
-	        for (let a of card.abilities) {
-	            if (!["Starts in Play"].includes(a.descriptive_id)) {
-	                if (a.description) {
-	                    abilitiesText += a.description;
+        if ("effects" in card) {
+	        for (let e of card.effects) {
+	            if (!["Starts in Play", undefined].includes(e.description)) {
+	                if (e.description) {
+	                    effectsText += e.description;
 	                    color = Constants.blackColor;
 	                } else {
-	                    if (a.name == "DamageDraw") {
+	                    if (e.name == "DamageDraw") {
 	                        continue;
 	                    }
-	                    abilitiesText += a.name;
-	                    if (a != card.abilities[card.abilities.length-1]) {                
-	                           abilitiesText += ", ";
+	                    effectsText += e.name;
+	                    if (e != card.effects[card.effects.length-1]) {                
+	                           effectsText += ", ";
 	                    }               
 	                }
 	            }
@@ -205,10 +205,10 @@ export class Card {
 	        if ("tokens" in card) {
 		        for (let c of card.tokens) {
 		           if (c.set_can_act == false) {
-		            if (abilitiesText.length) {
-		                abilitiesText += ", ";
+		            if (effectsText.length) {
+		                effectsText += ", ";
 		            }
-		            abilitiesText += "Can't Attack";
+		            effectsText += "Can't Attack";
 		           }
 		        }        	
 		    }
@@ -246,25 +246,23 @@ export class Card {
         let descriptionOptions = Constants.textOptions();
         descriptionOptions.wordWrapWidth = cw - Constants.padding*4;
 
-        if ((abilitiesText + ". " + baseDescription).length > 95) {
+        if ((effectsText + ". " + baseDescription).length > 95) {
             descriptionOptions.fontSize = 11; 
         }
         if (useLargeSize) {
             descriptionOptions.fontSize = 16; 
 
         }
-
-
-        let description = new PIXI.Text(abilitiesText + ". " + baseDescription, descriptionOptions);
-        if (abilitiesText.length == 0) {
+        let description = new PIXI.Text(effectsText + ". " + baseDescription, descriptionOptions);
+        if (effectsText.length == 0) {
             description = new PIXI.Text(baseDescription, descriptionOptions);
         }
-        if (abilitiesText.length != 0 && !baseDescription) {
-            description = new PIXI.Text(abilitiesText + ". ", descriptionOptions);
+        if (effectsText.length != 0 && !baseDescription) {
+            description = new PIXI.Text(effectsText + ". ", descriptionOptions);
         }
 
-        if (baseDescription || abilitiesText.length) {
-            if (card.card_type != Constants.mobCardType || card.turn_played == -1) {
+        if (baseDescription || effectsText.length) {
+            if (card.card_type != Constants.mobCardType || card.turn_played == -1 || card.turn_played == undefined) {
                 cardSprite.addChild(description);
             }
         }
@@ -732,7 +730,7 @@ export class Card {
     }
 
     static showAbilityPanels(cardSprite, card, cw, ch) {
-    	if (!card.abilities && !card.effects) {
+    	if (!card.effects) {
     		return;
     	}
         let options = Constants.textOptions();
@@ -745,17 +743,11 @@ export class Card {
         const textContainer = new PIXI.Container();
         cardSprite.addChild(textContainer);
         let yPosition = 0;
+        let abilityText = new PIXI.Text("", options);
         if (card.abilities) {
             for (let a of card.abilities) {
-                let abilityText = new PIXI.Text("", options);
                 if (a.name == "Shield") {
                     abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
-                }                    
-                if (a.name == "Guard") {
-                    abilityText.text = "Guard - Guard mobs must be attacked before anything else.";
-                }                    
-                if (a.name == "Syphon") {
-                    abilityText.text = "Syphon - Gain hit points when this deals damage.";
                 }                    
                 if (a.name == "Fast") {
                     abilityText.text = "Fast - Fast mobs may attack the turn they come into play.";
@@ -796,19 +788,13 @@ export class Card {
                 if (a.name == "Disappear") {
                     abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
                 }                    
-                if (a.name == "Defend") {
-                    abilityText.text = "Defend - Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.";
-                }                    
-                if (abilityText.text) {
-                    abilityText.position.x -= cw/2 - 4;
-                    abilityText.position.y = yPosition - ch/2 + 2;
-                    yPosition += abilityText.height + 10;
-                    textContainer.addChild(abilityText);
-                }
             }
         }
     	if (card.effects) {
 	        for (let e of card.effects) {
+                if (card.name == "LionKin") {
+                    console.log(e);
+                }
 	            if (e.name == "evolve") {
 	                let effectText = new PIXI.Text("", options);
 	                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
@@ -817,8 +803,18 @@ export class Card {
 	                yPosition += effectText.height + 10;
 	                textContainer.addChild(effectText);
 	            }                    
-	        }
+                if (e.description_expanded != undefined) {
+                    abilityText.text = `${e.description} - ${e.description_expanded}`;
+                }                   	        
+            }
 	    }
+
+        if (abilityText.text) {
+            abilityText.position.x -= cw/2 - 4;
+            abilityText.position.y = yPosition - ch/2 + 2;
+            yPosition += abilityText.height + 10;
+            textContainer.addChild(abilityText);
+        }
 
         if (yPosition == 0) {
             cardSprite.removeChild(topBG);

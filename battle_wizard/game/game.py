@@ -860,8 +860,12 @@ class Game:
             move_to_complete["defending_card"] = defending_card.as_dict()
             move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {defending_card.name}")
         else:
-            move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {attacking_card.power_with_tokens(self.current_player())}.")
-            self.opponent().damage(attacking_card.power_with_tokens(self.current_player()))
+            damage = attacking_card.power_with_tokens(self.current_player())
+            move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {damage}.")
+            self.opponent().damage(damage)
+            for idx, effect in enumerate(attacking_card.effects_triggered("after_deals_damage")):
+                attacking_card.resolve_effect(attacking_card.after_deals_damage_effect_defs[idx], self.current_player(), effect, {"damage": damage}) 
+
         attacking_card.do_attack_abilities(self.current_player())
 
         for idx, effect in enumerate(attacking_card.effects_triggered("after_attack")):
@@ -925,12 +929,16 @@ class Game:
         return message
 
     def resolve_combat(self, attacking_card, defending_card):
+        damage = 0
         if attacking_card.shielded:
             attacking_card.shielded = False
         else:
-            attacking_card.damage += defending_card.power_with_tokens(self.opponent())
-            attacking_card.damage_this_turn += defending_card.power_with_tokens(self.opponent())
+            damage = defending_card.power_with_tokens(self.opponent())
+            attacking_card.damage += damage
+            attacking_card.damage_this_turn += damage
             attacking_card.damage_to_show += defending_card.power_with_tokens(self.opponent())
+            for idx, effect in enumerate(defending_card.effects_triggered("after_deals_damage")):
+                defending_card.resolve_effect(defending_card.after_attack_effect_defs[idx], self.opponent(), effect, {"damage": damage}) 
             if attacking_card.damage < attacking_card.toughness_with_tokens() and defending_card.has_ability("DamageTakeControl"):
                 self.current_player().in_play.remove(attacking_card)
                 self.opponent().in_play.append(attacking_card)
@@ -946,6 +954,10 @@ class Game:
             defending_card.damage += attacking_card.power_with_tokens(self.current_player())
             defending_card.damage_this_turn += attacking_card.power_with_tokens(self.current_player())
             defending_card.damage_to_show += attacking_card.power_with_tokens(self.opponent())
+
+            for idx, effect in enumerate(attacking_card.effects_triggered("after_deals_damage")):
+                attacking_card.resolve_effect(attacking_card.after_attack_effect_defs[idx], self.current_player(), effect, {"damage": damage}) 
+
             if defending_card.damage < defending_card.toughness_with_tokens() and attacking_card.has_ability("DamageTakeControl"):
                 self.opponent().in_play.remove(defending_card)
                 self.current_player().in_play.append(defending_card)
@@ -957,6 +969,8 @@ class Game:
 
         if defending_card.damage >= defending_card.toughness_with_tokens():
             self.opponent().send_card_to_played_pile(defending_card, did_kill=True)
+
+        return damage
 
     def remove_attack_for_mob(self, mob):
         if len(self.stack) > 0:

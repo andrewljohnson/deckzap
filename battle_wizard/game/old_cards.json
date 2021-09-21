@@ -57,6 +57,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -237,6 +239,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -280,6 +284,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -348,6 +354,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -859,20 +867,23 @@
 		"power": 7,
 		"toughness": 7,
 		"cost": 1,
-		"description": "Get a 7/7 mob with Syphon when this dies.",
-		"abilities": [			
+		"description": "Get a 7/7 mob with Drain when this dies.",
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			}
-		],
-		"effects": [{
-			"name": "make_token",
-			"card_name": "Life Guardian Reborn",
-			"effect_type": "leave_play",
-			"target_type": "self",
-			"amount": 1
-		}]
+				"name": "make_token",
+				"card_name": "Life Guardian Reborn",
+				"effect_type": "leave_play",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			}			
+		]
 	},
 	{
 		"name": "Life Guardian Reborn",
@@ -883,10 +894,13 @@
 		"power": 7,
 		"toughness": 7,
 		"cost": 7,
-		"abilities": [			
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
 			}
 		]
 	},
@@ -925,6 +939,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -993,6 +1009,8 @@
 			},
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -1029,6 +1047,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -1076,6 +1096,8 @@
 			},
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
@@ -1155,6 +1177,8 @@
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "triggered",
 				"trigger": "select_mob_target_override"
 			}
