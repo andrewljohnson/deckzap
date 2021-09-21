@@ -4,12 +4,12 @@ import random
 import string
 
 from battle_wizard.analytics import Analytics
-from battle_wizard.data import all_cards
-from battle_wizard.data import default_deck_dwarf_bard
-from battle_wizard.data import default_deck_dwarf_tinkerer
-from battle_wizard.data import default_deck_genie_wizard
-from battle_wizard.data import default_deck_vampire_lich
-from battle_wizard.data import hash_for_deck
+from battle_wizard.game.data import all_cards
+from battle_wizard.game.data import default_deck_dwarf_bard
+from battle_wizard.game.data import default_deck_dwarf_tinkerer
+from battle_wizard.game.data import default_deck_genie_wizard
+from battle_wizard.game.data import default_deck_vampire_lich
+from battle_wizard.game.data import hash_for_deck
 from battle_wizard.forms import SignUpForm
 from battle_wizard.models import Deck
 from battle_wizard.models import GameRecord
@@ -257,7 +257,6 @@ def build_deck(request):
         else:
             deck = global_deck_object.deck_json
             deck["title"] = global_deck_object.deck_json["title"]
-
 
     cards = all_cards(require_images=True, include_tokens=False)
     cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))

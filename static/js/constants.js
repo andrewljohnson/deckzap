@@ -14,7 +14,7 @@ export const largeSpriteQueryString = "?large";
 
 // colors
 export const blackColor = 0x000000;
-export const whiteColor = 0xFFFFFF;
+export const whiteColor = 0xFFFFFF; 
 export const brownColor = 0x765C48;
 export const redColor = 0xff0000;
 export const blueColor = 0x0000ff;

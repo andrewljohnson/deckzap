@@ -1,7 +1,7 @@
 import datetime
 import random
-from battle_wizard.player import Player
-from battle_wizard.card import Card
+from battle_wizard.game.player import Player
+from battle_wizard.game.card import Card
 
 
 class PlayerAI(Player):
@@ -135,16 +135,6 @@ class PlayerAI(Player):
         for mob in self.in_play:
             if mob.can_be_clicked:
                 moves.append({"card":mob.id , "move_type": "SELECT_MOB", "username": self.username})
-            # todo: don't hardcode for Infernus
-            if len(mob.effects_activated()) > 0 and \
-                mob.effects_activated()[0].target_type == "this" and \
-                mob.effects_activated()[0].cost <= self.current_mana():
-                # todo maybe mobs will have multiple effects
-                moves.append({"card":mob.id, "move_type": "ACTIVATE_MOB", "username": self.username, "effect_index": 0})
-            elif len(mob.effects_activated()) > 0 and \
-                mob.effects_activated()[0].cost <= self.current_mana():
-                # todo maybe mobs will have multiple effects, only have Winding One right now
-                moves.append({"card":mob.id, "move_type": "ACTIVATE_MOB", "username": self.username, "effect_index": 0})
         for mob in self.game.opponent().in_play:
             if mob.can_be_clicked:
                 moves.append({"card":mob.id , "move_type": "SELECT_MOB", "username": self.username})

@@ -1,27 +1,5 @@
-	// Removed this card because it's boring and has bugs
+[
 	{
-		"name": "Winding One",
-		"race": "genie",
-		"card_type": "Mob",
-		"description": "✦✦✦: return a mob to its owner's hand.",
-		"power": 0,
-		"toughness": 2,
-		"cost": 3,
-		"abilities": [
-			{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}
-		],
-		"effects": [{
-				"name": "unwind",
-				"description": "✦✦✦: unwind a mob.",
-				"effect_type": "activated",
-				"target_type": "MOB",
-				"cost": 3
-		}]
-	},
-
-	// no images and unusued
-
-		{
 		"name": "Pine Treant",
 		"race": "elf",
 		"card_type": "mob",
@@ -54,16 +32,19 @@
 		"toughness": 5,
 		"cost": 5,
 		"description": "Get a 1/2 dryad token with Guard when this dies.",
-		"abilities": [
-				{"name": "Guard", "descriptive_id": "Guard"}
-		],
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Oak Dryad",
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target"
+		}
+		]
 	},
 	{
 		"name": "Oak Dryad",
@@ -73,9 +54,15 @@
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		]	
 	},
 	{
 		"name": "Summon-Happy Genie",
@@ -85,19 +72,21 @@
 		"toughness": 2,
 		"cost": 5,
 		"description": "Your opponent gets two 1/1 elemental tokens.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "make_token",
+				"card_name": "Elemental",
+				"target_type": "opponent",
+				"effect_type": "enter_play",
+				"amount": 2
+			},
+			{
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
-		],
-		"effects": [{
-			"name": "make_token",
-			"card_name": "Elemental",
-			"target_type": "opponent",
-			"effect_type": "enter_play",
-			"amount": 2
-		}]
+		]
 	},
 	{
 		"name": "Elemental",
@@ -249,9 +238,15 @@
 		"power": 1,
 		"toughness": 3,
 		"cost": 1,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		]	
 	},
 	{
 		"name": "Largest Gorilla in the Forest",
@@ -260,12 +255,14 @@
 		"power": 8,
 		"toughness": 8,
 		"cost": 9,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
-		]
+		]	
 	},
 	{
 		"name": "Tame-ish Sabretooth",
@@ -274,12 +271,14 @@
 		"power": 7,
 		"toughness": 7,
 		"cost": 8,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Ambush",
-				"descriptive_id": "Ambush"
+				"name": "add_ambush",
+				"description": "Ambush",
+				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
+				"effect_type": "enter_play"
 			}
-		]
+		]	
 	},
 	{
 		"name": "Centaur",
@@ -288,9 +287,15 @@
 		"power": 3,
 		"toughness": 5,
 		"cost": 4,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		]	
 	},
 
 	{
@@ -333,34 +338,17 @@
 		"toughness": 4,
 		"cost": 6,
 		"description": "Draw 4 cards.",
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		],
 		"effects": [{
 			"name": "draw",
 			"effect_type": "enter_play",
 			"target_type": "self",
 			"amount": 4
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target"
 		}]	
-	},
-	{
-		"name": "Infernus",
-		"race": "genie",
-		"card_type": "mob",
-		"description": "Ability: pay 1, give this +1/+0",
-		"power": 5,
-		"toughness": 5,
-		"cost": 5,
-		"abilities": [
-			{"name": "Evade Guard", "descriptive_id": "Evade Guard"}
-		],
-		"effects": [{
-				"name": "pump_power",
-				"effect_type": "activated",
-				"target_type": "this",
-				"cost": 1,
-				"amount": 1		
-		}]
 	},
 	{
 		"name": "Nature's Guardian",
@@ -369,9 +357,15 @@
 		"power": 8,
 		"toughness": 8,
 		"cost": 6,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		]	
 	},
 	{
 		"name": "Make Mob+",
@@ -406,29 +400,6 @@
 				"turns": 1,
 				"power_modifier": 3,
 				"toughness_modifier": 3
-			}]
-		}]
-	},
-	{
-		"name": "Nature's Blessing",
-		"race": "elf",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "All your mobs provide a mana each turn",
-		"effects": [{
-			"name": "add_effects",
-			"target_type": "self_mobs",
-			"effects": [{
-				"name": "mana_increase_max",
-				"effect_type": "spell",
-				"description": "You have an extra mana each turn.",
-				"amount": 1,
-				"activate_on_add": true
-			},
-			{
-				"name": "decrease_max_mana",
-				"amount": 1,
-				"effect_type": "leave_play"
 			}]
 		}]
 	},
@@ -471,7 +442,7 @@
 		"effects": [{
 			"target_type": "all_players",
 			"effect_type": "spell",
-			"name": "set_max_mana",
+			"name": "mana_set_max",
 			"amount": 0
 		}]
 	},
@@ -566,10 +537,12 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 4,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
 		]
 	},
@@ -581,17 +554,20 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 6,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
+				"name": "unwind",
+				"effect_type": "enter_play",
+				"target_type": "all_mobs"
+			},
+			{
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
-		],
-		"effects": [{
-			"name": "unwind",
-			"effect_type": "enter_play",
-			"target_type": "all_mobs"
-		}]	
+
+		]	
 	},
 	{
 		"name": "Make Spell+",
@@ -902,20 +878,23 @@
 		"power": 7,
 		"toughness": 7,
 		"cost": 1,
-		"description": "Get a 7/7 mob with Syphon when this dies.",
-		"abilities": [			
+		"description": "Get a 7/7 mob with Drain when this dies.",
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			}
-		],
-		"effects": [{
-			"name": "make_token",
-			"card_name": "Life Guardian Reborn",
-			"effect_type": "leave_play",
-			"target_type": "self",
-			"amount": 1
-		}]
+				"name": "make_token",
+				"card_name": "Life Guardian Reborn",
+				"effect_type": "leave_play",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			}			
+		]
 	},
 	{
 		"name": "Life Guardian Reborn",
@@ -926,10 +905,13 @@
 		"power": 7,
 		"toughness": 7,
 		"cost": 7,
-		"abilities": [			
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
 			}
 		]
 	},
@@ -942,19 +924,19 @@
 		"toughness": 8,
 		"cost": 8,
 		"description": "Get an 8/8 mob with Guard when this dies.",
-		"abilities": [			
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			}
-		],
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Great Guardian Reborn",
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target"
+		}
+	]
 	},
 	{
 		"name": "Great Guardian Reborn",
@@ -965,48 +947,15 @@
 		"power": 8,
 		"toughness": 8,
 		"cost": 8,
-		"abilities": [			
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			}
-		]
-	},
-	{
-		"name": "Gnomish Piper",
-		"race": "gnome",
-		"class": "bard",
-		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
-		"cost": 4,
-		"description": "Gain control of a mob this turn. It gets Ambush.",
-		"abilities": [			
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			}
-		],
 		"effects": [
 			{
-				"name": "add_effects",
-				"target_type": "opponents_mob",
-				"effect_type": "enter_play",
-				"effects": [{
-					"name": "take_control",
-					"effect_type": "enter_play",
-					"effect_type": "effects",
-					"turns": 1
-				}]
-			},
-			{
-				"name": "add_mob_abilities",
-				"effect_type": "enter_play",
-				"target_type": "opponents_mob",
-				"abilities": [{"name": "Ambush", "descriptive_id": "Ambush", "enabled": true}],
-				"turns": 1
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
 			}
-		]
+		]	
 	},
 	{
 		"name": "Gnomish Militia",
@@ -1017,19 +966,19 @@
 		"toughness": 5,
 		"cost": 5,
 		"description": "Add 2 Town Rangers to your hand.",
-		"abilities": [			
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			}
-		],
 		"effects": [{
 				"name": "create_card",
 				"card_name": "Town Ranger",
 				"effect_type": "enter_play",
 				"target_type": "self",
 				"amount": 2
-		}]
+		},
+		{
+			"name": "force_attack_guard_first",
+			"effect_type": "triggered",
+			"trigger": "select_mob_target"
+		}		
+		]
 	},
 	{
 		"name": "Resonant Frequency",
@@ -1059,10 +1008,6 @@
 		"description": "Gain control of a random mob at the beginning of your turn.",
 		"abilities": [			
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
-			{
 				"name": "Instrument Required",
 				"descriptive_id": "Instrument Required"
 			}
@@ -1072,7 +1017,15 @@
 				"trigger": "start_turn",
 				"effect_type": "triggered",
 				"target_type": "opponents_mob_random"
+			},
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
 			}
+
 		]
 	},
 	{
@@ -1102,11 +1055,16 @@
 		"toughness": 8,
 		"cost": 8,
 		"description": "Draw 2 cards. Draw an extra card each turn. As long as you control an instrument, you can't be reduced to less than 1 hit point.",
-		"abilities": [			
+		"effects": [
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		],	
+		"abilities": [			
 			{
 				"name": "Instrument Required",
 				"descriptive_id": "Instrument Required"
@@ -1146,7 +1104,15 @@
 						"descriptive_id": "Can't Die"
 					}
 				]				
+			},
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
 			}
+
 		]
 	},
 	{
@@ -1159,10 +1125,6 @@
 		"cost": 9,
 		"description": "All your other mobs get +3/+3 and may attack again.",
 		"abilities": [			
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Instrument Required",
 				"descriptive_id": "Instrument Required"
@@ -1183,29 +1145,15 @@
 				"name": "set_can_attack",
 				"effect_type": "enter_play",
 				"target_type": "self_mobs"
+			},
+			{
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			}
+
 		]
-	},
-	{
-		"name": "Dazzling Solo",
-		"race": "gnome",
-		"class": "bard",
-		"cost": 10,
-		"card_type": "spell",
-		"description": "Gain control of all artifacts and mobs this turn. All of your mobs and artifacts get Fast.",
-		"abilities": [
-				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
-		],
-		"effects": [{
-			"name": "take_control",
-			"effect_type": "spell",
-			"target_type": "all",
-			"abilities": [
-				{
-					"name": "Fast",
-					"descriptive_id": "Fast"
-			}]
-		}]
 	},
 	{ 
 		"name": "Game Maker",
@@ -1225,42 +1173,6 @@
 		}]
 	},
 	{
-		"name": "Dagger",
-		"card_type": "artifact",
-		"image": "bone-knife.svg",
-		"discipline": "magic",
-		"cost": 1,
-		"description": "Pay 2, make this a 1 power weapon with 2 charges.",
-		"original_description": "Pay 2, make this a 1 power weapon with 2 charges.",
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			},
-			{
-				"name": "Weapon",
-				"descriptive_id": "Weapon"
-			}
-		],
-		"effects": [{
-				"name": "enable_activated_effect",
-				"effect_type": "activated",
-				"target_type": "self",
-				"cost": 2,
-				"effect_to_activate": {
-					"name": "attack",
-					"effect_type": "activated",
-					"description": "Remove a counter: Attack an enemy for 1 damage.",
-					"target_type": "any_enemy",
-					"counters": 2,
-					"cost": 0,
-					"power": 1,
-					"was_added": true
-				}
-		}]
-	},
-	
-	{
 		"name": "Stone Elemental",
 		"discipline": "magic",
 		"card_type": "mob",
@@ -1276,26 +1188,16 @@
 		"power": 1,
 		"toughness": 5,
 		"cost": 2,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
-	},
-	{
-		"name": "Hide",
-		"discipline": "magic",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Target mob gains Lurker.",
-		"effects": [ 
+		"effects": [
 			{
-				"name": "add_mob_abilities",
-				"effect_type": "spell",
-				"target_type": "mob",
-				"abilities": [{"name": "Lurker", "descriptive_id": "Lurker", "enabled": true}],
-				"ai_target_types": ["self_mob"]
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
 			}
-		]
-	},	
+		]	
+	},
 	{
 		"name": "Prayer Beads",
 		"card_type": "artifact",
@@ -1316,8 +1218,31 @@
 				"amount": 2
 		}]
 	},
-
-
-
-
-
+	{
+		"name": "Hide",
+		"discipline": "magic",
+		"cost": 2,
+		"card_type": "spell",
+		"description": "Target mob gains Lurker.",
+		"effects": [ 
+			{
+				"name": "add_mob_effects",
+				"effect_type": "spell",
+				"target_type": "mob",
+				"effects": [
+					{
+						"name": "lose_lurker",
+						"effect_type": "triggered",
+						"trigger": "after_attack"
+					},
+					{
+						"name": "make_untargettable",
+						"effect_type": "triggered",
+						"trigger": "select_mob_target_override"
+					}
+				],
+				"ai_target_types": ["self_mob"]
+			}
+		]
+	}	
+]

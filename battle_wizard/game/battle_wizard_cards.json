@@ -146,19 +146,30 @@
 		"power": 3,
 		"toughness": 2,
 		"cost": 5,
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			},
+			{
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			},
+			{
+				"name": "add_ambush",
+				"description": "Ambush",
+				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
+				"effect_type": "enter_play"
+			}
+
+		],	
 		"abilities": [
-			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
-			{
-				"name": "Ambush",
-				"descriptive_id": "Ambush"
-			},
-			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			},
 			{
 				"name": "Shield",
 				"descriptive_id": "Shield"
@@ -173,15 +184,21 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 2,
-		"abilities": [
-			{"name": "Guard", "descriptive_id": "Guard"}
-		]
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		]	
 	},
 	{
 		"name": "Training Master",
 		"image": "coronation.svg",
 		"discipline": "none",
-		"card_type": "magic",
+		"card_type": "mob",
 		"power": 3,
 		"toughness": 3,
 		"cost": 3,
@@ -200,7 +217,18 @@
 		"power": 3,
 		"toughness": 4,
 		"cost": 3,
-		"abilities": [{"name": "Lurker", "descriptive_id": "Lurker"}]
+		"effects": [
+			{
+				"name": "lose_lurker",
+				"effect_type": "triggered",
+				"trigger": "after_attack"
+			},
+			{
+				"name": "make_untargettable",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target_override"
+			}
+		]	
 	},
 	{
 		"name": "Lightning Elemental",
@@ -307,12 +335,12 @@
 		"power": 5,
 		"toughness": 5,
 		"cost": 5,
-		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			}
-		]
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}]	
 	},
 	{
 		"name": "Siz Pop",
@@ -502,11 +530,13 @@
 		"power": 3,
 		"toughness": 2,
 		"cost": 1,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Fade",
 				"descriptive_id": "Fade"
@@ -527,15 +557,21 @@
 		"power": 2,
 		"toughness": 2,
 		"cost": 1,
-		"abilities": [
-			{
-				"name": "Ambush",
-				"descriptive_id": "Ambush"
-			}
-		],
 		"effects": [
 			{
-				"name": "toggle_symbiotic_fast",
+				"name": "add_ambush",
+				"description": "Ambush",
+				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
+				"effect_type": "enter_play"
+			},
+			{
+				"name": "remove_symbiotic_fast",
+				"effect_type": "triggered",
+				"target_type": "self",
+				"trigger": "mob_changes_zones"
+			},
+			{
+				"name": "add_symbiotic_fast",
 				"effect_type": "triggered",
 				"target_type": "self",
 				"trigger": "mob_changes_zones"
@@ -679,11 +715,13 @@
 		"power": 4,
 		"toughness": 3,
 		"cost": 3,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Fade",
 				"descriptive_id": "Fade"
@@ -693,32 +731,6 @@
 				"descriptive_id": "Stomp"
 			}
 		]
-	},
-	{
-		"name": "Multishot Bow",
-		"image": "striking-arrows.svg",
-		"discipline": "none",
-		"card_type": "artifact",
-		"cost": 4,
-		"description": "Attack multiple times, only attacks each enemy once a turn.",
-		"abilities": [
-			{
-				"name": "Weapon",
-				"descriptive_id": "Weapon"
-			},
-			{
-				"name": "multi_mob_attack",
-				"descriptive_id": "multi_mob_attack"
-			}
-		],
-		"effects": [{
-					"name": "attack",
-					"effect_type": "activated",
-					"target_type": "any_enemy",
-					"counters": 4,
-					"cost": 0,
-					"power": 3
-		}]
 	},
 	{
 
@@ -775,11 +787,13 @@
 		"power": 3,
 		"toughness": 2,
 		"cost": 2,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Fade",
 				"descriptive_id": "Fade"
@@ -878,8 +892,17 @@
 		"effects": [
 			{
 				"name": "store_mana",
-				"target_type": "self",
 				"trigger": "start_turn",
+				"effect_type": "triggered"
+			},
+			{
+				"name": "use_stored_mana",
+				"trigger": "spend_mana",
+				"effect_type": "triggered"
+			},
+			{
+				"name": "augment_mana",
+				"trigger": "check_mana",
 				"effect_type": "triggered"
 			}
 		]
@@ -980,6 +1003,7 @@
 		"effects": [{
 			"name": "spell_from_yard",
 			"effect_type": "triggered",
+			"trigger": "end_turn",
 			"target_type": "self",
 			"amount": 1
 		}]
@@ -993,15 +1017,17 @@
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
 			{
 				"name": "DamageDraw",
 				"descriptive_id": "DamageDraw",
 				"amount": 1
-			},
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
 			},
 			{
 				"name": "Instant Attack",
@@ -1057,12 +1083,14 @@
 			"target_type": "self",
 			"make_type": "deck_card",
 			"amount": 1
+		},
+		{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
 		}],
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Instant Attack",
 				"descriptive_id": "Instant Attack"
@@ -1112,11 +1140,13 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 3,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Instant Attack",
 				"descriptive_id": "Instant Attack"
@@ -1136,8 +1166,7 @@
 		"cost": 10,
 		"effects": [{
 			"name": "refresh_mana",
-			"target_type": "self",
-			"trigger": "mana_exhausted",
+			"trigger": "spend_mana",
 			"effect_type": "triggered"
 		}]
 	},
@@ -1166,10 +1195,15 @@
 		"description": "Target mob gets Fast. Draw a card.",
 		"effects": [ 
 			{
-				"name": "add_mob_abilities",
+				"name": "add_mob_effects",
 				"effect_type": "spell",
 				"target_type": "mob",
-				"abilities": [{"name": "Fast", "descriptive_id": "Fast", "enabled": true}],
+				"effects": [{
+            		"name": "add_fast",
+            		"description": "Fast",
+            		"description_expanded": "Fast mobs may attack the turn they come into play.",
+            		"effect_type": "enter_play"
+        		}],
 				"ai_target_types": ["self_mob"]
 			},
 			{
@@ -1196,6 +1230,13 @@
 				"keep_power_increase": 1,
 				"keep_toughness_increase": 1
 			}
+		],
+		"effects": [
+			{
+				"name": "preserve_stats",
+				"effect_type": "triggered",
+				"trigger": "sent_to_played_pile"
+			}		
 		]
 	},
 	{
@@ -1216,6 +1257,11 @@
 			"name": "improve_damage_when_used",
 			"effect_type": "spell",
 			"amount": 1
+		},
+		{
+			"name": "preserve_effect_improvement",
+			"effect_type": "triggered",
+			"trigger": "sent_to_played_pile"
 		}]
 	},
 	{
@@ -1265,11 +1311,13 @@
 		"power": 2,
 		"toughness": 2,
 		"cost": 1,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Instant Attack",
 				"descriptive_id": "Instant Attack"
@@ -1285,11 +1333,13 @@
 		"power": 4,
 		"toughness": 4,
 		"cost": 2,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Instant Attack",
 				"descriptive_id": "Instant Attack"
@@ -1305,15 +1355,17 @@
 		"power": 6,
 		"toughness": 6,
 		"cost": 3,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
 			{
 				"name": "DamageDraw",
 				"descriptive_id": "DamageDraw",
 				"amount": 1
-			},
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
 			},
 			{
 				"name": "Instant Attack",
@@ -1391,6 +1443,12 @@
 		"toughness": 5,
 		"cost": 2,
 		"description": "Draw when this deals damage.",
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
 			{
 				"name": "DamageDraw",
@@ -1401,11 +1459,6 @@
 				"name": "Keep",
 				"descriptive_id": "Keep",
 				"keep_evolve": "Work in Progress: Stage 4"
-			},
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast",
-				"amount": 1
 			}
 		]
 	},
@@ -1419,6 +1472,12 @@
 		"toughness": 6,
 		"cost": 2,
 		"description": "Draw when this deals damage.",
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
 			{
 				"name": "DamageDraw",
@@ -1432,11 +1491,6 @@
 			{
 				"name": "Instant Attack",
 				"descriptive_id": "Instant Attack",
-				"amount": 1
-			},
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast",
 				"amount": 1
 			},
 			{
@@ -1554,7 +1608,12 @@
 				"name": "improve_effect_amount_when_cast",
 				"effect_type": "spell",
 				"amount": 1
-			}
+			},
+			{
+				"name": "preserve_effect_improvement",
+				"effect_type": "triggered",
+				"trigger": "sent_to_played_pile"
+			}		
 		]
 	},
 	{
@@ -1636,14 +1695,19 @@
 		"cost": 1,
 		"abilities": [
 			{
-				"name": "Guard",
-				"descriptive_id": "Guard"
-			},
-			{
 				"name": "Townie",
 				"descriptive_id": "Townie"
 			}
-		]
+		],
+		"effects": [
+			{
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "triggered",
+				"trigger": "select_mob_target"
+			}
+		]	
 	},
 	{
 		"name": "Town Fighter",
@@ -1654,11 +1718,13 @@
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
+		"effects": [{
+			"name": "add_fast",
+			"description": "Fast",
+			"description_expanded": "Fast mobs may attack the turn they come into play.",
+			"effect_type": "enter_play"
+		}],	
 		"abilities": [
-			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			},
 			{
 				"name": "Townie",
 				"descriptive_id": "Townie"
@@ -1803,7 +1869,8 @@
 		"effects": [{
 			"name": "evolve",
 			"effect_type": "leave_play",
-			"target_type": "self"
+			"target_type": "self",
+			"original_name": "Warty Evolver"
 		}]
 	},
 	{
@@ -2044,13 +2111,16 @@
 		"power": 2,
 		"toughness": 4,
 		"cost": 2,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Defend",
-				"descriptive_id": "Defend"
+				"name": "allow_defend_response",
+				"description": "Defend",
+				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
+				"effect_type": "triggered",
+				"trigger": "declared_attack"
 			}
 		]
-	},
+	},   
 	{
 		"name": "OG Vamp",
 		"image": "resting-vampire.svg",
@@ -2059,15 +2129,20 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 2,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
 			},
 			{
-				"name": "Fast",
-				"descriptive_id": "Fast"
-			}
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
+			}			
 		]
 	},
 	{ 
@@ -2173,11 +2248,16 @@
 		"power": 5,
 		"toughness": 5,
 		"cost": 4,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			},
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Defend",
 				"descriptive_id": "Defend"
@@ -2232,7 +2312,7 @@
 		"card_type": "artifact",
 		"image": "extra-time.svg",
 		"cost": 6,
-		"description": "Syphon. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
+		"description": "Drain. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
 		"effects": [{
 				"name": "damage",
 				"target_type": "opponent",
@@ -2248,9 +2328,16 @@
 				"amount": 1
 			},
 			{
-				"name": "improve_damage_when_used",
+				"name": "do_improve_damage_all_effects_when_used",
 				"effect_type": "triggered",
 				"amount": 1
+			},
+			{
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
 			}
 		]
 	},
@@ -2262,11 +2349,16 @@
 		"power": 4,
 		"toughness": 12,
 		"cost": 9,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Syphon",
-				"descriptive_id": "Syphon"
-			},
+				"name": "drain_hp",
+				"description": "Drain",
+				"description_expanded": "Gain hit points when this deals damage.",
+				"effect_type": "triggered",
+				"trigger": "after_deals_damage"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Conjure",
 				"descriptive_id": "Conjure"

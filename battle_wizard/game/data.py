@@ -1,32 +1,34 @@
 import json
 
+class Constants:    
+    spellCardType = "spell"
+    mobCardType = "mob"
+    artifactCardType = "artifact"
+
+
 def all_cards(require_images=False, include_tokens=True):
     """
         Returns a list of all possible cards in the game. 
     """
-    json_data = open('battle_wizard/battle_wizard_cards.json')
+    json_data = open('battle_wizard/game/battle_wizard_cards.json')
     all_cards = json.load(json_data)
     subset = []
     for c in all_cards:
         if include_tokens or ("is_token" not in c or c["is_token"] == False):
             if "image" in c or not require_images:
                 subset.append(c)
+
+    json_data = open('battle_wizard/game/old_cards.json')
+    all_cards = json.load(json_data)
+    for c in all_cards:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                subset.append(c)
+
     return subset
 
 def all_abilities():
     return [
-        {
-            "name": "Fast",
-            "descriptive_id": "Fast"
-        },
-        {
-            "name": "Syphon",
-            "descriptive_id": "Syphon"
-        },
-        {
-            "name": "Lurker",
-            "descriptive_id": "Lurker"
-        },
         {
             "name": "Shield",
             "descriptive_id": "Shield"
@@ -36,21 +38,13 @@ def all_abilities():
             "descriptive_id": "Conjure"
         },
         {
-            "name": "Guard",
-            "descriptive_id": "Guard"
-        },
-        {
             "name": "Defend",
             "descriptive_id": "Defend"
         },
         {
             "name": "Fade",
             "descriptive_id": "Fade"
-        },
-        {
-            "name": "Ambush",
-            "descriptive_id": "Ambush"
-        },
+        }
     ]
 
 def hash_for_deck(deck):
