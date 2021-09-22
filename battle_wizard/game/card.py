@@ -420,7 +420,7 @@ class Card:
 
     def resolve_effect(self, effect_def, effect_owner, effect, target_info):
         print(f"Resolve effect: {effect.name}");
-        if effect.counters >= 1:
+        if effect.counters >= 1 and effect.name != "store_mana":
             effect.counters -= 1
         log_lines = effect_def(effect_owner, effect, target_info)
         if effect.cost > 0:
@@ -1362,12 +1362,15 @@ class Card:
                 break
 
     def do_store_mana_effect(self, effect_owner, effect, target_info):
-        counters = effect.counters or 0
-        counters += effect_owner.mana
+        counters = max(effect.counters, 0)
+        new_counters = min(3 - counters, effect_owner.mana)
         log_lines =  None
-        if counters > effect.counters:
-            log_lines = [f"{self.name} stores {counters - effect.counters} mana."]   
-        effect.counters = min(3, counters)
+        if new_counters > 0:
+            log_lines = [f"{self.name} stores {new_counters} mana."]   
+            if  effect.counters == -1:
+                effect.counters = 0
+            effect.counters += new_counters
+            effect.counters = min(effect.counters, 3)
         return log_lines
 
     def do_summon_from_deck_effect_on_player(self, effect_owner, effect, target_info):

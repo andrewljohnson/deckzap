@@ -723,7 +723,6 @@ export class GameUX {
             index = 1
         }
         let spriteToAnimate = null;
-        console.log(`opponent.damage_to_show ${opponent.damage_to_show}`)
         for (let card of player.in_play) {
             let sprite = this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
             if (opponent.damage_to_show > 0) {
@@ -734,7 +733,6 @@ export class GameUX {
             }
             index++;
         }
-        console.log(`spriteToAnimate ${spriteToAnimate}`)
         if (spriteToAnimate) {
             return () =>  {
                 this.animateAttackOnPlayer(spriteToAnimate, opponentAvatarSprite);

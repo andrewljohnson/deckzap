@@ -903,10 +903,17 @@
 		"card_type": "artifact",
 		"description": "Stores unused mana up to 3.",
 		"cost": 0,
+		"abilities": [
+			{
+				"name": "Starts in play, max 1.",
+				"descriptive_id": "Starts in Play"
+			}
+		],
 		"effects": [
 			{
 				"name": "store_mana",
-				"effect_type": "start_turn"
+				"effect_type": "start_turn",
+				"counters": 0
 			},
 			{
 				"name": "use_stored_mana",

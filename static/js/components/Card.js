@@ -34,7 +34,6 @@ export class Card {
         return cardSprite
     }
 
-
 	static sprite(card, pixiUX, game, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
         let cw = Card.cardWidth;
         let ch = Card.cardHeight;
@@ -190,14 +189,12 @@ export class Card {
 	                if (e.description) {
 	                    effectsText += e.description;
 	                    color = Constants.blackColor;
-	                } else {
-	                    if (e.name == "DamageDraw") {
-	                        continue;
-	                    }
-	                    effectsText += e.name;
-	                    if (e != card.effects[card.effects.length-1]) {                
-	                           effectsText += ", ";
-	                    }               
+                        if (e.name == "DamageDraw") {
+                            continue;
+                        }
+                        if (e != card.effects[card.effects.length-1]) {                
+                               effectsText += ", ";
+                        }               
 	                }
 	            }
 	        }
@@ -370,9 +367,10 @@ export class Card {
             let currentBatteryMana = 0;
             for (let effect of card.effects) {
                 if (effect.name == "store_mana") {
-                    currentBatteryMana = effect.counters;
+                    currentBatteryMana = Math.max(0, effect.counters);
                 }
             }
+            console.log(currentBatteryMana)
             let gems = Constants.manaGems(3, currentBatteryMana);
             gems.position.x = -gems.width/2;
             gems.position.y = Card.cardHeight/2 - 7 - gems.height;

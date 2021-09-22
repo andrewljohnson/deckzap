@@ -70,10 +70,6 @@ export function targettingGlowFilter() {
     return new GlowFilter({ innerStrength: 2, outerStrength: 2, color: yellowColor});
 }
 
-export function lurkerFilter() {
-    return new GlowFilter({ outerStrength: 0, innerStrength: 3, color: blackColor});
-}
-
 export function glowFilter() {
     return GlowFilter;
 }

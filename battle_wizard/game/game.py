@@ -202,7 +202,6 @@ class Game:
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
         if move_type != "UNSELECT" and move_type != "SELECT_OPPONENT" and move_type != "ATTACK"  and move_type != "RESOLVE_NEXT_STACK" and cancel_damage:
-            print(f"cancel damage for move_type {move_type}")
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
             for card in self.opponent().in_play + self.current_player().in_play:
