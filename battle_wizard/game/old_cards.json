@@ -41,8 +41,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}
 		]
 	},
@@ -59,8 +58,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -243,8 +241,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -292,8 +289,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -346,8 +342,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}]	
 	},
 	{
@@ -362,8 +357,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -891,8 +885,7 @@
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			}			
 		]
 	},
@@ -910,8 +903,7 @@
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			}
 		]
 	},
@@ -933,8 +925,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}
 	]
 	},
@@ -952,8 +943,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -975,8 +965,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}		
 		]
 	},
@@ -1014,16 +1003,14 @@
 		],
 		"effects": [{
 				"name": "take_control",
-				"trigger": "start_turn",
-				"effect_type": "triggered",
+				"effect_type": "start_turn",
 				"target_type": "opponents_mob_random"
 			},
 			{
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 
 		]
@@ -1060,8 +1047,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		],	
 		"abilities": [			
@@ -1072,8 +1058,7 @@
 		],
 		"effects": [{
 				"name": "draw",
-				"trigger": "start_turn",
-				"effect_type": "triggered",
+				"effect_type": "start_turn",
 				"target_type": "self",
 				"amount": 1
 			},
@@ -1109,8 +1094,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 
 		]
@@ -1193,8 +1177,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -1232,13 +1215,11 @@
 				"effects": [
 					{
 						"name": "lose_lurker",
-						"effect_type": "triggered",
-						"trigger": "after_attack"
+						"effect_type": "after_attack"
 					},
 					{
 						"name": "make_untargettable",
-						"effect_type": "triggered",
-						"trigger": "select_mob_target_override"
+						"effect_type": "select_mob_target_override"
 					}
 				],
 				"ai_target_types": ["self_mob"]

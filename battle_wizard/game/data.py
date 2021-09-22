@@ -40,10 +40,6 @@ def all_abilities():
         {
             "name": "Defend",
             "descriptive_id": "Defend"
-        },
-        {
-            "name": "Fade",
-            "descriptive_id": "Fade"
         }
     ]
 

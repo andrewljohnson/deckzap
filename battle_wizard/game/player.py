@@ -132,7 +132,7 @@ class Player:
 
     def mana_from_cards(self):
         for artifact in self.artifacts:
-            for idx, effect in enumerate(artifact.effects_triggered("check_mana")):
+            for idx, effect in enumerate(artifact.effects_for_type("check_mana")):
                 effect.show_effect_animation = True
                 artifact.resolve_effect(artifact.check_mana_effect_defs[idx], self, effect, {})
         mana = self.card_mana
@@ -182,7 +182,7 @@ class Player:
             drawn_card = self.deck.pop()
             self.hand.append(drawn_card)
             for m in self.in_play + self.artifacts + [drawn_card]:
-                for idx, effect in enumerate(m.effects_triggered("draw")):
+                for idx, effect in enumerate(m.effects_for_type("draw")):
                     effect.show_effect_animation = True
                     log_lines.append(m.resolve_effect(m.draw_effect_defs[idx], self, effect, {})) 
         return log_lines if len(log_lines) > 0 else None
@@ -195,7 +195,7 @@ class Player:
             amount_to_spend -= 1
 
         for artifact in self.artifacts:
-            for idx, effect in enumerate(artifact.effects_triggered("spend_mana")):
+            for idx, effect in enumerate(artifact.effects_for_type("spend_mana")):
                 effect.show_effect_animation = True
                 artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend})
 
@@ -290,7 +290,7 @@ class Player:
             if len(card.effects) > 0 and do_effects:
                 self.target_or_do_mob_effects(card, spell_to_resolve, spell_to_resolve["username"])
             for c in self.in_play + self.artifacts:
-                for idx, effect in enumerate(c.effects_triggered("play_friendly_mob")):
+                for idx, effect in enumerate(c.effects_for_type("play_friendly_mob")):
                     effect.show_effect_animation = True
                     spell_to_resolve["log_lines"].append(c.resolve_effect(c.play_friendly_mob_effect_defs[idx], self, effect, {}))
 
@@ -422,25 +422,13 @@ class Player:
 
     def do_start_turn_card_effects_and_abilities(self, message):
         for card in self.in_play + self.artifacts:
-            if card.has_ability("Fade"):
-                token = {
-                    "turns": -1,
-                    "power_modifier": -1,
-                    "toughness_modifier": -1
-                }
-                effect = {
-                    "tokens": [token],
-                    "id": None
-                }
-                message["log_lines"] += card.do_add_token_effect_on_mob(CardEffect(effect, 0), self, card, self)
-
             card.attacked = False
             card.can_attack_mobs = True
             card.can_attack_players = True
 
             card.can_activate_abilities = True
 
-            for idx, effect in enumerate(card.effects_triggered("start_turn")):
+            for idx, effect in enumerate(card.effects_for_type("start_turn")):
                 effect.show_effect_animation = True
                 message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
 
@@ -833,8 +821,8 @@ class Player:
             card.added_descriptions = ["Evolves."]
         else:
             # these effects override the normal factory_reset
-            if len(card.effects_triggered("sent_to_played_pile")) > 0:
-                for idx, effect in enumerate(card.effects_triggered("sent_to_played_pile")):
+            if len(card.effects_for_type("sent_to_played_pile")) > 0:
+                for idx, effect in enumerate(card.effects_for_type("sent_to_played_pile")):
                     effect.show_effect_animation = True
                     card.resolve_effect(card.sent_to_played_piled_effect_defs[idx], self, effect, {}) 
             else:
@@ -849,7 +837,7 @@ class Player:
 
     def update_for_mob_changes_zones(self):
         for e in self.in_play + self.artifacts:
-            for idx, effect in enumerate(e.effects_triggered("mob_changes_zones")):
+            for idx, effect in enumerate(e.effects_for_type("mob_changes_zones")):
                 effect.show_effect_animation = True
                 e.resolve_effect(e.mob_changes_zones_effect_defs[idx], self, effect, {})                     
     

@@ -10,8 +10,7 @@
 			"name": "heal",
 			"amount_id": "hand_less_amount",
 			"target_type": "self",
-			"effect_type": "triggered",
-			"trigger": "start_turn",
+			"effect_type": "start_turn",
 			"amount": 5
 		}]
 	},
@@ -26,8 +25,7 @@
 			"name": "damage",
 			"amount_id": "hand",
 			"target_type": "opponent",
-			"trigger": "start_turn",
-			"effect_type": "triggered"
+			"effect_type": "start_turn"
 		}]
 	},
 	{
@@ -40,8 +38,7 @@
 		"effects": [{
 			"name": "reduce_cost",
 			"target_type": "spell",
-			"trigger": "draw",
-			"effect_type": "triggered"
+			"effect_type": "draw"
 		}]
 	},
 	{
@@ -54,8 +51,7 @@
 		"effects": [{
 			"name": "reduce_cost",
 			"target_type": "mob",
-			"trigger": "draw",
-			"effect_type": "triggered"
+			"effect_type": "draw"
 		}]
 	},
 	{
@@ -119,8 +115,7 @@
 			"name": "damage",
 			"target_type": "opponents_mob_random",
 			"amount": 1,
-			"trigger": "play_friendly_mob",
-			"effect_type": "triggered",
+			"effect_type": "play_friendly_mob",
 			"toughness": 1
 		}]
 	},
@@ -151,15 +146,13 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			},
 			{
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			},
 			{
 				"name": "add_ambush",
@@ -189,8 +182,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -220,13 +212,11 @@
 		"effects": [
 			{
 				"name": "lose_lurker",
-				"effect_type": "triggered",
-				"trigger": "after_attack"
+				"effect_type": "after_attack"
 			},
 			{
 				"name": "make_untargettable",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target_override"
+				"effect_type": "select_mob_target_override"
 			}
 		]	
 	},
@@ -530,17 +520,21 @@
 		"power": 3,
 		"toughness": 2,
 		"cost": 1,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fade",
-				"descriptive_id": "Fade"
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			},
+			{
+				"name": "add_fade",
+				"description": "Fade",
+				"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+				"effect_type": "start_turn"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Stomp",
 				"descriptive_id": "Stomp"
@@ -566,15 +560,13 @@
 			},
 			{
 				"name": "remove_symbiotic_fast",
-				"effect_type": "triggered",
-				"target_type": "self",
-				"trigger": "mob_changes_zones"
+				"effect_type": "mob_changes_zones",
+				"target_type": "self"
 			},
 			{
 				"name": "add_symbiotic_fast",
-				"effect_type": "triggered",
-				"target_type": "self",
-				"trigger": "mob_changes_zones"
+				"effect_type": "mob_changes_zones",
+				"target_type": "self"
 			}
 		]
 	},
@@ -591,9 +583,8 @@
 		"effects": [
 			{
 				"name": "add_tokens",
-				"effect_type": "triggered",
+				"effect_type": "friendly_card_played",
 				"target_type": "this",
-				"trigger": "friendly_card_played",
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 1
@@ -670,9 +661,8 @@
 		,
 			{
 				"name": "set_token",
-				"effect_type": "triggered",
+				"effect_type": "mob_changes_zones",
 				"target_type": "self_mobs",
-				"trigger": "mob_changes_zones",
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
@@ -690,21 +680,29 @@
 		"description": "Give a friendly mob +2/+2 and Fade.",
 		"toughness": 2,
 		"cost": 2,
-		"effects": [{
-			"name": "add_tokens",
-			"effect_type": "enter_play",
-			"target_type": "self_mob",
-			"tokens": [{
-				"power_modifier": 2,
-				"toughness_modifier": 2
-			}]
-		},
-		{
-			"name": "add_mob_abilities",
-			"effect_type": "enter_play",
-			"target_type": "mob",
-			"abilities": [{"name": "Fade", "descriptive_id": "Fade", "enabled": true}]
-		}]
+		"effects": [ 
+			{
+				"name": "add_tokens",
+				"effect_type": "enter_play",
+				"target_type": "self_mob",
+				"tokens": [{
+					"power_modifier": 2,
+					"toughness_modifier": 2
+				}]
+			},
+			{
+				"name": "add_mob_effects",
+				"effect_type": "enter_play",
+				"target_type": "mob",
+				"effects": [{
+            		"name": "add_fade",
+            		"description": "Fade",
+            		"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+            		"effect_type": "start_turn"
+        		}],
+				"ai_target_types": ["self_mob"]
+			}
+		]
 	},
 	{
 
@@ -715,17 +713,21 @@
 		"power": 4,
 		"toughness": 3,
 		"cost": 3,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fade",
-				"descriptive_id": "Fade"
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			},
+			{
+				"name": "add_fade",
+				"description": "Fade",
+				"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+				"effect_type": "start_turn"
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Stomp",
 				"descriptive_id": "Stomp"
@@ -751,8 +753,7 @@
 		"effects": [{
 			"name": "damage",
 			"target_type": "self",
-			"effect_type": "triggered",
-			"trigger": "start_turn",
+			"effect_type": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -787,17 +788,20 @@
 		"power": 3,
 		"toughness": 2,
 		"cost": 2,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Fade",
-				"descriptive_id": "Fade"
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
+			},
+			{
+				"name": "add_fade",
+				"description": "Fade",
+				"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+				"effect_type": "start_turn"
 			}
+
 		]
 	},
 	{
@@ -819,9 +823,8 @@
 		"effects": [
 			{
 				"name": "set_token",
-				"effect_type": "triggered",
+				"effect_type": "mob_changes_zones",
 				"target_type": "this",
-				"trigger": "mob_changes_zones",
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 0,
@@ -892,18 +895,15 @@
 		"effects": [
 			{
 				"name": "store_mana",
-				"trigger": "start_turn",
-				"effect_type": "triggered"
+				"effect_type": "start_turn"
 			},
 			{
 				"name": "use_stored_mana",
-				"trigger": "spend_mana",
-				"effect_type": "triggered"
+				"effect_type": "spend_mana"
 			},
 			{
 				"name": "augment_mana",
-				"trigger": "check_mana",
-				"effect_type": "triggered"
+				"effect_type": "check_mana"
 			}
 		]
 	},
@@ -956,8 +956,7 @@
 			},
 			{
 				"name": "make_from_deck",
-				"trigger": "start_turn",
-				"effect_type": "triggered"
+				"effect_type": "start_turn"
 			}
 		]
 	},
@@ -1002,8 +1001,7 @@
 		"description": "Get a random spell back from your yard at the end of your turn",
 		"effects": [{
 			"name": "spell_from_yard",
-			"effect_type": "triggered",
-			"trigger": "end_turn",
+			"effect_type": "end_turn",
 			"target_type": "self",
 			"amount": 1
 		}]
@@ -1049,8 +1047,7 @@
 		"effects": [{
 			"name": "draw",
 			"target_type": "self",
-			"trigger": "start_turn",
-			"effect_type": "triggered",
+			"effect_type": "start_turn",
 			"amount": 2
 		}]
 	},
@@ -1166,8 +1163,7 @@
 		"cost": 10,
 		"effects": [{
 			"name": "refresh_mana",
-			"trigger": "spend_mana",
-			"effect_type": "triggered"
+			"effect_type": "spend_mana"
 		}]
 	},
 	{
@@ -1234,8 +1230,7 @@
 		"effects": [
 			{
 				"name": "preserve_stats",
-				"effect_type": "triggered",
-				"trigger": "sent_to_played_pile"
+				"effect_type": "sent_to_played_pile"
 			}		
 		]
 	},
@@ -1260,8 +1255,7 @@
 		},
 		{
 			"name": "preserve_effect_improvement",
-			"effect_type": "triggered",
-			"trigger": "sent_to_played_pile"
+			"effect_type": "sent_to_played_pile"
 		}]
 	},
 	{
@@ -1611,8 +1605,7 @@
 			},
 			{
 				"name": "preserve_effect_improvement",
-				"effect_type": "triggered",
-				"trigger": "sent_to_played_pile"
+				"effect_type": "sent_to_played_pile"
 			}		
 		]
 	},
@@ -1704,8 +1697,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -1889,8 +1881,7 @@
 		},
 		{
 			"name": "duplicate_card_next_turn",
-			"effect_type": "triggered",
-			"trigger": "start_turn",
+			"effect_type": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -1910,8 +1901,7 @@
 		}, 
 		{
 			"name": "upgrade_card_next_turn",
-			"effect_type": "triggered",
-			"trigger": "start_turn",
+			"effect_type": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -1981,8 +1971,7 @@
 		}, 
 		{
 			"name": "reduce_cost",
-			"trigger": "draw",
-			"effect_type": "triggered"
+			"effect_type": "draw"
 		}]
 	},
 	{
@@ -2006,8 +1995,7 @@
 		},
 		{
 			"name": "reduce_cost",
-			"trigger": "draw",
-			"effect_type": "triggered"
+			"effect_type": "draw"
 		}]
 	},
 	{
@@ -2026,8 +2014,7 @@
 		}, 
 		{
 			"name": "decost_card_next_turn",
-			"effect_type": "triggered",
-			"trigger": "start_turn",
+			"effect_type": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -2057,8 +2044,7 @@
 		"effects": [{
 			"name": "hp_damage_random",
 			"target_type": "any",
-			"trigger": "draw",
-			"effect_type": "triggered"
+			"effect_type": "draw"
 		}]
 	},
 	{ 
@@ -2073,8 +2059,7 @@
 		"effects": [{
 			"name": "draw",
 			"target_type": "self",
-			"trigger": "start_turn",
-			"effect_type": "triggered",
+			"effect_type": "start_turn",
 			"amount": 1
 		}]
 	},
@@ -2116,8 +2101,7 @@
 				"name": "allow_defend_response",
 				"description": "Defend",
 				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "triggered",
-				"trigger": "declared_attack"
+				"effect_type": "declared_attack"
 			}
 		]
 	},   
@@ -2134,8 +2118,7 @@
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			},
 			{
 				"name": "add_fast",
@@ -2179,8 +2162,7 @@
 			},
 			{
 				"name": "make_from_deck",
-				"trigger": "start_turn",
-				"effect_type": "triggered"
+				"effect_type": "start_turn"
 			}
 		]
 	},
@@ -2196,8 +2178,7 @@
 		"effects": [{
 			"name": "heal",
 			"target_type": "self",
-			"effect_type": "triggered",
-			"trigger": "start_turn",
+			"effect_type": "start_turn",
 			"amount": 2
 		}]
 	},
@@ -2229,9 +2210,8 @@
 		,
 			{
 				"name": "set_token",
-				"effect_type": "triggered",
 				"target_type": "self_mobs",
-				"trigger": "mob_changes_zones",
+				"effect_type": "mob_changes_zones",
 				"tokens": [{
 					"power_modifier": 1,
 					"toughness_modifier": 1,
@@ -2253,8 +2233,7 @@
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			}
 		],	
 		"abilities": [
@@ -2316,28 +2295,25 @@
 		"effects": [{
 				"name": "damage",
 				"target_type": "opponent",
-				"trigger": "end_turn",
-				"effect_type": "triggered",
+				"effect_type": "end_turn",
 				"amount": 1
 			}, 
 			{
 				"name": "damage",
 				"target_type": "opponents_mobs",
-				"trigger": "end_turn",
-				"effect_type": "triggered",
+				"effect_type": "end_turn",
 				"amount": 1
 			},
 			{
-				"name": "do_improve_damage_all_effects_when_used",
-				"effect_type": "triggered",
+				"name": "improve_damage_all_effects_when_used",
+				"effect_type": "after_deals_damage",
 				"amount": 1
 			},
 			{
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			}
 		]
 	},
@@ -2354,8 +2330,7 @@
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			}
 		],	
 		"abilities": [

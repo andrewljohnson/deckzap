@@ -767,9 +767,6 @@ export class Card {
                 if (a.name == "Instrument") {
                     abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
                 } 
-                if (a.name == "Fade") {
-                    abilityText.text = "Fade - Fade mobs get -1/-1 at the beginning of the turn.";
-                }                    
                 if (a.name == "Stomp") {
                     abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
                 }                    
