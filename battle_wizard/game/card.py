@@ -2,7 +2,6 @@ import copy
 import math
 import random
 
-from battle_wizard.game.data import all_abilities
 from battle_wizard.game.data import all_cards
 from battle_wizard.game.data import Constants
 
@@ -47,7 +46,8 @@ class Card:
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
         # card.effects get mapped into these lists of defs defined on Card
-        self.activated_effect_defs = []
+        self.action_added_to_stack_effect_defs = []
+        self.activated_effect_defs = []        
         self.after_declared_attack_effect_defs = []
         self.after_attack_effect_defs = []
         self.after_deals_damage_effect_defs = []
@@ -70,6 +70,8 @@ class Card:
             self.create_effect_def(effect)
 
     def create_effect_def(self, effect):
+        if effect.effect_type == "action_added_to_stack":
+            self.action_added_to_stack_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "activated":
             self.activated_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_declared_attack":
@@ -168,6 +170,8 @@ class Card:
             return self.do_add_symbiotic_fast_effect
         elif name == "add_tokens":
             return self.do_add_tokens_effect
+        elif name == "allow_instant_cast":
+            return self.do_allow_instant_cast_effect
         elif name == "allow_defend_response":
             return self.do_allow_defend_response_effect
         elif name == "augment_mana":
@@ -493,7 +497,7 @@ class Card:
         return [f"{effect_owner.username} added a random ability to their mobs with {self.name}."]
 
     def do_add_random_ability_effect_on_mob(self, mob):
-        a = random.choice(all_abilities())
+        a = random.choice([])
         mob.abilities.append(CardAbility(a, len(mob.abilities)))
 
     def do_add_tokens_effect(self, effect_owner, effect, target_info):
@@ -523,8 +527,13 @@ class Card:
             controller.send_card_to_played_pile(target_mob, did_kill=True)
         return [f"{target_mob.name} gets {token}."]
 
+
     def do_allow_defend_response_effect(self, effect_owner, effect, target_info):
         self.can_be_clicked = True
+
+    def do_allow_instant_cast_effect(self, effect_owner, effect, target_info):
+        if effect_owner.current_mana() >= self.cost:
+                self.can_be_clicked = True
 
     def do_attack_abilities(self, effect_owner):
         if self.has_ability("discard_random"):

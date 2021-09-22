@@ -27,14 +27,6 @@ def all_cards(require_images=False, include_tokens=True):
 
     return subset
 
-def all_abilities():
-    return [
-        {
-            "name": "Conjure",
-            "descriptive_id": "Conjure"
-        }
-    ]
-
 def hash_for_deck(deck):
     strings = []
     for key in deck["cards"]:

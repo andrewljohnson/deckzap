@@ -741,9 +741,6 @@ export class Card {
         let abilityText = new PIXI.Text("", options);
         if (card.abilities) {
             for (let a of card.abilities) {
-                if (a.name == "Conjure") {
-                    abilityText.text = "Conjure - Conjure mobs may be played as instants.";
-                }                    
                 if (a.name == "Instant Attack") {
                     abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
                 }                    

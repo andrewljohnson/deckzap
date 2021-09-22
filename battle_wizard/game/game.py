@@ -316,8 +316,6 @@ class Game:
                         card.can_be_clicked = False
                     if card.card_type != Constants.spellCardType and len(self.stack) > 0:
                         card.can_be_clicked = False
-                        if card.has_ability("Conjure"):
-                            card.can_be_clicked = True
                     if card.card_type == Constants.spellCardType and card.needs_opponent_mob_target_for_spell():
                         card.can_be_clicked = cp.has_opponents_mob_target()
                     if card.has_ability("Instrument Required") and not cp.has_instrument():
@@ -811,6 +809,10 @@ class Game:
         for card in self.current_player().in_play:
             for idx, effect in enumerate(card.effects_for_type("after_declared_attack")):
                 card.resolve_effect(card.after_declared_attack_effect_defs[idx], self.current_player(), effect, {}) 
+
+        for card in self.current_player().hand:
+            for idx, effect in enumerate(card.effects_for_type("action_added_to_stack")):
+                card.resolve_effect(card.action_added_to_stack_effect_defs[idx], self.current_player(), effect, {}) 
 
         if not self.current_player().has_instants() and not self.current_player().has_defend():
             message = self.attack(message)
