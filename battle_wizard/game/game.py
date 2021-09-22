@@ -316,8 +316,6 @@ class Game:
                         card.can_be_clicked = False
                     if card.card_type != Constants.spellCardType and len(self.stack) > 0:
                         card.can_be_clicked = False
-                        if card.has_ability("Conjure"):
-                            card.can_be_clicked = True
                     if card.card_type == Constants.spellCardType and card.needs_opponent_mob_target_for_spell():
                         card.can_be_clicked = cp.has_opponents_mob_target()
                     if card.has_ability("Instrument Required") and not cp.has_instrument():
@@ -812,6 +810,10 @@ class Game:
             for idx, effect in enumerate(card.effects_for_type("after_declared_attack")):
                 card.resolve_effect(card.after_declared_attack_effect_defs[idx], self.current_player(), effect, {}) 
 
+        for card in self.current_player().hand:
+            for idx, effect in enumerate(card.effects_for_type("action_added_to_stack")):
+                card.resolve_effect(card.action_added_to_stack_effect_defs[idx], self.current_player(), effect, {}) 
+
         if not self.current_player().has_instants() and not self.current_player().has_defend():
             message = self.attack(message)
             self.unset_clickables(message["move_type"], cancel_damage=False)
@@ -936,17 +938,14 @@ class Game:
             damaged_card = card_players["damaged_card"]
             controller = card_players["controller"]
             opponent = card_players["opponent"]
-            damage = damage_card.power_with_tokens(opponent)
-
+            possible_damage = damage_card.power_with_tokens(opponent)
+            damage = min(damage_card.power_with_tokens(controller), damaged_card.toughness_with_tokens() - damaged_card.damage)
             damaged_card.deal_damage_with_effects(damage, controller)
+            actual_damage = damaged_card.damage_to_show
+            print(f"damaged_card.damage_this_turn {damaged_card.damage_this_turn}")
             for idx, effect in enumerate(damage_card.effects_for_type("after_deals_damage")):
-                damage_card.resolve_effect(damage_card.after_deals_damage_effect_defs[idx], opponent, effect, {"damage": damage}) 
+                damage_card.resolve_effect(damage_card.after_deals_damage_effect_defs[idx], controller, effect, {"damage": actual_damage, "damage_possible": possible_damage}) 
 
-        #if attacking_card.has_ability("Stomp"):
-        #    stomp_damage = attacking_card.power_with_tokens(self.current_player()) - (defending_card.toughness_with_tokens() - defending_card.damage)
-        #    if stomp_damage > 0:
-        #        self.opponent().damage(stomp_damage)
-        
         if attacking_card.damage >= attacking_card.toughness_with_tokens():
             self.current_player().send_card_to_played_pile(attacking_card, did_kill=True)
 

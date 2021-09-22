@@ -2,7 +2,6 @@ import copy
 import math
 import random
 
-from battle_wizard.game.data import all_abilities
 from battle_wizard.game.data import all_cards
 from battle_wizard.game.data import Constants
 
@@ -47,7 +46,8 @@ class Card:
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
         # card.effects get mapped into these lists of defs defined on Card
-        self.activated_effect_defs = []
+        self.action_added_to_stack_effect_defs = []
+        self.activated_effect_defs = []        
         self.after_declared_attack_effect_defs = []
         self.after_attack_effect_defs = []
         self.after_deals_damage_effect_defs = []
@@ -70,6 +70,8 @@ class Card:
             self.create_effect_def(effect)
 
     def create_effect_def(self, effect):
+        if effect.effect_type == "action_added_to_stack":
+            self.action_added_to_stack_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "activated":
             self.activated_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_declared_attack":
@@ -168,6 +170,8 @@ class Card:
             return self.do_add_symbiotic_fast_effect
         elif name == "add_tokens":
             return self.do_add_tokens_effect
+        elif name == "allow_instant_cast":
+            return self.do_allow_instant_cast_effect
         elif name == "allow_defend_response":
             return self.do_allow_defend_response_effect
         elif name == "augment_mana":
@@ -182,6 +186,8 @@ class Card:
             return self.do_create_random_townie_effect_cheap
         elif name == "damage":
             return self.do_damage_effect
+        elif name == "deal_excess_damage_to_controller":
+            return self.do_deal_excess_damage_to_controller_effect
         elif name == "decost_card_next_turn":
             return self.do_decost_card_next_turn_effect
         elif name == "decrease_max_mana":
@@ -491,7 +497,7 @@ class Card:
         return [f"{effect_owner.username} added a random ability to their mobs with {self.name}."]
 
     def do_add_random_ability_effect_on_mob(self, mob):
-        a = random.choice(all_abilities())
+        a = random.choice([])
         mob.abilities.append(CardAbility(a, len(mob.abilities)))
 
     def do_add_tokens_effect(self, effect_owner, effect, target_info):
@@ -521,8 +527,13 @@ class Card:
             controller.send_card_to_played_pile(target_mob, did_kill=True)
         return [f"{target_mob.name} gets {token}."]
 
+
     def do_allow_defend_response_effect(self, effect_owner, effect, target_info):
         self.can_be_clicked = True
+
+    def do_allow_instant_cast_effect(self, effect_owner, effect, target_info):
+        if effect_owner.current_mana() >= self.cost:
+                self.can_be_clicked = True
 
     def do_attack_abilities(self, effect_owner):
         if self.has_ability("discard_random"):
@@ -699,6 +710,17 @@ class Card:
         if target_card.damage >= target_card.toughness_with_tokens():
             controller.send_card_to_played_pile(target_card, did_kill=True)
 
+    def do_deal_excess_damage_to_controller_effect(self, effect_owner, effect, target_info):
+        if effect_owner.username != effect_owner.game.current_player().username:
+            return
+        if "damage_possible" not in target_info:
+            return
+        if target_info["damage"] == 0:
+            # this can happen when a Shield gets popped
+            return
+        excess_damage = target_info["damage_possible"] - target_info["damage"]
+        effect_owner.my_opponent().damage(excess_damage)
+
     def do_decost_card_next_turn_effect(self, effect_owner, effect, target_info):
         if self.card_for_effect:                     
             self.card_for_effect.cost = max(0, self.card_for_effect.cost - 1)
@@ -774,7 +796,7 @@ class Card:
 
     def do_draw_on_deal_damage_effect(self, effect_owner, effect, target_info):
         effect_owner.draw(effect.amount)
-        
+
     def do_draw_if_damaged_opponent_effect_on_player(self, effect_owner, effect, target_info):
         target_player = effect_owner
         if target_player.game.opponent().damage_this_turn > 0:

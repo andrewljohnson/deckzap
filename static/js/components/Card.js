@@ -741,9 +741,6 @@ export class Card {
         let abilityText = new PIXI.Text("", options);
         if (card.abilities) {
             for (let a of card.abilities) {
-                if (a.name == "Conjure") {
-                    abilityText.text = "Conjure - Conjure mobs may be played as instants.";
-                }                    
                 if (a.name == "Instant Attack") {
                     abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
                 }                    
@@ -759,9 +756,6 @@ export class Card {
                 if (a.name == "Instrument") {
                     abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
                 } 
-                if (a.name == "Stomp") {
-                    abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
-                }                    
                 if (a.name == "Keep") {
                     abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
                 }                    

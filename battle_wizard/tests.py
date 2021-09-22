@@ -1140,3 +1140,30 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(hand_size + 1, len(game.players[0].hand))
 
+    def test_stomp_shield(self):
+        """
+            Test Taunted Bear Fast and Stomp abilities.
+        """
+        game = self.game_for_decks([["Riftwalker Djinn"], ["Taunted Bear"]])
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, 30)
+
+    def test_quickster_conjure_vs_attack(self):
+        """
+            Test Quickster can use Conjure ability to be cast as an instant
+        """
+        game = self.game_for_decks([["Quickster"], ["Taunted Bear"]])
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.players[1].mana += game.players[1].hand[0].cost
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.current_player().username, game.players[0].username)
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.players[0].in_play), 1)
