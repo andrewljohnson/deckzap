@@ -136,7 +136,7 @@
 	{
 		"name": "Riftwalker Djinn",
 		"image": "djinn.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"power": 3,
 		"toughness": 2,
@@ -159,13 +159,18 @@
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
 				"effect_type": "enter_play"
-			}
-
-		],	
-		"abilities": [
+			},
 			{
-				"name": "Shield",
-				"descriptive_id": "Shield"
+				"name": "protect_with_shield",
+				"description": "Shield",
+				"description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+				"effect_type": "before_is_damaged",
+				"ui_info": {
+					"effect_type": "glow",
+					"outer_strength": 0,
+					"inner_strength": 3,
+					"color": "white"
+				}
 			}
 		]
 	},
@@ -204,7 +209,7 @@
 	{
 		"name": "Winding One",
 		"image": "wind-hole.svg",
-		"discipline": "none",
+		"discipline": "magic",
 		"card_type": "mob",
 		"power": 3,
 		"toughness": 4,
@@ -216,7 +221,13 @@
 			},
 			{
 				"name": "make_untargettable",
-				"effect_type": "select_mob_target_override"
+				"effect_type": "select_mob_target_override",
+				"ui_info": {
+					"effect_type": "glow",
+					"outer_strength": 0,
+					"inner_strength": 3,
+					"color": "black"
+				}
 			}
 		]	
 	},

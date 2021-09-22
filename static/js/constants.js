@@ -74,8 +74,8 @@ export function lurkerFilter() {
     return new GlowFilter({ outerStrength: 0, innerStrength: 3, color: blackColor});
 }
 
-export function shieldFilter() {
-    return new GlowFilter({ outerStrength: 0, innerStrength: 3, color: whiteColor});
+export function glowFilter() {
+    return GlowFilter;
 }
 
 // Game UX

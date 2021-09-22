@@ -511,11 +511,21 @@
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Shield",
-				"descriptive_id": "Shield"
-			},
+				"name": "protect_with_shield",
+				"description": "Shield",
+				"description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+				"effect_type": "before_is_damaged",
+				"ui_info": {
+					"filter_name": "glow",
+					"outerStrength": 0,
+					"innerStrength": 3,
+					"color": "white"
+				}
+			}
+		],
+		"abilities": [
 			{
 				"name": "DamageDraw",
 				"description": "Draw a card when this deals damage to your opponent.",
@@ -753,23 +763,6 @@
 				}
 			]				
 		}]
-	},
-	{
-		"name": "Gnomish Minstrel",
-		"race": "gnome",
-		"class": "bard",
-		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
-		"cost": 1,
-		"abilities": [
-			{
-				"name": "DamageTakeControl",
-				"description": "Take control of anything this damages.",
-				"descriptive_id": "DamageTakeControl",
-				"amount": 1
-			}
-		]
 	},
 	{
 		"name": "Gnomish Mayor",
@@ -1204,6 +1197,7 @@
 	{
 		"name": "Hide",
 		"discipline": "magic",
+		"image": "ninja-mask.svg",
 		"cost": 2,
 		"card_type": "spell",
 		"description": "Target mob gains Lurker.",
@@ -1219,7 +1213,13 @@
 					},
 					{
 						"name": "make_untargettable",
-						"effect_type": "select_mob_target_override"
+						"effect_type": "select_mob_target_override",
+						"ui_info": {
+							"effect_type": "glow",
+							"outer_strength": 0,
+							"inner_strength": 3,
+							"color": "black"
+						}
 					}
 				],
 				"ai_target_types": ["self_mob"]
