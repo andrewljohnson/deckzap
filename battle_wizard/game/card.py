@@ -182,6 +182,8 @@ class Card:
             return self.do_create_random_townie_effect_cheap
         elif name == "damage":
             return self.do_damage_effect
+        elif name == "deal_excess_damage_to_controller":
+            return self.do_deal_excess_damage_to_controller_effect
         elif name == "decost_card_next_turn":
             return self.do_decost_card_next_turn_effect
         elif name == "decrease_max_mana":
@@ -699,6 +701,17 @@ class Card:
         if target_card.damage >= target_card.toughness_with_tokens():
             controller.send_card_to_played_pile(target_card, did_kill=True)
 
+    def do_deal_excess_damage_to_controller_effect(self, effect_owner, effect, target_info):
+        if effect_owner.username != effect_owner.game.current_player().username:
+            return
+        if "damage_possible" not in target_info:
+            return
+        if target_info["damage"] == 0:
+            # this can happen when a Shield gets popped
+            return
+        excess_damage = target_info["damage_possible"] - target_info["damage"]
+        effect_owner.my_opponent().damage(excess_damage)
+
     def do_decost_card_next_turn_effect(self, effect_owner, effect, target_info):
         if self.card_for_effect:                     
             self.card_for_effect.cost = max(0, self.card_for_effect.cost - 1)
@@ -774,7 +787,7 @@ class Card:
 
     def do_draw_on_deal_damage_effect(self, effect_owner, effect, target_info):
         effect_owner.draw(effect.amount)
-        
+
     def do_draw_if_damaged_opponent_effect_on_player(self, effect_owner, effect, target_info):
         target_player = effect_owner
         if target_player.game.opponent().damage_this_turn > 0:

@@ -759,9 +759,6 @@ export class Card {
                 if (a.name == "Instrument") {
                     abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
                 } 
-                if (a.name == "Stomp") {
-                    abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
-                }                    
                 if (a.name == "Keep") {
                     abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
                 }                    
