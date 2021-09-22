@@ -41,8 +41,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}
 		]
 	},
@@ -59,8 +58,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -243,8 +241,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -292,8 +289,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -346,8 +342,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}]	
 	},
 	{
@@ -362,8 +357,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -517,15 +511,22 @@
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Shield",
-				"descriptive_id": "Shield"
+				"name": "protect_with_shield",
+				"description": "Shield",
+				"description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+				"effect_type": "before_is_damaged",
+				"ui_info": {
+					"filter_name": "glow",
+					"outerStrength": 0,
+					"innerStrength": 3,
+					"color": "white"
+				}
 			},
 			{
-				"name": "DamageDraw",
-				"description": "Draw a card when this deals damage to your opponent.",
-				"descriptive_id": "DamageDraw",
+				"name": "draw_on_deal_damage",
+				"effect_type": "after_deals_damage",
 				"amount": 1
 			}
 		]
@@ -761,23 +762,6 @@
 		}]
 	},
 	{
-		"name": "Gnomish Minstrel",
-		"race": "gnome",
-		"class": "bard",
-		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
-		"cost": 1,
-		"abilities": [
-			{
-				"name": "DamageTakeControl",
-				"description": "Take control of anything this damages.",
-				"descriptive_id": "DamageTakeControl",
-				"amount": 1
-			}
-		]
-	},
-	{
 		"name": "Gnomish Mayor",
 		"race": "gnome",
 		"class": "bard",
@@ -891,8 +875,7 @@
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			}			
 		]
 	},
@@ -910,8 +893,7 @@
 				"name": "drain_hp",
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "triggered",
-				"trigger": "after_deals_damage"
+				"effect_type": "after_deals_damage"
 			}
 		]
 	},
@@ -933,8 +915,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}
 	]
 	},
@@ -952,8 +933,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -975,8 +955,7 @@
 		},
 		{
 			"name": "force_attack_guard_first",
-			"effect_type": "triggered",
-			"trigger": "select_mob_target"
+			"effect_type": "select_mob_target"
 		}		
 		]
 	},
@@ -1014,16 +993,14 @@
 		],
 		"effects": [{
 				"name": "take_control",
-				"trigger": "start_turn",
-				"effect_type": "triggered",
+				"effect_type": "start_turn",
 				"target_type": "opponents_mob_random"
 			},
 			{
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 
 		]
@@ -1060,8 +1037,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		],	
 		"abilities": [			
@@ -1072,8 +1048,7 @@
 		],
 		"effects": [{
 				"name": "draw",
-				"trigger": "start_turn",
-				"effect_type": "triggered",
+				"effect_type": "start_turn",
 				"target_type": "self",
 				"amount": 1
 			},
@@ -1109,8 +1084,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 
 		]
@@ -1193,8 +1167,7 @@
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "triggered",
-				"trigger": "select_mob_target"
+				"effect_type": "select_mob_target"
 			}
 		]	
 	},
@@ -1221,6 +1194,7 @@
 	{
 		"name": "Hide",
 		"discipline": "magic",
+		"image": "ninja-mask.svg",
 		"cost": 2,
 		"card_type": "spell",
 		"description": "Target mob gains Lurker.",
@@ -1232,13 +1206,17 @@
 				"effects": [
 					{
 						"name": "lose_lurker",
-						"effect_type": "triggered",
-						"trigger": "after_attack"
+						"effect_type": "after_attack"
 					},
 					{
 						"name": "make_untargettable",
-						"effect_type": "triggered",
-						"trigger": "select_mob_target_override"
+						"effect_type": "select_mob_target_override",
+						"ui_info": {
+							"effect_type": "glow",
+							"outer_strength": 0,
+							"inner_strength": 3,
+							"color": "black"
+						}
 					}
 				],
 				"ai_target_types": ["self_mob"]

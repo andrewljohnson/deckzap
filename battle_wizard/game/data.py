@@ -30,20 +30,8 @@ def all_cards(require_images=False, include_tokens=True):
 def all_abilities():
     return [
         {
-            "name": "Shield",
-            "descriptive_id": "Shield"
-        },
-        {
             "name": "Conjure",
             "descriptive_id": "Conjure"
-        },
-        {
-            "name": "Defend",
-            "descriptive_id": "Defend"
-        },
-        {
-            "name": "Fade",
-            "descriptive_id": "Fade"
         }
     ]
 

@@ -201,7 +201,7 @@ class Game:
             spell[1]["can_be_clicked"] = False
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
-        if move_type != "UNSELECT" and cancel_damage:
+        if move_type != "UNSELECT" and move_type != "SELECT_OPPONENT" and move_type != "ATTACK"  and move_type != "RESOLVE_NEXT_STACK" and cancel_damage:
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
             for card in self.opponent().in_play + self.current_player().in_play:
@@ -221,8 +221,11 @@ class Game:
         for card in opp.artifacts:
             card.can_be_clicked = False
 
-        if cp.selected_mob() and cp.card_info_to_target["effect_type"] != "mob_at_ready":
-            cp.set_targets_for_selected_mob()
+        if cp.selected_mob():
+            if cp.card_info_to_target["effect_type"] == "mob_at_ready":
+                self.set_attack_clicks()
+            else:
+                cp.set_targets_for_selected_mob()
         elif cp.selected_artifact():
             selected_artifact = cp.selected_artifact()
             e = selected_artifact.enabled_activated_effects()[cp.card_info_to_target["effect_index"]]
@@ -234,8 +237,6 @@ class Game:
             else:      
                 if len(selected_spell.effects) > 0:     
                     self.set_targets_for_target_type(selected_spell.effects[0].target_type, selected_spell.effects[0].target_restrictions)
-        elif cp.card_info_to_target["effect_type"] in ["mob_at_ready"]:
-            self.set_attack_clicks()
 
         if not cp.card_info_to_target["effect_type"]:
             if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_mob_for_effect"]:
@@ -348,13 +349,16 @@ class Game:
 
         # this currently handles Guard
         for m in self.opponent().in_play:
-            for idx, effect in enumerate(m.effects_triggered("select_mob_target")):
+            for idx, effect in enumerate(m.effects_for_type("select_mob_target")):
                 m.resolve_effect(m.select_mob_target_effect_defs[idx], self.opponent(), effect, {}) 
 
         # this currently handles Lurker
         for m in self.opponent().in_play:
-            for idx, effect in enumerate(m.effects_triggered("select_mob_target_override")):
+            for idx, effect in enumerate(m.effects_for_type("select_mob_target_override")):
                 m.resolve_effect(m.select_mob_target_override_effect_defs[idx], self.opponent(), effect, {}) 
+        for m in self.current_player().in_play:
+            for idx, effect in enumerate(m.effects_for_type("select_mob_target_override")):
+                m.resolve_effect(m.select_mob_target_override_effect_defs[idx], self.current_player(), effect, {}) 
 
     def get_in_play_for_id(self, card_id):
         """
@@ -535,9 +539,9 @@ class Game:
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
             # this works because all end_turn triggered effects dont have targets to choose
-            effect_targets = mob.unchosen_targets(self.current_player(), effect_type="triggered")            
-            for idx, effect in enumerate(mob.effects_triggered()):
-                if effect.trigger == "end_turn":
+            effect_targets = mob.unchosen_targets(self.current_player(), effect_type="end_turn")            
+            for idx, effect in enumerate(mob.effects_for_type("end_turn")):
+                if effect.effect_type == "end_turn":
                     effect.show_effect_animation = True
                     log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
                     if log_lines:
@@ -804,6 +808,10 @@ class Game:
         self.unset_clickables(message["move_type"])
         self.set_clickables()
 
+        for card in self.current_player().in_play:
+            for idx, effect in enumerate(card.effects_for_type("after_declared_attack")):
+                card.resolve_effect(card.after_declared_attack_effect_defs[idx], self.current_player(), effect, {}) 
+
         if not self.current_player().has_instants() and not self.current_player().has_defend():
             message = self.attack(message)
             self.unset_clickables(message["move_type"], cancel_damage=False)
@@ -855,12 +863,12 @@ class Game:
             damage = attacking_card.power_with_tokens(self.current_player())
             move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {damage}.")
             self.opponent().damage(damage)
-            for idx, effect in enumerate(attacking_card.effects_triggered("after_deals_damage")):
+            for idx, effect in enumerate(attacking_card.effects_for_type("after_deals_damage")):
                 attacking_card.resolve_effect(attacking_card.after_deals_damage_effect_defs[idx], self.current_player(), effect, {"damage": damage}) 
 
         attacking_card.do_attack_abilities(self.current_player())
 
-        for idx, effect in enumerate(attacking_card.effects_triggered("after_attack")):
+        for idx, effect in enumerate(attacking_card.effects_for_type("after_attack")):
             attacking_card.resolve_effect(attacking_card.after_attack_effect_defs[idx], self.current_player(), effect, {}) 
 
         return move_to_complete
@@ -921,40 +929,23 @@ class Game:
         return message
 
     def resolve_combat(self, attacking_card, defending_card):
-        damage = 0
-        if attacking_card.shielded:
-            attacking_card.shielded = False
-        else:
-            damage = defending_card.power_with_tokens(self.opponent())
-            attacking_card.damage += damage
-            attacking_card.damage_this_turn += damage
-            attacking_card.damage_to_show += defending_card.power_with_tokens(self.opponent())
-            for idx, effect in enumerate(defending_card.effects_triggered("after_deals_damage")):
-                defending_card.resolve_effect(defending_card.after_attack_effect_defs[idx], self.opponent(), effect, {"damage": damage}) 
-            if attacking_card.damage < attacking_card.toughness_with_tokens() and defending_card.has_ability("DamageTakeControl"):
-                self.current_player().in_play.remove(attacking_card)
-                self.opponent().in_play.append(attacking_card)
-                self.current_player().update_for_mob_changes_zones()
-                self.opponent().update_for_mob_changes_zones()
-        if defending_card.shielded:
-            defending_card.shielded = False
-        else:
-            if attacking_card.has_ability("Stomp"):
-                stomp_damage = attacking_card.power_with_tokens(self.current_player()) - (defending_card.toughness_with_tokens() - defending_card.damage)
-                if stomp_damage > 0:
-                    self.opponent().damage(stomp_damage)
-            defending_card.damage += attacking_card.power_with_tokens(self.current_player())
-            defending_card.damage_this_turn += attacking_card.power_with_tokens(self.current_player())
-            defending_card.damage_to_show += attacking_card.power_with_tokens(self.opponent())
+        for card_players in [
+            {"damage_card": defending_card, "damaged_card": attacking_card, "controller": self.opponent(), "opponent": self.current_player()}, 
+            {"damage_card": attacking_card, "damaged_card": defending_card, "controller": self.current_player(), "opponent": self.opponent()}]: 
+            damage_card = card_players["damage_card"]
+            damaged_card = card_players["damaged_card"]
+            controller = card_players["controller"]
+            opponent = card_players["opponent"]
+            damage = damage_card.power_with_tokens(opponent)
 
-            for idx, effect in enumerate(attacking_card.effects_triggered("after_deals_damage")):
-                attacking_card.resolve_effect(attacking_card.after_attack_effect_defs[idx], self.current_player(), effect, {"damage": damage}) 
+            damaged_card.deal_damage_with_effects(damage, controller)
+            for idx, effect in enumerate(damage_card.effects_for_type("after_deals_damage")):
+                damage_card.resolve_effect(damage_card.after_deals_damage_effect_defs[idx], opponent, effect, {"damage": damage}) 
 
-            if defending_card.damage < defending_card.toughness_with_tokens() and attacking_card.has_ability("DamageTakeControl"):
-                self.opponent().in_play.remove(defending_card)
-                self.current_player().in_play.append(defending_card)
-                self.current_player().update_for_mob_changes_zones()
-                self.opponent().update_for_mob_changes_zones()
+        #if attacking_card.has_ability("Stomp"):
+        #    stomp_damage = attacking_card.power_with_tokens(self.current_player()) - (defending_card.toughness_with_tokens() - defending_card.damage)
+        #    if stomp_damage > 0:
+        #        self.opponent().damage(stomp_damage)
         
         if attacking_card.damage >= attacking_card.toughness_with_tokens():
             self.current_player().send_card_to_played_pile(attacking_card, did_kill=True)

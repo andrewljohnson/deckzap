@@ -34,7 +34,6 @@ export class Card {
         return cardSprite
     }
 
-
 	static sprite(card, pixiUX, game, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
         let cw = Card.cardWidth;
         let ch = Card.cardHeight;
@@ -190,14 +189,9 @@ export class Card {
 	                if (e.description) {
 	                    effectsText += e.description;
 	                    color = Constants.blackColor;
-	                } else {
-	                    if (e.name == "DamageDraw") {
-	                        continue;
-	                    }
-	                    effectsText += e.name;
-	                    if (e != card.effects[card.effects.length-1]) {                
-	                           effectsText += ", ";
-	                    }               
+                        if (e != card.effects[card.effects.length-1]) {                
+                               effectsText += ", ";
+                        }               
 	                }
 	            }
 	        }
@@ -370,9 +364,10 @@ export class Card {
             let currentBatteryMana = 0;
             for (let effect of card.effects) {
                 if (effect.name == "store_mana") {
-                    currentBatteryMana = effect.counters;
+                    currentBatteryMana = Math.max(0, effect.counters);
                 }
             }
+            console.log(currentBatteryMana)
             let gems = Constants.manaGems(3, currentBatteryMana);
             gems.position.x = -gems.width/2;
             gems.position.y = Card.cardHeight/2 - 7 - gems.height;
@@ -746,9 +741,6 @@ export class Card {
         let abilityText = new PIXI.Text("", options);
         if (card.abilities) {
             for (let a of card.abilities) {
-                if (a.name == "Shield") {
-                    abilityText.text = "Shield - Shielded mobs don't take damage the first time they get damaged.";
-                }                    
                 if (a.name == "Conjure") {
                     abilityText.text = "Conjure - Conjure mobs may be played as instants.";
                 }                    
@@ -767,14 +759,8 @@ export class Card {
                 if (a.name == "Instrument") {
                     abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
                 } 
-                if (a.name == "Fade") {
-                    abilityText.text = "Fade - Fade mobs get -1/-1 at the beginning of the turn.";
-                }                    
                 if (a.name == "Stomp") {
                     abilityText.text = "Stomp - Stomp mobs deal excess damage to players.";
-                }                    
-                if (a.name == "Lurker") {
-                    abilityText.text = "Lurker - Lurker mobs can't be targetted until they attack.";
                 }                    
                 if (a.name == "Keep") {
                     abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
@@ -845,14 +831,49 @@ export class Card {
                 filters.push(Constants.cantBeClickedFilter());                                        
             }
         }
-        if (card.shielded && card.turn_played > -1) {
-            filters.push(Constants.shieldFilter());                        
-        }
-        if (card.abilities && card.abilities.length > 0 && card.abilities[0].descriptive_id == "Lurker" && card.abilities[0].enabled && card.turn_played > -1) {
-            filters.push(Constants.lurkerFilter());                        
+
+        if (card.turn_played > -1) {
+            let uiEffects = Card.uiEffects(card);
+            for (let effect of uiEffects) {
+                filters.push(Card.filterForEffect(effect));                        
+            }
         }
 
         cardSprite.filters = filters;
+    }
+
+    static uiEffects(card) {
+        let uiEffects = [];
+        for (let effect of card.effects) {
+            if (effect.ui_info && effect.enabled) {
+                uiEffects.push(effect);                        
+            }            
+        }
+        return uiEffects;
+    }
+
+    static filterForEffect(effect) {
+        let ui_info = effect.ui_info;
+        let effect_info = { outerStrength: ui_info.outer_strength, innerStrength: ui_info.inner_strength, color: Card.colorForString(ui_info.color)};
+        let filterMethod = Card.methodForString(ui_info.effect_type);
+        return new filterMethod(effect_info);
+    }
+
+    static methodForString(methodString) {
+        if (methodString == "glow") {
+            return Constants.glowFilter();
+        }
+        console.log(`Card.methodForString has no return value for methodString ${methodString}`)
+    }
+
+    static colorForString(colorString) {
+        if (colorString == "white") {
+            return Constants.whiteColor;
+        }
+        if (colorString == "black") {
+            return Constants.blackColor;
+        }
+        console.log(`Card.colorForString has no return value for colorString ${colorString}`)
     }
 
     static setCardMouseoverListeners(cardSprite, game, pixiUX) {

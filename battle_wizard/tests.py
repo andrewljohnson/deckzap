@@ -185,23 +185,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
         self.assertEqual(game.current_player().played_pile[0].attacked, False)
 
-    def test_gnomish_minstrel_takes_control(self):
-        """
-            Test Gnomish Minstrel takes control of a mob it damages.
-        """
-        game = self.game_for_decks([["Gnomish Minstrel"], ["Air Elemental"]])
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
-        self.assertEqual(len(game.current_player().in_play), 1)
-        self.assertEqual(len(game.opponent().in_play), 0)
-
-
     def test_town_ranger_guards(self):
         """
             Test Guard works on Town Ranger by checking if there are only two legal moves (attack ranger and end turn).
@@ -598,6 +581,52 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})        
         self.assertEqual(game.current_player().hit_points, game.current_player().max_hit_points)
+
+    def test_riftwalker_djinn_shield_spell(self):
+        """
+            Test Shield ability of Riftwalker Djinn with a damage spell
+        """
+
+        deck1 = ["Riftwalker Djinn"]
+        deck2 = ["Zap", "Zap"]
+        game = self.game_for_decks([deck1,deck2])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        for card in game.players[1].hand:
+            game.players[1].mana += card.cost
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})        
+        self.assertEqual(game.opponent().in_play[0].damage, 0)
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})        
+        self.assertEqual(len(game.opponent().in_play), 0)
+
+    def test_riftwalker_djinn_shield_combat(self):
+        """
+            Test Shield ability of Riftwalker Djinn with combat
+        """
+
+        deck1 = ["Riftwalker Djinn"]
+        deck2 = ["Riftwalker Djinn"]
+        game = self.game_for_decks([deck1,deck2])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        for card in game.players[1].hand:
+            game.players[1].mana += card.cost
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})        
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})        
+        self.assertEqual(game.current_player().in_play[0].damage, 0)
+        self.assertEqual(game.opponent().in_play[0].damage, 0)
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})        
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})        
+        self.assertEqual(len(game.current_player().in_play), 0)
+        self.assertEqual(len(game.opponent().in_play), 0)
 
     def test_animal_trainer(self):
         """
@@ -1074,4 +1103,40 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})    
         self.assertEqual(game.opponent().can_be_clicked, False)
         self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)
+
+    def test_flock_of_bats(self):
+        """
+            Test allow_defend_response effect of Flock of Bats
+        """
+
+        deck1 = ["Flock of Bats"]
+        deck2 = ["OG Vamp"]
+        game = self.game_for_decks([deck1, deck2])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})    
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        for card in game.players[1].hand:
+            game.players[1].mana += card.cost
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})    
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.players[0].username, game.current_player().username)
+
+    def test_trickster(self):
+        """
+            Test draw_on_deal_damage effect of Trickster
+        """
+
+        deck1 = ["Trickster", "Trickster", "Trickster", "Trickster", "Trickster", "Trickster"]
+        deck2 = []
+        game = self.game_for_decks([deck1, deck2])
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})    
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        hand_size = len(game.players[0].hand)
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(hand_size + 1, len(game.players[0].hand))
 

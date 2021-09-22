@@ -1971,13 +1971,14 @@ function hasCantBeTargettedFilter(cardSprite) {
 
 
 function clearDragFilters(cardSprite) {
+    let effectFilters = [];
+    for (let effect of Card.uiEffects(cardSprite.card)) {
+        effectFilters.push(Card.filterForEffect(effect));
+    }
     let newFilters = []
     for (let filter of cardSprite.filters) {
-        const lf = Constants.lurkerFilter();
-        const sf = Constants.shieldFilter();
-        if (filter.constructor.name == lf.constructor.name && filter.outerStrength == lf.outerStrength && filter.innerStrength == lf.innerStrength && filter.color == lf.color) {
-            newFilters.push(filter);
-        } else if (filter.constructor.name == sf.constructor.name && filter.outerStrength == sf.outerStrength && filter.innerStrength == sf.innerStrength && filter.color == sf.color) {
+        for (let effectFilter of effectFilters)
+        if (filter.constructor.name == effectFilter.constructor.name && filter.outerStrength == effectFilter.outerStrength && filter.innerStrength == effectFilter.innerStrength && filter.color == effectFilter.color) {
             newFilters.push(filter);
         }
     }

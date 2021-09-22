@@ -51,7 +51,9 @@ def zap_mob(target_mob, caster, target_controller, game):
 	This is a method for effect.function_mob, which are always passed a Card, Player, Player, and Game	
 	"""
 	damage_amount = 3 
-	target_mob.deal_damage(damage_amount, target_controller, game)
+	target_mob.deal_damage(damage_amount)
+    if target_mob.damage >= target_mob.toughness_with_tokens():
+        target_controller.send_card_to_played_pile(target_mob, did_kill=True)
     log_lines = [
     	f"{caster.username} deals {damage_amount} damage to {target_mob.name}."
     ]
