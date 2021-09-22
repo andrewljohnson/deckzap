@@ -240,8 +240,6 @@ class Player:
                 for t in card.tokens:
                     if t.set_can_act == False:
                         return False                                                
-                if card.has_ability("Defend") and self.game.defendable_attack_on_stack(card):
-                    return True        
                 if len(self.game.stack) == 0 or card.has_ability("Instant Attack"):
                     return True
                 return False

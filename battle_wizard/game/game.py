@@ -808,6 +808,10 @@ class Game:
         self.unset_clickables(message["move_type"])
         self.set_clickables()
 
+        for card in self.current_player().in_play:
+            for idx, effect in enumerate(card.effects_for_type("after_declared_attack")):
+                card.resolve_effect(card.after_declared_attack_effect_defs[idx], self.current_player(), effect, {}) 
+
         if not self.current_player().has_instants() and not self.current_player().has_defend():
             message = self.attack(message)
             self.unset_clickables(message["move_type"], cancel_damage=False)

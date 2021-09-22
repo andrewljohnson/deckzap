@@ -48,6 +48,7 @@ class Card:
 
         # card.effects get mapped into these lists of defs defined on Card
         self.activated_effect_defs = []
+        self.after_declared_attack_effect_defs = []
         self.after_attack_effect_defs = []
         self.after_deals_damage_effect_defs = []
         self.before_is_damaged_effect_defs = []
@@ -71,6 +72,8 @@ class Card:
     def create_effect_def(self, effect):
         if effect.effect_type == "activated":
             self.activated_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "after_declared_attack":
+            self.after_declared_attack_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "before_is_damaged":
             self.before_is_damaged_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "enter_play":
@@ -165,6 +168,8 @@ class Card:
             return self.do_add_symbiotic_fast_effect
         elif name == "add_tokens":
             return self.do_add_tokens_effect
+        elif name == "allow_defend_response":
+            return self.do_allow_defend_response_effect
         elif name == "augment_mana":
             return self.do_augment_mana_effect
         elif name == "buff_power_toughness_from_mana":
@@ -513,6 +518,9 @@ class Card:
         if target_mob.toughness_with_tokens() - target_mob.damage <= 0:
             controller.send_card_to_played_pile(target_mob, did_kill=True)
         return [f"{target_mob.name} gets {token}."]
+
+    def do_allow_defend_response_effect(self, effect_owner, effect, target_info):
+        self.can_be_clicked = True
 
     def do_attack_abilities(self, effect_owner):
         if self.has_ability("DamageDraw"):

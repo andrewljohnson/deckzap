@@ -32,10 +32,6 @@ def all_abilities():
         {
             "name": "Conjure",
             "descriptive_id": "Conjure"
-        },
-        {
-            "name": "Defend",
-            "descriptive_id": "Defend"
         }
     ]
 

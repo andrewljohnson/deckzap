@@ -912,8 +912,7 @@
 		"effects": [
 			{
 				"name": "store_mana",
-				"effect_type": "start_turn",
-				"counters": 0
+				"effect_type": "start_turn"
 			},
 			{
 				"name": "use_stored_mana",
@@ -2119,7 +2118,7 @@
 				"name": "allow_defend_response",
 				"description": "Defend",
 				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "declared_attack"
+				"effect_type": "after_declared_attack"
 			}
 		]
 	},   
@@ -2252,12 +2251,12 @@
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
 				"effect_type": "after_deals_damage"
-			}
-		],	
-		"abilities": [
+			},
 			{
-				"name": "Defend",
-				"descriptive_id": "Defend"
+				"name": "allow_defend_response",
+				"description": "Defend",
+				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
+				"effect_type": "after_declared_attack"
 			}
 		]
 	},
@@ -2269,10 +2268,12 @@
 		"power": 7,
 		"toughness": 7,
 		"cost": 6,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Defend",
-				"descriptive_id": "Defend"
+				"name": "allow_defend_response",
+				"description": "Defend",
+				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
+				"effect_type": "after_declared_attack"
 			}
 		]
 	},
@@ -2349,16 +2350,18 @@
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
 				"effect_type": "after_deals_damage"
+			},
+			{
+				"name": "allow_defend_response",
+				"description": "Defend",
+				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
+				"effect_type": "after_declared_attack"
 			}
 		],	
 		"abilities": [
 			{
 				"name": "Conjure",
 				"descriptive_id": "Conjure"
-			},
-			{
-				"name": "Defend",
-				"descriptive_id": "Defend"
 			}
 		]
 	},

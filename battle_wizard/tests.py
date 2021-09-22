@@ -1104,3 +1104,23 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.opponent().can_be_clicked, False)
         self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)
 
+
+    def test_flock_of_bats(self):
+        """
+            Test allow_defend_response effect of Flock of Bats
+        """
+
+        deck1 = ["Flock of Bats"]
+        deck2 = ["OG Vamp"]
+        game = self.game_for_decks([deck1, deck2])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})    
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        for card in game.players[1].hand:
+            game.players[1].mana += card.cost
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})    
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.players[0].username, game.current_player().username)
+
