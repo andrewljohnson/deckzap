@@ -1104,7 +1104,6 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.opponent().can_be_clicked, False)
         self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)
 
-
     def test_flock_of_bats(self):
         """
             Test allow_defend_response effect of Flock of Bats
@@ -1123,4 +1122,21 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
         game.play_move({"username": "b", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.players[0].username, game.current_player().username)
+
+    def test_trickster(self):
+        """
+            Test draw_on_deal_damage effect of Trickster
+        """
+
+        deck1 = ["Trickster", "Trickster", "Trickster", "Trickster", "Trickster", "Trickster"]
+        deck2 = []
+        game = self.game_for_decks([deck1, deck2])
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})    
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        hand_size = len(game.players[0].hand)
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(hand_size + 1, len(game.players[0].hand))
 

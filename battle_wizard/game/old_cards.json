@@ -523,13 +523,10 @@
 					"innerStrength": 3,
 					"color": "white"
 				}
-			}
-		],
-		"abilities": [
+			},
 			{
-				"name": "DamageDraw",
-				"description": "Draw a card when this deals damage to your opponent.",
-				"descriptive_id": "DamageDraw",
+				"name": "draw_on_deal_damage",
+				"effect_type": "after_deals_damage",
 				"amount": 1
 			}
 		]

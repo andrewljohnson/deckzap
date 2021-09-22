@@ -196,6 +196,8 @@ class Card:
             return self.do_drain_hp_effect
         elif name == "draw":
             return self.do_draw_effect_on_player
+        elif name == "draw_on_deal_damage":
+            return self.do_draw_on_deal_damage_effect            
         elif name == "draw_if_damaged_opponent":
             return self.do_draw_if_damaged_opponent_effect_on_player
         elif name == "draw_or_resurrect":
@@ -523,16 +525,6 @@ class Card:
         self.can_be_clicked = True
 
     def do_attack_abilities(self, effect_owner):
-        if self.has_ability("DamageDraw"):
-            ability = None
-            for a in self.abilities:
-                if a.descriptive_id == "DamageDraw":
-                    ability = a
-            if ability.target_type == "opponent":
-                effect_owner.game.opponent().draw(ability.amount)
-            else:
-                effect_owner.draw(ability.amount)
-
         if self.has_ability("discard_random"):
             ability = None
             for a in self.abilities:
@@ -780,6 +772,9 @@ class Card:
         target_player.draw(amount_to_draw)
         return [f"{target_player.username} draws {amount_to_draw} from {self.name}."]
 
+    def do_draw_on_deal_damage_effect(self, effect_owner, effect, target_info):
+        effect_owner.draw(effect.amount)
+        
     def do_draw_if_damaged_opponent_effect_on_player(self, effect_owner, effect, target_info):
         target_player = effect_owner
         if target_player.game.opponent().damage_this_turn > 0:

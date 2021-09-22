@@ -1032,18 +1032,20 @@
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw",
-				"amount": 1
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			},
+			{
+				"name": "draw_on_deal_damage",
+				"effect_type": "after_deals_damage",
+				"amount": 1
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Instant Attack",
 				"descriptive_id": "Instant Attack"
@@ -1366,18 +1368,20 @@
 		"power": 6,
 		"toughness": 6,
 		"cost": 3,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw",
-				"amount": 1
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			},
+			{
+				"name": "draw_on_deal_damage",
+				"effect_type": "after_deals_damage",
+				"amount": 1
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Instant Attack",
 				"descriptive_id": "Instant Attack"
@@ -1430,12 +1434,14 @@
 		"toughness": 4,
 		"cost": 3,
 		"description": "Draw when this deals damage.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw",
+				"name": "draw_on_deal_damage",
+				"effect_type": "after_deals_damage",
 				"amount": 1
-			},
+			}
+		],
+		"abilities": [
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep",
@@ -1454,18 +1460,20 @@
 		"toughness": 5,
 		"cost": 2,
 		"description": "Draw when this deals damage.",
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw",
-				"amount": 1
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			},
+			{
+				"name": "draw_on_deal_damage",
+				"effect_type": "after_deals_damage",
+				"amount": 1
+			}
+		],	
+		"abilities": [
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep",
@@ -1483,18 +1491,20 @@
 		"toughness": 6,
 		"cost": 2,
 		"description": "Draw when this deals damage.",
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "DamageDraw",
-				"descriptive_id": "DamageDraw",
-				"amount": 1
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
 			},
+			{
+				"name": "draw_on_deal_damage",
+				"effect_type": "after_deals_damage",
+				"amount": 1
+			}
+		],
+		"abilities": [
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep"

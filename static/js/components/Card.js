@@ -189,9 +189,6 @@ export class Card {
 	                if (e.description) {
 	                    effectsText += e.description;
 	                    color = Constants.blackColor;
-                        if (e.name == "DamageDraw") {
-                            continue;
-                        }
                         if (e != card.effects[card.effects.length-1]) {                
                                effectsText += ", ";
                         }               
