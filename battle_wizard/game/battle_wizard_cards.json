@@ -849,7 +849,7 @@
 			{
 				"name": "slow_artifact",
 				"effect_type": "enter_play"
-			},
+			}
 
 		]
 	},
@@ -927,26 +927,9 @@
 		"cost": 2,
 		"effects": [
 			{
-				"name": "add_player_abilities",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"name": "Reduce Draw",
-						"description": "Reduce Draw",
-						"descriptive_id": "Reduce Draw"
-					}
-				]
-			},			
-			{
-				"name": "remove_player_abilities",
-				"effect_type": "leave_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"descriptive_id": "Reduce Draw"
-					}
-				]				
+				"name": "reduce_draw",
+				"effect_type": "before_draw",
+				"amount": 1
 			},
 			{
 				"name": "make_from_deck",
@@ -2158,32 +2141,16 @@
 		"description": "Replace your normal draw with a choice of 3 cards.",
 		"effects": [
 			{
-				"name": "add_player_abilities",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"name": "Reduce Draw",
-						"description": "Reduce Draw",
-						"descriptive_id": "Reduce Draw"
-					}
-				]
-			},			
-			{
-				"name": "remove_player_abilities",
-				"effect_type": "leave_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"descriptive_id": "Reduce Draw"
-					}
-				]				
+				"name": "reduce_draw",
+				"effect_type": "before_draw",
+				"amount": 1
 			},
 			{
 				"name": "make_from_deck",
 				"effect_type": "start_turn"
 			}
 		]
+
 	},
 	{
 		"name": "Solid Vamp Minion",

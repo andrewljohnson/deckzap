@@ -53,6 +53,7 @@ class Card:
         self.after_declared_attack_effect_defs = []
         self.after_shuffle_effect_defs = []
         self.after_deals_damage_effect_defs = []
+        self.before_draw_effect_defs = []
         self.before_is_damaged_effect_defs = []
         self.check_mana_effect_defs = []
         self.draw_effect_defs = []
@@ -86,6 +87,8 @@ class Card:
             self.after_declared_attack_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_shuffle": 
             self.after_shuffle_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "before_draw":
+            self.before_draw_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "before_is_damaged":
             self.before_is_damaged_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "check_mana": 
@@ -278,6 +281,8 @@ class Card:
            return self.do_redirect_mob_spell_effect
         elif name == "reduce_cost":
            return self.do_reduce_cost_effect
+        elif name == "reduce_draw":
+           return self.do_reduce_draw_effect
         elif name == "refresh_mana":
             return self.do_refresh_mana_effect
         elif name == "remove_symbiotic_fast":
@@ -1344,6 +1349,9 @@ class Card:
             self.cost -= 1
             self.cost = max(0, self.cost)
 
+    def do_reduce_draw_effect(self, effect_owner, effect, target_info):
+        effect_owner.about_to_draw_count -= effect.amount
+
     def do_refresh_mana_effect(self, effect_owner, effect, target_info):
         if effect_owner.mana == 0:
             effect_owner.mana = effect_owner.max_mana
@@ -1379,8 +1387,8 @@ class Card:
             print(f"e.target_type {target_type} not supported for set_can_attack")
 
     def do_slow_artifact_effect(self, effect_owner, effect, target_info):
-        for effect in card.effects:
-            card.effects_exhausted.append(effect)
+        for effect in self.effects:
+            self.effects_exhausted.append(effect)
 
     def do_spell_from_yard_effect(self, effect_owner, effect, target_info):
         spells = []

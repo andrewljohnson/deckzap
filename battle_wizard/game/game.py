@@ -428,16 +428,16 @@ class Game:
     def join(self, message, is_reviewing=False):
         join_occured = True
         if len(self.players) == 0:
-            self.players.append(Player(self, message, new=True))            
+            self.players.append(Player(self, message))            
             self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
         elif len(self.players) == 1:
             message["log_lines"].append(f"{message['username']} joined the game.")
             if self.player_type == "pvai":                        
-                self.players.append(PlayerAI(self, message, new=True))
+                self.players.append(PlayerAI(self, message))
                 self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
             else:
-                self.players.append(Player(self, message, new=True))
+                self.players.append(Player(self, message))
                 self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
         elif len(self.players) >= 2:
             print(f"an extra player tried to join players {[p.username for p in self.players]}")

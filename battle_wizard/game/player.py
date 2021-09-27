@@ -17,73 +17,68 @@ class Player:
 
     max_hit_points = 30
 
-    def __init__(self, game, info, new=False, bot=None):
+    def __init__(self, game, info={}, bot=None):
         self.is_ai = False
         self.max_hit_points = 30
-        self.username = info["username"]
-        self.discipline = info["discipline"] if "discipline" in info else None
-        self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.card_mana = 0
 
+        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
+        self.about_to_draw_count = info["about_to_draw_count"] if "about_to_draw_count" in info else 0
+        self.artifacts = [Card(c_info) for c_info in info["artifacts"]] if "artifacts" in info else []
+        self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else 0
+        self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
+        self.damage_to_show = info["damage_to_show"] if "damage_to_show" in info else 0
+        self.deck = [Card(c_info) for c_info in info["deck"]] if "deck" in info else []
+        self.deck_id = info["deck_id"] if "deck_id" in info else None
+        self.discipline = info["discipline"] if "discipline" in info else None
+        self.game = game
+        self.hand = [Card(c_info) for c_info in info["hand"]] if "hand" in info else []
+        self.hit_points = info["hit_points"] if "hit_points" in info else Player.max_hit_points
         # used for replays, todo: use a random seed to make replays easier per @silberman
         self.initial_deck = [Card(c_info) for c_info in info["initial_deck"]] if "initial_deck" in info else []
+        self.in_play = [Card(c_info) for c_info in info["in_play"]] if "in_play" in info else []
+        self.mana = info["mana"] if "about_to_draw_count" in info else 0
+        self.max_mana = info["max_mana"] if "max_mana" in info else 0
+        self.played_pile = [Card(c_info) for c_info in info["played_pile"]] if "played_pile" in info else []
+        self.username = info["username"]
 
-        self.game = game
-        if new:
-            self.hit_points = Player.max_hit_points
-            self.damage_this_turn = 0
-            self.damage_to_show = 0
-            self.mana = 0
-            self.max_mana = 0
-            self.hand = []
-            self.in_play = []
-            self.artifacts = []
-            self.deck = []
-            self.played_pile = []
-            self.can_be_clicked = False
-            self.abilities = []
-            self.reset_card_info_to_target()
-            self.reset_card_choice_info()
-        else:
-            self.hand = [Card(c_info) for c_info in info["hand"]]
-            self.in_play = [Card(c_info) for c_info in info["in_play"]]
-            self.artifacts = [Card(c_info) for c_info in info["artifacts"]]
-            self.hit_points = info["hit_points"]
-            self.damage_this_turn = info["damage_this_turn"]
-            self.damage_to_show = info["damage_to_show"]
-            self.mana = info["mana"]
-            self.max_mana = info["max_mana"]
-            self.deck = [Card(c_info) for c_info in info["deck"]]
-            self.played_pile = [Card(c_info) for c_info in info["played_pile"]]
-            self.can_be_clicked = info["can_be_clicked"]
-            self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
+        if "card_info_to_target" in info:
             self.card_info_to_target = info["card_info_to_target"]
-            self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"], "effect_card_id": info["card_choice_info"]["effect_card_id"] if "effect_card_id" in info["card_choice_info"] else None}
+        else:
+            self.card_info_to_target = None
+            self.reset_card_info_to_target()
+        if "card_choice_info" in info:
+            self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"], "effect_card_id": info["card_choice_info"]["effect_card_id"]}
+        else:
+            self.card_choice_info = None
+            self.reset_card_choice_info()
+
 
     def __repr__(self):
         return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
-            "username": self.username,
-            "discipline": self.discipline,
-            "hit_points": self.hit_points,
+            "abilities": [a.as_dict() for a in self.abilities],
+            "about_to_draw_count": self.about_to_draw_count,
+            "artifacts": [c.as_dict() for c in self.artifacts],
+            "can_be_clicked": self.can_be_clicked,
+            "card_choice_info": {"cards": [c.as_dict() for c in self.card_choice_info["cards"]], "choice_type": self.card_choice_info["choice_type"], "effect_card_id": self.card_choice_info["effect_card_id"] if "effect_card_id" in self.card_choice_info else None},
+            "card_info_to_target": self.card_info_to_target,
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
+            "deck": [c.as_dict() for c in self.deck],
+            "deck_id": self.deck_id,
+            "discipline": self.discipline,
+            "hand": [c.as_dict() for c in self.hand],
+            "hit_points": self.hit_points,
+            "initial_deck": [c.as_dict() for c in self.initial_deck],
+            "in_play": [c.as_dict() for c in self.in_play],
+            "is_ai": self.is_ai,
             "mana": self.mana,
             "max_mana": self.max_mana,
-            "deck_id": self.deck_id,
-            "card_info_to_target": self.card_info_to_target,
-            "hand": [c.as_dict() for c in self.hand],
-            "is_ai": self.is_ai,
-            "in_play": [c.as_dict() for c in self.in_play],
-            "initial_deck": [c.as_dict() for c in self.initial_deck],
-            "artifacts": [c.as_dict() for c in self.artifacts],
-            "deck": [c.as_dict() for c in self.deck],
             "played_pile": [c.as_dict() for c in self.played_pile],
-            "can_be_clicked": self.can_be_clicked,
-            "abilities": [a.as_dict() for a in self.abilities],
-            "card_choice_info": {"cards": [c.as_dict() for c in self.card_choice_info["cards"]], "choice_type": self.card_choice_info["choice_type"], "effect_card_id": self.card_choice_info["effect_card_id"] if "effect_card_id" in self.card_choice_info else None}
+            "username": self.username,
         }
 
     def max_max_mana(self):
@@ -407,16 +402,17 @@ class Player:
     def draw_for_turn(self):
         if self.game.turn == 0:
             return
-
-        draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
-
-        if self.reduce_draw_ability():
-            draw_count -= 1            
-
         log_lines = []
         if self.discipline != "tech" or self.game.turn > 1:
-            log_lines.append(self.draw(draw_count))
+            log_lines.append(self.draw(self.draw_count()))
         return log_lines if len(log_lines) > 0 else None
+
+    def draw_count(self):
+        self.about_to_draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
+        for card in self.in_play + self.artifacts:
+            for idx, effect in enumerate(card.effects_for_type("before_draw")):
+                card.resolve_effect(card.before_draw_effect_defs[idx], self, effect, {})
+        return self.about_to_draw_count
 
     def do_start_turn_card_effects_and_abilities(self, message):
         for card in self.in_play + self.artifacts:

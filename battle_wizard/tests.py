@@ -1151,3 +1151,18 @@ class GameObjectTests(TestCase):
         game = self.game_for_decks([["Bow", "Bow", "Bow", "Bow", "Bow", "Bow", "Bow"], ["Bow", "Bow", "Bow", "Bow", "Bow", "Bow", "Bow"]])
         self.assertEqual(len(game.current_player().artifacts), 1)
         self.assertEqual(len(game.opponent().artifacts), 1)
+
+    def test_brarium_reduces_draw_and_makes(self):
+        """
+            Test one Bow gets put into play on game starts
+        """
+        game = self.game_for_decks([["Brarium", "Stone Elemental", "Stone Elemental", "Stone Elemental", "Stone Elemental", "Stone Elemental", "Stone Elemental"], []])
+        game.players[0].mana += game.players[0].hand[0].cost
+        self.assertEqual(len(game.current_player().hand), 4)
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 3)
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 3)
+        self.assertEqual(len(game.current_player().card_choice_info["cards"]), 3)
+
