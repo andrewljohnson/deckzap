@@ -635,8 +635,8 @@ class Card:
             return
         townies = []
         for c in Card.all_card_objects():
-            for a in c.abilities:
-                if a.descriptive_id == "Townie":
+            for a in c.effects:
+                if a.name == "is_townie":
                     townies.append(c)
         for x in range(0, effect.amount):
             t = random.choice(townies)

@@ -1695,19 +1695,18 @@
 		"power": 1,
 		"toughness": 2,
 		"cost": 1,
-		"abilities": [
-			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
-		],
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "select_mob_target"
-			}
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]	
 	},
 	{
@@ -1719,17 +1718,18 @@
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]
 	},
 	{
@@ -1742,18 +1742,19 @@
 		"toughness": 1,
 		"cost": 1,
 		"description": "Make a spell.",
-		"effects": [{
-			"name": "make",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"make_type": "spell",
-			"amount": 1
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "make",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"make_type": "spell",
+				"amount": 1
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]
 	},
 	{
@@ -1766,18 +1767,19 @@
 		"toughness": 1,
 		"cost": 1,
 		"description": "Make a mob.",
-		"effects": [{
-			"name": "make",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"make_type": "mob",
-			"amount": 1
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "make",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"make_type": "mob",
+				"amount": 1
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]
 	},
 	{
@@ -1790,17 +1792,18 @@
 		"toughness": 2,
 		"cost": 1,
 		"description": "Heal for 2.",
-		"effects": [{
-			"name": "heal",
-			"effect_type": "enter_play",
-			"target_type": "any",
-			"amount": 2
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "heal",
+				"effect_type": "enter_play",
+				"target_type": "any",
+				"amount": 2
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]
 	},
 	{
@@ -1812,11 +1815,12 @@
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]
 	},
 	{

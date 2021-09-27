@@ -770,18 +770,21 @@
 		"toughness": 1,
 		"cost": 1,
 		"description": "Summon a Townie.",
-		"effects": [{
-			"amount": 1,
-			"name": "make_token",
-			"card_name": "Townie",
-			"effect_type": "enter_play",
-			"target_type": "self"
-		}],
+		"effects": [
+			{
+				"amount": 1,
+				"name": "make_token",
+				"card_name": "Townie",
+				"effect_type": "enter_play",
+				"target_type": "self"
+			}
+		],
 		"abilities": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]
 	},
 	{
@@ -793,16 +796,18 @@
 		"toughness": 2,
 		"cost": 2,
 		"description": "Add a Townie to your hand.",
-		"effects": [{
-			"name": "create_random_townie",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"amount": 1
-		},
-		{
-			"name": "Townie",
-			"descriptive_id": "Townie"
-		}
+		"effects": [
+			{
+				"name": "create_random_townie",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a little ability."
+			}			
 		]
 	},
 	{
