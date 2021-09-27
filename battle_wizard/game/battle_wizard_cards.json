@@ -1010,12 +1010,6 @@
 				"description_expanded": "Conjure mobs may be played as instants.",
 				"effect_type": "action_added_to_stack"
 			}
-		],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
-			}
 		]
 	},
 	{
@@ -1075,12 +1069,6 @@
 				"description_expanded": "Conjure mobs may be played as instants.",
 				"effect_type": "action_added_to_stack"
 			}
-		],
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
-			}
 		]
 	},
 	{ 
@@ -1102,9 +1090,9 @@
 		"name": "Nonapug Whistle",
 		"discipline": "magic",
 		"image": "whistle.svg",
-		"cost": 9,
+		"cost": 8,
 		"card_type": "spell",
-		"description": "Make 3/3s with Conjure and Instant Attack.",
+		"description": "Make 3/3s with Fast.",
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Nonapug Decon",
@@ -1128,18 +1116,6 @@
 				"description": "Fast",
 				"description_expanded": "Fast mobs may attack the turn they come into play.",
 				"effect_type": "enter_play"
-			},
-			{
-				"name": "allow_instant_cast",
-				"description": "Conjure",
-				"description_expanded": "Conjure mobs may be played as instants.",
-				"effect_type": "action_added_to_stack"
-			}
-		],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1260,9 +1236,9 @@
 				"card_names": ["Leprechaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
 				"card_descriptions": [
 					"Make a 1/1. Improves when cast.", 
-					"Make a 2/2 Fast Instant Attack. Improves when cast.", 
-					"Make a 4/4 Fast Instant Attack. Improves when cast.", 
-					"Make a 6/6 Fast Instant Attack that draws you a card when it deals damage." 
+					"Make a 2/2 Fast. Improves when cast.", 
+					"Make a 4/4 Fast. Improves when cast.", 
+					"Make a 6/6 Fast that draws you a card when it deals damage." 
 				],
 				"effect_type": "spell",
 				"target_type": "self",
@@ -1299,13 +1275,7 @@
 			"description": "Fast",
 			"description_expanded": "Fast mobs may attack the turn they come into play.",
 			"effect_type": "enter_play"
-		}],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
-			}
-		]
+		}]	
 	},
 	{
 		"name": "Megachaun",
@@ -1321,13 +1291,7 @@
 			"description": "Fast",
 			"description_expanded": "Fast mobs may attack the turn they come into play.",
 			"effect_type": "enter_play"
-		}],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
-			}
-		]
+		}]
 	},
 	{
 		"name": "Ultrachaun",
@@ -1349,12 +1313,6 @@
 				"name": "draw_on_deal_damage",
 				"effect_type": "after_deals_damage",
 				"amount": 1
-			}
-		],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1484,11 +1442,6 @@
 			{
 				"name": "Keep",
 				"descriptive_id": "Keep"
-			},
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack",
-				"amount": 1
 			}
 		]
 	},
