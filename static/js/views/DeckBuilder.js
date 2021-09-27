@@ -230,7 +230,7 @@ export class DeckBuilder {
 		}
 		let card = cardSprite.card;
 		let cardName = card.name;
-		let cardIsUnique = card.card_type == Constants.artifactCardType || Card.hasAbility(card, "unique") ;
+		let cardIsUnique = card.card_type == Constants.artifactCardType;
 		if (!this.decks[this.discipline].cards[cardName]) {
 			this.decks[this.discipline].cards[cardName] = 1
 			this.switchClassFunction(this.discipline)

@@ -559,10 +559,8 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})        
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})        
         self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points - 2)
-        for x in range(0,4):
-            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.players[1].mana += game.players[1].hand[0].cost
         game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})        
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})

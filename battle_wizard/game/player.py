@@ -2,7 +2,7 @@ import copy
 import datetime
 import random
 
-from battle_wizard.game.card import Card, CardEffect, CardAbility
+from battle_wizard.game.card import Card, CardEffect
 from battle_wizard.game.data import Constants
 from battle_wizard.game.data import default_deck_genie_wizard 
 from battle_wizard.game.data import default_deck_dwarf_tinkerer
@@ -22,7 +22,6 @@ class Player:
         self.max_hit_points = 30
         self.card_mana = 0
 
-        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
         self.about_to_draw_count = info["about_to_draw_count"] if "about_to_draw_count" in info else 0
         self.artifacts = [Card(c_info) for c_info in info["artifacts"]] if "artifacts" in info else []
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else 0
@@ -59,7 +58,6 @@ class Player:
 
     def as_dict(self):
         return {
-            "abilities": [a.as_dict() for a in self.abilities],
             "about_to_draw_count": self.about_to_draw_count,
             "artifacts": [c.as_dict() for c in self.artifacts],
             "can_be_clicked": self.can_be_clicked,
@@ -159,8 +157,6 @@ class Player:
     def damage(self, amount):
         while amount > 0 and self.hit_points > 0:
             amount -= 1
-            if self.hit_points == 1 and self.cant_die_ability():
-                continue
             self.hit_points -= 1
             self.damage_this_turn += 1
             self.damage_to_show += 1
@@ -203,7 +199,7 @@ class Player:
     def can_activate_artifact(self, card_id):
         for card in self.artifacts:
             if card.id == card_id:
-                if not card.can_activate_abilities:
+                if not card.can_activate_effects:
                     return False
         return True
 
@@ -235,7 +231,7 @@ class Player:
                 for t in card.tokens:
                     if t.set_can_act == False:
                         return False                                                
-                if len(self.game.stack) == 0 or card.has_ability("Instant Attack"):
+                if len(self.game.stack) == 0:
                     return True
                 return False
 
@@ -290,8 +286,6 @@ class Player:
             self.play_mob(card)
         elif card.card_type == Constants.artifactCardType:
             self.play_artifact(card)
-            if card.has_ability("Slow Artifact"):
-                card.effects_exhausted.append(card.effects[0].name)
         return spell_to_resolve
 
     def play_mob(self, card):
@@ -305,18 +299,6 @@ class Player:
         artifact.turn_played = self.game.turn
         # self.update_for_mob_changes_zones(self)
         # self.my_opponent().update_for_mob_changes_zones()        
-
-    def cant_die_ability(self):
-        for a in self.abilities:
-            if a.descriptive_id == "Can't Die":
-                return a
-        return None 
-
-    def reduce_draw_ability(self):
-        for a in self.abilities:
-            if a.descriptive_id == "Reduce Draw":
-                return a
-        return None 
 
     def target_or_do_mob_effects(self, card, message, username, is_activated_effect=False):
         effects = card.effects_for_type("enter_play")
@@ -395,7 +377,7 @@ class Player:
         log_lines = self.draw_for_turn()
         if log_lines:
             message["log_lines"] += log_lines
-        message = self.do_start_turn_card_effects_and_abilities(message)
+        message = self.do_start_turn_card_effects(message)
         self.refresh_mana_for_turn()
         return message
 
@@ -414,20 +396,18 @@ class Player:
                 card.resolve_effect(card.before_draw_effect_defs[idx], self, effect, {})
         return self.about_to_draw_count
 
-    def do_start_turn_card_effects_and_abilities(self, message):
+    def do_start_turn_card_effects(self, message):
         for card in self.in_play + self.artifacts:
             card.attacked = False
             card.can_attack_mobs = True
             card.can_attack_players = True
-
-            card.can_activate_abilities = True
-
+            card.can_activate_effects = True
             for idx, effect in enumerate(card.effects_for_type("start_turn")):
                 effect.show_effect_animation = True
                 message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
 
         for r in self.artifacts:
-            r.can_activate_abilities = True
+            r.can_activate_effects = True
             r.effects_exhausted = {}
         return message
 
@@ -491,9 +471,6 @@ class Player:
         self.card_choice_info = {"cards": [], "choice_type": None, "effect_card_id": None}
 
     def can_summon(self):
-        for a in self.abilities:
-            if a.descriptive_id == "Can't Summon":
-                return False
         if len(self.in_play) == 7:
             return False
         return True
@@ -516,17 +493,6 @@ class Player:
             target_restrictions = card.effects_for_type("activated")[0].target_restrictions
         self.game.set_targets_for_target_type(target_type, target_restrictions)
 
-    def remove_temporary_abilities(self):
-        perm_abilities = []
-        for a in self.abilities:
-            if a.turns > 0:
-                a.turns -= 1
-                if a.turns != 0:
-                    perm_abilities.append(a)
-            else:
-                perm_abilities.append(a)
-        self.abilities = perm_abilities
-
     def remove_temporary_tokens(self):
         for c in self.in_play:
             perm_tokens = []
@@ -541,27 +507,6 @@ class Player:
             if toughness_change_from_tokens > 0:
                 c.damage -= min(toughness_change_from_tokens, c.damage_this_turn)  
 
-    def get_starting_artifacts(self):
-        found_artifact = None
-        for c in self.deck:
-            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
-                found_artifact = c
-                break
-        if found_artifact:
-            found_artifact.turn_played = self.game.turn
-            self.play_artifact(found_artifact)
-            self.deck.remove(found_artifact)
-        
-    def get_starting_spells(self):
-        found_spell = None
-        for c in self.deck:
-            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Hand":
-                found_spell = c
-                break
-        if found_spell:
-            self.hand.append(found_spell)
-            self.deck.remove(found_spell)
-        
     def make_card(self, message):
         if len(self.hand) < self.game.max_hand_size:
             self.add_to_deck(message["card"]["name"], 1, add_to_hand=True, card_cost=message["card"]["cost"])

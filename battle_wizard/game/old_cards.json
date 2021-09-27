@@ -507,6 +507,7 @@
 		"name": "Trickster",
 		"race": "elf",
 		"class": "sorcerer",
+		"description": "Draw when this damages your opponent.",
 		"card_type": "mob",
 		"power": 1,
 		"toughness": 3,
@@ -526,7 +527,7 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			}
 		]
@@ -613,26 +614,6 @@
 				"amount": 1
 			}
 		]
-	},
-	{
-		"name": "Quiet Nature",
-		"race": "genie",
-		"cost": 5,
-		"card_type": "spell",
-		"description": "mobs can't be summoned next turn.",
-		"effects": [{
-			"name": "add_player_abilities",
-			"effect_type": "spell",
-			"target_type": "opponent",
-			"abilities": [
-				{
-					"name": "Can't Summon",
-					"description": "Can't Summon",
-					"descriptive_id": "Can't Summon",
-					"turns": 1
-				}
-			]				
-		}]
 	},
 	{
 		"name": "Storm Surge",
@@ -731,37 +712,6 @@
 		"cost": 0
 	},
 	{
-		"name": "Kano from Barias",
-		"race": "elf",
-		"card_type": "mob",
-		"power": 0,
-		"toughness": 2,
-		"cost": 4,
-		"description": "You can't be reduced to less than 1 life.",
-		"effects": [{
-			"name": "add_player_abilities",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"abilities": [
-				{
-					"name": "Can't Die",
-					"description": "Can't Die",
-					"descriptive_id": "Can't Die"
-				}
-			]
-		},				
-		{
-			"name": "remove_player_abilities",
-			"effect_type": "leave_play",
-			"target_type": "self",
-			"abilities": [
-				{
-					"descriptive_id": "Can't Die"
-				}
-			]				
-		}]
-	},
-	{
 		"name": "Gnomish Mayor",
 		"race": "gnome",
 		"class": "bard",
@@ -777,13 +727,11 @@
 				"card_name": "Townie",
 				"effect_type": "enter_play",
 				"target_type": "self"
-			}
-		],
-		"abilities": [
+			},
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]
 	},
@@ -806,7 +754,7 @@
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]
 	},
@@ -815,17 +763,18 @@
 		"race": "elf",
 		"card_type": "mob",
 		"power": 2,
+		"description": "Your opponent discards when damaged by this.",
 		"toughness": 2,
 		"cost": 3,
-		"abilities": [
-				{
-					"name": "discard_random",
-					"descriptive_id": "discard_random",
-					"amount": 1
-				}
+		"effects": [
+			{
+				"name": "discard_random",
+				"effect_type": "after_deals_damage_opponent",
+				"target_type": "opponent",
+				"amount": 1
+			}
 		]
 	},
-
 	{
 		"name": "Riffle",
 		"race": "elf",

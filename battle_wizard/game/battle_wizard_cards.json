@@ -45,7 +45,7 @@
 		"image": "enlightenment.svg",
 		"card_type": "artifact",
 		"cost": 3,
-		"description": "Ability: pay 1, draw a card once on your turn.",
+		"description": "Pay 1, draw a card once on your turn.",
 		"effects": [{
 			"name": "draw",
 			"effect_type": "activated",
@@ -60,7 +60,7 @@
 		"image": "mirror-mirror.svg",
 		"card_type": "artifact",
 		"cost": 6,
-		"description": "Ability: pay 6, switch hit points with your opponent. Sacrifice this.",
+		"description": "Pay 6, switch hit points with your opponent. Sacrifice this.",
 		"effects": [{
 			"name": "switch_hit_points",
 			"effect_type": "activated",
@@ -75,7 +75,7 @@
 		"image": "lunar-wand.svg",
 		"card_type": "artifact",
 		"cost": 4,
-		"description": "Ability: pay 1, prevent a mob from attacking, once on your turn.",
+		"description": "Pay 1, prevent a mob from attacking, once on your turn.",
 		"effects": [{
 				"name": "add_tokens",
 				"effect_type": "activated",
@@ -988,7 +988,7 @@
 		"discipline": "magic",
 		"image": "run.svg",
 		"card_type": "mob",
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
@@ -1001,7 +1001,7 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			},
 			{
@@ -1184,19 +1184,17 @@
 		"toughness": 2,
 		"cost": 1,
 		"description": "Gets +1/+1 when Kept.",
-		"abilities": [
-			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_power_increase": 1,
-				"keep_toughness_increase": 1
-			}
-		],
 		"effects": [
 			{
 				"name": "preserve_stats",
 				"effect_type": "sent_to_played_pile"
-			}		
+			},		
+			{
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
+			}
 		]
 	},
 	{
@@ -1299,6 +1297,7 @@
 		"discipline": "tech",
 		"image": "robot-antennas.svg",
 		"card_type": "mob",
+		"description": "Draw when this damages an opponent.",
 		"power": 6,
 		"toughness": 6,
 		"cost": 3,
@@ -1311,7 +1310,7 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			}
 		]
@@ -1325,11 +1324,12 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 3,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 1"
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
 		]
 	},
@@ -1343,11 +1343,12 @@
 		"power": 4,
 		"toughness": 4,
 		"cost": 3,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 2"
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
 		]
 	},
@@ -1361,19 +1362,18 @@
 		"power": 4,
 		"toughness": 4,
 		"cost": 3,
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
-			}
-		],
-		"abilities": [
+			},
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 3"
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
 		]
 	},
@@ -1387,7 +1387,7 @@
 		"power": 4,
 		"toughness": 5,
 		"cost": 2,
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
 			{
 				"name": "add_fast",
@@ -1397,17 +1397,16 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
-			}
-		],	
-		"abilities": [
+			},
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 4"
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
-		]
+		]	
 	},
 	{
 		"name": "Work in Progress: Stage 4",
@@ -1418,7 +1417,7 @@
 		"power": 5,
 		"toughness": 6,
 		"cost": 2,
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
 			{
 				"name": "add_fast",
@@ -1428,7 +1427,7 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			},
 			{
@@ -1436,12 +1435,12 @@
 				"description": "Conjure",
 				"description_expanded": "Conjure mobs may be played as instants.",
 				"effect_type": "action_added_to_stack"
-			}
-		],
-		"abilities": [
+			},
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep"
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
 		]
 	},
@@ -1481,8 +1480,8 @@
 		"card_type": "artifact",
 		"image": "lyre.svg",
 		"cost": 1,
-		"description": "Ability: pay 1, make this an artifact with 2 charges that fetches Townies.",
-		"original_description": "Ability: pay 1, make this an artifact with 2 charges that fetches Townies.",
+		"description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
+		"original_description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
 		"effects": [
 			{
 				"name": "enable_activated_effect",
@@ -1581,19 +1580,20 @@
 		"cost": 1,
 		"card_type": "spell",
 		"description": "Make a card (cost reduced by 1), or put this back in your hand.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep"
+				"name": "make_cheap_with_option",
+				"effect_type": "spell",
+				"target_type": "self",
+				"make_type": "any",
+				"amount": 1
+			},
+			{
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
-		],
-		"effects": [{
-			"name": "make_cheap_with_option",
-			"effect_type": "spell",
-			"target_type": "self",
-			"make_type": "any",
-			"amount": 1
-		}
 		]
 	},
 	{
@@ -1643,7 +1643,7 @@
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]	
 	},
@@ -1666,7 +1666,7 @@
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]
 	},
@@ -1691,7 +1691,7 @@
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]
 	},
@@ -1716,7 +1716,7 @@
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]
 	},
@@ -1740,7 +1740,7 @@
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]
 	},
@@ -1757,7 +1757,7 @@
 			{
 				"name": "is_townie",
 				"description": "Townie",
-				"description_expanded": "Townies have a little ability."
+				"description_expanded": "Townies have a weak effect."
 			}			
 		]
 	},
@@ -1826,7 +1826,7 @@
 		"card_type": "artifact",
 		"image": "box-unpacking.svg",
 		"cost": 2,
-		"description": "Ability: pay 1, add a card to this. Next turn, get it back with a copy.",
+		"description": "Pay 1, add a card to this. Next turn, get it back with a copy.",
 		"effects": [{
 			"name": "duplicate_card_next_turn",
 			"effect_type": "activated",
@@ -1846,7 +1846,7 @@
 		"card_type": "artifact",
 		"image": "ring-box.svg",
 		"cost": 2,
-		"description": "Ability: pay 1, add a card to this. Next turn, get it back upgraded.",
+		"description": "Pay 1, add a card to this. Next turn, get it back upgraded.",
 		"effects": [{
 			"name": "upgrade_card_next_turn",
 			"effect_type": "activated",
@@ -1895,7 +1895,7 @@
 		"image": "drum.svg",
 		"cost": 3,
 		"card_type": "spell",
-		"description": "Give all your mobs a random ability and +1/+1.",
+		"description": "Give all your mobs +2/+2.",
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "spell",
@@ -1904,11 +1904,6 @@
 				"power_modifier": 1,
 				"toughness_modifier": 1
 			}]
-		},
-		{
-				"name": "add_random_mob_ability",
-				"effect_type": "spell",
-				"target_type": "self_mobs"
 		}]
 	},
 	{
@@ -1959,7 +1954,7 @@
 		"card_type": "artifact",
 		"image": "coffin.svg",
 		"cost": 2,
-		"description": "Ability: add a card to this. Next turn, get it back costing 1 less.",
+		"description": "Pay 0, add a card to this. Next turn, get it back costing 1 less.",
 		"effects": [{
 			"name": "decost_card_next_turn",
 			"effect_type": "activated",
@@ -2072,7 +2067,7 @@
 			{
 				"name": "drain_hp",
 				"description": "Drain",
-				"description_expanded": "Gain hit points when this deals damage.",
+				"description_expanded": "Gain hit points when this deals damage to your.",
 				"effect_type": "after_deals_damage"
 			},
 			{
@@ -2247,7 +2242,7 @@
 			},
 			{
 				"name": "improve_damage_all_effects_when_used",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			},
 			{
@@ -2255,6 +2250,10 @@
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
 				"effect_type": "after_deals_damage"
+			},
+			{
+				"name": "drain_hp",
+				"effect_type": "after_deals_damage_opponent"
 			}
 		]
 	},

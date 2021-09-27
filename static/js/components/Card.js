@@ -267,7 +267,7 @@ export class Card {
         }
         
         if (useLargeSize) {
-            Card.showAbilityPanels(cardSprite, card, cw, ch);
+            Card.showInfoPanels(cardSprite, card, cw, ch);
             if (card.card_for_effect) {
                 let subcard = Card.sprite(card.card_for_effect, pixiUX, game, player, true, true);
                 Card.setCardAnchors(subcard);
@@ -723,7 +723,7 @@ export class Card {
         return background;
     }
 
-    static showAbilityPanels(cardSprite, card, cw, ch) {
+    static showInfoPanels(cardSprite, card, cw, ch) {
     	if (!card.effects) {
     		return;
     	}
@@ -737,20 +737,7 @@ export class Card {
         const textContainer = new PIXI.Container();
         cardSprite.addChild(textContainer);
         let yPosition = 0;
-        let abilityText = new PIXI.Text("", options);
-        if (card.abilities) {
-            for (let a of card.abilities) {
-                if (a.name == "Instant Attack") {
-                    abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
-                }                    
-                if (a.name == "Unique") {
-                    abilityText.text = "Unique - only one Unique card is allowed per deck.";
-                }                    
-                if (a.name == "Keep") {
-                    abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
-                }                    
-            }
-        }
+        let infoText = new PIXI.Text("", options);
     	if (card.effects) {
 	        for (let e of card.effects) {
 	            if (e.name == "evolve") {
@@ -762,16 +749,16 @@ export class Card {
 	                textContainer.addChild(effectText);
 	            }                    
                 if (e.description_expanded != undefined) {
-                    abilityText.text = `${e.description} - ${e.description_expanded}`;
+                    infoText.text = `${e.description} - ${e.description_expanded}`;
                 }                   	        
             }
 	    }
 
-        if (abilityText.text) {
-            abilityText.position.x -= cw/2 - 4;
-            abilityText.position.y = yPosition - ch/2 + 2;
-            yPosition += abilityText.height + 10;
-            textContainer.addChild(abilityText);
+        if (infoText.text) {
+            infoText.position.x -= cw/2 - 4;
+            infoText.position.y = yPosition - ch/2 + 2;
+            yPosition += infoText.height + 10;
+            textContainer.addChild(infoText);
         }
 
         if (yPosition == 0) {
@@ -947,18 +934,6 @@ export class Card {
         pixiUX.hovering = false
         pixiUX.app.stage.removeChild(pixiUX.hoverCards);
     }    
-
-    static hasAbility(card, abilityName) {
-        if (!card.abilities) {
-            return false;
-        }
-        for (let ability of card.abilities) {
-            if (ability.name == abilityName) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     static cardsForDeck(deck, allCards) {
         let cards = [];

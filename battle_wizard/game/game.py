@@ -42,7 +42,7 @@ class Game:
         self.player_decks = player_decks
         # when True, a countdown timer starts for the active player
         self.show_rope = info["show_rope"] if info and "show_rope" in info else False
-        # a stack of actions that need to be resolved in the game (spells, abilities, and attacks)
+        # a stack of actions that need to be resolved in the game (spells, effects, and attacks)
         self.stack = info["stack"] if info and "stack" in info else []
         # player 0 is the current player on even turns, player 1 is the current player on odd turns
         self.turn = int(info["turn"]) if info and "turn" in info else 0
@@ -339,7 +339,7 @@ class Game:
                 attacker, _ = self.get_in_play_for_id(action["card"])     
                 if attacker:
                     attacker.can_be_clicked = True
-        if len(self.stack) == 0 or selected_mob.has_ability("Instant Attack"):
+        if len(self.stack) == 0:
             if selected_mob.can_attack_players:
                 opp.can_be_clicked = True
             for card in opp.in_play:
@@ -459,21 +459,14 @@ class Game:
                 for card_name in self.player_decks[x]:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].deck.reverse()
-
             for m in self.current_player().deck:
                 for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
                     m.resolve_effect(m.after_shuffle_effect_defs[idx], self.current_player(), effect, {}) 
             for m in self.opponent().deck:
                 for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
                     m.resolve_effect(m.after_shuffle_effect_defs[idx], self.opponent(), effect, {}) 
-
-            #self.current_player().get_starting_artifacts()
-            #self.opponent().get_starting_artifacts()
-            #self.current_player().get_starting_spells()
-            #self.opponent().get_starting_spells()
             for x in range(0, 2):
                 self.players[x].draw(self.players[x].initial_hand_size())
-
             self.send_start_first_turn(message)
 
     def start_constructed_game(self, message, is_reviewing=False):
@@ -481,14 +474,8 @@ class Game:
             deck_hashes = []
             for x in range(0, 2):
                 deck_hashes.append(self.players[x].get_starting_deck())
-
-            #self.current_player().get_starting_artifacts()
-            #self.opponent().get_starting_artifacts()
-            #self.current_player().get_starting_spells()
-            #self.opponent().get_starting_spells()
             for x in range(0, 2):                
                 self.players[x].draw(self.players[x].initial_hand_size())
-
             self.send_start_first_turn(message)
 
     def send_start_first_turn(self, message):
@@ -507,54 +494,28 @@ class Game:
             return message
         self.current_player().remove_temporary_tokens()
         self.opponent().remove_temporary_tokens()
-        self.current_player().remove_temporary_abilities()
         self.remove_temporary_effects()
         self.current_player().clear_damage_this_turn()
         self.opponent().clear_damage_this_turn()
         self.current_player().clear_artifact_effects_targetted_this_turn()
 
-        cards_to_discard = []
-        cards_to_keep = []
-
-        for card in self.current_player().hand:
-            if card.has_ability("Keep"):
-                cards_to_keep.append(card)
-            else:
-                cards_to_discard.append(card)
+        hand_cards = [card for card in self.current_player().hand]
 
         if self.current_player().discipline == "tech":
-            for card in cards_to_discard:
+            for card in hand_cards:
                 self.current_player().hand.remove(card)
                 self.current_player().played_pile.append(card)
-        for card in cards_to_keep:
-            for a in card.abilities:
-                if a.name == "Keep":
-                    if card.power:
-                        old_power = card.power 
-                        card.power += a.keep_power_increase
-                        if card.power > old_power:
-                            card.show_level_up = True
-                    if card.toughness:
-                        old_toughness = card.toughness 
-                        card.toughness += a.keep_toughness_increase
-                        if card.toughness > old_toughness:
-                            card.show_level_up = True
-                    if a.keep_evolve:
-                         evolved_card = self.current_player().add_to_deck(a.keep_evolve, 1, add_to_hand=True)
-                         self.current_player().hand.remove(evolved_card)
-                         evolved_card.id = card.id
-                         evolved_card.show_level_up = True
-                         self.current_player().hand[self.current_player().hand.index(card)] = evolved_card
+                for idx, effect in enumerate(card.effects_for_type("discarded_end_of_turn")):
+                    log_lines = card.resolve_effect(card.discarded_end_of_turn_effect_defs[idx], self.current_player(), effect, {})
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
             # this works because all end_turn triggered effects dont have targets to choose
             effect_targets = mob.unchosen_targets(self.current_player(), effect_type="end_turn")            
             for idx, effect in enumerate(mob.effects_for_type("end_turn")):
-                if effect.effect_type == "end_turn":
-                    effect.show_effect_animation = True
-                    log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
-                    if log_lines:
-                        [message["log_lines"].append(line) for line in log_lines]
+                effect.show_effect_animation = True
+                log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
+                if log_lines:
+                    [message["log_lines"].append(line) for line in log_lines]
 
         self.turn += 1
         self.actor_turn += 1
@@ -878,8 +839,8 @@ class Game:
             self.opponent().damage(damage)
             for idx, effect in enumerate(attacking_card.effects_for_type("after_deals_damage")):
                 attacking_card.resolve_effect(attacking_card.after_deals_damage_effect_defs[idx], self.current_player(), effect, {"damage": damage}) 
-
-        attacking_card.do_attack_abilities(self.current_player())
+            for idx, effect in enumerate(attacking_card.effects_for_type("after_deals_damage_opponent")):
+                attacking_card.resolve_effect(attacking_card.after_deals_damage_opponent_effect_defs[idx], self.current_player(), effect, {"damage": damage}) 
 
         for idx, effect in enumerate(attacking_card.effects_for_type("after_attack")):
             attacking_card.resolve_effect(attacking_card.after_attack_effect_defs[idx], self.current_player(), effect, {}) 
@@ -894,8 +855,8 @@ class Game:
             print("can't activate opponent's artifacts")
             return None
         e = artifact.enabled_activated_effects()[activated_effect_index]
-        artifact.can_activate_abilities = False
-        # todo support multi-use abilities on artifacts
+        artifact.can_activate_effects = False
+        # todo support multi-use effects on artifacts
         artifact.effects_exhausted = {e.name: True}
         
         if "defending_card" in message:
