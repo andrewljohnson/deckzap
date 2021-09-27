@@ -292,6 +292,8 @@ class Card:
             return self.do_set_can_attack_effect           
         elif name == "set_token":
             return self.do_set_token_effect
+        elif name == "slow_artifact":
+            return self.do_slow_artifact_effect           
         elif name == "spell_from_yard":
             return self.do_spell_from_yard_effect           
         elif name == "stack_counter":
@@ -1375,6 +1377,10 @@ class Card:
             return [f"{player.username} lets their mobs attack again this turn."]          
         else:
             print(f"e.target_type {target_type} not supported for set_can_attack")
+
+    def do_slow_artifact_effect(self, effect_owner, effect, target_info):
+        for effect in card.effects:
+            card.effects_exhausted.append(effect)
 
     def do_spell_from_yard_effect(self, effect_owner, effect, target_info):
         spells = []

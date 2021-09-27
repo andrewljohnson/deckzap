@@ -838,18 +838,20 @@
 		"discipline": "magic",
 		"cost": 4,
 		"description": "1: sacrifice this, kill all artifacts and mobs.",
-		"abilities": [
-				{"name": "Slow Artifact", 
-				"description": "Can't be used the turn this comes into play.",
-				"descriptive_id": "Slow Artifact"}
-		],
-		"effects": [{
+		"effects": [
+			{
 				"name": "kill",
 				"effect_type": "activated",
 				"target_type": "all",
 				"cost": 1,
 				"sacrifice_on_activate": true
-		}]
+			},
+			{
+				"name": "slow_artifact",
+				"effect_type": "enter_play"
+			},
+
+		]
 	},
 	{
 		"name": "Akbar's Pan Pipes",
