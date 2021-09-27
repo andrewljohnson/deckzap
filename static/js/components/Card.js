@@ -367,7 +367,6 @@ export class Card {
                     currentBatteryMana = Math.max(0, effect.counters);
                 }
             }
-            console.log(currentBatteryMana)
             let gems = Constants.manaGems(3, currentBatteryMana);
             gems.position.x = -gems.width/2;
             gems.position.y = Card.cardHeight/2 - 7 - gems.height;
@@ -744,23 +743,14 @@ export class Card {
                 if (a.name == "Instant Attack") {
                     abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
                 }                    
-                if (a.name == "Instrument Required") {
-                    abilityText.text = "Instrument Required - You must have an Instrument in play to play Card.";
-                }                    
                 if (a.name == "Townie") {
                     abilityText.text = "Townie - Townies have a little ability.";
                 }                    
                 if (a.name == "Unique") {
                     abilityText.text = "Unique - only one Unique card is allowed per deck.";
                 }                    
-                if (a.name == "Instrument") {
-                    abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
-                } 
                 if (a.name == "Keep") {
                     abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
-                }                    
-                if (a.name == "Disappear") {
-                    abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
                 }                    
             }
         }

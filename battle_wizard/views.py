@@ -249,7 +249,6 @@ def build_deck(request):
         if not deck_objects:
             deck_objects = Deck.objects.filter(global_deck=global_deck_object)
         if deck_objects:
-            print("FOO")
             deck = global_deck_object.deck_json
             deck["id"] = deck_objects[0].id
             deck["username"] = deck_objects[0].owner.username

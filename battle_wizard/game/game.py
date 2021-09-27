@@ -183,15 +183,11 @@ class Game:
         """
             unselect everything before setting possible attacks/spells
         """
-
+        print(f"unset_clickables {move_type}")
         if len(self.players) != 2:
             return
                        
-        for card in self.current_player().played_pile + self.opponent().played_pile + self.current_player().hand + self.opponent().hand:
-            card.show_level_up = False
         for card in self.current_player().in_play + self.opponent().in_play + self.current_player().artifacts + self.opponent().artifacts:
-            for e in card.effects:
-                e.show_effect_animation = False
             card.can_be_clicked = False
             card.effects_can_be_clicked = []
         for card in self.current_player().hand:
@@ -201,11 +197,20 @@ class Game:
             spell[1]["can_be_clicked"] = False
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
-        if move_type != "UNSELECT" and move_type != "SELECT_OPPONENT" and move_type != "ATTACK"  and move_type != "RESOLVE_NEXT_STACK" and cancel_damage:
+        for card in self.current_player().played_pile + self.opponent().played_pile + self.current_player().hand + self.opponent().hand:
+            if card.show_level_up:
+                print(f"card.show_level_up {card.show_level_up }")
+
+        if cancel_damage and move_type not in ["PLAY_CARD", "PLAY_CARD_IN_HAND", "UNSELECT", "SELECT_OPPONENT", "ATTACK", "RESOLVE_NEXT_STACK"]:
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
             for card in self.opponent().in_play + self.current_player().in_play:
                 card.damage_to_show = 0
+            for card in self.current_player().played_pile + self.opponent().played_pile + self.current_player().hand + self.opponent().hand:
+                card.show_level_up = False
+            for card in self.current_player().in_play + self.opponent().in_play + self.current_player().artifacts + self.opponent().artifacts:
+                for e in card.effects:
+                    e.show_effect_animation = False
 
     def set_clickables(self):
         """
@@ -318,8 +323,6 @@ class Game:
                         card.can_be_clicked = False
                     if card.card_type == Constants.spellCardType and card.needs_opponent_mob_target_for_spell():
                         card.can_be_clicked = cp.has_opponents_mob_target()
-                    if card.has_ability("Instrument Required") and not cp.has_instrument():
-                        card.can_be_clicked = False
                     if card.card_type == Constants.spellCardType and len(self.stack) > 0 and card.card_subtype == "turn-only":
                         card.can_be_clicked = False    
 
@@ -456,10 +459,18 @@ class Game:
                 for card_name in self.player_decks[x]:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].deck.reverse()
-            self.current_player().get_starting_artifacts()
-            self.opponent().get_starting_artifacts()
-            self.current_player().get_starting_spells()
-            self.opponent().get_starting_spells()
+
+            for m in self.current_player().deck:
+                for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
+                    m.resolve_effect(m.after_shuffle_effect_defs[idx], self.current_player(), effect, {}) 
+            for m in self.opponent().deck:
+                for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
+                    m.resolve_effect(m.after_shuffle_effect_defs[idx], self.opponent(), effect, {}) 
+
+            #self.current_player().get_starting_artifacts()
+            #self.opponent().get_starting_artifacts()
+            #self.current_player().get_starting_spells()
+            #self.opponent().get_starting_spells()
             for x in range(0, 2):
                 self.players[x].draw(self.players[x].initial_hand_size())
 
@@ -471,10 +482,10 @@ class Game:
             for x in range(0, 2):
                 deck_hashes.append(self.players[x].get_starting_deck())
 
-            self.current_player().get_starting_artifacts()
-            self.opponent().get_starting_artifacts()
-            self.current_player().get_starting_spells()
-            self.opponent().get_starting_spells()
+            #self.current_player().get_starting_artifacts()
+            #self.opponent().get_starting_artifacts()
+            #self.current_player().get_starting_spells()
+            #self.opponent().get_starting_spells()
             for x in range(0, 2):                
                 self.players[x].draw(self.players[x].initial_hand_size())
 
@@ -720,7 +731,7 @@ class Game:
             message = self.select_artifact_target_for_spell(cp.selected_spell(), message)
         elif cp.controls_artifact(message["card"]):
             artifact = cp.artifact_in_play(message["card"])
-            effect = artifact.effects_enabled()[effect_index]
+            effect = [e for e in artifact.effects if e.enabled == True][effect_index]
             if cp.selected_artifact() and artifact.id == cp.selected_artifact().id and artifact.needs_target_for_activated_effect(effect_index):
                 cp.reset_card_info_to_target()
             elif not effect.name in artifact.effects_exhausted and effect.cost <= cp.current_mana():

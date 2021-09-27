@@ -1,20 +1,5 @@
 [		
 	{
-		"name": "Fountain of Youth",
-		"discipline": "none",
-		"image": "water-fountain.svg",
-		"card_type": "artifact",
-		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30.",
-		"cost": 3,
-		"effects": [{
-			"name": "heal",
-			"amount_id": "hand_less_amount",
-			"target_type": "self",
-			"effect_type": "start_turn",
-			"amount": 5
-		}]
-	},
-	{
 		"name": "Voodoo Doll",
 		"discipline": "magic",
 		"image": "voodoo-doll.svg",
@@ -30,7 +15,7 @@
 	},
 	{
 		"name": "Leyline Amulet",
-		"discipline": "none",
+		"discipline": "magic",
 		"image": "gem-necklace.svg",
 		"card_type": "artifact",
 		"description": "Whenever you draw a spell, reduce its cost by 1.",
@@ -399,19 +384,19 @@
 		"card_type": "artifact",
 		"cost": 1,
 		"description": "Pay 1, deal 3 damage to your opponent.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
 				"name": "damage",
 				"effect_type": "activated",
 				"target_type": "opponent",
 				"cost": 1,
 				"amount": 3
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}
+		]
 	},
 	{
 		"name": "Wand",
@@ -420,20 +405,20 @@
 		"discipline": "magic",
 		"cost": 1,
 		"description": "Pay 0, deal 1 damage to anything.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
 				"name": "damage",
 				"effect_type": "activated",
 				"target_type": "any",
 				"cost": 0,
 				"amount": 1,
 				"ai_target_types": ["opponent", "opponents_mob"]
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}			
+		]
 	},
 	{
 		"name": "Abyssal Crystal",
@@ -442,20 +427,20 @@
 		"discipline": "magic",
 		"cost": 1,
 		"description": "Pay 1, draw a card and lose 2 hit points.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
 				"name": "draw",
 				"effect_type": "activated",
 				"target_type": "self",
 				"cost": 1,
 				"cost_hp": 2,
 				"amount": 1
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}
+		]
 	},
 	{
 		"name": "Wish Stone",
@@ -872,12 +857,6 @@
 		"image": "pan-flute.svg",
 		"cost": 4,
 		"description": "Remove a counter: Summon a 2/2 rat.",
-		"abilities": [
-			{
-				"name": "Instrument",
-				"descriptive_id": "Instrument"
-			}
-		],
 		"effects": [
 			{
 				"name": "make_token",
@@ -905,12 +884,6 @@
 		"card_type": "artifact",
 		"description": "Stores unused mana up to 3.",
 		"cost": 0,
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
 		"effects": [
 			{
 				"name": "store_mana",
@@ -1570,19 +1543,10 @@
 		"card_type": "artifact",
 		"image": "lyre.svg",
 		"cost": 1,
-		"description": "Ability: pay 1, make this an instrument with 2 charges that fetches Townies.",
-		"original_description": "Ability: pay 1, make this an instrument with 2 charges that fetches Townies.",
-		"abilities": [
+		"description": "Ability: pay 1, make this an artifact with 2 charges that fetches Townies.",
+		"original_description": "Ability: pay 1, make this an artifact with 2 charges that fetches Townies.",
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			},
-			{
-				"name": "Instrument",
-				"descriptive_id": "Instrument"
-			}
-		],
-		"effects": [{
 				"name": "enable_activated_effect",
 				"effect_type": "activated",
 				"target_type": "self",
@@ -1598,7 +1562,12 @@
 					"power": 0,
 					"was_added": true
 				}
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}			
+		]
 	},
 	{
 		"name": "Mana Shrub",
@@ -1879,15 +1848,19 @@
 		"card_type": "spell",
 		"card_subtype": "turn-only",
 		"description": "Take an extra turn. Cast only on your turn.",
-		"effects": [{
-			"effect_type": "spell",
-			"target_type": "self",
-			"name": "take_extra_turn"
-		}],
-		"abilities":[{
-			"name": "Disappear",
-			"descriptive_id": "Disappear"
-		}]
+		"effects": [
+			{
+				"effect_type": "spell",
+				"target_type": "self",
+				"name": "take_extra_turn"
+			},
+			{
+				"name": "disappear",
+				"description": "Disappear",
+				"description_expanded": "Cards with Disappear don't go to the Played Pile when played, they are removed instead.",
+				"effect_type": "after_cast"
+			}
+		]
 	},
 	{ 
 		"name": "Warty Evolver",

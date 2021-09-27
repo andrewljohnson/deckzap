@@ -257,18 +257,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
 
-
-    def test_gnomish_soundsmith_makes(self):
-        """
-            Test Gnomish Soundsmith fetches an Instrument from deck.
-        """
-        deck = ["Gnomish Soundsmith", "LionKin", "LionKin", "LionKin", "LionKin", "Akbar's Pan Pipes"]
-        game = self.game_for_decks([deck, []])
-        game.players[0].mana = 3
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "FETCH_CARD", "card": game.current_player().card_choice_info["cards"][0].id, "log_lines":[]})
-        self.assertEqual(game.current_player().hand[-1].name, "Akbar's Pan Pipes")
-
     def test_wishstone_makes(self):
         """
             Test Wishstone makes a Artifact from deck into in play.
@@ -314,7 +302,7 @@ class GameObjectTests(TestCase):
 
     def test_taunted_bear_fade(self):
         """
-            Test Taunted Bear Fade abilities.
+            Test Taunted Bear Fade effects.
         """
         game = self.game_for_decks([["Taunted Bear"], []])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -328,7 +316,7 @@ class GameObjectTests(TestCase):
 
     def test_taunted_bear_fast_stomp(self):
         """
-            Test Taunted Bear Fast and Stomp abilities.
+            Test Taunted Bear Fast and Stomp effects.
         """
         game = self.game_for_decks([["War Scorpion"], ["Taunted Bear"]])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
@@ -561,7 +549,7 @@ class GameObjectTests(TestCase):
 
     def test_riftwalker_djinn_drain(self):
         """
-            Test Drain ability of Riftwalker Djinn
+            Test Drain effect of Riftwalker Djinn
         """
 
         deck1 = ["Town Fighter"]
@@ -584,7 +572,7 @@ class GameObjectTests(TestCase):
 
     def test_riftwalker_djinn_shield_spell(self):
         """
-            Test Shield ability of Riftwalker Djinn with a damage spell
+            Test Shield effect of Riftwalker Djinn with a damage spell
         """
 
         deck1 = ["Riftwalker Djinn"]
@@ -605,7 +593,7 @@ class GameObjectTests(TestCase):
 
     def test_riftwalker_djinn_shield_combat(self):
         """
-            Test Shield ability of Riftwalker Djinn with combat
+            Test Shield effect of Riftwalker Djinn with combat
         """
 
         deck1 = ["Riftwalker Djinn"]
@@ -834,7 +822,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
         self.assertEqual(len(game.current_player().artifacts), 2)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 4, "log_lines":[]})
-        self.assertEqual(len(game.current_player().artifacts), 2)
+        self.assertEqual(len(game.current_player().artifacts), 1)
         self.assertEqual(len(game.current_player().in_play), 1)
 
     def test_song_dragon(self):
@@ -875,28 +863,6 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.current_player().in_play), 1)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.current_player().hand), 1)
-
-    def test_avatar_of_song(self):
-        """
-            Test Avatar of Song
-        """
-        game = self.game_for_decks([["Avatar of Song", "Zap", "Kill", "Zap", "Lute"], []])
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        for x in range(0,9):
-            game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-            game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.current_player().hit_points = 3
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_SELF", "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, 1)
-        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 3, "log_lines":[]})
-        game.play_move({"username": "a", "move_type": "SELECT_SELF", "log_lines":[]})
-        self.assertEqual(game.current_player().hit_points, 0)
 
     def test_ilra_lady_of_wind_and_music(self):
         """
@@ -1142,7 +1108,7 @@ class GameObjectTests(TestCase):
 
     def test_stomp_shield(self):
         """
-            Test Taunted Bear Fast and Stomp abilities.
+            Test Taunted Bear Fast and Stomp effects.
         """
         game = self.game_for_decks([["Riftwalker Djinn"], ["Taunted Bear"]])
         game.players[0].mana += game.players[0].hand[0].cost
@@ -1155,7 +1121,7 @@ class GameObjectTests(TestCase):
 
     def test_quickster_conjure_vs_attack(self):
         """
-            Test Quickster can use Conjure ability to be cast as an instant
+            Test Quickster can use Conjure effect to be cast as an instant
         """
         game = self.game_for_decks([["Quickster"], ["Taunted Bear"]])
         game.players[0].mana += game.players[0].hand[0].cost
@@ -1167,3 +1133,21 @@ class GameObjectTests(TestCase):
         self.assertEqual(game.current_player().username, game.players[0].username)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
         self.assertEqual(len(game.players[0].in_play), 1)
+
+    def test_disappear_effect(self):
+        """
+            Test Tame Time is removed from the game when cast because of disappear 
+        """
+        game = self.game_for_decks([["Tame Time"], []])
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 0)
+        self.assertEqual(len(game.current_player().hand), 0)
+
+    def test_bow_starts_in_play(self):
+        """
+            Test one Bow gets put into play on game starts
+        """
+        game = self.game_for_decks([["Bow", "Bow", "Bow", "Bow", "Bow", "Bow", "Bow"], ["Bow", "Bow", "Bow", "Bow", "Bow", "Bow", "Bow"]])
+        self.assertEqual(len(game.current_player().artifacts), 1)
+        self.assertEqual(len(game.opponent().artifacts), 1)

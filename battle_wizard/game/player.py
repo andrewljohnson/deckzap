@@ -324,9 +324,9 @@ class Player:
         return None 
 
     def target_or_do_mob_effects(self, card, message, username, is_activated_effect=False):
-        effects = card.effects_enter_play()
+        effects = card.effects_for_type("enter_play")
         if is_activated_effect:
-            effects = card.effects_activated()
+            effects = card.effects_for_type("activated")
         if len(effects) > 0:
             if effects[0].target_type == "any":
                 self.card_info_to_target["card_id"] = card.id
@@ -494,12 +494,6 @@ class Player:
     def reset_card_choice_info(self):
         self.card_choice_info = {"cards": [], "choice_type": None, "effect_card_id": None}
 
-    def has_instrument(self):
-        for c in self.artifacts:
-            if c.has_ability("Instrument"):
-                return True
-        return False
-
     def can_summon(self):
         for a in self.abilities:
             if a.descriptive_id == "Can't Summon":
@@ -522,8 +516,8 @@ class Player:
                 target_type = card.effects[0].target_type
                 target_restrictions = card.effects[0].target_restrictions
         elif self.card_info_to_target["effect_type"] == "mob_activated":
-            target_type = card.effects_activated()[0].target_type
-            target_restrictions = card.effects_activated()[0].target_restrictions
+            target_type = card.effects_for_type("activated")[0].target_type
+            target_restrictions = card.effects_for_type("activated")[0].target_restrictions
         self.game.set_targets_for_target_type(target_type, target_restrictions)
 
     def remove_temporary_abilities(self):
@@ -673,9 +667,6 @@ class Player:
             return None
         elif card.card_type == Constants.spellCardType and card.needs_mob_target() and not has_mob_target:
             print(f"can't select mob targetting spell with no targettable mobs in play")
-            return None
-        elif card.has_ability("Instrument Required") and not self.has_instrument():
-            print(f"can't cast {card.name} without having an Instument")
             return None
         elif card.card_type == Constants.artifactCardType and not self.can_play_artifact():
             print(f"can't play artifact")
