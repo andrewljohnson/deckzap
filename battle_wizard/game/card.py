@@ -11,7 +11,6 @@ class Card:
     def __init__(self, info):
         self.id = info["id"] if "id" in info else -1
 
-        self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
         self.attacked = info["attacked"] if "attacked" in info else False
         self.can_activate_effects = info["can_activate_effects"] if "can_activate_effects" in info else True
         self.can_attack_mobs = info["can_attack_mobs"] if "can_attack_mobs" in info else False
@@ -29,12 +28,10 @@ class Card:
         self.effects_can_be_clicked = info["effects_can_be_clicked"] if "effects_can_be_clicked" in info else []
         self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
         self.description = info["description"] if "description" in info else None
-        self.global_effect = info["global_effect"] if "global_effect" in info else None
         self.image = info["image"] if "image" in info else None
         self.is_token = info["is_token"] if "is_token" in info else False
         self.level = info["level"] if "level" in info else None
         self.name = info["name"] if "name" in info else None
-        self.needs_targets = info["needs_targets"] if "needs_targets" in info else False
         self.original_description = info["original_description"] if "original_description" in info else None
         # probably bugs WRT Mind Manacles
         self.owner_username = info["owner_username"] if "owner_username" in info else None
@@ -128,7 +125,6 @@ class Card:
 
     def as_dict(self):
         return {
-            "added_descriptions": self.added_descriptions,
             "attacked": self.attacked,
             "can_activate_effects": self.can_activate_effects,
             "can_attack_mobs": self.can_attack_mobs,
@@ -146,13 +142,11 @@ class Card:
             "effects": [e.as_dict() for e in self.effects],
             "effects_can_be_clicked": self.effects_can_be_clicked,
             "effects_exhausted": self.effects_exhausted,
-            "global_effect": self.global_effect,
             "id": self.id,
             "image": self.image,
             "is_token": self.is_token,
             "level": self.level,
             "name": self.name,
-            "needs_targets": self.needs_targets,
             "original_description": self.original_description,
             "owner_username": self.owner_username,
             "power": self.power,
@@ -225,8 +219,6 @@ class Card:
             return self.do_enable_activated_effect_effect
         elif name == "entwine":
             return self.do_entwine_effect
-        elif name == "evolve":
-            return self.do_evolve_effect
         elif name == "fetch_card":
             return self.do_fetch_card_effect_on_player
         elif name == "fetch_card_into_play":
@@ -342,25 +334,15 @@ class Card:
     def factory_reset_card(card, player):
         new_card = None
         # hax
-        evolved = card.has_effect("evolve")
         for c in Card.all_card_objects():
             if c.name == card.name:
                 new_card = copy.deepcopy(c)
-        if evolved:
-            card.attacked = False
-            card.can_attack_mobs = False
-            card.can_attack_players = False
-            card.damage = 0
-            card.damage_to_show = 0
-            card.damage_this_turn = 0
-            card.turn_played = -1
-            return card
-        else:
-            new_card.id = card.id
-            new_card.owner_username = player.username
-            return new_card
+        new_card.id = card.id
+        new_card.owner_username = player.username
+        return new_card
 
     def resolve(self, player, spell_to_resolve):
+        print("fresolveing {self.name}")
         for e in player.in_play + player.artifacts:
             for idx, effect in enumerate(e.effects_for_type("friendly_card_played")):
                 if effect.target_type == "this":
@@ -522,7 +504,7 @@ class Card:
         effect_owner.game.actor_turn += 1
         stack_spell = None
         for spell in effect_owner.game.stack:
-            if spell[1]["id"] == card_id:
+            if spell[1]["id"] == target_info["id"]:
                 stack_spell = spell
                 break
 
@@ -696,7 +678,7 @@ class Card:
             for c in Card.all_card_objects():
                 if self.card_for_effect.name == c.name:
                     previous_card = c
-            previous_card.evolve(previous_card)
+            previous_card.upgrade(previous_card)
             effect_owner.hand.append(previous_card)
             self.card_for_effect = None
 
@@ -819,32 +801,21 @@ class Card:
             p.draw(3)
         return [f"{effect_owner.username} casts {self.name}."]
  
-    def do_evolve_effect(self, effect_owner, effect, target_info):
-        if "did_kill" in target_info and target_info["did_kill"]:
-            evolver_card = None
-            previous_card = None
-            for c in Card.all_card_objects():
-                if c.name == effect.original_name:
-                    evolver_card = c
-                if self.name == c.name:
-                    previous_card = c
-            self.evolve(previous_card, evolver_card)
-
-    def evolve(self, previous_card, evolver_card=None):
-        evolve_cards = []
+    def upgrade(self, previous_card, upgrader_card=None):
+        upgrade_cards = []
         for c in Card.all_card_objects():
             if not c.is_token and c.cost > previous_card.cost and c.cost < previous_card.cost + 2 and c.card_type == self.card_type:
-                evolve_cards.append(c)
-        if len(evolve_cards) > 0:
-            evolved_card = random.choice(evolve_cards)
-            self.name = evolved_card.name
-            self.image = evolved_card.image
-            self.description = evolved_card.description
-            self.effects = evolved_card.effects
-            if evolver_card:
-                self.effects.append(evolver_card.effects[0])
-            self.power = evolved_card.power
-            self.toughness = evolved_card.toughness
+                upgrade_cards.append(c)
+        if len(upgrade_cards) > 0:
+            upgraded_card = random.choice(upgrade_cards)
+            self.name = upgraded_card.name
+            self.image = upgraded_card.image
+            self.description = upgraded_card.description
+            self.effects = upgraded_card.effects
+            if upgrader_card:
+                self.effects.append(upgrader_card.effects[0])
+            self.power = upgraded_card.power
+            self.toughness = upgraded_card.toughness
 
     def do_fetch_card_effect_on_player(self, effect_owner, effect, target_info):
         if Constants.artifactCardType in effect.target_type:
@@ -989,22 +960,22 @@ class Card:
         return [f"{self.name} levels up."]
 
     def do_keep_effect(self, effect_owner, effect, target_info):
-        if self.power:
+        if self.power and effect.amount and not effect.amount_id:
             old_power = self.power 
             self.power += effect.amount
             if self.power > old_power:
                 self.show_level_up = True
-        if self.toughness:
+        if self.toughness and effect.amount and not effect.amount_id:
             old_toughness = self.toughness 
             self.toughness += effect.amount
             if self.toughness > old_toughness:
                 self.show_level_up = True
-        if effect.keep_evolve:
-             evolved_card = effect_owner.add_to_deck(effect.keep_evolve, 1, add_to_hand=True)
-             effect_owner.hand.remove(evolved_card)
-             evolved_card.id = self.id
-             evolved_card.show_level_up = True
-             effect_owner.hand.append(evolved_card)
+        if effect.amount_id == "upgrade":
+             upgraded_card = effect_owner.add_to_deck(effect.card_names[0], 1, add_to_hand=True)
+             effect_owner.hand.remove(upgraded_card)
+             upgraded_card.id = self.id
+             upgraded_card.show_level_up = True
+             effect_owner.hand.append(upgraded_card)
         else:
             effect_owner.hand.append(self)
         effect_owner.played_pile.remove(self)

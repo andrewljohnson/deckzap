@@ -1327,9 +1327,11 @@
 		"effects": [
 			{
 				"name": "keep",
+				"amount_id": "upgrade",
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 1"],
 			}
 		]
 	},
@@ -1346,9 +1348,11 @@
 		"effects": [
 			{
 				"name": "keep",
+				"amount_id": "upgrade",
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 2"],
 			}
 		]
 	},
@@ -1371,9 +1375,11 @@
 			},
 			{
 				"name": "keep",
+				"amount_id": "upgrade",
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 3"],
 			}
 		]
 	},
@@ -1402,9 +1408,11 @@
 			},
 			{
 				"name": "keep",
+				"amount_id": "upgrade",
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 4"],
 			}
 		]	
 	},
@@ -1803,22 +1811,6 @@
 				"effect_type": "after_cast"
 			}
 		]
-	},
-	{ 
-		"name": "Warty Evolver",
-		"discipline": "tech",
-		"card_type": "mob",
-		"image": "shambling-mound.svg",
-		"power": 1,
-		"toughness": 1,
-		"cost": 1,
-		"description": "Evolves.",
-		"effects": [{
-			"name": "evolve",
-			"effect_type": "leave_play",
-			"target_type": "self",
-			"original_name": "Warty Evolver"
-		}]
 	},
 	{
 		"name": "Duplication Chamber",

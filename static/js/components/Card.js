@@ -92,35 +92,6 @@ export class Card {
         }
         cardSprite.addChild(nameBackground);
 
-        if ("effects" in card) {
-	        for (let e of card.effects) {
-	            // hax, don't reference card name
-	            if (e.name == "evolve" && card.name != "Warty Evolver") {
-	                let evolveLabelOptions = Constants.textOptions();
-	                evolveLabelOptions.fill = Constants.whiteColor;
-	                evolveLabelOptions.fontSize = 6;
-	                const evolveLabel = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-	                evolveLabel.tint = Constants.blueColor;
-	                evolveLabel.height = 6;
-	                evolveLabel.alpha = .7;
-	                evolveLabel.position.x = aFX + 8;
-	                evolveLabel.position.y = aFY + 2 - evolveLabel.height - Constants.padding;
-	                if (useLargeSize) {
-	                    evolveLabelOptions.fontSize = Constants.defaultFontSize;
-	                    evolveLabel.position.x -= 4
-	                    evolveLabel.height = 12;
-	                    evolveLabel.position.y += evolveLabel.height
-	                }
-	                cardSprite.addChild(evolveLabel);
-	                let evolveText = new PIXI.Text("Evolved", evolveLabelOptions);
-	                evolveLabel.width = evolveText.width + Constants.padding;
-	                cardSprite.addChild(evolveText);
-	                evolveText.position.x = evolveLabel.position.x;
-	                evolveText.position.y = evolveLabel.position.y;
-	            }
-	        }
-		}
-
         nameOptions.fill = Constants.whiteColor;
         let name = new PIXI.Text(card.name, nameOptions);
         cardSprite.addChild(name);
@@ -740,16 +711,8 @@ export class Card {
         let infoText = new PIXI.Text("", options);
     	if (card.effects) {
 	        for (let e of card.effects) {
-	            if (e.name == "evolve") {
-	                let effectText = new PIXI.Text("", options);
-	                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
-	                effectText.position.x -= cw / 2 - 4;
-	                effectText.position.y = yPosition - ch / 2 + 2;
-	                yPosition += effectText.height + 10;
-	                textContainer.addChild(effectText);
-	            }                    
                 if (e.description_expanded != undefined) {
-                    infoText.text = `${e.description} - ${e.description_expanded}`;
+                    infoText.text += `${e.description} - ${e.description_expanded}\n\n`;
                 }                   	        
             }
 	    }

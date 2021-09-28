@@ -184,7 +184,6 @@ class Game:
             card.effects_can_be_clicked = []
         for card in self.current_player().hand:
             card.can_be_clicked = False
-            card.needs_targets = False
         for spell in self.stack:
             spell[1]["can_be_clicked"] = False
         self.opponent().can_be_clicked = False
@@ -278,7 +277,6 @@ class Game:
                     card.can_be_clicked = True
 
             for card in cp.hand:               
-                card.needs_targets = card.needs_targets_for_spell()
                 if cp.current_mana() >= card.cost:
                     card.can_be_clicked = True
                     if card.card_type == Constants.artifactCardType:

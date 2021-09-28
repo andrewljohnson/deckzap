@@ -1760,28 +1760,26 @@ function onDragEnd(cardSprite, gameUX) {
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
 
     if (cardSprite.card.turn_played == -1) {
-        if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
-            gameUX.gameRoom.sendPlayMoveEvent(moveTypePlayCardInHand, {"card":cardSprite.card.id});
-            playedMove = true;
-        } else if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
+        if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectOpponent, {});
             playedMove = true;
         } else if(collidedSprite == gameUX.playerAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectSelf, {});
             playedMove = true;
-        } else {
-            if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
-                if (collidedSprite.card.turn_played == -1) {
-                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectStackSpell, {"card": collidedSprite.card.id});
-                } else if (collidedSprite.card.card_type == Constants.mobCardType) {
-                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card": collidedSprite.card.id});
-                } else if (collidedSprite.card.card_type == Constants.artifactCardType) {
-                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card": collidedSprite.card.id});
-                } else {
-                    console.log("tried to select unknown card type: " + collidedSprite.card.card_type);
-                }
-                playedMove = true;
+        } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
+            if (collidedSprite.card.turn_played == -1) {
+                gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectStackSpell, {"card": collidedSprite.card.id});
+            } else if (collidedSprite.card.card_type == Constants.mobCardType) {
+                gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card": collidedSprite.card.id});
+            } else if (collidedSprite.card.card_type == Constants.artifactCardType) {
+                gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card": collidedSprite.card.id});
+            } else {
+                console.log("tried to select unknown card type: " + collidedSprite.card.card_type);
             }
+            playedMove = true;
+        } else if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && cardSprite.card.can_be_clicked) {
+            gameUX.gameRoom.sendPlayMoveEvent(moveTypePlayCardInHand, {"card":cardSprite.card.id});
+            playedMove = true;
         }
     } else {  // it's a mob or artifact already in play
         if(collidedSprite == gameUX.opponentAvatar) {
@@ -1836,7 +1834,7 @@ function updateDraggedCardFilters(gameUX, cardSprite){
         Constants.targettingGlowFilter(),
         Constants.dropshadowFilter()
     ];
-    if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
+    if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && cardSprite.card.can_be_clicked) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
     } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {

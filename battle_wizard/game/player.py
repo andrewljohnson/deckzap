@@ -732,24 +732,13 @@ class Player:
             else:
                 player = self.game.current_player()
 
-        # hax - Warty Evolver and maybe other cards that evolve on death
-        did_evolve = card.has_effect("evolve")
-
-        if did_evolve:
-            card.attacked = False
-            card.damage = 0
-            card.damage_to_show = 0
-            card.damage_this_turn = 0
-            card.turn_played = -1
-            card.added_descriptions = ["Evolves."]
+        # these effects override the normal factory_reset
+        if len(card.effects_for_type("sent_to_played_pile")) > 0:
+            for idx, effect in enumerate(card.effects_for_type("sent_to_played_pile")):
+                effect.show_effect_animation = True
+                card.resolve_effect(card.sent_to_played_piled_effect_defs[idx], self, effect, {}) 
         else:
-            # these effects override the normal factory_reset
-            if len(card.effects_for_type("sent_to_played_pile")) > 0:
-                for idx, effect in enumerate(card.effects_for_type("sent_to_played_pile")):
-                    effect.show_effect_animation = True
-                    card.resolve_effect(card.sent_to_played_piled_effect_defs[idx], self, effect, {}) 
-            else:
-                card = Card.factory_reset_card(card, player)
+            card = Card.factory_reset_card(card, player)
         if not card.is_token:
             player.played_pile.append(card)
 

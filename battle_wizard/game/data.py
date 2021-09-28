@@ -112,12 +112,11 @@ def default_deck_dwarf_bard():
         "cards": {
             "Lute": 1,
             "Tech Crashhouse": 1,
-            "Mayor's Brandy": 1,
+            "Mayor's Brandy": 2,
             "Song of Patience": 1,
             "Study the Music": 1,
             "Town Council": 1,
             "Song of Rebirth": 1,
-            "Warty Evolver": 1,
             "Duplication Chamber": 1,
             "Upgrade Chamber": 1,
             "Study the Masters": 1,
