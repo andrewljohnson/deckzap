@@ -342,7 +342,7 @@ class Card:
         return new_card
 
     def resolve(self, player, spell_to_resolve):
-        print("fresolveing {self.name}")
+        print(f"resolving {self.name}")
         for e in player.in_play + player.artifacts:
             for idx, effect in enumerate(e.effects_for_type("friendly_card_played")):
                 if effect.target_type == "this":
@@ -376,8 +376,9 @@ class Card:
         if self.card_type == Constants.spellCardType:
             player.played_pile.append(self)
 
+        effect_targets = spell_to_resolve["effect_targets"] if "effect_targets" in spell_to_resolve else {}
         for idx, effect_def in enumerate(self.after_cast_effect_defs):
-            self.resolve_effect(effect_def, player, self.effects_for_type("after_cast")[idx], spell_to_resolve["effect_targets"][idx])
+            self.resolve_effect(effect_def, player, self.effects_for_type("after_cast")[idx], [idx])
 
         spell_to_resolve["card_name"] = self.name
         spell_to_resolve["show_spell"] = self.as_dict()
@@ -417,6 +418,17 @@ class Card:
 
     def do_add_ambush_effect(self, effect_owner, effect, target_info):
         self.can_attack_mobs = True
+        # clone the game so we can do a move in the cloned game to select the mob with Ambush
+        # then, check if there are any mobs that can be attacked in the cloned game (e.g. mob.can_be_clicked == True)
+        game_copy = copy.deepcopy(effect_owner.game)
+        for mob in game_copy.current_player().in_play:
+            if mob.id == self.id:
+                game_copy.play_move({"username": effect_owner.username, "move_type": "SELECT_MOB", "card": self.id})        
+        found_attackable_mob = False
+        for m in game_copy.opponent().in_play:
+            if m.can_be_clicked:                
+                found_attackable_mob = True
+        self.can_attack_mobs = found_attackable_mob
 
     def do_add_fast_effect(self, effect_owner, effect, target_info):
         self.can_attack_players = True

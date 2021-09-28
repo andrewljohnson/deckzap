@@ -17,16 +17,13 @@ class Game:
 
         # player 0 always acts on even turns, player 1 acts on odd turns
         self.actor_turn = int(info["actor_turn"]) if info and "actor_turn" in info else 0
-        # the ID of the GameRecord in the DB.
-        self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
         # a list of all player-derived moves, sufficient to replay the game
         self.moves = info["moves"] if info and "moves" in info else []
         # the max number of cards a player can have
         self.max_hand_size = 10
-        # the next id to give a card when doing make_card effects
-        # each card gets the next unusued integer
+        # the next id to give a card when doing make_card effects, each card gets the next unusued integer
         self.next_card_id = int(info["next_card_id"]) if info and "next_card_id" in info else 0
-        # either pvp or pvai
+        # either pvp (player vs player) or pvai (player vs ai)
         self.player_type = info["player_type"] if info and "player_type" in info else player_type
         # support 2 players
         self.players = []
@@ -39,13 +36,16 @@ class Game:
         # stack decks for unit testing
         self.player_decks = player_decks
         # when True, a countdown timer starts for the active player
+        # todo make this work with instants and re-enable
         self.show_rope = info["show_rope"] if info and "show_rope" in info else False
         # a stack of actions that need to be resolved in the game (spells, effects, and attacks)
         self.stack = info["stack"] if info and "stack" in info else []
         # player 0 is the current player on even turns, player 1 is the current player on odd turns
+        # this is used to demark actual turns, while current_player is based on actor_turn
         self.turn = int(info["turn"]) if info and "turn" in info else 0
-        # the time the current turn started on
-        self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()        
+        # the time the current turn started on, used to activate the rope to force turn end
+        self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()
+
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -53,7 +53,6 @@ class Game:
     def as_dict(self):
         return {
             "actor_turn": self.actor_turn, 
-            "game_record_id": self.game_record_id, 
             "moves": self.moves, 
             "next_card_id": self.next_card_id, 
             "players": [p.as_dict() for p in self.players], 
@@ -63,6 +62,9 @@ class Game:
             "turn": self.turn, 
             "turn_start_time": self.turn_start_time.__str__() if self.turn_start_time else None, 
         }
+
+    def copy(self):
+        return Game(self.player_type, info=self.as_dict())        
 
     def current_player(self):
         return self.players[self.actor_turn % 2]

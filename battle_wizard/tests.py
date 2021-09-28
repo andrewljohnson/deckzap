@@ -1051,6 +1051,19 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points - game.players[0].in_play[0].power_with_tokens(game.players[0]))
 
+    def test_ambush_cant_select(self):
+        """
+            Test mob can't be selected if it has Ambush but not mobs to attack
+        """
+
+        deck1 = ["Tame-ish Sabretooth"]
+        deck2 = []
+        game = self.game_for_decks([deck1, deck2])
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})    
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        self.assertEqual(game.players[0].selected_mob(), None)
+
     def test_tameish_sabretooth(self):
         """
             Test add_ambush effect of Tame-ish Sabretooth
@@ -1064,6 +1077,7 @@ class GameObjectTests(TestCase):
         for card in game.players[1].hand:
             game.players[1].mana += card.cost
         game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})    
+        print("doing test select")
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})    
         self.assertEqual(game.opponent().can_be_clicked, False)
         self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)

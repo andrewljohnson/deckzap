@@ -143,7 +143,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "enter_play"
+				"effect_type": "after_cast"
 			},
 			{
 				"name": "protect_with_shield",
@@ -552,7 +552,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "enter_play"
+				"effect_type": "after_cast"
 			},
 			{
 				"name": "remove_symbiotic_fast",
@@ -1331,7 +1331,7 @@
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
         		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 1"],
+        		"card_names": ["Work in Progress: Stage 1"]
 			}
 		]
 	},
@@ -1352,7 +1352,7 @@
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
         		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 2"],
+        		"card_names": ["Work in Progress: Stage 2"]
 			}
 		]
 	},
@@ -1379,7 +1379,7 @@
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
         		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 3"],
+        		"card_names": ["Work in Progress: Stage 3"]
 			}
 		]
 	},
@@ -1412,7 +1412,7 @@
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
         		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 4"],
+        		"card_names": ["Work in Progress: Stage 4"]
 			}
 		]	
 	},
