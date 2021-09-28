@@ -1115,6 +1115,7 @@ export class GameUX {
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make_from_deck") {
             this.showMakeFromDeckView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
+            // todo: make this more player implementable
             this.showRiffleView(game, "FINISH_RIFFLE");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
@@ -1365,33 +1366,33 @@ export class GameUX {
     }
 
     setCardDragListeners(card, cardSprite, game) {
-        if (card.can_be_clicked) {
-            let isHandCard = false;
-            for (let c of this.thisPlayer(game).hand) {
-                if (c.id == card.id) {
-                    isHandCard = true;
-                }
+        if (!card.can_be_clicked) {
+            return;
+        }
+        let isHandCard = false;
+        for (let c of this.thisPlayer(game).hand) {
+            if (c.id == card.id) {
+                isHandCard = true;
             }
-            //  todo: cleaner if/then for Duplication Chamber/Upgrade Chamber/Mana Coffin
-            if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
-                cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
-                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
-            } else if (this.thisPlayer(game).card_info_to_target.card_id) {
-                cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
-                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
-            } else {
-                let self = this;
-                cardSprite
-                    .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
-                    .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
-                    .on('mouseup',          function ()  {onDragEnd(this, self)})
-                    .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
-                    .on('touchend',         function ()  {onDragEnd(this, self)})
-                    .on('touchendoutside',  function ()  {onDragEnd(this, self)})
-                    .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
-                    .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
-            }
-        } else { 
+        }
+        //  todo: cleaner if/then for Duplication Chamber/Upgrade Chamber/Mana Coffin
+        if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
+            cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+            cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+        } else if (this.thisPlayer(game).card_info_to_target.card_id) {
+            cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
+            cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+        } else {
+            let self = this;
+            cardSprite
+                .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
+                .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
+                .on('mouseup',          function ()  {onDragEnd(this, self)})
+                .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
+                .on('touchend',         function ()  {onDragEnd(this, self)})
+                .on('touchendoutside',  function ()  {onDragEnd(this, self)})
+                .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
+                .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
         }
     }
 

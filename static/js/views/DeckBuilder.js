@@ -26,7 +26,7 @@ export class DeckBuilder {
 	}
 
 	setUpPIXIApp() {
-		const widthInCards = 8;
+		const widthInCards = 9;
 		let appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
 		let appHeight = (Card.cardHeight) * 15;
 		Constants.setUpPIXIApp(this, appHeight, appWidth)
@@ -60,42 +60,42 @@ export class DeckBuilder {
 		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			title = "View Deck: " + this.decks[this.discipline].title			
 		}
-        let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
-        titleText.position.x = Constants.padding;
-        titleText.position.y = Constants.padding * 1.5;
-        this.app.stage.addChild(titleText);		
-        return titleText;
+        	let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
+        	titleText.position.x = Constants.padding;
+        	titleText.position.y = Constants.padding * 1.5;
+        	this.app.stage.addChild(titleText);		
+        	return titleText;
 	}
 
 	addSaveButton() {
-        const buttonWidth = Card.cardWidth * 1.25;
-        const buttonHeight = 40;
-        const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth + Constants.padding * 2;
-        let buttonTitle = "Save";
-        if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
+        	const buttonWidth = Card.cardWidth * 1.25;
+        	const buttonHeight = 40;
+        	const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth * 2 + Constants.padding * 2;
+        	let buttonTitle = "Save";
+        	if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			buttonTitle = "Copy Deck";        	
-        }
-        let b = Card.button(
-                buttonTitle, 
-                Constants.blueColor, 
-                Constants.whiteColor, 
-                buttonX, 
-                -buttonHeight - 2,
-                () => {
-                	if (!this.username) {
-                		window.location.href = "/signup"
-                	} else if (this.deckIsFull()) {
-                		console.log("Saving, deck is complete")
-                		this.saveDeck();
-                	} else {
-                		console.log(`Not saving, ${this.discipline} deck only has ${this.deckSize()} cards`)
-                	}
-                },
-                null,
-                buttonWidth
-            );
-       this.app.stage.addChild(b);
-       return b;
+        	}
+	        let b = Card.button(
+	                buttonTitle, 
+	                Constants.blueColor, 
+	                Constants.whiteColor, 
+	                buttonX, 
+	                -buttonHeight - 16,
+	                () => {
+	                	if (!this.username) {
+	                		window.location.href = "/signup"
+	                	} else if (this.deckIsFull()) {
+	                		console.log("Saving, deck is complete")
+	                		this.saveDeck();
+	                	} else {
+	                		console.log(`Not saving, ${this.discipline} deck only has ${this.deckSize()} cards`)
+	                	}
+	                },
+	                null,
+	                buttonWidth
+	            );
+	        this.app.stage.addChild(b);
+	        return b;
 	}
 
 	addDeckTitleInput(x, y, buttonWidth) {
@@ -205,15 +205,15 @@ export class DeckBuilder {
 	}
 
 	// protocol for CardsContainer
-    setCardDragListeners(card, cardSprite, game) {
+	setCardDragListeners(card, cardSprite, game) {
 		let self = this;
 		cardSprite
 		    .on('mousedown',        function (e) {self.selectCard(this)})
 		    .on('touchstart',       function (e) {self.selectCard(this)})
-    }
+    	}
 
 	// protocol for DeckContainer
-    setDeckCardDragListeners(cardSprite) {
+    	setDeckCardDragListeners(cardSprite) {
 		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			return;
 		}
@@ -221,7 +221,7 @@ export class DeckBuilder {
 		cardSprite
 		    .on('mousedown',        function (e) {self.removeCard(this)})
 		    .on('touchstart',       function (e) {self.removeCard(this)})
-    }
+    	}
 
 	selectCard(cardSprite) {
 		if (this.deckIsFull()) {

@@ -84,24 +84,18 @@ class Game:
 
         if save and (message["move_type"] != "JOIN" or len(self.moves) <= 2):
             move_copy = copy.deepcopy(message)
-            if "game" in move_copy:
-                del move_copy['game']
-            if "log_lines" in move_copy:
-                del move_copy['log_lines']
-            if "show_spell" in move_copy:
-                del move_copy['show_spell']
-            if "game" in move_copy:
-                del move_copy['game']
+            for key in ["game", "log_lines", "show_spell"]:
+                if key in move_copy:
+                    del move_copy[key]
             self.moves.append(move_copy)
         
         if move_type == 'JOIN':
             message = self.join(message, is_reviewing)
-        else:
-            if (message["username"] != self.current_player().username):
-                print(f"can't {move_type} on opponent's turn")
-                return None
+        elif (message["username"] != self.current_player().username):
+            print(f"can't {move_type} on opponent's turn")
+            return None
         if move_type == 'START_FIRST_TURN':
-            message = self.current_player().start_turn(message)            
+            message = self.current_player().start_turn(message)    
         # moves sent by the game UX via buttons and card clicks
         elif move_type == 'END_TURN':
             message = self.end_turn(message)
@@ -490,6 +484,10 @@ class Game:
                 self.current_player().played_pile.append(card)
                 for idx, effect in enumerate(card.effects_for_type("discarded_end_of_turn")):
                     log_lines = card.resolve_effect(card.discarded_end_of_turn_effect_defs[idx], self.current_player(), effect, {})
+                    if log_lines:
+                        for line in log_lines:
+                             print(line)
+                             message["log_lines"].append(line)
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
             # this works because all end_turn triggered effects dont have targets to choose
@@ -498,6 +496,7 @@ class Game:
                 effect.show_effect_animation = True
                 log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
                 if log_lines:
+                    print(log_lines)
                     [message["log_lines"].append(line) for line in log_lines]
 
         self.turn += 1
@@ -837,7 +836,6 @@ class Game:
             return None
         e = artifact.enabled_activated_effects()[activated_effect_index]
         artifact.can_activate_effects = False
-        # todo support multi-use effects on artifacts
         artifact.effects_exhausted = {e.name: True}
         
         if "defending_card" in message:
@@ -895,16 +893,12 @@ class Game:
             damage = min(damage_card.power_with_tokens(controller), damaged_card.toughness_with_tokens() - damaged_card.damage)
             damaged_card.deal_damage_with_effects(damage, controller)
             actual_damage = damaged_card.damage_to_show
-            print(f"damaged_card.damage_this_turn {damaged_card.damage_this_turn}")
             for idx, effect in enumerate(damage_card.effects_for_type("after_deals_damage")):
                 damage_card.resolve_effect(damage_card.after_deals_damage_effect_defs[idx], controller, effect, {"damage": actual_damage, "damage_possible": possible_damage}) 
-
         if attacking_card.damage >= attacking_card.toughness_with_tokens():
             self.current_player().send_card_to_played_pile(attacking_card, did_kill=True)
-
         if defending_card.damage >= defending_card.toughness_with_tokens():
             self.opponent().send_card_to_played_pile(defending_card, did_kill=True)
-
         return damage
 
     def remove_attack_for_mob(self, mob):
@@ -927,7 +921,6 @@ class Game:
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name
-
         self.current_player().reset_card_info_to_target()
         new_message = self.play_move(new_message)       
         return new_message             
@@ -964,13 +957,11 @@ class Game:
     def select_stack_target(self, card_to_target, message, move_type):
         new_message = copy.deepcopy(message)
         new_message["move_type"] = move_type
-
         selected_card = None
         for spell in self.stack:
             if spell[1]["id"] == message["card"]:
                 selected_card = Card(spell[1])
                 break
-
         effect_targets = []
         effect_targets.append({"id": selected_card.id, "target_type": "stack_spell"})            
         new_message["effect_targets"] = effect_targets

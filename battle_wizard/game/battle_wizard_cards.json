@@ -1193,7 +1193,8 @@
 				"name": "keep",
 				"effect_type": "discarded_end_of_turn",
         		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"amount": 1
 			}
 		]
 	},
@@ -1913,7 +1914,7 @@
 		}, 
 		{
 			"name": "reduce_cost",
-			"effect_type": "draw"
+			"effect_type": "was_drawn"
 		}]
 	},
 	{
@@ -1937,7 +1938,7 @@
 		},
 		{
 			"name": "reduce_cost",
-			"effect_type": "draw"
+			"effect_type": "was_drawn"
 		}]
 	},
 	{

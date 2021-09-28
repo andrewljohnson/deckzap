@@ -18,10 +18,10 @@ class Player:
     max_hit_points = 30
 
     def __init__(self, game, info={}, bot=None):
+        self.game = game
         self.is_ai = False
         self.max_hit_points = 30
         self.card_mana = 0
-
         self.about_to_draw_count = info["about_to_draw_count"] if "about_to_draw_count" in info else 0
         self.artifacts = [Card(c_info) for c_info in info["artifacts"]] if "artifacts" in info else []
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else 0
@@ -30,7 +30,6 @@ class Player:
         self.deck = [Card(c_info) for c_info in info["deck"]] if "deck" in info else []
         self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.discipline = info["discipline"] if "discipline" in info else None
-        self.game = game
         self.hand = [Card(c_info) for c_info in info["hand"]] if "hand" in info else []
         self.hit_points = info["hit_points"] if "hit_points" in info else Player.max_hit_points
         # used for replays, todo: use a random seed to make replays easier per @silberman
@@ -164,6 +163,9 @@ class Player:
                 continue
             drawn_card = self.deck.pop()
             self.hand.append(drawn_card)
+            for idx, effect in enumerate(drawn_card.effects_for_type("was_drawn")):
+                effect.show_effect_animation = True
+                log_lines.append(drawn_card.resolve_effect(drawn_card.was_drawn_effect_defs[idx], self, effect, {})) 
             for m in self.in_play + self.artifacts + [drawn_card]:
                 for idx, effect in enumerate(m.effects_for_type("draw")):
                     effect.show_effect_animation = True
@@ -289,8 +291,6 @@ class Player:
     def play_artifact(self, artifact):
         self.artifacts.append(artifact)
         artifact.turn_played = self.game.turn
-        # self.update_for_mob_changes_zones(self)
-        # self.my_opponent().update_for_mob_changes_zones()        
 
     def target_or_do_mob_effects(self, card, message, username, is_activated_effect=False):
         effects = card.effects_for_type("enter_play")
@@ -378,7 +378,9 @@ class Player:
             return
         log_lines = []
         if self.discipline != "tech" or self.game.turn > 1:
-            log_lines.append(self.draw(self.draw_count()))
+            line = self.draw(self.draw_count())
+            if line:
+                log_lines.append(line)
         return log_lines if len(log_lines) > 0 else None
 
     def draw_count(self):

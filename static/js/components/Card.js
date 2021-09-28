@@ -115,56 +115,52 @@ export class Card {
 	        for (let e of card.effects) {
 	            if (e.effect_type == "activated" && e.enabled) {
 	                activatedEffects.push(e)
-	                if (e.name == "attack" || e.name == "create_random_townie") {
+	                if (e.name == "create_random_townie") {
 	                    attackEffect = e;
 	                }
 	            }
 	        }
 	    }
 
-        if (card.card_type != "Effect") {
-            let costX = Constants.padding * 3 - Card.cardWidth/2;
-            let costY = Constants.padding * 3 - Card.cardHeight/2;
-            if (useLargeSize) {
-                costX -= cw/4;
-                costY -= ch/4;
-            }
+        let costX = Constants.padding * 3 - Card.cardWidth/2;
+        let costY = Constants.padding * 3 - Card.cardHeight/2;
+        if (useLargeSize) {
+            costX -= cw/4;
+            costY -= ch/4;
+        }
 
-            imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "amethyst.svg"));
-            imageSprite.tint = Constants.blueColor;
-            imageSprite.height = 28;
-            imageSprite.width = 28;
-            
-            imageSprite.position.x = costX;
-            imageSprite.position.y = costY;
-            cardSprite.addChild(imageSprite);
+        imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "amethyst.svg"));
+        imageSprite.tint = Constants.blueColor;
+        imageSprite.height = 28;
+        imageSprite.width = 28;
+        
+        imageSprite.position.x = costX;
+        imageSprite.position.y = costY;
+        cardSprite.addChild(imageSprite);
 
-            let ptOptions = Constants.textOptions()
-            ptOptions.stroke = Constants.blackColor;
-            ptOptions.strokeThickness = 2;
-            ptOptions.fill = Constants.whiteColor;
-            ptOptions.fontSize = 16
-            
-            let cost = new PIXI.Text(card.cost, ptOptions);
-            cost.position.x = costX;
-            cost.position.y = costY;
-            cardSprite.addChild(cost);
+        let ptOptions = Constants.textOptions()
+        ptOptions.stroke = Constants.blackColor;
+        ptOptions.strokeThickness = 2;
+        ptOptions.fill = Constants.whiteColor;
+        ptOptions.fontSize = 16
+        
+        let cost = new PIXI.Text(card.cost, ptOptions);
+        cost.position.x = costX;
+        cost.position.y = costY;
+        cardSprite.addChild(cost);
 
-        }            
 
         let effectsText = "";
         let color = Constants.darkGrayColor;
         if ("effects" in card) {
 	        for (let e of card.effects) {
-	            if (!["Starts in Play", undefined].includes(e.description)) {
-	                if (e.description) {
-	                    effectsText += e.description;
-	                    color = Constants.blackColor;
-                        if (e != card.effects[card.effects.length-1]) {                
-                               effectsText += ", ";
-                        }               
-	                }
-	            }
+                if (e.description) {
+                    effectsText += e.description;
+                    color = Constants.blackColor;
+                    if (e != card.effects[card.effects.length-1]) {                
+                        effectsText += ", ";
+                    }               
+                }
 	        }
 
 	        if ("tokens" in card) {
@@ -179,6 +175,7 @@ export class Card {
 		    }
         }
 
+        /// todo: move serverside
         let baseDescription =  card.description ? card.description : "";
         if (card.name == "Tame Shop Demon") {
            baseDescription = card.effects[0].card_descriptions[card.level];
@@ -201,7 +198,6 @@ export class Card {
         if (card.card_for_effect && card.name == "Duplication Chamber") {
            baseDescription = `Get two copies of ${card.card_for_effect.name} back next turn.`;
         }
-
 
         if (card.added_descriptions && card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
@@ -321,6 +317,7 @@ export class Card {
     static spriteInPlay(card, pixiUX, game, player, dont_attach_listeners) {
         let cardTexture = Card.cardTextureInPlay;
         for (let e of card.effects) {
+            // todo: set texture string in JSON
             if (e.name == "force_attack_guard_first") {
                 cardTexture = Card.cardTextureInPlayGuard;
             }                    
@@ -331,6 +328,7 @@ export class Card {
         cardSprite.addChild(imageSprite);
         Card.ellipsifyImageSprite(imageSprite, card, 70, 132)
 
+        // todo: implement this in a player-implementable way - let player supply display code?
         if (card.name == "Mana Battery") {
             let currentBatteryMana = 0;
             for (let effect of card.effects) {
@@ -387,7 +385,7 @@ export class Card {
         for (let e of card.effects) {
             if (e.effect_type == "activated" && e.enabled) {
                 activatedEffects.push(e)
-                if (e.name == "attack" || e.name == "create_random_townie") {
+                if (e.name == "create_random_townie") {
                     attackEffect = e;
                 }
             }
@@ -403,19 +401,8 @@ export class Card {
         }
 
         if (attackEffect) {
-            if (attackEffect.name == "create_random_townie") {
-                let attackEffectOptions = Constants.textOptions() 
-                Card.addCircledLabel(-Constants.padding * 8, Card.cardHeight / 2 - Constants.padding * 6, cardSprite, attackEffectOptions, attackEffect.counters, Constants.yellowColor);
-            } else {
-                let powerX = -Constants.padding * 8;
-                let powerY = Card.cardHeight / 2 - Constants.padding * 6
-                let countersX = powerX + Card.cardWidth / 2;
-                let attackEffectOptions = Constants.textOptions() 
-                attackEffectOptions.fill = Constants.whiteColor;
-                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
-                attackEffectOptions.fill = Constants.blackColor;
-                Card.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power, Constants.yellowColor);
-            }
+            let attackEffectOptions = Constants.textOptions() 
+            Card.addCircledLabel(-Constants.padding * 8, Card.cardHeight / 2 - Constants.padding * 6, cardSprite, attackEffectOptions, attackEffect.counters, Constants.yellowColor);
         }
 
         if (card.card_for_effect) {

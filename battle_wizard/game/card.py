@@ -12,12 +12,15 @@ class Card:
         self.id = info["id"] if "id" in info else -1
 
         self.attacked = info["attacked"] if "attacked" in info else False
+        # use by artifacts with activated abilities
         self.can_activate_effects = info["can_activate_effects"] if "can_activate_effects" in info else True
         self.can_attack_mobs = info["can_attack_mobs"] if "can_attack_mobs" in info else False
         self.can_attack_players = info["can_attack_players"] if "can_attack_players" in info else False
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
+        # used by artifacts such as Upgrade Chanber and Mana Coffin
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
         self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
+        # the only current subtype in use is "tun-only" for spells that can't be cast as instants
         self.card_type = info["card_type"] if "card_type" in info else Constants.mobCardType
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
@@ -25,15 +28,17 @@ class Card:
         self.damage_to_show = info["damage_to_show"] if "damage_to_show" in info else 0
         self.discipline = info["discipline"] if "discipline" in info else None
         self.effects = [CardEffect(e, self.id) for _, e in enumerate(info["effects"])] if "effects" in info else []
+        # used by artifacts to say which effects are useable
         self.effects_can_be_clicked = info["effects_can_be_clicked"] if "effects_can_be_clicked" in info else []
+        # used by artifacts to say which effects are un-useable
         self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
         self.description = info["description"] if "description" in info else None
         self.image = info["image"] if "image" in info else None
         self.is_token = info["is_token"] if "is_token" in info else False
         self.level = info["level"] if "level" in info else None
         self.name = info["name"] if "name" in info else None
+        # used by artifacts with activated effects
         self.original_description = info["original_description"] if "original_description" in info else None
-        # probably bugs WRT Mind Manacles
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.power = info["power"] if "power" in info else None
         self.show_level_up = info["show_level_up"] if "show_level_up" in info else False
@@ -66,6 +71,7 @@ class Card:
         self.spell_effect_defs = []
         self.spend_mana_effect_defs = []
         self.start_turn_effect_defs = []
+        self.was_drawn_effect_defs = []
 
         for effect in self.effects:
             self.create_effect_def(effect)
@@ -119,6 +125,8 @@ class Card:
             self.spend_mana_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "start_turn": 
             self.start_turn_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "was_drawn": 
+            self.was_drawn_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
@@ -919,14 +927,14 @@ class Card:
         if amount > 0:
             target_player.hit_points += amount
             target_player.hit_points = min(target_player.hit_points, target_player.max_hit_points)
-            return [f"{target_player.username} heals {amount}."]
+            return [f"{self.name} healed {target_player.username} for {amount}."]
 
     def do_heal_effect_on_mob(self, target_mob, amount):
         target_mob.damage -= amount
         target_mob.damage = max(target_mob.damage, 0)
         target_mob.damage_this_turn -= amount
         target_mob.damage_this_turn = max(target_mob.damage_this_turn, 0)
-        return [f"{target_mob.name} heals {amount}."]
+        return [f"{self.name} healed {target_mob.name} for {amount}."]
 
     def do_hp_damage_random_effect(self, effect_owner, effect, target_info):
         choice = random.choice(["hp", "damage"])
@@ -972,25 +980,26 @@ class Card:
         return [f"{self.name} levels up."]
 
     def do_keep_effect(self, effect_owner, effect, target_info):
-        if self.power and effect.amount and not effect.amount_id:
+        log_lines = [f"{effect_owner.username} kept {self.name}."]
+        if effect.amount and not effect.amount_id:
             old_power = self.power 
             self.power += effect.amount
-            if self.power > old_power:
-                self.show_level_up = True
-        if self.toughness and effect.amount and not effect.amount_id:
             old_toughness = self.toughness 
             self.toughness += effect.amount
-            if self.toughness > old_toughness:
+            if self.power > old_power or self.toughness > old_toughness:
                 self.show_level_up = True
+                log_lines = [f"{effect_owner.username} kept {self.name}, and it grew to {self.power_with_tokens(effect_owner)}/{self.toughness_with_tokens()}."]
         if effect.amount_id == "upgrade":
              upgraded_card = effect_owner.add_to_deck(effect.card_names[0], 1, add_to_hand=True)
              effect_owner.hand.remove(upgraded_card)
              upgraded_card.id = self.id
              upgraded_card.show_level_up = True
              effect_owner.hand.append(upgraded_card)
+             log_lines = [f"{effect_owner.username} kept {self.name} and it upgraded to {upgraded_card.name}."]
         else:
             effect_owner.hand.append(self)
         effect_owner.played_pile.remove(self)
+        return log_lines
 
     def do_kill_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "mob" or effect.target_type == "artifact" or effect.target_type == "mob_or_artifact":
@@ -1264,7 +1273,7 @@ class Card:
             if len(top_cards) < effect.amount:
                 top_cards.append(card)
         player.card_choice_info = {"cards": top_cards, "choice_type": "riffle"}
-        return [f"{player.username} riffles for {effect.amount}."]
+        return [f"{player.username} riffled for {effect.amount} and chose a card."]
 
     def do_set_can_attack_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self_mobs":
@@ -1273,7 +1282,7 @@ class Card:
                 e.can_attack_mobs = True
                 e.can_attack_players = True
                 e.attacked = False
-            return [f"{player.username} lets their mobs attack again this turn."]          
+            return [f"{player.username} let their mobs attack again this turn."]          
         else:
             print(f"e.target_type {target_type} not supported for set_can_attack")
 
