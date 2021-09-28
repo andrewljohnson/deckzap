@@ -1131,11 +1131,7 @@ export class GameUX {
 
     showMakeView(game) {
         this.showSelectCardView(game, "Make a Card", card => {
-                if (card.global_effect) {
-                    this.gameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
-                } else {
-                    this.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
-                }
+            this.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
             });
     }
 

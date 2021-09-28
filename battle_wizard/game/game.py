@@ -19,8 +19,6 @@ class Game:
         self.actor_turn = int(info["actor_turn"]) if info and "actor_turn" in info else 0
         # the ID of the GameRecord in the DB.
         self.game_record_id = info["game_record_id"] if info and "game_record_id" in info else None
-        # created by Make Effect
-        self.global_effects = info["global_effects"] if info and "global_effects" in info else []
         # a list of all player-derived moves, sufficient to replay the game
         self.moves = info["moves"] if info and "moves" in info else []
         # the max number of cards a player can have
@@ -56,7 +54,6 @@ class Game:
         return {
             "actor_turn": self.actor_turn, 
             "game_record_id": self.game_record_id, 
-            "global_effects": self.global_effects, 
             "moves": self.moves, 
             "next_card_id": self.next_card_id, 
             "players": [p.as_dict() for p in self.players], 
@@ -127,10 +124,6 @@ class Game:
             self.current_player().make_card(message)
         elif move_type == 'CANCEL_MAKE':
             self.current_player().cancel_make()
-        elif move_type == 'MAKE_EFFECT':
-            message["log_lines"].append(f"{message['username']} chose {message['card']['global_effect']}.")
-            self.global_effects.append(message["card"]["global_effect"])
-            self.current_player().reset_card_choice_info()
         elif move_type == 'FETCH_CARD_FROM_PLAYED_PILE':
             message = self.current_player().fetch_card_from_played_pile(message)        
         elif move_type == 'FETCH_CARD':
@@ -183,7 +176,6 @@ class Game:
         """
             unselect everything before setting possible attacks/spells
         """
-        print(f"unset_clickables {move_type}")
         if len(self.players) != 2:
             return
                        
@@ -197,9 +189,6 @@ class Game:
             spell[1]["can_be_clicked"] = False
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
-        for card in self.current_player().played_pile + self.opponent().played_pile + self.current_player().hand + self.opponent().hand:
-            if card.show_level_up:
-                print(f"card.show_level_up {card.show_level_up }")
 
         if cancel_damage and move_type not in ["PLAY_CARD", "PLAY_CARD_IN_HAND", "UNSELECT", "SELECT_OPPONENT", "ATTACK", "RESOLVE_NEXT_STACK"]:
             self.opponent().damage_to_show = 0
@@ -347,12 +336,10 @@ class Game:
                     card.can_be_clicked = True
 
     def do_set_clickables_effects(self):
-
         # this currently handles Guard
         for m in self.opponent().in_play:
             for idx, effect in enumerate(m.effects_for_type("select_mob_target")):
                 m.resolve_effect(m.select_mob_target_effect_defs[idx], self.opponent(), effect, {}) 
-
         # this currently handles Lurker
         for m in self.opponent().in_play:
             for idx, effect in enumerate(m.effects_for_type("select_mob_target_override")):
@@ -651,7 +638,6 @@ class Game:
         if not defending_card.can_be_clicked:
             print(f"{defending_card.name} can't be targetted with {self.current_player().selected_artifact().name}")
             return
-
         message["move_type"] = "ACTIVATE_ARTIFACT"
         message["effect_index"] = effect_index
         message["card"] = self.current_player().selected_artifact().id
@@ -663,7 +649,6 @@ class Game:
     def activate_artifact_on_hand_card(self, message, artifact, hand_card, effect_index):
         if not hand_card.can_be_clicked:
             return
-
         message["move_type"] = "ACTIVATE_ARTIFACT"
         message["effect_index"] = effect_index
         message["card"] = self.current_player().selected_artifact().id
@@ -786,7 +771,7 @@ class Game:
             for idx, effect in enumerate(card.effects_for_type("action_added_to_stack")):
                 card.resolve_effect(card.action_added_to_stack_effect_defs[idx], self.current_player(), effect, {}) 
 
-        if not self.current_player().has_instants() and not self.current_player().has_defend():
+        if not self.current_player().has_instants():
             message = self.attack(message)
             self.unset_clickables(message["move_type"], cancel_damage=False)
             self.set_clickables()
@@ -969,10 +954,10 @@ class Game:
         effect_targets = []
         effect_targets.append({"id": selected_card.id, "target_type":"mob"})            
         if not activated_effect:
-                if len(card_to_target.effects) == 2:
-                    if card_to_target.effects[1].target_type == "mob" or card_to_target.effects[1].target_type == "opponents_mob":
-                        # hack for animal trainer
-                        effect_targets.append({"id": selected_card.id, "target_type":"mob"})            
+            if len(card_to_target.effects) == 2:
+                if card_to_target.effects[1].target_type == "mob" or card_to_target.effects[1].target_type == "opponents_mob":
+                    # hack for animal trainer
+                    effect_targets.append({"id": selected_card.id, "target_type":"mob"})            
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name

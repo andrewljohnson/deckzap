@@ -95,7 +95,7 @@ class Player:
         return 4
 
     def has_instants(self):
-        for c in self.hand:
+        for c in self.hand + self.in_play:
             if c.can_be_clicked:
                 return True
         return False
@@ -113,12 +113,6 @@ class Player:
 
     def has_artifact_target(self):
         return len(self.my_opponent().artifacts) + len(self.artifacts) > 0
-
-    def has_defend(self):
-        for c in self.in_play:
-            if c.can_be_clicked:
-                return True
-        return False
 
     def current_mana(self):
         return self.mana + self.mana_from_cards()
@@ -147,7 +141,6 @@ class Player:
             new_card.owner_username = self.username
             new_card.id = self.game.next_card_id
             self.game.next_card_id += 1
-            new_card = Card.modify_new_card(new_card, self.game)
             if add_to_hand:
                 self.hand.append(new_card)
             else:
@@ -390,7 +383,7 @@ class Player:
         return log_lines if len(log_lines) > 0 else None
 
     def draw_count(self):
-        self.about_to_draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
+        self.about_to_draw_count = self.cards_each_turn()
         for card in self.in_play + self.artifacts:
             for idx, effect in enumerate(card.effects_for_type("before_draw")):
                 card.resolve_effect(card.before_draw_effect_defs[idx], self, effect, {})

@@ -428,9 +428,9 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(game.current_player()), 2)
 
-    def test_arsenal_two_artifacts(self):
+    def test_arsenal_manacles(self):
         """
-            Test Arsenal and Kill Artifact.
+            Test Arsenal and and Mind Manacles
         """
         game = self.game_for_decks([["War Scorpion", "Akbar's Pan Pipes", "Arsenal", "War Scorpion"], ["Mind Manacles"]])
         for card in game.players[0].hand:

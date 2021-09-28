@@ -358,34 +358,7 @@ class Card:
         else:
             new_card.id = card.id
             new_card.owner_username = player.username
-            new_card = Card.modify_new_card(new_card, player.game)
             return new_card
-
-    @staticmethod
-    def modify_new_card(card, game):
-        if card.card_type == Constants.spellCardType:            
-            if 'spells_cost_more' in game.global_effects:
-                card.cost += game.global_effects.count('spells_cost_more')
-            if 'spells_cost_less' in game.global_effects:
-                card.cost -= game.global_effects.count('spells_cost_less')
-                card.cost = max(0, card.cost)
-        elif card.card_type == Constants.mobCardType:            
-            if 'mobs_cost_more' in game.global_effects:
-                card.cost += game.global_effects.count('mobs_cost_more')
-            if 'mobs_cost_less' in game.global_effects:
-                card.cost -= game.global_effects.count('mobs_cost_less')
-                card.cost = max(0, card.cost)
-            if 'mobs_get_more_toughness' in game.global_effects:
-                card.toughness += game.global_effects.count('mobs_get_more_toughness')*2
-            if 'mobs_get_less_toughness' in game.global_effects:
-                card.toughness -= game.global_effects.count('mobs_get_less_toughness')*2
-                card.toughness = max(0, card.toughness)
-            if 'mobs_get_more_power' in game.global_effects:
-                card.power += game.global_effects.count('mobs_get_more_power')*2
-            if 'mobs_get_less_power' in game.global_effects:
-                card.power -= game.global_effects.count('mobs_get_less_power')*2
-                card.power = max(0, card.power)
-        return card
 
     def resolve(self, player, spell_to_resolve):
         for e in player.in_play + player.artifacts:
@@ -1090,52 +1063,6 @@ class Card:
         '''
             Make a spell or mob.
         '''
-        if make_type == 'Global':
-            effects = []
-            card_info = {
-                "name": "Expensive Spells",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "Spells cost 1 more",
-                "global_effect": "spells_cost_more"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Expensive mobs",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "mobs cost 1 more",
-                "global_effect": "mobs_cost_more"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Draw More",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "Players draw an extra card on their turn.",
-                "global_effect": "draw_extra_card"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Cheap Spells",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "Spells cost 1 less",
-                "global_effect": "spells_cost_less"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Cheap mobs",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "mobs cost 1 less",
-                "global_effect": "mobs_cost_less"
-            }
-            effects.append(Card(card_info))
-            player.card_choice_info["cards"] = effects
-            player.card_choice_info["choice_type"] = "make"
-            return
-
         requiredMobCost = None
         if player.game.turn <= 10 and make_type == Constants.mobCardType:
             requiredMobCost = math.floor(player.game.turn / 2) + 1
@@ -1527,6 +1454,7 @@ class Card:
             self.effect.remove(effect)
 
     def do_set_token_effect(self, effect_owner, effect, target_info):
+        print("do_set_token_effect")
         tokens_to_remove = []
         for t in self.tokens:
             if t.id == self.id:
