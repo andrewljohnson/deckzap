@@ -46,7 +46,6 @@ class Game:
         # the time the current turn started on, used to activate the rope to force turn end
         self.turn_start_time = datetime.datetime.strptime(info["turn_start_time"], "%Y-%m-%d %H:%M:%S.%f") if (info and "turn_start_time" in info and info["turn_start_time"] != None) else datetime.datetime.now()
 
-
     def __repr__(self):
         return f"{self.as_dict()}"
 
@@ -62,9 +61,6 @@ class Game:
             "turn": self.turn, 
             "turn_start_time": self.turn_start_time.__str__() if self.turn_start_time else None, 
         }
-
-    def copy(self):
-        return Game(self.player_type, info=self.as_dict())        
 
     def current_player(self):
         return self.players[self.actor_turn % 2]

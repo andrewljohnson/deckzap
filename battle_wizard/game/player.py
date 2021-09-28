@@ -52,9 +52,6 @@ class Player:
             self.card_choice_info = None
             self.reset_card_choice_info()
 
-    def copy(self, game):
-        return Player(game, info=self.as_dict())        
-
     def __repr__(self):
         return f"{self.as_dict()}"
 
