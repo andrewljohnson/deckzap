@@ -1178,3 +1178,17 @@ class GameObjectTests(TestCase):
         self.assertEqual(len(game.current_player().hand), 3)
         self.assertEqual(len(game.current_player().card_choice_info["cards"]), 3)
 
+    def test_mana_coffin_store_and_decost_effects(self):
+        """
+            Test one Mana Coffin reduces the cost of a card
+        """
+        game = self.game_for_decks([["Mana Coffin", "Stone Elemental"], []])
+        self.assertEqual(game.players[0].hand[1].cost, 1)
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_ARTIFACT", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "END_TURN", "log_lines":[]})
+        game.play_move({"username": "b", "move_type": "END_TURN", "log_lines":[]})
+        self.assertEqual(len(game.current_player().hand), 1)
+        self.assertEqual(game.players[0].hand[0].cost, 0)

@@ -153,14 +153,18 @@ export class Card {
         let effectsText = "";
         let color = Constants.darkGrayColor;
         if ("effects" in card) {
+            let describe_effects = []
 	        for (let e of card.effects) {
-                if (e.description) {
-                    effectsText += e.description;
-                    color = Constants.blackColor;
-                    if (e != card.effects[card.effects.length-1]) {                
-                        effectsText += ", ";
-                    }               
+                if (e.description && e.description_on_card) {
+                    describe_effects.push(e);
                 }
+            }
+            for (let e of describe_effects) {
+                effectsText += e.description;
+                color = Constants.blackColor;
+                if (e != describe_effects[describe_effects.length-1]) {                
+                    effectsText += ", ";
+                }               
 	        }
 
 	        if ("tokens" in card) {
@@ -223,9 +227,7 @@ export class Card {
         }
 
         if (baseDescription || effectsText.length) {
-            if (card.card_type != Constants.mobCardType || card.turn_played == -1 || card.turn_played == undefined) {
-                cardSprite.addChild(description);
-            }
+            cardSprite.addChild(description);
         }
         description.position.x = name.position.x;
         description.position.y = name.position.y + 45;
@@ -393,11 +395,6 @@ export class Card {
 
         if (card.card_type == Constants.mobCardType) {
             Card.addStats(card, cardSprite, player, -8, -14, Card.cardWidth-16, Card.cardHeight, false)
-        } else if (card.turn_played == -1 && !attackEffect) {
-            let type = new PIXI.Text(card.card_type, options);
-            type.position.x =  - 28;
-            type.position.y =  - 18;
-            cardSprite.addChild(type);
         }
 
         if (attackEffect) {

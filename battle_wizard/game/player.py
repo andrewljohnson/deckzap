@@ -352,7 +352,7 @@ class Player:
         for c in self.in_play:
             if c.id == card_id:
                 card = c
-        for idx, e in enumerate(card.effects):
+        for idx, e in enumerate(card.effects_for_type("enter_play")):
             if not "effect_targets" in message:
                 effect_targets = []
                 if e.target_type == "self":           
@@ -586,7 +586,7 @@ class Player:
 
         if self.card_info_to_target["effect_type"] == "artifact_activated":
             artifact = self.selected_artifact()
-            if artifact.effects[self.card_info_to_target["effect_index"]].name in ["duplicate_card_next_turn", "upgrade_card_next_turn", "decost_card_next_turn"]:
+            if artifact.effects[self.card_info_to_target["effect_index"]].target_type == "hand_card":
                 message = self.game.activate_artifact_on_hand_card(message, self.selected_artifact(), card, self.card_info_to_target["effect_index"])
                 self.game.unset_clickables(message["move_type"])
                 self.game.set_clickables()

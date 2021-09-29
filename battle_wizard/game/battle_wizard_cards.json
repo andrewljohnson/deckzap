@@ -1511,7 +1511,10 @@
 			},
 			{
 				"name": "start_in_play",
-				"effect_type": "after_shuffle"
+				"effect_type": "after_shuffle",
+				"description": "Starts in Play",
+				"description_expanded": "This artifact starts in play if you have no other artifacts in play.",
+				"description_on_card" : false
 			}			
 		]
 	},
@@ -1894,8 +1897,8 @@
 			"effect_type": "spell",
 			"target_type": "self_mobs",
 			"tokens": [{
-				"power_modifier": 1,
-				"toughness_modifier": 1
+				"power_modifier": 2,
+				"toughness_modifier": 2
 			}]
 		}]
 	},
@@ -1948,18 +1951,20 @@
 		"image": "coffin.svg",
 		"cost": 2,
 		"description": "Pay 0, add a card to this. Next turn, get it back costing 1 less.",
-		"effects": [{
-			"name": "decost_card_next_turn",
-			"effect_type": "activated",
-			"target_type": "hand_card",
-			"cost": 0,
-			"amount": 1
-		}, 
-		{
-			"name": "decost_card_next_turn",
-			"effect_type": "start_turn",
-			"amount": 1
-		}]
+		"effects": [
+			{
+				"name": "store_for_decosting",
+				"effect_type": "activated",
+				"target_type": "hand_card",
+				"cost": 0,
+				"amount": 1
+			}, 
+			{
+				"name": "decost_card_next_turn",
+				"effect_type": "start_turn",
+				"amount": 1
+			}
+		]
 	},
 	{
 		"name": "Make Metal",

@@ -207,7 +207,7 @@ class Card:
             return self.do_discard_random_effect_on_player
         elif name == "disappear":
             return self.do_disappear_effect
-        elif name in ["decost_card_next_turn", "duplicate_card_next_turn", "upgrade_card_next_turn"]:
+        elif name in ["duplicate_card_next_turn", "store_for_decosting", "upgrade_card_next_turn"]:
             return self.do_store_card_for_next_turn_effect
         elif name == "double_power":
             return self.do_double_power_effect_on_mob
@@ -894,8 +894,11 @@ class Card:
     def do_gain_for_toughness_effect(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
         if target_mob:
+            old_hp = controller.hit_points
             controller.hit_points += target_mob.toughness_with_tokens()
             controller.hit_points = min(controller.max_hit_points, controller.hit_points)
+            if controller.hit_points > old_hp:
+                return [f"{controller.username} gained {controller.hit_points - old_hp} from {self.name}."]
 
     def do_lose_lurker_effect(self, effect_owner, effect, target_info):
         for effect in self.effects:
@@ -925,9 +928,11 @@ class Card:
         if effect.amount_id == "hand_less_amount":
             amount = max(len(target_player.hand) - effect.amount, 0)
         if amount > 0:
+            old_hp = target_player.hit_points
             target_player.hit_points += amount
             target_player.hit_points = min(target_player.hit_points, target_player.max_hit_points)
-            return [f"{self.name} healed {target_player.username} for {amount}."]
+            if target_player.hit_points > old_hp:
+                return [f"{self.name} healed {target_player.username} for {target_player.hit_points - old_hp}."]
 
     def do_heal_effect_on_mob(self, target_mob, amount):
         target_mob.damage -= amount
@@ -1308,6 +1313,7 @@ class Card:
         if len(effect_owner.artifacts) == 0:
             effect_owner.artifacts.append(self)
             effect_owner.deck.remove(self)   
+            self.turn_played = 0
 
     def do_store_card_for_next_turn_effect(self, effect_owner, effect, target_info):
         for c in effect_owner.hand:
@@ -1756,6 +1762,7 @@ class CardEffect:
         self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
         self.description = info["description"] if "description" in info else None
         self.description_expanded = info["description_expanded"] if "description_expanded" in info else None
+        self.description_on_card = info["description_on_card"] if "description_on_card" in info else True
         self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.effect_to_activate = CardEffect(info["effect_to_activate"], info["effect_to_activate"]["id"] if "id" in info["effect_to_activate"] else 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
@@ -1794,6 +1801,7 @@ class CardEffect:
             "cost_hp": self.cost_hp,
             "description": self.description,
             "description_expanded": self.description_expanded,
+            "description_on_card": self.description_on_card,
             "effects": [e.as_dict() for e in self.effects] if self.effects else [],
             "effect_to_activate": self.effect_to_activate.as_dict() if self.effect_to_activate else None,
             "effect_type": self.effect_type,

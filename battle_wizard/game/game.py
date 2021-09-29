@@ -188,7 +188,7 @@ class Game:
                 card.damage_to_show = 0
             for card in self.current_player().played_pile + self.opponent().played_pile + self.current_player().hand + self.opponent().hand:
                 card.show_level_up = False
-            for card in self.current_player().in_play + self.opponent().in_play + self.current_player().artifacts + self.opponent().artifacts:
+            for card in self.current_player().in_play + self.opponent().in_play + self.current_player().artifacts + self.opponent().artifacts + self.current_player().hand + self.opponent().hand:
                 for e in card.effects:
                     e.show_effect_animation = False
 
@@ -436,12 +436,7 @@ class Game:
                 for card_name in self.player_decks[x]:
                     self.players[x].add_to_deck(card_name, 1)
                 self.players[x].deck.reverse()
-            for m in self.current_player().deck:
-                for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
-                    m.resolve_effect(m.after_shuffle_effect_defs[idx], self.current_player(), effect, {}) 
-            for m in self.opponent().deck:
-                for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
-                    m.resolve_effect(m.after_shuffle_effect_defs[idx], self.opponent(), effect, {}) 
+            self.do_after_shuffle_effects()
             for x in range(0, 2):
                 self.players[x].draw(self.players[x].initial_hand_size())
             self.send_start_first_turn(message)
@@ -451,9 +446,18 @@ class Game:
             deck_hashes = []
             for x in range(0, 2):
                 deck_hashes.append(self.players[x].get_starting_deck())
+            self.do_after_shuffle_effects()
             for x in range(0, 2):                
                 self.players[x].draw(self.players[x].initial_hand_size())
             self.send_start_first_turn(message)
+
+    def do_after_shuffle_effects(self):
+        for m in self.current_player().deck:
+            for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
+                m.resolve_effect(m.after_shuffle_effect_defs[idx], self.current_player(), effect, {}) 
+        for m in self.opponent().deck:
+            for idx, effect in enumerate(m.effects_for_type("after_shuffle")):
+                m.resolve_effect(m.after_shuffle_effect_defs[idx], self.opponent(), effect, {}) 
 
     def send_start_first_turn(self, message):
         new_message = copy.deepcopy(message)
@@ -486,7 +490,6 @@ class Game:
                     log_lines = card.resolve_effect(card.discarded_end_of_turn_effect_defs[idx], self.current_player(), effect, {})
                     if log_lines:
                         for line in log_lines:
-                             print(line)
                              message["log_lines"].append(line)
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
@@ -496,7 +499,6 @@ class Game:
                 effect.show_effect_animation = True
                 log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
                 if log_lines:
-                    print(log_lines)
                     [message["log_lines"].append(line) for line in log_lines]
 
         self.turn += 1
@@ -681,7 +683,9 @@ class Game:
                     message = self.play_move(message)
                 elif artifact.needs_mob_target_for_activated_effect() and (len(cp.in_play) > 0 or len(self.opponent().in_play) > 0):
                     cp.select_artifact(message["card"], effect_index)
-                elif not artifact.needs_mob_target_for_activated_effect(): # player targets
+                elif artifact.needs_hand_target_for_activated_effect() and len(cp.hand) > 0:
+                    cp.select_artifact(message["card"], effect_index)
+                elif not artifact.needs_mob_target_for_activated_effect() and not artifact.needs_hand_target_for_activated_effect(): # player targets
                     cp.select_artifact(message["card"], effect_index)
                 else:
                     cp.reset_card_info_to_target()
