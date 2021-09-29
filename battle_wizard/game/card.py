@@ -50,7 +50,6 @@ class Card:
         self.action_added_to_stack_effect_defs = []
         self.activated_effect_defs = []        
         self.after_attack_effect_defs = []
-        self.after_cast_effect_defs = []
         self.after_deals_damage_effect_defs = []
         self.after_deals_damage_opponent_effect_defs = []
         self.after_declared_attack_effect_defs = []
@@ -83,8 +82,6 @@ class Card:
             self.activated_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_attack": 
             self.after_attack_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "after_cast":
-            self.after_cast_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_deals_damage": 
             self.after_deals_damage_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_deals_damage_opponent": 
@@ -384,10 +381,6 @@ class Card:
         if self.card_type == Constants.spellCardType:
             player.played_pile.append(self)
 
-        effect_targets = spell_to_resolve["effect_targets"] if "effect_targets" in spell_to_resolve else {}
-        for idx, effect_def in enumerate(self.after_cast_effect_defs):
-            self.resolve_effect(effect_def, player, self.effects_for_type("after_cast")[idx], [idx])
-
         spell_to_resolve["card_name"] = self.name
         spell_to_resolve["show_spell"] = self.as_dict()
 
@@ -436,6 +429,7 @@ class Card:
         for m in game_copy.opponent().in_play:
             if m.can_be_clicked:                
                 found_attackable_mob = True
+                print(f"{self.name} found_attackable_mob {found_attackable_mob}")
         self.can_attack_mobs = found_attackable_mob
 
     def do_add_fast_effect(self, effect_owner, effect, target_info):
@@ -1501,14 +1495,14 @@ class Card:
         return log_lines
 
     def do_take_control_effect_on_mob(self, effect_owner, target_mob, controller):
-        controller.in_play.remove(target_mob)
-        effect_owner.in_play.append(target_mob)
-        effect_owner.game.players[0].update_for_mob_changes_zones()
-        effect_owner.game.players[1].update_for_mob_changes_zones()
         target_mob.turn_played = effect_owner.game.turn
         target_mob.attacked = False
         target_mob.can_attack_mobs = False
         target_mob.can_attack_players = False
+        controller.in_play.remove(target_mob)
+        effect_owner.in_play.append(target_mob)
+        effect_owner.game.players[0].update_for_mob_changes_zones()
+        effect_owner.game.players[1].update_for_mob_changes_zones()
         target_mob.do_leaves_play_effects(controller, did_kill=False)
 
         def_index = 0

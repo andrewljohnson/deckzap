@@ -273,7 +273,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "after_cast"
+				"effect_type": "mob_changes_zones"
 			}
 		]	
 	},

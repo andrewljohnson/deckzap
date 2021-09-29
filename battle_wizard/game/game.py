@@ -70,6 +70,8 @@ class Game:
 
     def play_move(self, message, save=False, is_reviewing=False):
         move_type = message["move_type"]
+        if not "log_lines" in message:
+            message["log_lines"] = []
         
         if move_type == 'GET_TIME':
             max_turn_time = 60
