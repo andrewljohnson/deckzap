@@ -2,7 +2,7 @@ import copy
 import datetime
 import random
 
-from battle_wizard.game.card import Card, CardEffect, CardAbility
+from battle_wizard.game.card import Card, CardEffect
 from battle_wizard.game.data import Constants
 from battle_wizard.game.data import default_deck_genie_wizard 
 from battle_wizard.game.data import default_deck_dwarf_tinkerer
@@ -17,73 +17,64 @@ class Player:
 
     max_hit_points = 30
 
-    def __init__(self, game, info, new=False, bot=None):
+    def __init__(self, game, info={}, bot=None):
+        self.game = game
         self.is_ai = False
         self.max_hit_points = 30
-        self.username = info["username"]
-        self.discipline = info["discipline"] if "discipline" in info else None
-        self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.card_mana = 0
-
+        self.about_to_draw_count = info["about_to_draw_count"] if "about_to_draw_count" in info else 0
+        self.artifacts = [Card(c_info) for c_info in info["artifacts"]] if "artifacts" in info else []
+        self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else 0
+        self.damage_this_turn = info["damage_this_turn"] if "damage_this_turn" in info else 0
+        self.damage_to_show = info["damage_to_show"] if "damage_to_show" in info else 0
+        self.deck = [Card(c_info) for c_info in info["deck"]] if "deck" in info else []
+        self.deck_id = info["deck_id"] if "deck_id" in info else None
+        self.discipline = info["discipline"] if "discipline" in info else None
+        self.hand = [Card(c_info) for c_info in info["hand"]] if "hand" in info else []
+        self.hit_points = info["hit_points"] if "hit_points" in info else Player.max_hit_points
         # used for replays, todo: use a random seed to make replays easier per @silberman
         self.initial_deck = [Card(c_info) for c_info in info["initial_deck"]] if "initial_deck" in info else []
+        self.in_play = [Card(c_info) for c_info in info["in_play"]] if "in_play" in info else []
+        self.mana = info["mana"] if "about_to_draw_count" in info else 0
+        self.max_mana = info["max_mana"] if "max_mana" in info else 0
+        self.played_pile = [Card(c_info) for c_info in info["played_pile"]] if "played_pile" in info else []
+        self.username = info["username"]
 
-        self.game = game
-        if new:
-            self.hit_points = Player.max_hit_points
-            self.damage_this_turn = 0
-            self.damage_to_show = 0
-            self.mana = 0
-            self.max_mana = 0
-            self.hand = []
-            self.in_play = []
-            self.artifacts = []
-            self.deck = []
-            self.played_pile = []
-            self.can_be_clicked = False
-            self.abilities = []
-            self.reset_card_info_to_target()
-            self.reset_card_choice_info()
-        else:
-            self.hand = [Card(c_info) for c_info in info["hand"]]
-            self.in_play = [Card(c_info) for c_info in info["in_play"]]
-            self.artifacts = [Card(c_info) for c_info in info["artifacts"]]
-            self.hit_points = info["hit_points"]
-            self.damage_this_turn = info["damage_this_turn"]
-            self.damage_to_show = info["damage_to_show"]
-            self.mana = info["mana"]
-            self.max_mana = info["max_mana"]
-            self.deck = [Card(c_info) for c_info in info["deck"]]
-            self.played_pile = [Card(c_info) for c_info in info["played_pile"]]
-            self.can_be_clicked = info["can_be_clicked"]
-            self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
+        if "card_info_to_target" in info:
             self.card_info_to_target = info["card_info_to_target"]
-            self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"], "effect_card_id": info["card_choice_info"]["effect_card_id"] if "effect_card_id" in info["card_choice_info"] else None}
+        else:
+            self.card_info_to_target = None
+            self.reset_card_info_to_target()
+        if "card_choice_info" in info:
+            self.card_choice_info = {"cards": [Card(c_info) for c_info in info["card_choice_info"]["cards"]], "choice_type": info["card_choice_info"]["choice_type"], "effect_card_id": info["card_choice_info"]["effect_card_id"]}
+        else:
+            self.card_choice_info = None
+            self.reset_card_choice_info()
 
     def __repr__(self):
         return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
-            "username": self.username,
-            "discipline": self.discipline,
-            "hit_points": self.hit_points,
+            "about_to_draw_count": self.about_to_draw_count,
+            "artifacts": [c.as_dict() for c in self.artifacts],
+            "can_be_clicked": self.can_be_clicked,
+            "card_choice_info": {"cards": [c.as_dict() for c in self.card_choice_info["cards"]], "choice_type": self.card_choice_info["choice_type"], "effect_card_id": self.card_choice_info["effect_card_id"] if "effect_card_id" in self.card_choice_info else None},
+            "card_info_to_target": self.card_info_to_target,
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
+            "deck": [c.as_dict() for c in self.deck],
+            "deck_id": self.deck_id,
+            "discipline": self.discipline,
+            "hand": [c.as_dict() for c in self.hand],
+            "hit_points": self.hit_points,
+            "initial_deck": [c.as_dict() for c in self.initial_deck],
+            "in_play": [c.as_dict() for c in self.in_play],
+            "is_ai": self.is_ai,
             "mana": self.mana,
             "max_mana": self.max_mana,
-            "deck_id": self.deck_id,
-            "card_info_to_target": self.card_info_to_target,
-            "hand": [c.as_dict() for c in self.hand],
-            "is_ai": self.is_ai,
-            "in_play": [c.as_dict() for c in self.in_play],
-            "initial_deck": [c.as_dict() for c in self.initial_deck],
-            "artifacts": [c.as_dict() for c in self.artifacts],
-            "deck": [c.as_dict() for c in self.deck],
             "played_pile": [c.as_dict() for c in self.played_pile],
-            "can_be_clicked": self.can_be_clicked,
-            "abilities": [a.as_dict() for a in self.abilities],
-            "card_choice_info": {"cards": [c.as_dict() for c in self.card_choice_info["cards"]], "choice_type": self.card_choice_info["choice_type"], "effect_card_id": self.card_choice_info["effect_card_id"] if "effect_card_id" in self.card_choice_info else None}
+            "username": self.username,
         }
 
     def max_max_mana(self):
@@ -102,7 +93,7 @@ class Player:
         return 4
 
     def has_instants(self):
-        for c in self.hand:
+        for c in self.hand + self.in_play:
             if c.can_be_clicked:
                 return True
         return False
@@ -120,12 +111,6 @@ class Player:
 
     def has_artifact_target(self):
         return len(self.my_opponent().artifacts) + len(self.artifacts) > 0
-
-    def has_defend(self):
-        for c in self.in_play:
-            if c.can_be_clicked:
-                return True
-        return False
 
     def current_mana(self):
         return self.mana + self.mana_from_cards()
@@ -154,7 +139,6 @@ class Player:
             new_card.owner_username = self.username
             new_card.id = self.game.next_card_id
             self.game.next_card_id += 1
-            new_card = Card.modify_new_card(new_card, self.game)
             if add_to_hand:
                 self.hand.append(new_card)
             else:
@@ -164,8 +148,6 @@ class Player:
     def damage(self, amount):
         while amount > 0 and self.hit_points > 0:
             amount -= 1
-            if self.hit_points == 1 and self.cant_die_ability():
-                continue
             self.hit_points -= 1
             self.damage_this_turn += 1
             self.damage_to_show += 1
@@ -181,6 +163,9 @@ class Player:
                 continue
             drawn_card = self.deck.pop()
             self.hand.append(drawn_card)
+            for idx, effect in enumerate(drawn_card.effects_for_type("was_drawn")):
+                effect.show_effect_animation = True
+                log_lines.append(drawn_card.resolve_effect(drawn_card.was_drawn_effect_defs[idx], self, effect, {})) 
             for m in self.in_play + self.artifacts + [drawn_card]:
                 for idx, effect in enumerate(m.effects_for_type("draw")):
                     effect.show_effect_animation = True
@@ -208,7 +193,7 @@ class Player:
     def can_activate_artifact(self, card_id):
         for card in self.artifacts:
             if card.id == card_id:
-                if not card.can_activate_abilities:
+                if not card.can_activate_effects:
                     return False
         return True
 
@@ -240,7 +225,7 @@ class Player:
                 for t in card.tokens:
                     if t.set_can_act == False:
                         return False                                                
-                if len(self.game.stack) == 0 or card.has_ability("Instant Attack"):
+                if len(self.game.stack) == 0:
                     return True
                 return False
 
@@ -295,8 +280,6 @@ class Player:
             self.play_mob(card)
         elif card.card_type == Constants.artifactCardType:
             self.play_artifact(card)
-            if card.has_ability("Slow Artifact"):
-                card.effects_exhausted.append(card.effects[0].name)
         return spell_to_resolve
 
     def play_mob(self, card):
@@ -308,25 +291,11 @@ class Player:
     def play_artifact(self, artifact):
         self.artifacts.append(artifact)
         artifact.turn_played = self.game.turn
-        # self.update_for_mob_changes_zones(self)
-        # self.my_opponent().update_for_mob_changes_zones()        
-
-    def cant_die_ability(self):
-        for a in self.abilities:
-            if a.descriptive_id == "Can't Die":
-                return a
-        return None 
-
-    def reduce_draw_ability(self):
-        for a in self.abilities:
-            if a.descriptive_id == "Reduce Draw":
-                return a
-        return None 
 
     def target_or_do_mob_effects(self, card, message, username, is_activated_effect=False):
-        effects = card.effects_enter_play()
+        effects = card.effects_for_type("enter_play")
         if is_activated_effect:
-            effects = card.effects_activated()
+            effects = card.effects_for_type("activated")
         if len(effects) > 0:
             if effects[0].target_type == "any":
                 self.card_info_to_target["card_id"] = card.id
@@ -383,7 +352,7 @@ class Player:
         for c in self.in_play:
             if c.id == card_id:
                 card = c
-        for idx, e in enumerate(card.effects):
+        for idx, e in enumerate(card.effects_for_type("enter_play")):
             if not "effect_targets" in message:
                 effect_targets = []
                 if e.target_type == "self":           
@@ -400,38 +369,39 @@ class Player:
         log_lines = self.draw_for_turn()
         if log_lines:
             message["log_lines"] += log_lines
-        message = self.do_start_turn_card_effects_and_abilities(message)
+        message = self.do_start_turn_card_effects(message)
         self.refresh_mana_for_turn()
         return message
 
     def draw_for_turn(self):
         if self.game.turn == 0:
             return
-
-        draw_count = self.cards_each_turn() + self.game.global_effects.count("draw_extra_card")
-
-        if self.reduce_draw_ability():
-            draw_count -= 1            
-
         log_lines = []
         if self.discipline != "tech" or self.game.turn > 1:
-            log_lines.append(self.draw(draw_count))
+            line = self.draw(self.draw_count())
+            if line:
+                log_lines.append(line)
         return log_lines if len(log_lines) > 0 else None
 
-    def do_start_turn_card_effects_and_abilities(self, message):
+    def draw_count(self):
+        self.about_to_draw_count = self.cards_each_turn()
+        for card in self.in_play + self.artifacts:
+            for idx, effect in enumerate(card.effects_for_type("before_draw")):
+                card.resolve_effect(card.before_draw_effect_defs[idx], self, effect, {})
+        return self.about_to_draw_count
+
+    def do_start_turn_card_effects(self, message):
         for card in self.in_play + self.artifacts:
             card.attacked = False
             card.can_attack_mobs = True
             card.can_attack_players = True
-
-            card.can_activate_abilities = True
-
+            card.can_activate_effects = True
             for idx, effect in enumerate(card.effects_for_type("start_turn")):
                 effect.show_effect_animation = True
                 message["log_lines"].append(card.resolve_effect(card.start_turn_effect_defs[idx], self, effect, {}))
 
         for r in self.artifacts:
-            r.can_activate_abilities = True
+            r.can_activate_effects = True
             r.effects_exhausted = {}
         return message
 
@@ -494,16 +464,7 @@ class Player:
     def reset_card_choice_info(self):
         self.card_choice_info = {"cards": [], "choice_type": None, "effect_card_id": None}
 
-    def has_instrument(self):
-        for c in self.artifacts:
-            if c.has_ability("Instrument"):
-                return True
-        return False
-
     def can_summon(self):
-        for a in self.abilities:
-            if a.descriptive_id == "Can't Summon":
-                return False
         if len(self.in_play) == 7:
             return False
         return True
@@ -522,20 +483,9 @@ class Player:
                 target_type = card.effects[0].target_type
                 target_restrictions = card.effects[0].target_restrictions
         elif self.card_info_to_target["effect_type"] == "mob_activated":
-            target_type = card.effects_activated()[0].target_type
-            target_restrictions = card.effects_activated()[0].target_restrictions
+            target_type = card.effects_for_type("activated")[0].target_type
+            target_restrictions = card.effects_for_type("activated")[0].target_restrictions
         self.game.set_targets_for_target_type(target_type, target_restrictions)
-
-    def remove_temporary_abilities(self):
-        perm_abilities = []
-        for a in self.abilities:
-            if a.turns > 0:
-                a.turns -= 1
-                if a.turns != 0:
-                    perm_abilities.append(a)
-            else:
-                perm_abilities.append(a)
-        self.abilities = perm_abilities
 
     def remove_temporary_tokens(self):
         for c in self.in_play:
@@ -551,27 +501,6 @@ class Player:
             if toughness_change_from_tokens > 0:
                 c.damage -= min(toughness_change_from_tokens, c.damage_this_turn)  
 
-    def get_starting_artifacts(self):
-        found_artifact = None
-        for c in self.deck:
-            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Play":
-                found_artifact = c
-                break
-        if found_artifact:
-            found_artifact.turn_played = self.game.turn
-            self.play_artifact(found_artifact)
-            self.deck.remove(found_artifact)
-        
-    def get_starting_spells(self):
-        found_spell = None
-        for c in self.deck:
-            if len(c.abilities) > 0 and c.abilities[0].descriptive_id == "Starts in Hand":
-                found_spell = c
-                break
-        if found_spell:
-            self.hand.append(found_spell)
-            self.deck.remove(found_spell)
-        
     def make_card(self, message):
         if len(self.hand) < self.game.max_hand_size:
             self.add_to_deck(message["card"]["name"], 1, add_to_hand=True, card_cost=message["card"]["cost"])
@@ -657,7 +586,7 @@ class Player:
 
         if self.card_info_to_target["effect_type"] == "artifact_activated":
             artifact = self.selected_artifact()
-            if artifact.effects[self.card_info_to_target["effect_index"]].name in ["duplicate_card_next_turn", "upgrade_card_next_turn", "decost_card_next_turn"]:
+            if artifact.effects[self.card_info_to_target["effect_index"]].target_type == "hand_card":
                 message = self.game.activate_artifact_on_hand_card(message, self.selected_artifact(), card, self.card_info_to_target["effect_index"])
                 self.game.unset_clickables(message["move_type"])
                 self.game.set_clickables()
@@ -673,9 +602,6 @@ class Player:
             return None
         elif card.card_type == Constants.spellCardType and card.needs_mob_target() and not has_mob_target:
             print(f"can't select mob targetting spell with no targettable mobs in play")
-            return None
-        elif card.has_ability("Instrument Required") and not self.has_instrument():
-            print(f"can't cast {card.name} without having an Instument")
             return None
         elif card.card_type == Constants.artifactCardType and not self.can_play_artifact():
             print(f"can't play artifact")
@@ -807,24 +733,13 @@ class Player:
             else:
                 player = self.game.current_player()
 
-        # hax - Warty Evolver and maybe other cards that evolve on death
-        did_evolve = card.has_effect("evolve")
-
-        if did_evolve:
-            card.attacked = False
-            card.damage = 0
-            card.damage_to_show = 0
-            card.damage_this_turn = 0
-            card.turn_played = -1
-            card.added_descriptions = ["Evolves."]
+        # these effects override the normal factory_reset
+        if len(card.effects_for_type("sent_to_played_pile")) > 0:
+            for idx, effect in enumerate(card.effects_for_type("sent_to_played_pile")):
+                effect.show_effect_animation = True
+                card.resolve_effect(card.sent_to_played_piled_effect_defs[idx], self, effect, {}) 
         else:
-            # these effects override the normal factory_reset
-            if len(card.effects_for_type("sent_to_played_pile")) > 0:
-                for idx, effect in enumerate(card.effects_for_type("sent_to_played_pile")):
-                    effect.show_effect_animation = True
-                    card.resolve_effect(card.sent_to_played_piled_effect_defs[idx], self, effect, {}) 
-            else:
-                card = Card.factory_reset_card(card, player)
+            card = Card.factory_reset_card(card, player)
         if not card.is_token:
             player.played_pile.append(card)
 

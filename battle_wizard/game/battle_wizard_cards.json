@@ -1,20 +1,5 @@
 [		
 	{
-		"name": "Fountain of Youth",
-		"discipline": "none",
-		"image": "water-fountain.svg",
-		"card_type": "artifact",
-		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30.",
-		"cost": 3,
-		"effects": [{
-			"name": "heal",
-			"amount_id": "hand_less_amount",
-			"target_type": "self",
-			"effect_type": "start_turn",
-			"amount": 5
-		}]
-	},
-	{
 		"name": "Voodoo Doll",
 		"discipline": "magic",
 		"image": "voodoo-doll.svg",
@@ -30,7 +15,7 @@
 	},
 	{
 		"name": "Leyline Amulet",
-		"discipline": "none",
+		"discipline": "magic",
 		"image": "gem-necklace.svg",
 		"card_type": "artifact",
 		"description": "Whenever you draw a spell, reduce its cost by 1.",
@@ -60,7 +45,7 @@
 		"image": "enlightenment.svg",
 		"card_type": "artifact",
 		"cost": 3,
-		"description": "Ability: pay 1, draw a card once on your turn.",
+		"description": "Pay 1, draw a card once on your turn.",
 		"effects": [{
 			"name": "draw",
 			"effect_type": "activated",
@@ -75,7 +60,7 @@
 		"image": "mirror-mirror.svg",
 		"card_type": "artifact",
 		"cost": 6,
-		"description": "Ability: pay 6, switch hit points with your opponent. Sacrifice this.",
+		"description": "Pay 6, switch hit points with your opponent. Sacrifice this.",
 		"effects": [{
 			"name": "switch_hit_points",
 			"effect_type": "activated",
@@ -90,7 +75,7 @@
 		"image": "lunar-wand.svg",
 		"card_type": "artifact",
 		"cost": 4,
-		"description": "Ability: pay 1, prevent a mob from attacking, once on your turn.",
+		"description": "Pay 1, prevent a mob from attacking, once on your turn.",
 		"effects": [{
 				"name": "add_tokens",
 				"effect_type": "activated",
@@ -158,7 +143,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "enter_play"
+				"effect_type": "after_cast"
 			},
 			{
 				"name": "protect_with_shield",
@@ -399,19 +384,19 @@
 		"card_type": "artifact",
 		"cost": 1,
 		"description": "Pay 1, deal 3 damage to your opponent.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
 				"name": "damage",
 				"effect_type": "activated",
 				"target_type": "opponent",
 				"cost": 1,
 				"amount": 3
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}
+		]
 	},
 	{
 		"name": "Wand",
@@ -420,20 +405,20 @@
 		"discipline": "magic",
 		"cost": 1,
 		"description": "Pay 0, deal 1 damage to anything.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
 				"name": "damage",
 				"effect_type": "activated",
 				"target_type": "any",
 				"cost": 0,
 				"amount": 1,
 				"ai_target_types": ["opponent", "opponents_mob"]
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}			
+		]
 	},
 	{
 		"name": "Abyssal Crystal",
@@ -442,20 +427,20 @@
 		"discipline": "magic",
 		"cost": 1,
 		"description": "Pay 1, draw a card and lose 2 hit points.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
 				"name": "draw",
 				"effect_type": "activated",
 				"target_type": "self",
 				"cost": 1,
 				"cost_hp": 2,
 				"amount": 1
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}
+		]
 	},
 	{
 		"name": "Wish Stone",
@@ -567,7 +552,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "enter_play"
+				"effect_type": "after_cast"
 			},
 			{
 				"name": "remove_symbiotic_fast",
@@ -853,18 +838,20 @@
 		"discipline": "magic",
 		"cost": 4,
 		"description": "1: sacrifice this, kill all artifacts and mobs.",
-		"abilities": [
-				{"name": "Slow Artifact", 
-				"description": "Can't be used the turn this comes into play.",
-				"descriptive_id": "Slow Artifact"}
-		],
-		"effects": [{
+		"effects": [
+			{
 				"name": "kill",
 				"effect_type": "activated",
 				"target_type": "all",
 				"cost": 1,
 				"sacrifice_on_activate": true
-		}]
+			},
+			{
+				"name": "slow_artifact",
+				"effect_type": "enter_play"
+			}
+
+		]
 	},
 	{
 		"name": "Akbar's Pan Pipes",
@@ -872,12 +859,6 @@
 		"image": "pan-flute.svg",
 		"cost": 4,
 		"description": "Remove a counter: Summon a 2/2 rat.",
-		"abilities": [
-			{
-				"name": "Instrument",
-				"descriptive_id": "Instrument"
-			}
-		],
 		"effects": [
 			{
 				"name": "make_token",
@@ -905,12 +886,6 @@
 		"card_type": "artifact",
 		"description": "Stores unused mana up to 3.",
 		"cost": 0,
-		"abilities": [
-			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
 		"effects": [
 			{
 				"name": "store_mana",
@@ -952,26 +927,9 @@
 		"cost": 2,
 		"effects": [
 			{
-				"name": "add_player_abilities",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"name": "Reduce Draw",
-						"description": "Reduce Draw",
-						"descriptive_id": "Reduce Draw"
-					}
-				]
-			},			
-			{
-				"name": "remove_player_abilities",
-				"effect_type": "leave_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"descriptive_id": "Reduce Draw"
-					}
-				]				
+				"name": "reduce_draw",
+				"effect_type": "before_draw",
+				"amount": 1
 			},
 			{
 				"name": "make_from_deck",
@@ -1030,7 +988,7 @@
 		"discipline": "magic",
 		"image": "run.svg",
 		"card_type": "mob",
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"power": 1,
 		"toughness": 3,
 		"cost": 3,
@@ -1043,7 +1001,7 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			},
 			{
@@ -1051,12 +1009,6 @@
 				"description": "Conjure",
 				"description_expanded": "Conjure mobs may be played as instants.",
 				"effect_type": "action_added_to_stack"
-			}
-		],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1117,12 +1069,6 @@
 				"description_expanded": "Conjure mobs may be played as instants.",
 				"effect_type": "action_added_to_stack"
 			}
-		],
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
-			}
 		]
 	},
 	{ 
@@ -1144,9 +1090,9 @@
 		"name": "Nonapug Whistle",
 		"discipline": "magic",
 		"image": "whistle.svg",
-		"cost": 9,
+		"cost": 8,
 		"card_type": "spell",
-		"description": "Make 3/3s with Conjure and Instant Attack.",
+		"description": "Make 3/3s with Fast.",
 		"effects": [{
 			"name": "make_token",
 			"card_name": "Nonapug Decon",
@@ -1170,18 +1116,6 @@
 				"description": "Fast",
 				"description_expanded": "Fast mobs may attack the turn they come into play.",
 				"effect_type": "enter_play"
-			},
-			{
-				"name": "allow_instant_cast",
-				"description": "Conjure",
-				"description_expanded": "Conjure mobs may be played as instants.",
-				"effect_type": "action_added_to_stack"
-			}
-		],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1250,19 +1184,18 @@
 		"toughness": 2,
 		"cost": 1,
 		"description": "Gets +1/+1 when Kept.",
-		"abilities": [
-			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_power_increase": 1,
-				"keep_toughness_increase": 1
-			}
-		],
 		"effects": [
 			{
 				"name": "preserve_stats",
 				"effect_type": "sent_to_played_pile"
-			}		
+			},		
+			{
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"amount": 1
+			}
 		]
 	},
 	{
@@ -1302,9 +1235,9 @@
 				"card_names": ["Leprechaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
 				"card_descriptions": [
 					"Make a 1/1. Improves when cast.", 
-					"Make a 2/2 Fast Instant Attack. Improves when cast.", 
-					"Make a 4/4 Fast Instant Attack. Improves when cast.", 
-					"Make a 6/6 Fast Instant Attack that draws you a card when it deals damage." 
+					"Make a 2/2 Fast. Improves when cast.", 
+					"Make a 4/4 Fast. Improves when cast.", 
+					"Make a 6/6 Fast that draws you a card when it deals damage." 
 				],
 				"effect_type": "spell",
 				"target_type": "self",
@@ -1341,13 +1274,7 @@
 			"description": "Fast",
 			"description_expanded": "Fast mobs may attack the turn they come into play.",
 			"effect_type": "enter_play"
-		}],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
-			}
-		]
+		}]	
 	},
 	{
 		"name": "Megachaun",
@@ -1363,13 +1290,7 @@
 			"description": "Fast",
 			"description_expanded": "Fast mobs may attack the turn they come into play.",
 			"effect_type": "enter_play"
-		}],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
-			}
-		]
+		}]
 	},
 	{
 		"name": "Ultrachaun",
@@ -1377,6 +1298,7 @@
 		"discipline": "tech",
 		"image": "robot-antennas.svg",
 		"card_type": "mob",
+		"description": "Draw when this damages an opponent.",
 		"power": 6,
 		"toughness": 6,
 		"cost": 3,
@@ -1389,14 +1311,8 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
-			}
-		],	
-		"abilities": [
-			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack"
 			}
 		]
 	},
@@ -1409,11 +1325,14 @@
 		"power": 3,
 		"toughness": 3,
 		"cost": 3,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 1"
+				"name": "keep",
+				"amount_id": "upgrade",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 1"]
 			}
 		]
 	},
@@ -1427,11 +1346,14 @@
 		"power": 4,
 		"toughness": 4,
 		"cost": 3,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 2"
+				"name": "keep",
+				"amount_id": "upgrade",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 2"]
 			}
 		]
 	},
@@ -1445,19 +1367,20 @@
 		"power": 4,
 		"toughness": 4,
 		"cost": 3,
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
-			}
-		],
-		"abilities": [
+			},
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 3"
+				"name": "keep",
+				"amount_id": "upgrade",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 3"]
 			}
 		]
 	},
@@ -1471,7 +1394,7 @@
 		"power": 4,
 		"toughness": 5,
 		"cost": 2,
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
 			{
 				"name": "add_fast",
@@ -1481,17 +1404,18 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
-			}
-		],	
-		"abilities": [
+			},
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep",
-				"keep_evolve": "Work in Progress: Stage 4"
+				"name": "keep",
+				"amount_id": "upgrade",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+        		"card_names": ["Work in Progress: Stage 4"]
 			}
-		]
+		]	
 	},
 	{
 		"name": "Work in Progress: Stage 4",
@@ -1502,7 +1426,7 @@
 		"power": 5,
 		"toughness": 6,
 		"cost": 2,
-		"description": "Draw when this deals damage.",
+		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
 			{
 				"name": "add_fast",
@@ -1512,7 +1436,7 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			},
 			{
@@ -1520,17 +1444,12 @@
 				"description": "Conjure",
 				"description_expanded": "Conjure mobs may be played as instants.",
 				"effect_type": "action_added_to_stack"
-			}
-		],
-		"abilities": [
-			{
-				"name": "Keep",
-				"descriptive_id": "Keep"
 			},
 			{
-				"name": "Instant Attack",
-				"descriptive_id": "Instant Attack",
-				"amount": 1
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
 		]
 	},
@@ -1570,19 +1489,10 @@
 		"card_type": "artifact",
 		"image": "lyre.svg",
 		"cost": 1,
-		"description": "Ability: pay 1, make this an instrument with 2 charges that fetches Townies.",
-		"original_description": "Ability: pay 1, make this an instrument with 2 charges that fetches Townies.",
-		"abilities": [
+		"description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
+		"original_description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			},
-			{
-				"name": "Instrument",
-				"descriptive_id": "Instrument"
-			}
-		],
-		"effects": [{
 				"name": "enable_activated_effect",
 				"effect_type": "activated",
 				"target_type": "self",
@@ -1598,7 +1508,15 @@
 					"power": 0,
 					"was_added": true
 				}
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle",
+				"description": "Starts in Play",
+				"description_expanded": "This artifact starts in play if you have no other artifacts in play.",
+				"description_on_card" : false
+			}			
+		]
 	},
 	{
 		"name": "Mana Shrub",
@@ -1674,19 +1592,20 @@
 		"cost": 1,
 		"card_type": "spell",
 		"description": "Make a card (cost reduced by 1), or put this back in your hand.",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Keep",
-				"descriptive_id": "Keep"
+				"name": "make_cheap_with_option",
+				"effect_type": "spell",
+				"target_type": "self",
+				"make_type": "any",
+				"amount": 1
+			},
+			{
+				"name": "keep",
+				"effect_type": "discarded_end_of_turn",
+        		"description": "Keep",
+        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
 			}
-		],
-		"effects": [{
-			"name": "make_cheap_with_option",
-			"effect_type": "spell",
-			"target_type": "self",
-			"make_type": "any",
-			"amount": 1
-		}
 		]
 	},
 	{
@@ -1726,19 +1645,18 @@
 		"power": 1,
 		"toughness": 2,
 		"cost": 1,
-		"abilities": [
-			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
-		],
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
 				"description": "Guard",
 				"description_expanded": "Guard mobs must be attacked before other enemies.",
 				"effect_type": "select_mob_target"
-			}
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]	
 	},
 	{
@@ -1750,17 +1668,18 @@
 		"power": 2,
 		"toughness": 1,
 		"cost": 1,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "add_fast",
+				"description": "Fast",
+				"description_expanded": "Fast mobs may attack the turn they come into play.",
+				"effect_type": "enter_play"
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]
 	},
 	{
@@ -1773,18 +1692,19 @@
 		"toughness": 1,
 		"cost": 1,
 		"description": "Make a spell.",
-		"effects": [{
-			"name": "make",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"make_type": "spell",
-			"amount": 1
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "make",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"make_type": "spell",
+				"amount": 1
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]
 	},
 	{
@@ -1797,18 +1717,19 @@
 		"toughness": 1,
 		"cost": 1,
 		"description": "Make a mob.",
-		"effects": [{
-			"name": "make",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"make_type": "mob",
-			"amount": 1
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "make",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"make_type": "mob",
+				"amount": 1
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]
 	},
 	{
@@ -1821,17 +1742,18 @@
 		"toughness": 2,
 		"cost": 1,
 		"description": "Heal for 2.",
-		"effects": [{
-			"name": "heal",
-			"effect_type": "enter_play",
-			"target_type": "any",
-			"amount": 2
-		}],	
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "heal",
+				"effect_type": "enter_play",
+				"target_type": "any",
+				"amount": 2
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]
 	},
 	{
@@ -1843,11 +1765,12 @@
 		"power": 1,
 		"toughness": 1,
 		"cost": 1,
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]
 	},
 	{
@@ -1879,31 +1802,19 @@
 		"card_type": "spell",
 		"card_subtype": "turn-only",
 		"description": "Take an extra turn. Cast only on your turn.",
-		"effects": [{
-			"effect_type": "spell",
-			"target_type": "self",
-			"name": "take_extra_turn"
-		}],
-		"abilities":[{
-			"name": "Disappear",
-			"descriptive_id": "Disappear"
-		}]
-	},
-	{ 
-		"name": "Warty Evolver",
-		"discipline": "tech",
-		"card_type": "mob",
-		"image": "shambling-mound.svg",
-		"power": 1,
-		"toughness": 1,
-		"cost": 1,
-		"description": "Evolves.",
-		"effects": [{
-			"name": "evolve",
-			"effect_type": "leave_play",
-			"target_type": "self",
-			"original_name": "Warty Evolver"
-		}]
+		"effects": [
+			{
+				"effect_type": "spell",
+				"target_type": "self",
+				"name": "take_extra_turn"
+			},
+			{
+				"name": "disappear",
+				"description": "Disappear",
+				"description_expanded": "Cards with Disappear don't go to the Played Pile when played, they are removed instead.",
+				"effect_type": "after_cast"
+			}
+		]
 	},
 	{
 		"name": "Duplication Chamber",
@@ -1911,7 +1822,7 @@
 		"card_type": "artifact",
 		"image": "box-unpacking.svg",
 		"cost": 2,
-		"description": "Ability: pay 1, add a card to this. Next turn, get it back with a copy.",
+		"description": "Pay 1, add a card to this. Next turn, get it back with a copy.",
 		"effects": [{
 			"name": "duplicate_card_next_turn",
 			"effect_type": "activated",
@@ -1931,7 +1842,7 @@
 		"card_type": "artifact",
 		"image": "ring-box.svg",
 		"cost": 2,
-		"description": "Ability: pay 1, add a card to this. Next turn, get it back upgraded.",
+		"description": "Pay 1, add a card to this. Next turn, get it back upgraded.",
 		"effects": [{
 			"name": "upgrade_card_next_turn",
 			"effect_type": "activated",
@@ -1980,20 +1891,15 @@
 		"image": "drum.svg",
 		"cost": 3,
 		"card_type": "spell",
-		"description": "Give all your mobs a random ability and +1/+1.",
+		"description": "Give all your mobs +2/+2.",
 		"effects": [{
 			"name": "add_tokens",
 			"effect_type": "spell",
 			"target_type": "self_mobs",
 			"tokens": [{
-				"power_modifier": 1,
-				"toughness_modifier": 1
+				"power_modifier": 2,
+				"toughness_modifier": 2
 			}]
-		},
-		{
-				"name": "add_random_mob_ability",
-				"effect_type": "spell",
-				"target_type": "self_mobs"
 		}]
 	},
 	{
@@ -2011,7 +1917,7 @@
 		}, 
 		{
 			"name": "reduce_cost",
-			"effect_type": "draw"
+			"effect_type": "was_drawn"
 		}]
 	},
 	{
@@ -2035,7 +1941,7 @@
 		},
 		{
 			"name": "reduce_cost",
-			"effect_type": "draw"
+			"effect_type": "was_drawn"
 		}]
 	},
 	{
@@ -2044,19 +1950,21 @@
 		"card_type": "artifact",
 		"image": "coffin.svg",
 		"cost": 2,
-		"description": "Ability: add a card to this. Next turn, get it back costing 1 less.",
-		"effects": [{
-			"name": "decost_card_next_turn",
-			"effect_type": "activated",
-			"target_type": "hand_card",
-			"cost": 0,
-			"amount": 1
-		}, 
-		{
-			"name": "decost_card_next_turn",
-			"effect_type": "start_turn",
-			"amount": 1
-		}]
+		"description": "Pay 0, add a card to this. Next turn, get it back costing 1 less.",
+		"effects": [
+			{
+				"name": "store_for_decosting",
+				"effect_type": "activated",
+				"target_type": "hand_card",
+				"cost": 0,
+				"amount": 1
+			}, 
+			{
+				"name": "decost_card_next_turn",
+				"effect_type": "start_turn",
+				"amount": 1
+			}
+		]
 	},
 	{
 		"name": "Make Metal",
@@ -2157,7 +2065,7 @@
 			{
 				"name": "drain_hp",
 				"description": "Drain",
-				"description_expanded": "Gain hit points when this deals damage.",
+				"description_expanded": "Gain hit points when this deals damage to your.",
 				"effect_type": "after_deals_damage"
 			},
 			{
@@ -2179,32 +2087,16 @@
 		"description": "Replace your normal draw with a choice of 3 cards.",
 		"effects": [
 			{
-				"name": "add_player_abilities",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"name": "Reduce Draw",
-						"description": "Reduce Draw",
-						"descriptive_id": "Reduce Draw"
-					}
-				]
-			},			
-			{
-				"name": "remove_player_abilities",
-				"effect_type": "leave_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"descriptive_id": "Reduce Draw"
-					}
-				]				
+				"name": "reduce_draw",
+				"effect_type": "before_draw",
+				"amount": 1
 			},
 			{
 				"name": "make_from_deck",
 				"effect_type": "start_turn"
 			}
 		]
+
 	},
 	{
 		"name": "Solid Vamp Minion",
@@ -2348,7 +2240,7 @@
 			},
 			{
 				"name": "improve_damage_all_effects_when_used",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			},
 			{
@@ -2356,6 +2248,10 @@
 				"description": "Drain",
 				"description_expanded": "Gain hit points when this deals damage.",
 				"effect_type": "after_deals_damage"
+			},
+			{
+				"name": "drain_hp",
+				"effect_type": "after_deals_damage_opponent"
 			}
 		]
 	},

@@ -11,15 +11,16 @@ class Card:
     def __init__(self, info):
         self.id = info["id"] if "id" in info else -1
 
-        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info and info["abilities"] else []
-        self.added_descriptions = info["added_descriptions"] if "added_descriptions" in info else []
         self.attacked = info["attacked"] if "attacked" in info else False
-        self.can_activate_abilities = info["can_activate_abilities"] if "can_activate_abilities" in info else True
+        # use by artifacts with activated abilities
+        self.can_activate_effects = info["can_activate_effects"] if "can_activate_effects" in info else True
         self.can_attack_mobs = info["can_attack_mobs"] if "can_attack_mobs" in info else False
         self.can_attack_players = info["can_attack_players"] if "can_attack_players" in info else False
         self.can_be_clicked = info["can_be_clicked"] if "can_be_clicked" in info else False
+        # used by artifacts such as Upgrade Chanber and Mana Coffin
         self.card_for_effect = Card(info["card_for_effect"]) if "card_for_effect" in info and info["card_for_effect"] else None
         self.card_subtype = info["card_subtype"] if "card_subtype" in info else None
+        # the only current subtype in use is "tun-only" for spells that can't be cast as instants
         self.card_type = info["card_type"] if "card_type" in info else Constants.mobCardType
         self.cost = info["cost"] if "cost" in info else 0
         self.damage = info["damage"] if "damage" in info else 0
@@ -27,17 +28,17 @@ class Card:
         self.damage_to_show = info["damage_to_show"] if "damage_to_show" in info else 0
         self.discipline = info["discipline"] if "discipline" in info else None
         self.effects = [CardEffect(e, self.id) for _, e in enumerate(info["effects"])] if "effects" in info else []
+        # used by artifacts to say which effects are useable
         self.effects_can_be_clicked = info["effects_can_be_clicked"] if "effects_can_be_clicked" in info else []
+        # used by artifacts to say which effects are un-useable
         self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
         self.description = info["description"] if "description" in info else None
-        self.global_effect = info["global_effect"] if "global_effect" in info else None
         self.image = info["image"] if "image" in info else None
         self.is_token = info["is_token"] if "is_token" in info else False
         self.level = info["level"] if "level" in info else None
         self.name = info["name"] if "name" in info else None
-        self.needs_targets = info["needs_targets"] if "needs_targets" in info else False
+        # used by artifacts with activated effects
         self.original_description = info["original_description"] if "original_description" in info else None
-        # probably bugs WRT Mind Manacles
         self.owner_username = info["owner_username"] if "owner_username" in info else None
         self.power = info["power"] if "power" in info else None
         self.show_level_up = info["show_level_up"] if "show_level_up" in info else False
@@ -48,11 +49,16 @@ class Card:
         # card.effects get mapped into these lists of defs defined on Card
         self.action_added_to_stack_effect_defs = []
         self.activated_effect_defs = []        
-        self.after_declared_attack_effect_defs = []
         self.after_attack_effect_defs = []
+        self.after_cast_effect_defs = []
         self.after_deals_damage_effect_defs = []
+        self.after_deals_damage_opponent_effect_defs = []
+        self.after_declared_attack_effect_defs = []
+        self.after_shuffle_effect_defs = []
+        self.before_draw_effect_defs = []
         self.before_is_damaged_effect_defs = []
         self.check_mana_effect_defs = []
+        self.discarded_end_of_turn_effect_defs = []
         self.draw_effect_defs = []
         self.enter_play_effect_defs = []
         self.end_turn_effect_defs = []
@@ -65,6 +71,7 @@ class Card:
         self.spell_effect_defs = []
         self.spend_mana_effect_defs = []
         self.start_turn_effect_defs = []
+        self.was_drawn_effect_defs = []
 
         for effect in self.effects:
             self.create_effect_def(effect)
@@ -74,50 +81,60 @@ class Card:
             self.action_added_to_stack_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "activated":
             self.activated_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "after_attack": 
+            self.after_attack_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "after_cast":
+            self.after_cast_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "after_deals_damage": 
+            self.after_deals_damage_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "after_deals_damage_opponent": 
+            self.after_deals_damage_opponent_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_declared_attack":
             self.after_declared_attack_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "after_shuffle": 
+            self.after_shuffle_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "before_draw":
+            self.before_draw_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "before_is_damaged":
             self.before_is_damaged_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "check_mana": 
+            self.check_mana_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "discarded_end_of_turn": 
+            self.discarded_end_of_turn_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "draw": 
+            self.draw_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "end_turn": 
+            self.end_turn_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "enter_play":
             self.enter_play_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "leave_play":
              self.leave_play_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "spell":
-            self.spell_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "start_turn": 
-            self.start_turn_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "end_turn": 
-            self.end_turn_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "draw": 
-            self.draw_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "play_friendly_mob": 
-            self.play_friendly_mob_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "sent_to_played_pile": 
-            self.sent_to_played_piled_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "mob_changes_zones": 
             self.mob_changes_zones_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "spend_mana": 
-            self.spend_mana_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "check_mana": 
-            self.check_mana_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "after_attack": 
-            self.after_attack_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "play_friendly_mob": 
+            self.play_friendly_mob_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "select_mob_target": 
             self.select_mob_target_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "select_mob_target_override": 
             self.select_mob_target_override_effect_defs.append(self.effect_def_for_id(effect))
-        if effect.effect_type == "after_deals_damage": 
-            self.after_deals_damage_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "sent_to_played_pile": 
+            self.sent_to_played_piled_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "spell":
+            self.spell_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "spend_mana": 
+            self.spend_mana_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "start_turn": 
+            self.start_turn_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "was_drawn": 
+            self.was_drawn_effect_defs.append(self.effect_def_for_id(effect))
 
     def __repr__(self):
         return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
-            "abilities": [a.as_dict() for a in self.abilities],
-            "added_descriptions": self.added_descriptions,
             "attacked": self.attacked,
-            "can_activate_abilities": self.can_activate_abilities,
+            "can_activate_effects": self.can_activate_effects,
             "can_attack_mobs": self.can_attack_mobs,
             "can_attack_players": self.can_attack_players,
             "can_be_clicked": self.can_be_clicked,
@@ -133,13 +150,11 @@ class Card:
             "effects": [e.as_dict() for e in self.effects],
             "effects_can_be_clicked": self.effects_can_be_clicked,
             "effects_exhausted": self.effects_exhausted,
-            "global_effect": self.global_effect,
             "id": self.id,
             "image": self.image,
             "is_token": self.is_token,
             "level": self.level,
             "name": self.name,
-            "needs_targets": self.needs_targets,
             "original_description": self.original_description,
             "owner_username": self.owner_username,
             "power": self.power,
@@ -158,12 +173,8 @@ class Card:
             return self.do_add_fade_effect          
         elif name == "add_fast":
             return self.do_add_fast_effect          
-        elif name == "add_mob_abilities" or name == "add_player_abilities":
-            return self.do_add_abilities_effect          
         elif name == "add_mob_effects":
             return self.do_add_mob_effects_effect
-        elif name == "add_random_mob_ability":
-            return self.do_add_random_ability_effect_on_mobs
         elif name == "protect_with_shield":
             return self.do_protect_with_shield_effect
         elif name == "add_symbiotic_fast":
@@ -194,7 +205,9 @@ class Card:
             return self.do_decrease_max_mana_effect
         elif name == "discard_random":
             return self.do_discard_random_effect_on_player
-        elif name in ["decost_card_next_turn", "duplicate_card_next_turn", "upgrade_card_next_turn"]:
+        elif name == "disappear":
+            return self.do_disappear_effect
+        elif name in ["duplicate_card_next_turn", "store_for_decosting", "upgrade_card_next_turn"]:
             return self.do_store_card_for_next_turn_effect
         elif name == "double_power":
             return self.do_double_power_effect_on_mob
@@ -214,8 +227,6 @@ class Card:
             return self.do_enable_activated_effect_effect
         elif name == "entwine":
             return self.do_entwine_effect
-        elif name == "evolve":
-            return self.do_evolve_effect
         elif name == "fetch_card":
             return self.do_fetch_card_effect_on_player
         elif name == "fetch_card_into_play":
@@ -236,6 +247,8 @@ class Card:
             return self.do_improve_effect_amount_when_cast_effect            
         elif name == "improve_effect_when_cast":
             return self.do_improve_effect_when_cast_effect            
+        elif name == "keep":
+            return self.do_keep_effect
         elif name == "kill":
             return self.do_kill_effect
         elif name == "lose_lurker":
@@ -270,24 +283,28 @@ class Card:
            return self.do_redirect_mob_spell_effect
         elif name == "reduce_cost":
            return self.do_reduce_cost_effect
+        elif name == "reduce_draw":
+           return self.do_reduce_draw_effect
         elif name == "refresh_mana":
             return self.do_refresh_mana_effect
         elif name == "remove_symbiotic_fast":
             return self.do_remove_symbiotic_fast_effect
         elif name == "remove_tokens":
             return self.do_remove_tokens_effect
-        elif name == "remove_player_abilities":
-            return self.do_remove_player_abilities_effect
         elif name == "riffle":
             return self.do_riffle_effect
         elif name == "set_can_attack":
             return self.do_set_can_attack_effect           
         elif name == "set_token":
             return self.do_set_token_effect
+        elif name == "slow_artifact":
+            return self.do_slow_artifact_effect           
         elif name == "spell_from_yard":
             return self.do_spell_from_yard_effect           
         elif name == "stack_counter":
            return  self.do_counter_card_effect
+        elif name == "start_in_play":
+           return  self.do_start_in_play_effect
         elif name == "store_mana":
             return  self.do_store_mana_effect            
         elif name == "summon_from_deck":
@@ -325,52 +342,15 @@ class Card:
     def factory_reset_card(card, player):
         new_card = None
         # hax
-        evolved = card.has_effect("evolve")
         for c in Card.all_card_objects():
             if c.name == card.name:
                 new_card = copy.deepcopy(c)
-        if evolved:
-            card.attacked = False
-            card.can_attack_mobs = False
-            card.can_attack_players = False
-            card.damage = 0
-            card.damage_to_show = 0
-            card.damage_this_turn = 0
-            card.turn_played = -1
-            return card
-        else:
-            new_card.id = card.id
-            new_card.owner_username = player.username
-            new_card = Card.modify_new_card(new_card, player.game)
-            return new_card
-
-    @staticmethod
-    def modify_new_card(card, game):
-        if card.card_type == Constants.spellCardType:            
-            if 'spells_cost_more' in game.global_effects:
-                card.cost += game.global_effects.count('spells_cost_more')
-            if 'spells_cost_less' in game.global_effects:
-                card.cost -= game.global_effects.count('spells_cost_less')
-                card.cost = max(0, card.cost)
-        elif card.card_type == Constants.mobCardType:            
-            if 'mobs_cost_more' in game.global_effects:
-                card.cost += game.global_effects.count('mobs_cost_more')
-            if 'mobs_cost_less' in game.global_effects:
-                card.cost -= game.global_effects.count('mobs_cost_less')
-                card.cost = max(0, card.cost)
-            if 'mobs_get_more_toughness' in game.global_effects:
-                card.toughness += game.global_effects.count('mobs_get_more_toughness')*2
-            if 'mobs_get_less_toughness' in game.global_effects:
-                card.toughness -= game.global_effects.count('mobs_get_less_toughness')*2
-                card.toughness = max(0, card.toughness)
-            if 'mobs_get_more_power' in game.global_effects:
-                card.power += game.global_effects.count('mobs_get_more_power')*2
-            if 'mobs_get_less_power' in game.global_effects:
-                card.power -= game.global_effects.count('mobs_get_less_power')*2
-                card.power = max(0, card.power)
-        return card
+        new_card.id = card.id
+        new_card.owner_username = player.username
+        return new_card
 
     def resolve(self, player, spell_to_resolve):
+        print(f"resolving {self.name}")
         for e in player.in_play + player.artifacts:
             for idx, effect in enumerate(e.effects_for_type("friendly_card_played")):
                 if effect.target_type == "this":
@@ -402,18 +382,20 @@ class Card:
                 spell_to_resolve["effect_targets"] = None
 
         if self.card_type == Constants.spellCardType:
-            if self.has_ability("Disappear"):
-                self.show_level_up = True
-            else:            
-                player.played_pile.append(self)
+            player.played_pile.append(self)
+
+        effect_targets = spell_to_resolve["effect_targets"] if "effect_targets" in spell_to_resolve else {}
+        for idx, effect_def in enumerate(self.after_cast_effect_defs):
+            self.resolve_effect(effect_def, player, self.effects_for_type("after_cast")[idx], [idx])
 
         spell_to_resolve["card_name"] = self.name
         spell_to_resolve["show_spell"] = self.as_dict()
+
         return spell_to_resolve
 
     def unchosen_targets(self, player, effect_type=None):
         effect_targets = []
-        effects = self.effects_spell() + self.effects_enter_play() 
+        effects = self.effects_for_type("spell")  + self.effects_for_type("enter_play") 
         if effect_type:
             effects = self.effects_for_type(effect_type)
         for e in effects:
@@ -444,6 +426,17 @@ class Card:
 
     def do_add_ambush_effect(self, effect_owner, effect, target_info):
         self.can_attack_mobs = True
+        # clone the game so we can do a move in the cloned game to select the mob with Ambush
+        # then, check if there are any mobs that can be attacked in the cloned game (e.g. mob.can_be_clicked == True)
+        game_copy = copy.deepcopy(effect_owner.game)
+        for mob in game_copy.current_player().in_play:
+            if mob.id == self.id:
+                game_copy.play_move({"username": effect_owner.username, "move_type": "SELECT_MOB", "card": self.id})        
+        found_attackable_mob = False
+        for m in game_copy.opponent().in_play:
+            if m.can_be_clicked:                
+                found_attackable_mob = True
+        self.can_attack_mobs = found_attackable_mob
 
     def do_add_fast_effect(self, effect_owner, effect, target_info):
         self.can_attack_players = True
@@ -461,19 +454,6 @@ class Card:
         }
         return self.do_add_token_effect_on_mob(CardEffect(effect, 0), effect_owner, self, effect_owner)
 
-    def do_add_abilities_effect(self, effect_owner, effect, target_info):
-        ability = copy.deepcopy(effect.abilities[0])
-        target_id = target_info["id"]
-        if effect.target_type in ["mob", "opponents_mob", "self_mob"]:
-            target_mob, controller = effect_owner.game.get_in_play_for_id(target_id)
-            target_mob.abilities.append(ability)
-            return [f"{self.name} adds {ability.name} to {target_mob.name}."]
-        elif effect.target_type == "opponent" or effect.target_type == "self":
-            target_player = Card.player_for_username(effect_owner.game, target_id)            
-            target_player.abilities.append(ability)
-            target_player.abilities[-1].id = self.id
-            return [f"{target_player.username} gets {self.description}."]
-
     def do_add_mob_effects_effect(self, effect_owner, effect, target_info):
         target_id = target_info["id"]
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_id)
@@ -490,15 +470,6 @@ class Card:
                 if e.effect_type == "enter_play":
                     self.resolve_effect(target_mob.enter_play_effect_defs[-1], effect_owner, e, {}) 
         return [f"{target_mob.name} gets {effect.name}."]
-
-    def do_add_random_ability_effect_on_mobs(self, effect_owner, effect, target_info):
-        for card in effect_owner.in_play:
-            self.do_add_random_ability_effect_on_mob(card)
-        return [f"{effect_owner.username} added a random ability to their mobs with {self.name}."]
-
-    def do_add_random_ability_effect_on_mob(self, mob):
-        a = random.choice([])
-        mob.abilities.append(CardAbility(a, len(mob.abilities)))
 
     def do_add_tokens_effect(self, effect_owner, effect, target_info):
         if effect.target_type == 'self_mobs':
@@ -534,19 +505,6 @@ class Card:
     def do_allow_instant_cast_effect(self, effect_owner, effect, target_info):
         if effect_owner.current_mana() >= self.cost:
                 self.can_be_clicked = True
-
-    def do_attack_abilities(self, effect_owner):
-        if self.has_ability("discard_random"):
-            ability = None
-            for a in self.abilities:
-                if a.descriptive_id == "discard_random":
-                    ability = a
-            self.do_discard_random_effect_on_player(effect_owner.game.opponent(), CardEffect(              
-                {
-                    "name": "discard_random",
-                    "descriptive_id": "discard_random",
-                    "amount": 1
-                }, 0), {"id": effect_owner.game.opponent().username })
  
     def do_augment_mana_effect(self, effect_owner, effect, target_info):
         store_effect = None
@@ -566,7 +524,7 @@ class Card:
         effect_owner.game.actor_turn += 1
         stack_spell = None
         for spell in effect_owner.game.stack:
-            if spell[1]["id"] == card_id:
+            if spell[1]["id"] == target_info["id"]:
                 stack_spell = spell
                 break
 
@@ -607,7 +565,12 @@ class Card:
     def do_create_random_townie_effect(self, effect_owner, effect, target_info):
         log_lines = self.do_create_random_townie_effect_with_reduce_cost(effect_owner, effect, target_info, 0)
         if effect.counters == 0:
-            self.deactivate_instrument()
+            self.effects.pop(0)
+            self.activated_effect_defs.pop(0)
+            for a in self.effects:
+                if a.effect_type == "activated":
+                    a.enabled = True
+            self.description = self.original_description
         return log_lines
         
     def do_create_random_townie_effect_cheap(self, effect_owner, effect, target_info):
@@ -619,8 +582,8 @@ class Card:
             return
         townies = []
         for c in Card.all_card_objects():
-            for a in c.abilities:
-                if a.descriptive_id == "Townie":
+            for a in c.effects:
+                if a.name == "is_townie":
                     townies.append(c)
         for x in range(0, effect.amount):
             t = random.choice(townies)
@@ -629,20 +592,8 @@ class Card:
             return [f"{player.username} makes {effect.amount} Townie."]
         return [f"{player.username} makes {effect.amount} Townies."]
 
-    def deactivate_instrument(self):
-        self.effects.pop(0)
-        self.activated_effect_defs.pop(0)
-        for a in self.effects:
-            if a.effect_type == "activated":
-                a.enabled = True
-        self.description = self.original_description
-
     def do_damage_effect(self, effect_owner, effect, target_info):
         damage_amount = effect.amount 
-
-        # todo this might need to come later in method, and/or make sure damage was dealt
-        for idx, e in enumerate(self.effects_for_type("after_deals_damage")):
-            self.resolve_effect(self.after_deals_damage_effect_defs[idx], effect_owner, e, {"damage": damage_amount}) 
 
         target_type = target_info["target_type"] if "target_type" in target_info else None
         target_id = target_info["id"] if "id" in target_info else None
@@ -651,10 +602,10 @@ class Card:
         elif effect.amount_id:
             print(f"unknown amount_id: {effect.amount_id}")
         if effect.target_type == "self":
-            return self.do_damage_effect_on_player(effect_owner, effect_owner, effect.amount, effect.amount_id)
+            return self.do_damage_effect_on_player(effect, effect_owner, effect_owner, effect.amount, effect.amount_id)
         elif target_type == "player":
             target_player = Card.player_for_username(effect_owner.game, target_id)
-            return self.do_damage_effect_on_player(effect_owner, target_player, effect.amount, effect.amount_id)
+            return self.do_damage_effect_on_player(effect, effect_owner, target_player, effect.amount, effect.amount_id)
         elif target_type == "opponents_mobs":
             return self.damage_mobs(effect_owner.game, effect_owner.game.opponent().in_play, damage_amount, effect_owner.username, f"{effect_owner.game.opponent().username}'s mobs")
         elif effect.target_type == "opponents_mob_random":
@@ -662,7 +613,7 @@ class Card:
                 mob = random.choice(effect_owner.my_opponent().in_play)
                 _, controller = effect_owner.game.get_in_play_for_id(mob.id)
                 log_lines = [f"{effect_owner.username} deals {damage_amount} damage to {mob.name}."]
-                self.do_damage_effect_on_mob(mob, controller, effect.amount, effect.amount_id)
+                self.do_damage_effect_on_mob(effect, mob, controller, effect.amount, effect.amount_id)
                 return log_lines
         elif target_type == "all_mobs" or target_type == "all":
             damage_taker = "all mobs"
@@ -676,7 +627,7 @@ class Card:
         else:
             target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
             log_lines = [f"{effect_owner.username} deals {damage_amount} damage to {target_mob.name}."]
-            self.do_damage_effect_on_mob(target_mob, controller, effect.amount, effect.amount_id)
+            self.do_damage_effect_on_mob(effect, target_mob, controller, effect.amount, effect.amount_id)
             return log_lines
 
     def damage_mobs(self, game, mobs, damage_amount, damage_dealer, damage_taker):
@@ -689,17 +640,21 @@ class Card:
             game.opponent().send_card_to_played_pile(mob, did_kill=True)
         return [f"{damage_dealer} deals {damage_amount} damage to {damage_taker}."]
 
-    def do_damage_effect_on_player(self, effect_owner, target_player, amount, amount_id=None):
-        if amount_id == "hand":            
-            target_player.damage(len(effect_owner.hand))
-            return [f"{self.name} deals {len(effect_owner.hand)} damage to {target_player.username}."]            
+    def do_damage_effect_on_player(self, effect, effect_owner, target_player, amount, amount_id=None):
+        actual_amount = None
+        if amount_id == "hand":    
+            actual_amount = len(effect_owner.hand)       
         elif not amount_id:
-            target_player.damage(amount)
-            return [f"{self.name} deals {amount} damage to {target_player.username}."]            
+            actual_amount = amount    
         else:
             print(f"unknown amount_id: {amount_id}")
 
-    def do_damage_effect_on_mob(self, target_card, controller, amount, amount_id=None):
+        target_player.damage(actual_amount)
+        for idx, e in enumerate(self.effects_for_type("after_deals_damage_opponent")):
+            self.resolve_effect(self.after_deals_damage_opponent_effect_defs[idx], effect_owner, effect, {"damage": actual_amount}) 
+        return [f"{self.name} deals {actual_amount} damage to {target_player.username}."]            
+
+    def do_damage_effect_on_mob(self, effect, target_card, controller, amount, amount_id=None):
         damage_amount = amount 
         if amount_id == "hand":            
             damage_amount = len(self.hand)
@@ -707,6 +662,9 @@ class Card:
             print(f"unknown amount_id: {amount_id}")
 
         target_card.deal_damage_with_effects(damage_amount, controller)
+        for idx, e in enumerate(self.effects_for_type("after_deals_damage")):
+            self.resolve_effect(self.after_deals_damage_effect_defs[idx], effect_owner, effect, {"damage": actual_amount}) 
+
         if target_card.damage >= target_card.toughness_with_tokens():
             controller.send_card_to_played_pile(target_card, did_kill=True)
 
@@ -740,7 +698,7 @@ class Card:
             for c in Card.all_card_objects():
                 if self.card_for_effect.name == c.name:
                     previous_card = c
-            previous_card.evolve(previous_card)
+            previous_card.upgrade(previous_card)
             effect_owner.hand.append(previous_card)
             self.card_for_effect = None
 
@@ -751,7 +709,10 @@ class Card:
             effect_owner.mana = min(effect_owner.max_mana, effect_owner.mana)
 
     def do_discard_random_effect_on_player(self, effect_owner, effect, target_info):
-        target_player = Card.player_for_username(effect_owner.game, target_info["id"])
+        if effect.target_type == "opponent":
+            target_player = effect_owner.my_opponent()
+        else:
+            target_player = Card.player_for_username(effect_owner.game, target_info["id"])
         amount = effect.amount
         amount_id = effect.amount_id
         discard_amount = amount 
@@ -772,6 +733,14 @@ class Card:
             return [f"{target_player.username} discards {amount_to_log} card from {self.name}."]
         elif amount_to_log > 0:
             return [f"{target_player.username} discards {amount_to_log} cards from {self.name}."]
+
+    def do_disappear_effect(self, effect_owner, effect, target_info):
+        print("do_disappear_effect")
+        if self in effect_owner.hand:
+            effect_owner.hand.remove(self)        
+        if self in effect_owner.played_pile:
+            effect_owner.played_pile.remove(self)
+        self.show_level_up = True
 
     def do_double_power_effect_on_mob(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
@@ -827,7 +796,7 @@ class Card:
 
     def do_enable_activated_effect_effect(self, effect_owner, effect, target_info):
         # todo don't hardcode turning them all off, only needed for Arsenal, which doesn't even equip anymore
-        for e in self.effects_activated():
+        for e in self.effects_for_type("activated"):
             if e.effect_to_activate:
                 e.enabled = False
         activated_effect = copy.deepcopy(effect.effect_to_activate)
@@ -836,7 +805,7 @@ class Card:
         self.description = activated_effect.description
         self.effects.insert(0, activated_effect)
         self.activated_effect_defs.insert(0,self.effect_def_for_id(activated_effect))
-        self.can_activate_abilities = True
+        self.can_activate_effects = True
         return [f"{effect_owner.username} activates {self.name}."]
 
     def do_entwine_effect(self, effect_owner, effect, target_info):
@@ -852,33 +821,21 @@ class Card:
             p.draw(3)
         return [f"{effect_owner.username} casts {self.name}."]
  
-    def do_evolve_effect(self, effect_owner, effect, target_info):
-        if "did_kill" in target_info and target_info["did_kill"]:
-            evolver_card = None
-            previous_card = None
-            for c in Card.all_card_objects():
-                if c.name == effect.original_name:
-                    evolver_card = c
-                if self.name == c.name:
-                    previous_card = c
-            self.evolve(previous_card, evolver_card)
-
-    def evolve(self, previous_card, evolver_card=None):
-        evolve_cards = []
+    def upgrade(self, previous_card, upgrader_card=None):
+        upgrade_cards = []
         for c in Card.all_card_objects():
             if not c.is_token and c.cost > previous_card.cost and c.cost < previous_card.cost + 2 and c.card_type == self.card_type:
-                evolve_cards.append(c)
-        if len(evolve_cards) > 0:
-            evolved_card = random.choice(evolve_cards)
-            self.name = evolved_card.name
-            self.image = evolved_card.image
-            self.description = evolved_card.description
-            self.effects = evolved_card.effects
-            if evolver_card:
-                self.effects.append(evolver_card.effects[0])
-            self.abilities = evolved_card.abilities
-            self.power = evolved_card.power
-            self.toughness = evolved_card.toughness
+                upgrade_cards.append(c)
+        if len(upgrade_cards) > 0:
+            upgraded_card = random.choice(upgrade_cards)
+            self.name = upgraded_card.name
+            self.image = upgraded_card.image
+            self.description = upgraded_card.description
+            self.effects = upgraded_card.effects
+            if upgrader_card:
+                self.effects.append(upgrader_card.effects[0])
+            self.power = upgraded_card.power
+            self.toughness = upgraded_card.toughness
 
     def do_fetch_card_effect_on_player(self, effect_owner, effect, target_info):
         if Constants.artifactCardType in effect.target_type:
@@ -905,9 +862,7 @@ class Card:
         artifacts = []
         for card in target_player.deck:
             if card.card_type == Constants.artifactCardType:
-                if len(target_restrictions) == 0 or \
-                    (list(target_restrictions[0].keys())[0] == "needs_instrument" and card.has_ability("Instrument")):
-                    artifacts.append(card)
+                artifacts.append(card)
         if len(artifacts) > 0:
             target_player.card_choice_info = {"cards": artifacts, "choice_type": choice_type}
         else:
@@ -939,8 +894,11 @@ class Card:
     def do_gain_for_toughness_effect(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
         if target_mob:
+            old_hp = controller.hit_points
             controller.hit_points += target_mob.toughness_with_tokens()
             controller.hit_points = min(controller.max_hit_points, controller.hit_points)
+            if controller.hit_points > old_hp:
+                return [f"{controller.username} gained {controller.hit_points - old_hp} from {self.name}."]
 
     def do_lose_lurker_effect(self, effect_owner, effect, target_info):
         for effect in self.effects:
@@ -970,16 +928,18 @@ class Card:
         if effect.amount_id == "hand_less_amount":
             amount = max(len(target_player.hand) - effect.amount, 0)
         if amount > 0:
+            old_hp = target_player.hit_points
             target_player.hit_points += amount
             target_player.hit_points = min(target_player.hit_points, target_player.max_hit_points)
-            return [f"{target_player.username} heals {amount}."]
+            if target_player.hit_points > old_hp:
+                return [f"{self.name} healed {target_player.username} for {target_player.hit_points - old_hp}."]
 
     def do_heal_effect_on_mob(self, target_mob, amount):
         target_mob.damage -= amount
         target_mob.damage = max(target_mob.damage, 0)
         target_mob.damage_this_turn -= amount
         target_mob.damage_this_turn = max(target_mob.damage_this_turn, 0)
-        return [f"{target_mob.name} heals {amount}."]
+        return [f"{self.name} healed {target_mob.name} for {amount}."]
 
     def do_hp_damage_random_effect(self, effect_owner, effect, target_info):
         choice = random.choice(["hp", "damage"])
@@ -991,9 +951,9 @@ class Card:
                 targets.append(m)
             choice = random.choice(targets)
             if choice == targets[0]:
-                self.do_damage_effect_on_player(targets[0], choice, 1)
+                self.do_damage_effect_on_player(effect, targets[0], choice, 1)
             else:
-                self.do_damage_effect_on_mob(choice, effect_owner.my_opponent(), 1)
+                self.do_damage_effect_on_mob(effect, choice, effect_owner.my_opponent(), 1)
 
     def do_improve_damage_when_used_effect(self, effect_owner, effect, target_info):
         # Rolling Thunder
@@ -1024,6 +984,28 @@ class Card:
             self.show_level_up = True
         return [f"{self.name} levels up."]
 
+    def do_keep_effect(self, effect_owner, effect, target_info):
+        log_lines = [f"{effect_owner.username} kept {self.name}."]
+        if effect.amount and not effect.amount_id:
+            old_power = self.power 
+            self.power += effect.amount
+            old_toughness = self.toughness 
+            self.toughness += effect.amount
+            if self.power > old_power or self.toughness > old_toughness:
+                self.show_level_up = True
+                log_lines = [f"{effect_owner.username} kept {self.name}, and it grew to {self.power_with_tokens(effect_owner)}/{self.toughness_with_tokens()}."]
+        if effect.amount_id == "upgrade":
+             upgraded_card = effect_owner.add_to_deck(effect.card_names[0], 1, add_to_hand=True)
+             effect_owner.hand.remove(upgraded_card)
+             upgraded_card.id = self.id
+             upgraded_card.show_level_up = True
+             effect_owner.hand.append(upgraded_card)
+             log_lines = [f"{effect_owner.username} kept {self.name} and it upgraded to {upgraded_card.name}."]
+        else:
+            effect_owner.hand.append(self)
+        effect_owner.played_pile.remove(self)
+        return log_lines
+
     def do_kill_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "mob" or effect.target_type == "artifact" or effect.target_type == "mob_or_artifact":
             target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
@@ -1035,17 +1017,14 @@ class Card:
             cards_to_kill = []
             min_cost = -1
             max_cost = 9999
-            instruments_ok = True
             for r in effect.target_restrictions:
                 if list(r.keys())[0] == "min_cost":
                     min_cost = list(r.values())[0]
                 if list(r.keys())[0] == "max_cost":
                     max_cost = list(r.values())[0]
-                if list(r.keys())[0] == "instruments":
-                    instruments_ok = list(r.values())[0]
             for player in [effect_owner, effect_owner.game.opponent()]:
                 for card in player.in_play+player.artifacts:
-                    if card.cost >= min_cost and card.cost <= max_cost and (instruments_ok or not card.has_ability("Instrument")):
+                    if card.cost >= min_cost and card.cost <= max_cost:
                         cards_to_kill.append((card, player))
             for card_tuple in cards_to_kill: 
                 self.do_kill_effect_on_mob(card_tuple[0], card_tuple[1])
@@ -1081,52 +1060,6 @@ class Card:
         '''
             Make a spell or mob.
         '''
-        if make_type == 'Global':
-            effects = []
-            card_info = {
-                "name": "Expensive Spells",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "Spells cost 1 more",
-                "global_effect": "spells_cost_more"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Expensive mobs",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "mobs cost 1 more",
-                "global_effect": "mobs_cost_more"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Draw More",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "Players draw an extra card on their turn.",
-                "global_effect": "draw_extra_card"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Cheap Spells",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "Spells cost 1 less",
-                "global_effect": "spells_cost_less"
-            }
-            effects.append(Card(card_info))
-            card_info = {
-                "name": "Cheap mobs",
-                "cost": 0,
-                "card_type": "Effect",
-                "description": "mobs cost 1 less",
-                "global_effect": "mobs_cost_less"
-            }
-            effects.append(Card(card_info))
-            player.card_choice_info["cards"] = effects
-            player.card_choice_info["choice_type"] = "make"
-            return
-
         requiredMobCost = None
         if player.game.turn <= 10 and make_type == Constants.mobCardType:
             requiredMobCost = math.floor(player.game.turn / 2) + 1
@@ -1307,16 +1240,6 @@ class Card:
         stack_spell[0]["effect_targets"][0]["id"] = effect_owner.game.next_card_id - 1
         return[f"{stack_spell[1]['name']} was redirected to a newly summoned {token_card_name}."]
 
-    def do_remove_player_abilities_effect(self, effect_owner, effect, target_info):
-        if "did_kill" in target_info and not target_info["did_kill"]:
-            return
-        ability_to_remove = None
-        # todo this should loop over the abilities in e, in the future there could be more than 1 ability to remove
-        for a in effect_owner.abilities:
-            if a.id == self.id:
-                ability_to_remove = a
-        effect_owner.abilities.remove(ability_to_remove)
-
     def do_remove_tokens_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self_mobs":
             for mob in effect_owner.in_play:
@@ -1330,6 +1253,9 @@ class Card:
         if not effect.target_type or self.card_type == effect.target_type:
             self.cost -= 1
             self.cost = max(0, self.cost)
+
+    def do_reduce_draw_effect(self, effect_owner, effect, target_info):
+        effect_owner.about_to_draw_count -= effect.amount
 
     def do_refresh_mana_effect(self, effect_owner, effect, target_info):
         if effect_owner.mana == 0:
@@ -1352,7 +1278,7 @@ class Card:
             if len(top_cards) < effect.amount:
                 top_cards.append(card)
         player.card_choice_info = {"cards": top_cards, "choice_type": "riffle"}
-        return [f"{player.username} riffles for {effect.amount}."]
+        return [f"{player.username} riffled for {effect.amount} and chose a card."]
 
     def do_set_can_attack_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self_mobs":
@@ -1361,9 +1287,13 @@ class Card:
                 e.can_attack_mobs = True
                 e.can_attack_players = True
                 e.attacked = False
-            return [f"{player.username} lets their mobs attack again this turn."]          
+            return [f"{player.username} let their mobs attack again this turn."]          
         else:
             print(f"e.target_type {target_type} not supported for set_can_attack")
+
+    def do_slow_artifact_effect(self, effect_owner, effect, target_info):
+        for effect in self.effects:
+            self.effects_exhausted.append(effect)
 
     def do_spell_from_yard_effect(self, effect_owner, effect, target_info):
         spells = []
@@ -1378,6 +1308,12 @@ class Card:
                 effect_owner.hand.append(spell)
                 effect_owner.played_pile.remove(spell)
                 return [f"{self.name} returns {spell.name} to {effect_owner.username}'s hand."]
+
+    def do_start_in_play_effect(self, effect_owner, effect, target_info):
+        if len(effect_owner.artifacts) == 0:
+            effect_owner.artifacts.append(self)
+            effect_owner.deck.remove(self)   
+            self.turn_played = 0
 
     def do_store_card_for_next_turn_effect(self, effect_owner, effect, target_info):
         for c in effect_owner.hand:
@@ -1516,6 +1452,7 @@ class Card:
             self.effect.remove(effect)
 
     def do_set_token_effect(self, effect_owner, effect, target_info):
+        print("do_set_token_effect")
         tokens_to_remove = []
         for t in self.tokens:
             if t.id == self.id:
@@ -1589,7 +1526,6 @@ class Card:
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
         target_player.remove_temporary_tokens()
         target_player.game.remove_temporary_effects()
-        target_player.remove_temporary_abilities()
         target_player.clear_damage_this_turn()
         target_player.game.turn += 2
         log_lines = [f"{target_player.username} takes an extra turn."]
@@ -1626,13 +1562,13 @@ class Card:
 
     def enabled_activated_effects(self):
         enabled_effects = []
-        for e in self.effects_activated():
+        for e in self.effects_for_type("activated"):
             if e.enabled:
                enabled_effects.append(e)
         return enabled_effects
 
     def needs_targets_for_spell(self):
-        if len(self.effects_spell()) == 0:
+        if len(self.effects_for_type("spell")) == 0:
             return False
         e = self.effects[0]
         if e.target_type in [
@@ -1730,13 +1666,13 @@ class Card:
         return False
 
     def needs_opponent_mob_target_for_spell(self):
-        e = self.effects_spell()[0]
+        e = self.effects_for_type("spell")[0]
         if e.target_type in ["opponents_mob"]:
             return True
         return False
 
     def needs_opponent_mob_target_for_spell(self):
-        e = self.effects_spell()[0]
+        e = self.effects_for_type("spell")[0]
         if e.target_type in ["opponents_mob"]:
             return True
         return False
@@ -1788,43 +1724,17 @@ class Card:
                 return True
         return False
 
-    def has_ability(self, ability_name):
-        for a in self.abilities:
-            if a.descriptive_id == ability_name and a.enabled:
-                return True
-        return False
-
     def do_leaves_play_effects(self, player, did_kill=True):
         for idx, effect_def in enumerate(self.leave_play_effect_defs):
             target_info = {"id": player.username, "did_kill": did_kill}
-            if self.effects_leave_play()[idx].target_type == "self":
+            if self.effects_for_type("leave_play")[idx].target_type == "self":
                 target_info = {"id": player.username, "target_type": "player", "did_kill": did_kill}
-            elif self.effects_leave_play()[idx].target_type == "opponent":
+            elif self.effects_for_type("leave_play")[idx].target_type == "opponent":
                 target_info = {"id": player.game.opponent().username, "target_type": "player", "did_kill": did_kill}
-            self.resolve_effect(effect_def, player, self.effects_leave_play()[idx], target_info)
-
-    def effects_leave_play(self):
-        return [e for e in self.effects if e.effect_type == "leave_play"]
-
-    def effects_enter_play(self):
-        return [e for e in self.effects if e.effect_type == "enter_play"]
-
-    def effects_activated(self):
-        return [e for e in self.effects if e.effect_type == "activated"]
+            self.resolve_effect(effect_def, player, self.effects_for_type("leave_play")[idx], target_info)
 
     def effects_for_type(self, effect_type):
         return [e for e in self.effects if e.effect_type == effect_type]
-
-    def effects_spell(self):
-        return [e for e in self.effects if e.effect_type == "spell"]
-
-    def effects_enabled(self):
-        return [e for e in self.effects if e.enabled == True]
-
-    def effect_for_id(self, effect_id):
-        for e in self.effects:
-            if e.id == effect_id:
-                return e
 
     def deal_damage_with_effects(self, amount, controller):
         for idx, effect in enumerate(self.effects_for_type("before_is_damaged")):
@@ -1840,7 +1750,6 @@ class CardEffect:
     def __init__(self, info, effect_id):
         self.id = effect_id
 
-        self.abilities = [CardAbility(a, idx) for idx, a in enumerate(info["abilities"])] if "abilities" in info else []
         self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
         self.ai_target_types = info["ai_target_types"] if "ai_target_types" in info else []
         self.amount = info["amount"] if "amount" in info else None
@@ -1853,6 +1762,7 @@ class CardEffect:
         self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
         self.description = info["description"] if "description" in info else None
         self.description_expanded = info["description_expanded"] if "description_expanded" in info else None
+        self.description_on_card = info["description_on_card"] if "description_on_card" in info else True
         self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
         self.effect_to_activate = CardEffect(info["effect_to_activate"], info["effect_to_activate"]["id"] if "id" in info["effect_to_activate"] else 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
         self.effect_type = info["effect_type"] if "effect_type" in info else None
@@ -1879,7 +1789,6 @@ class CardEffect:
 
     def as_dict(self):
         return {
-            "abilities": [a.as_dict() for a in self.abilities] if self.abilities else [],
             "activate_on_add": self.activate_on_add,
             "ai_target_types": self.ai_target_types,
             "amount": self.amount,
@@ -1892,6 +1801,7 @@ class CardEffect:
             "cost_hp": self.cost_hp,
             "description": self.description,
             "description_expanded": self.description_expanded,
+            "description_on_card": self.description_on_card,
             "effects": [e.as_dict() for e in self.effects] if self.effects else [],
             "effect_to_activate": self.effect_to_activate.as_dict() if self.effect_to_activate else None,
             "effect_type": self.effect_type,
@@ -1914,40 +1824,6 @@ class CardEffect:
             "ui_info": self.ui_info,
             "was_added": self.was_added
         }
-
-
-class CardAbility:
-    def __init__(self, info, ability_id):
-        self.amount = info["amount"] if "amount" in info else None
-        self.description = info["description"] if "description" in info else None
-        self.descriptive_id = info["descriptive_id"] if "descriptive_id" in info else None
-        self.enabled = info["enabled"] if "enabled" in info else True
-        self.id = ability_id
-        self.keep_evolve = info["keep_evolve"] if "keep_evolve" in info else None
-        self.keep_power_increase = info["keep_power_increase"] if "keep_power_increase" in info else 0
-        self.keep_toughness_increase = info["keep_toughness_increase"] if "keep_toughness_increase" in info else 0
-        self.name = info["name"] if "name" in info else None
-        self.target_type = info["target_type"] if "target_type" in info else None
-        self.turns = info["turns"] if "turns" in info else -1
-
-    def __repr__(self):
-        return f"{self.as_dict()}"
-
-    def as_dict(self):
-        return {
-            "amount": self.amount,
-            "description": self.description,
-            "descriptive_id": self.descriptive_id,
-            "enabled": self.enabled,
-            "id": self.id,
-            "keep_evolve": self.keep_evolve,
-            "keep_power_increase": self.keep_power_increase,
-            "keep_toughness_increase": self.keep_toughness_increase,
-            "name": self.name,
-            "target_type": self.target_type,
-            "turns": self.turns,
-        }
-
 
 class CardToken:
     def __init__(self, info):

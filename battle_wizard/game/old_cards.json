@@ -273,7 +273,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "enter_play"
+				"effect_type": "after_cast"
 			}
 		]	
 	},
@@ -507,6 +507,7 @@
 		"name": "Trickster",
 		"race": "elf",
 		"class": "sorcerer",
+		"description": "Draw when this damages your opponent.",
 		"card_type": "mob",
 		"power": 1,
 		"toughness": 3,
@@ -526,7 +527,7 @@
 			},
 			{
 				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage",
+				"effect_type": "after_deals_damage_opponent",
 				"amount": 1
 			}
 		]
@@ -613,26 +614,6 @@
 				"amount": 1
 			}
 		]
-	},
-	{
-		"name": "Quiet Nature",
-		"race": "genie",
-		"cost": 5,
-		"card_type": "spell",
-		"description": "mobs can't be summoned next turn.",
-		"effects": [{
-			"name": "add_player_abilities",
-			"effect_type": "spell",
-			"target_type": "opponent",
-			"abilities": [
-				{
-					"name": "Can't Summon",
-					"description": "Can't Summon",
-					"descriptive_id": "Can't Summon",
-					"turns": 1
-				}
-			]				
-		}]
 	},
 	{
 		"name": "Storm Surge",
@@ -731,37 +712,6 @@
 		"cost": 0
 	},
 	{
-		"name": "Kano from Barias",
-		"race": "elf",
-		"card_type": "mob",
-		"power": 0,
-		"toughness": 2,
-		"cost": 4,
-		"description": "You can't be reduced to less than 1 life.",
-		"effects": [{
-			"name": "add_player_abilities",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"abilities": [
-				{
-					"name": "Can't Die",
-					"description": "Can't Die",
-					"descriptive_id": "Can't Die"
-				}
-			]
-		},				
-		{
-			"name": "remove_player_abilities",
-			"effect_type": "leave_play",
-			"target_type": "self",
-			"abilities": [
-				{
-					"descriptive_id": "Can't Die"
-				}
-			]				
-		}]
-	},
-	{
 		"name": "Gnomish Mayor",
 		"race": "gnome",
 		"class": "bard",
@@ -770,18 +720,19 @@
 		"toughness": 1,
 		"cost": 1,
 		"description": "Summon a Townie.",
-		"effects": [{
-			"amount": 1,
-			"name": "make_token",
-			"card_name": "Townie",
-			"effect_type": "enter_play",
-			"target_type": "self"
-		}],
-		"abilities": [
+		"effects": [
 			{
-				"name": "Townie",
-				"descriptive_id": "Townie"
-			}
+				"amount": 1,
+				"name": "make_token",
+				"card_name": "Townie",
+				"effect_type": "enter_play",
+				"target_type": "self"
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]
 	},
 	{
@@ -793,51 +744,37 @@
 		"toughness": 2,
 		"cost": 2,
 		"description": "Add a Townie to your hand.",
-		"effects": [{
-			"name": "create_random_townie",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"amount": 1
-		},
-		{
-			"name": "Townie",
-			"descriptive_id": "Townie"
-		}
+		"effects": [
+			{
+				"name": "create_random_townie",
+				"effect_type": "enter_play",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "is_townie",
+				"description": "Townie",
+				"description_expanded": "Townies have a weak effect."
+			}			
 		]
-	},
-	{
-		"name": "Gnomish Soundsmith",
-		"race": "gnome",
-		"class": "bard",
-		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
-		"cost": 3,
-		"description": "Select an instrument from your deck.",
-		"effects": [{
-			"name": "fetch_card",
-			"effect_type": "enter_play",
-			"target_type": "artifact",
-			"target_restrictions": [{"needs_instrument": null}],
-			"amount": 1
-		}]
 	},
 	{
 		"name": "Bewitching Lights",
 		"race": "elf",
 		"card_type": "mob",
 		"power": 2,
+		"description": "Your opponent discards when damaged by this.",
 		"toughness": 2,
 		"cost": 3,
-		"abilities": [
-				{
-					"name": "discard_random",
-					"descriptive_id": "discard_random",
-					"amount": 1
-				}
+		"effects": [
+			{
+				"name": "discard_random",
+				"effect_type": "after_deals_damage_opponent",
+				"target_type": "opponent",
+				"amount": 1
+			}
 		]
 	},
-
 	{
 		"name": "Riffle",
 		"race": "elf",
@@ -965,15 +902,12 @@
 		"class": "bard",
 		"cost": 6,
 		"card_type": "spell",
-		"description": "Destroy all mobs and non-instrument artifacts that cost between 2 and 5 mana.",
-		"abilities": [
-				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
-		],
+		"description": "Destroy all mobs and artifacts that cost between 2 and 5 mana.",
 		"effects": [{
 			"name": "kill",
 			"effect_type": "spell",
 			"target_type": "all",
-			"target_restrictions": [{"min_cost": 2}, {"max_cost": 5}, {"instruments": false}]
+			"target_restrictions": [{"min_cost": 2}, {"max_cost": 5}]
 		}]
 	},
 	{
@@ -985,12 +919,6 @@
 		"toughness": 9,
 		"cost": 7,
 		"description": "Gain control of a random mob at the beginning of your turn.",
-		"abilities": [			
-			{
-				"name": "Instrument Required",
-				"descriptive_id": "Instrument Required"
-			}
-		],
 		"effects": [{
 				"name": "take_control",
 				"effect_type": "start_turn",
@@ -1012,9 +940,6 @@
 		"cost": 7,
 		"card_type": "spell",
 		"description": "Draw a card for each mob you control.",
-		"abilities": [
-				{"name": "Instrument Required", "descriptive_id": "Instrument Required"}
-		],
 		"effects": [{
 			"name": "draw",
 			"effect_type": "spell",
@@ -1031,7 +956,7 @@
 		"power": 8,
 		"toughness": 8,
 		"cost": 8,
-		"description": "Draw 2 cards. Draw an extra card each turn. As long as you control an instrument, you can't be reduced to less than 1 hit point.",
+		"description": "Draw 2 cards. Draw an extra card each turn",
 		"effects": [
 			{
 				"name": "force_attack_guard_first",
@@ -1040,12 +965,6 @@
 				"effect_type": "select_mob_target"
 			}
 		],	
-		"abilities": [			
-			{
-				"name": "Instrument Required",
-				"descriptive_id": "Instrument Required"
-			}
-		],
 		"effects": [{
 				"name": "draw",
 				"effect_type": "start_turn",
@@ -1058,28 +977,6 @@
 				"target_type": "self",
 				"amount": 2
 			},		
-			{
-				"name": "add_player_abilities",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"name": "Can't Die",
-						"description": "Can't Die",
-						"descriptive_id": "Can't Die"
-					}
-				]
-			},				
-			{
-				"name": "remove_player_abilities",
-				"effect_type": "leave_play",
-				"target_type": "self",
-				"abilities": [
-					{
-						"descriptive_id": "Can't Die"
-					}
-				]				
-			},
 			{
 				"name": "force_attack_guard_first",
 				"description": "Guard",
@@ -1098,12 +995,6 @@
 		"toughness": 6,
 		"cost": 9,
 		"description": "All your other mobs get +3/+3 and may attack again.",
-		"abilities": [			
-			{
-				"name": "Instrument Required",
-				"descriptive_id": "Instrument Required"
-			}
-		],
 		"effects": [
 			{
 				"name": "add_tokens",
@@ -1177,19 +1068,19 @@
 		"image": "prayer-beads.svg",
 		"cost": 1,
 		"description": "Pay 1, heal 2 hit points",
-		"abilities": [
+		"effects": [
 			{
-				"name": "Starts in play, max 1.",
-				"descriptive_id": "Starts in Play"
-			}
-		],
-		"effects": [{
 				"name": "heal",
 				"effect_type": "activated",
 				"target_type": "any",
 				"cost": 1,
 				"amount": 2
-		}]
+			},
+			{
+				"name": "start_in_play",
+				"effect_type": "after_shuffle"
+			}
+		]
 	},
 	{
 		"name": "Hide",
@@ -1222,5 +1113,20 @@
 				"ai_target_types": ["self_mob"]
 			}
 		]
-	}	
+	},	
+	{
+		"name": "Fountain of Youth",
+		"discipline": "none",
+		"image": "water-fountain.svg",
+		"card_type": "artifact",
+		"description": "Gain 1 hit point per card in hand more than 5, at beginning of your turn, to a maximum of 30.",
+		"cost": 3,
+		"effects": [{
+			"name": "heal",
+			"amount_id": "hand_less_amount",
+			"target_type": "self",
+			"effect_type": "start_turn",
+			"amount": 5
+		}]
+	}
 ]

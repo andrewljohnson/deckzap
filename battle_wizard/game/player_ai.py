@@ -86,8 +86,6 @@ class PlayerAI(Player):
 
     def add_resolve_make_moves(self, moves):
         move_type = "MAKE_CARD"
-        if self.card_choice_info["cards"][0].card_type == "Effect":
-            move_type = "MAKE_EFFECT"
         for x in range(0,3):
             moves.append({"card":self.card_choice_info["cards"][x].as_dict() , "move_type": move_type, "username": self.username})              
         return moves 

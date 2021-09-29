@@ -92,35 +92,6 @@ export class Card {
         }
         cardSprite.addChild(nameBackground);
 
-        if ("effects" in card) {
-	        for (let e of card.effects) {
-	            // hax, don't reference card name
-	            if (e.name == "evolve" && card.name != "Warty Evolver") {
-	                let evolveLabelOptions = Constants.textOptions();
-	                evolveLabelOptions.fill = Constants.whiteColor;
-	                evolveLabelOptions.fontSize = 6;
-	                const evolveLabel = new PIXI.Sprite.from(PIXI.Texture.WHITE);
-	                evolveLabel.tint = Constants.blueColor;
-	                evolveLabel.height = 6;
-	                evolveLabel.alpha = .7;
-	                evolveLabel.position.x = aFX + 8;
-	                evolveLabel.position.y = aFY + 2 - evolveLabel.height - Constants.padding;
-	                if (useLargeSize) {
-	                    evolveLabelOptions.fontSize = Constants.defaultFontSize;
-	                    evolveLabel.position.x -= 4
-	                    evolveLabel.height = 12;
-	                    evolveLabel.position.y += evolveLabel.height
-	                }
-	                cardSprite.addChild(evolveLabel);
-	                let evolveText = new PIXI.Text("Evolved", evolveLabelOptions);
-	                evolveLabel.width = evolveText.width + Constants.padding;
-	                cardSprite.addChild(evolveText);
-	                evolveText.position.x = evolveLabel.position.x;
-	                evolveText.position.y = evolveLabel.position.y;
-	            }
-	        }
-		}
-
         nameOptions.fill = Constants.whiteColor;
         let name = new PIXI.Text(card.name, nameOptions);
         cardSprite.addChild(name);
@@ -144,56 +115,56 @@ export class Card {
 	        for (let e of card.effects) {
 	            if (e.effect_type == "activated" && e.enabled) {
 	                activatedEffects.push(e)
-	                if (e.name == "attack" || e.name == "create_random_townie") {
+	                if (e.name == "create_random_townie") {
 	                    attackEffect = e;
 	                }
 	            }
 	        }
 	    }
 
-        if (card.card_type != "Effect") {
-            let costX = Constants.padding * 3 - Card.cardWidth/2;
-            let costY = Constants.padding * 3 - Card.cardHeight/2;
-            if (useLargeSize) {
-                costX -= cw/4;
-                costY -= ch/4;
-            }
+        let costX = Constants.padding * 3 - Card.cardWidth/2;
+        let costY = Constants.padding * 3 - Card.cardHeight/2;
+        if (useLargeSize) {
+            costX -= cw/4;
+            costY -= ch/4;
+        }
 
-            imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "amethyst.svg"));
-            imageSprite.tint = Constants.blueColor;
-            imageSprite.height = 28;
-            imageSprite.width = 28;
-            
-            imageSprite.position.x = costX;
-            imageSprite.position.y = costY;
-            cardSprite.addChild(imageSprite);
+        imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "amethyst.svg"));
+        imageSprite.tint = Constants.blueColor;
+        imageSprite.height = 28;
+        imageSprite.width = 28;
+        
+        imageSprite.position.x = costX;
+        imageSprite.position.y = costY;
+        cardSprite.addChild(imageSprite);
 
-            let ptOptions = Constants.textOptions()
-            ptOptions.stroke = Constants.blackColor;
-            ptOptions.strokeThickness = 2;
-            ptOptions.fill = Constants.whiteColor;
-            ptOptions.fontSize = 16
-            
-            let cost = new PIXI.Text(card.cost, ptOptions);
-            cost.position.x = costX;
-            cost.position.y = costY;
-            cardSprite.addChild(cost);
+        let ptOptions = Constants.textOptions()
+        ptOptions.stroke = Constants.blackColor;
+        ptOptions.strokeThickness = 2;
+        ptOptions.fill = Constants.whiteColor;
+        ptOptions.fontSize = 16
+        
+        let cost = new PIXI.Text(card.cost, ptOptions);
+        cost.position.x = costX;
+        cost.position.y = costY;
+        cardSprite.addChild(cost);
 
-        }            
 
         let effectsText = "";
         let color = Constants.darkGrayColor;
         if ("effects" in card) {
+            let describe_effects = []
 	        for (let e of card.effects) {
-	            if (!["Starts in Play", undefined].includes(e.description)) {
-	                if (e.description) {
-	                    effectsText += e.description;
-	                    color = Constants.blackColor;
-                        if (e != card.effects[card.effects.length-1]) {                
-                               effectsText += ", ";
-                        }               
-	                }
-	            }
+                if (e.description && e.description_on_card) {
+                    describe_effects.push(e);
+                }
+            }
+            for (let e of describe_effects) {
+                effectsText += e.description;
+                color = Constants.blackColor;
+                if (e != describe_effects[describe_effects.length-1]) {                
+                    effectsText += ", ";
+                }               
 	        }
 
 	        if ("tokens" in card) {
@@ -208,6 +179,7 @@ export class Card {
 		    }
         }
 
+        /// todo: move serverside
         let baseDescription =  card.description ? card.description : "";
         if (card.name == "Tame Shop Demon") {
            baseDescription = card.effects[0].card_descriptions[card.level];
@@ -230,7 +202,6 @@ export class Card {
         if (card.card_for_effect && card.name == "Duplication Chamber") {
            baseDescription = `Get two copies of ${card.card_for_effect.name} back next turn.`;
         }
-
 
         if (card.added_descriptions && card.added_descriptions.length) {
             for (let d of card.added_descriptions) {
@@ -256,9 +227,7 @@ export class Card {
         }
 
         if (baseDescription || effectsText.length) {
-            if (card.card_type != Constants.mobCardType || card.turn_played == -1 || card.turn_played == undefined) {
-                cardSprite.addChild(description);
-            }
+            cardSprite.addChild(description);
         }
         description.position.x = name.position.x;
         description.position.y = name.position.y + 45;
@@ -267,7 +236,7 @@ export class Card {
         }
         
         if (useLargeSize) {
-            Card.showAbilityPanels(cardSprite, card, cw, ch);
+            Card.showInfoPanels(cardSprite, card, cw, ch);
             if (card.card_for_effect) {
                 let subcard = Card.sprite(card.card_for_effect, pixiUX, game, player, true, true);
                 Card.setCardAnchors(subcard);
@@ -350,6 +319,7 @@ export class Card {
     static spriteInPlay(card, pixiUX, game, player, dont_attach_listeners) {
         let cardTexture = Card.cardTextureInPlay;
         for (let e of card.effects) {
+            // todo: set texture string in JSON
             if (e.name == "force_attack_guard_first") {
                 cardTexture = Card.cardTextureInPlayGuard;
             }                    
@@ -360,6 +330,7 @@ export class Card {
         cardSprite.addChild(imageSprite);
         Card.ellipsifyImageSprite(imageSprite, card, 70, 132)
 
+        // todo: implement this in a player-implementable way - let player supply display code?
         if (card.name == "Mana Battery") {
             let currentBatteryMana = 0;
             for (let effect of card.effects) {
@@ -367,7 +338,6 @@ export class Card {
                     currentBatteryMana = Math.max(0, effect.counters);
                 }
             }
-            console.log(currentBatteryMana)
             let gems = Constants.manaGems(3, currentBatteryMana);
             gems.position.x = -gems.width/2;
             gems.position.y = Card.cardHeight/2 - 7 - gems.height;
@@ -417,7 +387,7 @@ export class Card {
         for (let e of card.effects) {
             if (e.effect_type == "activated" && e.enabled) {
                 activatedEffects.push(e)
-                if (e.name == "attack" || e.name == "create_random_townie") {
+                if (e.name == "create_random_townie") {
                     attackEffect = e;
                 }
             }
@@ -425,27 +395,11 @@ export class Card {
 
         if (card.card_type == Constants.mobCardType) {
             Card.addStats(card, cardSprite, player, -8, -14, Card.cardWidth-16, Card.cardHeight, false)
-        } else if (card.turn_played == -1 && !attackEffect) {
-            let type = new PIXI.Text(card.card_type, options);
-            type.position.x =  - 28;
-            type.position.y =  - 18;
-            cardSprite.addChild(type);
         }
 
         if (attackEffect) {
-            if (attackEffect.name == "create_random_townie") {
-                let attackEffectOptions = Constants.textOptions() 
-                Card.addCircledLabel(-Constants.padding * 8, Card.cardHeight / 2 - Constants.padding * 6, cardSprite, attackEffectOptions, attackEffect.counters, Constants.yellowColor);
-            } else {
-                let powerX = -Constants.padding * 8;
-                let powerY = Card.cardHeight / 2 - Constants.padding * 6
-                let countersX = powerX + Card.cardWidth / 2;
-                let attackEffectOptions = Constants.textOptions() 
-                attackEffectOptions.fill = Constants.whiteColor;
-                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
-                attackEffectOptions.fill = Constants.blackColor;
-                Card.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power, Constants.yellowColor);
-            }
+            let attackEffectOptions = Constants.textOptions() 
+            Card.addCircledLabel(-Constants.padding * 8, Card.cardHeight / 2 - Constants.padding * 6, cardSprite, attackEffectOptions, attackEffect.counters, Constants.yellowColor);
         }
 
         if (card.card_for_effect) {
@@ -724,7 +678,7 @@ export class Card {
         return background;
     }
 
-    static showAbilityPanels(cardSprite, card, cw, ch) {
+    static showInfoPanels(cardSprite, card, cw, ch) {
     	if (!card.effects) {
     		return;
     	}
@@ -738,53 +692,20 @@ export class Card {
         const textContainer = new PIXI.Container();
         cardSprite.addChild(textContainer);
         let yPosition = 0;
-        let abilityText = new PIXI.Text("", options);
-        if (card.abilities) {
-            for (let a of card.abilities) {
-                if (a.name == "Instant Attack") {
-                    abilityText.text = "Instant Attack - Instant Attack mobs can attack as instants.";
-                }                    
-                if (a.name == "Instrument Required") {
-                    abilityText.text = "Instrument Required - You must have an Instrument in play to play Card.";
-                }                    
-                if (a.name == "Townie") {
-                    abilityText.text = "Townie - Townies have a little ability.";
-                }                    
-                if (a.name == "Unique") {
-                    abilityText.text = "Unique - only one Unique card is allowed per deck.";
-                }                    
-                if (a.name == "Instrument") {
-                    abilityText.text = "Instrument - Instruments have special abilities and are needed for other cards.";
-                } 
-                if (a.name == "Keep") {
-                    abilityText.text = "Keep - Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.";
-                }                    
-                if (a.name == "Disappear") {
-                    abilityText.text = "Disappear - Cards with Disappear don't go to the Played Pile when played, they are removed instead.";
-                }                    
-            }
-        }
+        let infoText = new PIXI.Text("", options);
     	if (card.effects) {
 	        for (let e of card.effects) {
-	            if (e.name == "evolve") {
-	                let effectText = new PIXI.Text("", options);
-	                effectText.text = "Evolve - Evolve Mobs turn into better ones when they die.";
-	                effectText.position.x -= cw / 2 - 4;
-	                effectText.position.y = yPosition - ch / 2 + 2;
-	                yPosition += effectText.height + 10;
-	                textContainer.addChild(effectText);
-	            }                    
                 if (e.description_expanded != undefined) {
-                    abilityText.text = `${e.description} - ${e.description_expanded}`;
+                    infoText.text += `${e.description} - ${e.description_expanded}\n\n`;
                 }                   	        
             }
 	    }
 
-        if (abilityText.text) {
-            abilityText.position.x -= cw/2 - 4;
-            abilityText.position.y = yPosition - ch/2 + 2;
-            yPosition += abilityText.height + 10;
-            textContainer.addChild(abilityText);
+        if (infoText.text) {
+            infoText.position.x -= cw/2 - 4;
+            infoText.position.y = yPosition - ch/2 + 2;
+            yPosition += infoText.height + 10;
+            textContainer.addChild(infoText);
         }
 
         if (yPosition == 0) {
@@ -960,18 +881,6 @@ export class Card {
         pixiUX.hovering = false
         pixiUX.app.stage.removeChild(pixiUX.hoverCards);
     }    
-
-    static hasAbility(card, abilityName) {
-        if (!card.abilities) {
-            return false;
-        }
-        for (let ability of card.abilities) {
-            if (ability.name == abilityName) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     static cardsForDeck(deck, allCards) {
         let cards = [];

@@ -1115,6 +1115,7 @@ export class GameUX {
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "make_from_deck") {
             this.showMakeFromDeckView(game);
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "riffle") {
+            // todo: make this more player implementable
             this.showRiffleView(game, "FINISH_RIFFLE");
         } else if (this.thisPlayer(game).card_choice_info.cards.length && this.thisPlayer(game).card_choice_info.choice_type == "fetch_artifact_into_hand") {
             this.showChooseCardView(game, "FETCH_CARD");
@@ -1131,11 +1132,7 @@ export class GameUX {
 
     showMakeView(game) {
         this.showSelectCardView(game, "Make a Card", card => {
-                if (card.global_effect) {
-                    this.gameRoom.sendPlayMoveEvent("MAKE_EFFECT", {"card":card});
-                } else {
-                    this.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
-                }
+            this.gameRoom.sendPlayMoveEvent("MAKE_CARD", {"card":card});
             });
     }
 
@@ -1369,33 +1366,33 @@ export class GameUX {
     }
 
     setCardDragListeners(card, cardSprite, game) {
-        if (card.can_be_clicked) {
-            let isHandCard = false;
-            for (let c of this.thisPlayer(game).hand) {
-                if (c.id == card.id) {
-                    isHandCard = true;
-                }
+        if (!card.can_be_clicked) {
+            return;
+        }
+        let isHandCard = false;
+        for (let c of this.thisPlayer(game).hand) {
+            if (c.id == card.id) {
+                isHandCard = true;
             }
-            //  todo: cleaner if/then for Duplication Chamber/Upgrade Chamber/Mana Coffin
-            if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
-                cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
-                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
-            } else if (this.thisPlayer(game).card_info_to_target.card_id) {
-                cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
-                cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
-            } else {
-                let self = this;
-                cardSprite
-                    .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
-                    .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
-                    .on('mouseup',          function ()  {onDragEnd(this, self)})
-                    .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
-                    .on('touchend',         function ()  {onDragEnd(this, self)})
-                    .on('touchendoutside',  function ()  {onDragEnd(this, self)})
-                    .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
-                    .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
-            }
-        } else { 
+        }
+        //  todo: cleaner if/then for Duplication Chamber/Upgrade Chamber/Mana Coffin
+        if (isHandCard && this.thisPlayer(game).card_info_to_target.effect_type == "artifact_activated") {
+            cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+            cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+        } else if (this.thisPlayer(game).card_info_to_target.card_id) {
+            cardSprite.on('click',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card":card.id});})
+            cardSprite.on('tap',        e => {this.gameRoom.sendPlayMoveEvent(moveTypeSelectCardInHand, {"card":card.id});})
+        } else {
+            let self = this;
+            cardSprite
+                .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
+                .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
+                .on('mouseup',          function ()  {onDragEnd(this, self)})
+                .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
+                .on('touchend',         function ()  {onDragEnd(this, self)})
+                .on('touchendoutside',  function ()  {onDragEnd(this, self)})
+                .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
+                .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
         }
     }
 
@@ -1764,28 +1761,26 @@ function onDragEnd(cardSprite, gameUX) {
     let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
 
     if (cardSprite.card.turn_played == -1) {
-        if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
-            gameUX.gameRoom.sendPlayMoveEvent(moveTypePlayCardInHand, {"card":cardSprite.card.id});
-            playedMove = true;
-        } else if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
+        if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectOpponent, {});
             playedMove = true;
         } else if(collidedSprite == gameUX.playerAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectSelf, {});
             playedMove = true;
-        } else {
-            if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
-                if (collidedSprite.card.turn_played == -1) {
-                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectStackSpell, {"card": collidedSprite.card.id});
-                } else if (collidedSprite.card.card_type == Constants.mobCardType) {
-                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card": collidedSprite.card.id});
-                } else if (collidedSprite.card.card_type == Constants.artifactCardType) {
-                    gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card": collidedSprite.card.id});
-                } else {
-                    console.log("tried to select unknown card type: " + collidedSprite.card.card_type);
-                }
-                playedMove = true;
+        } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
+            if (collidedSprite.card.turn_played == -1) {
+                gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectStackSpell, {"card": collidedSprite.card.id});
+            } else if (collidedSprite.card.card_type == Constants.mobCardType) {
+                gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectMob, {"card": collidedSprite.card.id});
+            } else if (collidedSprite.card.card_type == Constants.artifactCardType) {
+                gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectArtifact, {"card": collidedSprite.card.id});
+            } else {
+                console.log("tried to select unknown card type: " + collidedSprite.card.card_type);
             }
+            playedMove = true;
+        } else if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && cardSprite.card.can_be_clicked) {
+            gameUX.gameRoom.sendPlayMoveEvent(moveTypePlayCardInHand, {"card":cardSprite.card.id});
+            playedMove = true;
         }
     } else {  // it's a mob or artifact already in play
         if(collidedSprite == gameUX.opponentAvatar) {
@@ -1840,7 +1835,7 @@ function updateDraggedCardFilters(gameUX, cardSprite){
         Constants.targettingGlowFilter(),
         Constants.dropshadowFilter()
     ];
-    if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && !cardSprite.card.needs_targets) {
+    if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && cardSprite.card.can_be_clicked) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
     } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
     } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
