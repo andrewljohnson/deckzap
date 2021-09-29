@@ -246,14 +246,12 @@ class Player:
 
         self.game.actor_turn += 1
         self.game.stack.append([copy.deepcopy(message), card.as_dict()])
-        self.game.unset_clickables(message["move_type"])
-        self.game.set_clickables()
+        self.game.reset_clickables(message["move_type"])
 
         if not self.game.current_player().has_instants():
             self.game.actor_turn += 1
             message = self.play_card(card.id, message)
-            self.game.unset_clickables(message["move_type"], cancel_damage=False)
-            self.game.set_clickables()
+            self.game.reset_clickables(message["move_type"], cancel_damage=False)
             return message
 
         message["log_lines"].append(f"{self.username} starts to play {card.name}.")
@@ -371,6 +369,7 @@ class Player:
             message["log_lines"] += log_lines
         message = self.do_start_turn_card_effects(message)
         self.refresh_mana_for_turn()
+        self.game.reset_clickables(message["move_type"])
         return message
 
     def draw_for_turn(self):
@@ -581,8 +580,7 @@ class Player:
             print(f"can't select that Card, it's not in hand")
             return
 
-        print(f"in select_card_in_hand {card.name} can_be_clicked {card.can_be_clicked}")
-        if not card.can_be_clicked:
+        if "override_selection_for_lookahead" not in message and not card.can_be_clicked:
             print(f"can't select that Card, it can't be clicked maybe because there are no legal targets like with Lurker")
             return
 
@@ -593,8 +591,7 @@ class Player:
             artifact = self.selected_artifact()
             if artifact.effects[self.card_info_to_target["effect_index"]].target_type == "hand_card":
                 message = self.game.activate_artifact_on_hand_card(message, self.selected_artifact(), card, self.card_info_to_target["effect_index"])
-                self.game.unset_clickables(message["move_type"])
-                self.game.set_clickables()
+                self.game.reset_clickables(message["move_type"])
                 # cards like Mana Coffin and Duplication Chamber
                 artifact.effects[0].show_effect_animation = True
                 return message
@@ -623,8 +620,8 @@ class Player:
         # todo this is hardcoded, cant support multiple effects per card?
         self.card_info_to_target["effect_index"] = 0
 
-        self.game.unset_clickables(message["move_type"])
-        self.game.set_clickables()
+        self.game.reset_clickables(message["move_type"])
+
         return message
 
     def set_targets_for_mob_effect(self, target_restrictions):

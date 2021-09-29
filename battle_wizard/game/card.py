@@ -288,6 +288,8 @@ class Card:
             return self.do_remove_symbiotic_fast_effect
         elif name == "remove_tokens":
             return self.do_remove_tokens_effect
+        elif name == "restrict_effect_targets_min_cost":
+            return self.do_restrict_effect_targets_min_cost_effect
         elif name == "riffle":
             return self.do_riffle_effect
         elif name == "set_can_attack":
@@ -429,7 +431,6 @@ class Card:
         for m in game_copy.opponent().in_play:
             if m.can_be_clicked:                
                 found_attackable_mob = True
-                print(f"{self.name} found_attackable_mob {found_attackable_mob}")
         self.can_attack_mobs = found_attackable_mob
 
     def do_add_fast_effect(self, effect_owner, effect, target_info):
@@ -1234,6 +1235,27 @@ class Card:
         stack_spell[0]["effect_targets"][0]["id"] = effect_owner.game.next_card_id - 1
         return[f"{stack_spell[1]['name']} was redirected to a newly summoned {token_card_name}."]
 
+
+    def do_restrict_effect_targets_min_cost_effect(self, effect_owner, effect, target_info):
+        if self == effect_owner.selected_spell():
+            for player in effect_owner.game.players:
+                for pile in [player.in_play, player.artifacts]:
+                    for card in pile:
+                        if card.can_be_clicked and card.cost < effect.amount:
+                            card.can_be_clicked = False
+        elif target_info["move_type"] != "SELECT_CARD_IN_HAND" and effect_owner.current_mana() >= self.cost:
+            # clone the game so we can do a move in the cloned game to select the card with target restrictions
+            # then, check if there are any targets in the cloned game (e.g. card.can_be_clicked == True)
+            game_copy = copy.deepcopy(effect_owner.game)
+            game_copy.play_move({"username": effect_owner.username, "move_type": "SELECT_CARD_IN_HAND", "card": self.id, "override_selection_for_lookahead": True})        
+            has_targets = False
+            for player in game_copy.players:
+                for pile in [player.in_play, player.artifacts]:
+                    for card in pile:
+                        if card.can_be_clicked:
+                            has_targets = True
+            self.can_be_clicked = has_targets
+
     def do_remove_tokens_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self_mobs":
             for mob in effect_owner.in_play:
@@ -1526,7 +1548,7 @@ class Card:
         target_player.clear_damage_this_turn()
         target_player.game.turn += 2
         log_lines = [f"{target_player.username} takes an extra turn."]
-        message = target_player.start_turn({"log_lines":[]})
+        message = target_player.start_turn({"log_lines":[], "move_type": "START_TURN"})
         log_lines += message["log_lines"]
         return log_lines
 

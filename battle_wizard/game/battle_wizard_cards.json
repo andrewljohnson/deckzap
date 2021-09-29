@@ -1877,13 +1877,20 @@
 		"cost": 2,
 		"card_type": "spell",
 		"description": "Destroy something that costs more than 3 mana.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "spell",
-			"target_type": "mob_or_artifact",
-			"target_restrictions": [{"min_cost": 3}],
-			"ai_target_types": ["opponents_mob", "opponents_artifact"]
-		}]
+		"effects": [
+			{
+				"name": "kill",
+				"effect_type": "spell",
+				"target_type": "mob_or_artifact",
+				"ai_target_types": ["opponents_mob", "opponents_artifact"]
+			},
+			{
+				"name": "restrict_effect_targets_min_cost",
+				"effect_type": "select_mob_target_override",
+				"amount": 3,
+				"ai_target_types": ["opponents_mob", "opponents_artifact"]
+			}
+		]
 	},
 	{
 		"name": "Fine War Music",

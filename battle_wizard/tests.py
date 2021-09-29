@@ -177,10 +177,12 @@ class GameObjectTests(TestCase):
             Test take_control effect lets caster attack with a mob that has the add_fast effect.
         """
         game = self.game_for_decks([["OG Vamp"], ["Mind Manacles"]])
-        game.players[0].mana += game.players[0].hand[0].cost
+        for x in range(0,5):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         game.play_move({"username": "a", "move_type": "END_TURN"})
-        game.players[1].mana += game.players[1].hand[0].cost
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})        
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
@@ -194,12 +196,14 @@ class GameObjectTests(TestCase):
             Test take_control effect lets caster attack with a mob that has the add_ambush effect.
         """
         game = self.game_for_decks([["Stone Elemental", "Tame-ish Sabretooth"], ["Mind Manacles"]])
-        for card in game.players[0].hand:
-            game.players[0].mana += card.cost
+        for x in range(0,8):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         game.play_move({"username": "a", "move_type": "END_TURN"})
-        game.players[1].mana += game.players[1].hand[0].cost
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})        
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1})
@@ -233,7 +237,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0})
         legal_moves = PlayerAI(game, game.current_player().as_dict()).legal_moves_for_ai()
-        print(legal_moves)
         self.assertEqual(len(legal_moves), 1)
         self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)
         self.assertEqual(game.opponent().can_be_clicked, False)
@@ -467,31 +470,39 @@ class GameObjectTests(TestCase):
             Test Arsenal and Mind Manacles.
         """
         game = self.game_for_decks([["War Scorpion", "Arsenal"], ["Mind Manacles"]])
-        for card in game.players[0].hand:
-            game.players[0].mana += card.cost
+        for x in range(0,5):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(game.current_player()), 3)
         game.play_move({"username": "a", "move_type": "END_TURN"})
-        for card in game.players[1].hand:
-            game.players[1].mana += card.cost
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(game.current_player()), 2)
 
-    def test_arsenal_manacles(self):
+    def test_arsenal_manacles_two_scorpions(self):
         """
             Test Arsenal and and Mind Manacles
         """
         game = self.game_for_decks([["War Scorpion", "Akbar's Pan Pipes", "Arsenal", "War Scorpion"], ["Mind Manacles"]])
+        for x in range(0,5):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
         for card in game.players[0].hand:
             game.players[0].mana += card.cost    
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 3})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 2})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(game.current_player()), 3)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(game.current_player()), 4)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         self.assertEqual(game.current_player().in_play[0].power_with_tokens(game.current_player()), 4)
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.players[1].mana = game.players[1].hand[0].cost    
@@ -639,12 +650,14 @@ class GameObjectTests(TestCase):
         deck1 = ["Riftwalker Djinn"]
         deck2 = ["Zap", "Zap"]
         game = self.game_for_decks([deck1,deck2])
-        for card in game.players[0].hand:
-            game.players[0].mana += card.cost
+        for x in range(0,4):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
+
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})        
+        game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})        
         game.play_move({"username": "a", "move_type": "END_TURN"})
-        for card in game.players[1].hand:
-            game.players[1].mana += card.cost
+
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})        
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})        
         self.assertEqual(game.opponent().in_play[0].damage, 0)
@@ -1255,3 +1268,21 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "END_TURN"})
         self.assertEqual(len(game.current_player().hand), 1)
         self.assertEqual(game.players[0].hand[0].cost, 0)
+
+    def test_restrict_effect_targets_min_cost_effect(self):
+        """
+            Test a spell with restrict_effect_targets_min_cost can't be selected without a valid target, but can with a valid one.
+        """
+        game = self.game_for_decks([["Stone Elemental", "Sabotage", "Riftwalker Djinn"], []])
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.players[0].mana += game.players[0].hand[1].cost
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[0].selected_spell(), None)
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 2})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[0].selected_spell(), game.players[0].hand[0])
+        # self.assertEqual(len(game.current_player().in_play), 2)
+        # game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2})
+        # self.assertEqual(len(game.current_player().in_play), 1)

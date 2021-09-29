@@ -240,11 +240,9 @@ class PlayerAI(Player):
             time_for_next_move = False
             if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
                 time_for_next_move = True
-            self.game.set_clickables()
+            self.game.set_clickables(None)
             moves = self.legal_moves_for_ai()
             if (time_for_next_move or len(moves) == 1) and not self.ai_running:
                 if self.game.players[0].hit_points > 0 and self.hit_points > 0: 
                     print("running AI, choosing from moves: " + str(moves))
                     self.run_ai(moves, consumer)
-
-
