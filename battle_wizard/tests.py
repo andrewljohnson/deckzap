@@ -326,7 +326,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, 29)
 
-    def test_war_scorpion(self):
+    def test_war_scorpion_gain_symbiotic_fast_effect(self):
         """
             Test War Scorpion.
         """
@@ -341,6 +341,22 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
         self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points - game.players[0].in_play[0].power_with_tokens(game.players[0]) - game.players[0].in_play[1].power_with_tokens(game.players[0]))
+
+    def test_war_scorpion_remove_symbiotic_fast_effect(self):
+        """
+            Test War Scorpion stps being Fast if the only Fast guy dies
+        """
+        game = self.game_for_decks([["War Scorpion", "Taunted Bear", "Zap"], []])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 2, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 1, "log_lines":[]})
+        self.assertEqual(len(game.current_player().in_play), 1)
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0, "log_lines":[]})
+        game.play_move({"username": "a", "move_type": "SELECT_OPPONENT", "log_lines":[]})
+        self.assertEqual(game.opponent().hit_points, game.opponent().max_hit_points)
 
     def test_berserk_monkey(self):
         """

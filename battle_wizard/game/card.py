@@ -1446,10 +1446,13 @@ class Card:
         effects_to_remove = []
         for effect in self.effects:
             if effect.name == "add_fast":
-               effects_to_remove.append(effect)
-               break 
+                effects_to_remove.append(effect)
+                if not self.has_effect("add_ambush"):
+                    self.can_attack_mobs = False
+                self.can_attack_players = False
+                break 
         for effect in effects_to_remove:
-            self.effect.remove(effect)
+            self.effects.remove(effect)
 
     def do_set_token_effect(self, effect_owner, effect, target_info):
         print("do_set_token_effect")
