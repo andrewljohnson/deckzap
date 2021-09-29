@@ -579,7 +579,12 @@ class Player:
                 break
         if not card:
             print(f"can't select that Card, it's not in hand")
-            return None
+            return
+
+        print(f"in select_card_in_hand {card.name} can_be_clicked {card.can_be_clicked}")
+        if not card.can_be_clicked:
+            print(f"can't select that Card, it can't be clicked maybe because there are no legal targets like with Lurker")
+            return
 
         message["card_name"] = card.name
         has_mob_target = False

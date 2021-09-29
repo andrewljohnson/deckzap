@@ -564,7 +564,7 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "END_TURN"})
         self.assertEqual(game.current_player().username, "b")
 
-    def test_guard_lurker(self):
+    def test_lurker_guard(self):
         """
             Test you can attack past a mob with Guard+Lurker.
         """
@@ -582,6 +582,18 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT"})
         self.assertEqual(game.opponent().hit_points, 28)
+
+    def test_lurker_spell_selection(self):
+        """
+            Test you can't select a spell that targets mobs if the only mob has lurker
+        """
+        game = self.game_for_decks([["Winding One", "Kill"], []])
+        for card in game.players[0].hand:
+            game.players[0].mana += card.cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0})
+        self.assertEqual(game.players[0].selected_spell(), None)
 
     def test_mana_storm(self):
         """

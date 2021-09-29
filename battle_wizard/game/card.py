@@ -1152,7 +1152,7 @@ class Card:
                 effect_owner.game.set_attack_clicks(omit_mobs=[self])
 
         for card in effect_owner.game.current_player().hand:
-            if card.card_type == "Spell" and card.can_be_clicked == True:
+            if card.card_type == Constants.spellCardType and card.can_be_clicked == True and card.needs_mob_target():
                 card.can_be_clicked = False
                 for mob in effect_owner.in_play + effect_owner.my_opponent().in_play:
                     if mob.can_be_clicked:
