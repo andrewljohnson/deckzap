@@ -1118,7 +1118,9 @@
 							"outer_strength": 0,
 							"inner_strength": 3,
 							"color": "black"
-						}
+						},
+						"description": "Lurker",
+						"description_expanded": "Lurker mobs can't be targetted by spells or attacks."
 					}
 				],
 				"ai_target_types": ["self_mob"]

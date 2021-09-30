@@ -694,6 +694,13 @@ export class Card {
                 if (e.description_expanded != undefined) {
                     infoText.text += `${e.description} - ${e.description_expanded}\n\n`;
                 }                   	        
+                if (e.effects) {
+                    for (let ee of e.effects) {
+                        if (ee.description_expanded != undefined) {
+                            infoText.text += `${ee.description} - ${ee.description_expanded}\n\n`;
+                        }                               
+                    }
+                }                
             }
 	    }
 

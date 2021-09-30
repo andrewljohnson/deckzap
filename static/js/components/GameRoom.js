@@ -57,7 +57,7 @@ export class GameRoom {
                 if (data["username"] == usernameParameter) {
                    window.location.href = this.nextRoomUrl();
                 } else {
-                    setTimeout(function(){
+                    setTimeout(() => {
                         window.location.href = this.nextRoomUrl();
                     }, 100); 
                 }
