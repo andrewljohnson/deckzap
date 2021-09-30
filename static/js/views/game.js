@@ -896,7 +896,7 @@ export class GameUX {
         let ropeTime = tickMS*4;
         this.ropeGodrayTimeTicker = () => {
             if (sprite.position.x >= ropeLength) {
-                this.gameRoom.endTurn()
+                this.gameRoom.sendPlayMoveEvent("END_TURN", {});
                 this.showingRope = false;
                 sprite.filters = []; 
                 this.app.ticker.remove(this.ropeGodrayTimeTicker)            
@@ -1469,9 +1469,9 @@ export class GameUX {
 
         let clickFunction = () => {
             if (game.stack.length > 0) {
-                this.gameRoom.pass(message)
+                this.gameRoom.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
             } else {
-                this.gameRoom.endTurn()
+                this.gameRoom.sendPlayMoveEvent("END_TURN", {});
             }
             if (this.ropeSprite) {
                 this.showingRope = false;

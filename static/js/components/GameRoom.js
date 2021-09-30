@@ -28,65 +28,59 @@ export class GameRoom {
             this.sendHeartbeatRequest()
             console.log('WebSockets connection created.');
         } else {
-            let self = this;
-            setTimeout(function () {
-                self.connect();
+            setTimeout(() => {
+                this.connect();
             }, 100);
         }
     }
 
     sendHeartbeatRequest() {
-        let self = this;
-        setTimeout(function () {
-            self.sendPlayMoveEvent( "GET_TIME", {});
-            self.sendHeartbeatRequest();
+        setTimeout(() => {
+            this.sendPlayMoveEvent( "GET_TIME", {});
+            this.sendHeartbeatRequest();
         }, 500);
     }
 
     setupSocket() {
         this.gameSocket = new WebSocket(this.roomSocketUrl());
-
-        let self = this;
-        this.gameSocket.onclose = function (e) {
+        this.gameSocket.onclose = e => {
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
-            setTimeout(function () {
-                self.connect();
+            setTimeout(() => {
+                this.connect();
             }, 1000);
         };
 
-        this.gameSocket.onmessage = function (e) {
+        this.gameSocket.onmessage = e => {
             let data = JSON.parse(e.data)["payload"];
             if (data["move_type"] == "NEXT_ROOM") {
                 let usernameParameter = Constants.getSearchParameters()["username"];
                 if (data["username"] == usernameParameter) {
-                   window.location.href = self.nextRoomUrl();
+                   window.location.href = this.nextRoomUrl();
                 } else {
                     setTimeout(function(){
-                        window.location.href = self.nextRoomUrl();
+                        window.location.href = this.nextRoomUrl();
                     }, 100); 
                 }
             } else if (data["move_type"] == "GET_TIME") {
                 if (data["turn_time"] >= data["max_turn_time"]) {
-                    self.gameUX.maybeShowRope();   
+                    this.gameUX.maybeShowRope();   
                 }
             } else {
                 let game = data["game"];
                 if (!data["game"]) {
                     console.log(data);                    
                 } else {
-                  self.gameUX.game = game;  
+                  this.gameUX.game = game;  
                 }
-                if (!self.gameUX.allCards) {
-                    self.gameUX.allCards = data["all_cards"]
+                if (!this.gameUX.allCards) {
+                    this.gameUX.allCards = data["all_cards"]
                 }
-                self.gameUX.refresh(game, data);
+                this.gameUX.refresh(game, data);
                 if (data["log_lines"]) {
-                    self.gameUX.logMessage(data["log_lines"]);
+                    this.gameUX.logMessage(data["log_lines"]);
                 }
             }
         };
-
-
     }
 
     roomSocketUrl() {
@@ -140,18 +134,8 @@ export class GameRoom {
         if (this.gameSocket.readyState != WebSocket.OPEN) {
             window.location.href = this.nextRoomUrl();
         }
-
         this.gameSocket.send(JSON.stringify(
             {"move_type": "NEXT_ROOM", "username":this.username}
         ));
     }
-
-    endTurn() {
-        this.sendPlayMoveEvent("END_TURN", {});
-    }
-
-    pass(message) {
-        this.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
-    }
-
 }

@@ -469,7 +469,6 @@ class Game:
         self.opponent().remove_temporary_tokens()
         self.current_player().clear_damage_this_turn()
         self.opponent().clear_damage_this_turn()
-        self.current_player().clear_artifact_effects_targetted_this_turn()
 
         hand_cards = [card for card in self.current_player().hand]
 
@@ -708,12 +707,6 @@ class Game:
                 message = self.select_player_target(target_player.username, self.current_player().selected_spell(), message, "PLAY_CARD")
         elif self.current_player().selected_artifact():
             target_player = self.current_player() if move_type == 'SELECT_SELF' else self.opponent()
-            # todo hardcoded 0 index
-            effect = self.current_player().selected_artifact().effects[0]
-            for info in effect.targetted_this_turn:
-                if info["target_type"] == "player":
-                    print(f"already attacked {target_player.username} with {self.current_player().selected_artifact().name}")
-                    return None                
             if not target_player.can_be_clicked:
                 print(f"can't attack {target_player.username}, probably because a Mob has Guard and the client let through a bad move")
                 return

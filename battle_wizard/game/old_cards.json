@@ -9,7 +9,7 @@
 		"description": "Get a 2/1 dryad token when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Pine Dryad",
+			"card_names": ["Pine Dryad"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
@@ -34,7 +34,7 @@
 		"description": "Get a 1/2 dryad token with Guard when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Oak Dryad",
+			"card_names": ["Oak Dryad"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
@@ -73,7 +73,7 @@
 		"effects": [
 			{
 				"name": "make_token",
-				"card_name": "Elemental",
+				"card_names": ["Elemental"],
 				"target_type": "opponent",
 				"effect_type": "enter_play",
 				"amount": 2
@@ -707,7 +707,7 @@
 		"description": "Fill your board with 1/1 mushrooms.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Mushroom",
+			"card_names": ["Mushroom"],
 			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 7
@@ -735,7 +735,7 @@
 			{
 				"amount": 1,
 				"name": "make_token",
-				"card_name": "Townie",
+				"card_names": ["Townie"],
 				"effect_type": "enter_play",
 				"target_type": "self"
 			},
@@ -814,7 +814,7 @@
 		"effects": [
 			{
 				"name": "make_token",
-				"card_name": "Life Guardian Reborn",
+				"card_names": ["Life Guardian Reborn"],
 				"effect_type": "leave_play",
 				"target_type": "self",
 				"amount": 1
@@ -856,7 +856,7 @@
 		"description": "Get an 8/8 mob with Guard when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Great Guardian Reborn",
+			"card_names": ["Great Guardian Reborn"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
@@ -896,7 +896,7 @@
 		"description": "Add 2 Town Rangers to your hand.",
 		"effects": [{
 				"name": "create_card",
-				"card_name": "Town Ranger",
+				"card_names": ["Town Ranger"],
 				"effect_type": "enter_play",
 				"target_type": "self",
 				"amount": 2

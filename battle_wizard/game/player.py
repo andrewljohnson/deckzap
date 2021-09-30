@@ -642,15 +642,6 @@ class Player:
             card.can_be_clicked = True
         self.can_be_clicked = True
 
-        if effect:
-            for info in effect.targetted_this_turn:
-                if info["target_type"] == "player":
-                    self.can_be_clicked = False
-                else:
-                    card, _ = self.game.get_in_play_for_id(info["id"])
-                    if card:
-                        card.can_be_clicked = False
-
     def set_targets_for_hand_card_effect(self):
         for card in self.hand:
             card.can_be_clicked = True
@@ -662,12 +653,6 @@ class Player:
 
     def has_target_for_mob_effect(self):
         return len(self.in_play) > 0
-
-    def clear_artifact_effects_targetted_this_turn(self):
-        # for Multishot Bow
-        for r in self.artifacts:
-            for e in r.effects:
-                e.targetted_this_turn = []
 
     def clear_damage_this_turn(self):
         for c in self.in_play:

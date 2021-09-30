@@ -389,7 +389,7 @@ class Card:
         if self.card_type == Constants.spellCardType:
             player.played_pile.append(self)
 
-        spell_to_resolve["card_name"] = self.name
+        spell_to_resolve["card_names"] = [self.name]
         spell_to_resolve["show_spell"] = self.as_dict()
 
         return spell_to_resolve
@@ -534,14 +534,9 @@ class Card:
             return None
 
         effect_owner.game.stack.remove(stack_spell)
-        #spell_to_resolve = message
-        #spell_to_resolve["log_lines"] = []
         card = Card(stack_spell[1])
         effect_owner.game.current_player().send_card_to_played_pile(card, did_kill=False)
         return [f"{card.name} was countered by {effect_owner.game.opponent().username}."]
-        # todo: figure if this matter
-        # spell_to_resolve["card_name"] = card.name
-        # return spell_to_resolve
 
     def do_create_card_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "self":
@@ -552,13 +547,13 @@ class Card:
                     return
                 card_to_create = None
                 for card in Card.all_card_objects():
-                    if card.name == effect.card_name:
+                    if card.name == effect.card_names[0]:
                         card_to_create = card
                 player.hand.append(copy.deepcopy(card_to_create))
                 player.hand[-1].id = player.game.next_card_id
                 player.game.next_card_id += 1
 
-            return [f"{self.name} creates {effect.amount} {effect.card_name}."]
+            return [f"{self.name} creates {effect.amount} {effect.card_names[0]}."]
         else:
             print(f"unsupported target_type {effect.target_type} for create_card effect")
             return None
@@ -1131,8 +1126,8 @@ class Card:
             if len(player.in_play) == 7:
                 return
             card_to_create = None
-            card_name = effect.card_name
-            if len(effect.card_names) > 0:
+            card_name = effect.card_names[0]
+            if self.level != None:
                 card_name = effect.card_names[self.level]
             for card in Card.all_card_objects():
                 if card.name == card_name:
@@ -1231,7 +1226,7 @@ class Card:
 
         villager_card = Card({})
         token_card_name = "Willing Villager"
-        villager_card.do_make_token_effect(effect_owner, CardEffect({"amount":1, "card_name": token_card_name, "card_names":[]}, 0), {"id": effect_owner.username})
+        villager_card.do_make_token_effect(effect_owner, CardEffect({"amount":1, "card_names": [token_card_name]}, 0), {"id": effect_owner.username})
 
         # the card was countered by a different counterspell
         if not stack_spell:
@@ -1816,54 +1811,71 @@ class Card:
         self.damage_to_show += amount
         self.damage_this_turn += amount
 
+
 class CardEffect:
     def __init__(self, info, effect_id):
         self.id = effect_id
-        self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
-        self.ai_target_types = info["ai_target_types"] if "ai_target_types" in info else []
+        # an integer to be used to size the effect
         self.amount = info["amount"] if "amount" in info else None
+        # a string to be used to size the effect
         self.amount_id = info["amount_id"] if "amount_id" in info else None
-        self.card_descriptions = info["card_descriptions"] if "card_descriptions" in info else []
-        self.card_name = info["card_name"] if "card_name" in info else None
-        self.card_names = info["card_names"] if "card_names" in info else []
-        self.counters = info["counters"] if "counters" in info else -1
+        # the cost in mana of the effect
         self.cost = info["cost"] if "cost" in info else 0
-        self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
+        # a one word description to maybe show on the card, but definitely show on hover
         self.description = info["description"] if "description" in info else None
+        # a sentence description to show on hover
         self.description_expanded = info["description_expanded"] if "description_expanded" in info else None
+        # whether or not to show self.description as text on the card, or just on hover if False
         self.description_on_card = info["description_on_card"] if "description_on_card" in info else True
-        self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
-        self.effect_to_activate = CardEffect(info["effect_to_activate"], info["effect_to_activate"]["id"] if "id" in info["effect_to_activate"] else 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
+        # used to determine when the effect triggers, such as on draw or after target selection
         self.effect_type = info["effect_type"] if "effect_type" in info else None
+        # whether or not the effect is enabled and will trigger or can be activated
         self.enabled = info["enabled"] if "enabled" in info else True
-        self.image = info["image"] if "image" in info else None
-        self.make_type = info["make_type"] if "make_type" in info else None
-        self.multiplier = info["multiplier"] if "multiplier" in info else None
-        self.name = info["name"] if "name" in info else None 
-        self.original_name = info["original_name"] if "original_name" in info else None 
-        self.other_info = info["other_info"] if "other_info" in info else {}
-        self.power = info["power"] if "power" in info else None
-        self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
+        # the name of the effect, which gets mapped to a def
+        self.name = info["name"] if "name" in info else None         
+        # a flag to set on the effect to trigger an animation on the next repaint
         self.show_effect_animation = info["show_effect_animation"] if "show_effect_animation" in info else False
-        self.targetted_this_turn = info["targetted_this_turn"] if "targetted_this_turn" in info else []
+        # the target type for the effect, such as mob, enemy, artifact, self, etc
         self.target_type = info["target_type"] if "target_type" in info else None
+        # tokens that the effect adds
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
-        self.toughness = info["toughness"] if "toughness" in info else None
-        self.turns = info["turns"] if "turns" in info else 0
+        # info the UI needs to display or animate the effect
         self.ui_info = info["ui_info"] if "ui_info" in info else None
-        self.was_added = info["was_added"] if "was_added" in info else False
+
+        # currently, only used for Resonant Frequency to set min_cost and max_cost for what gets killed
+        self.other_info = info["other_info"] if "other_info" in info else {}
+
+        # todo: move all of these below to other_info? only used sparsely
+        # the type of target the AI should prefer to play
+        self.ai_target_types = info["ai_target_types"] if "ai_target_types" in info else []
+        # only used for Tame Shop Demon
+        self.card_descriptions = info["card_descriptions"] if "card_descriptions" in info else []
+        # used for make_token and upgrade effects
+        self.card_names = info["card_names"] if "card_names" in info else []
+        # this gets used in resolve_effect so maybe leave to level
+        self.cost_hp = info["cost_hp"] if "cost_hp" in info else 0
+        # used for Lute and Akbar's Pan Pipes
+        self.counters = info["counters"] if "counters" in info else -1
+        # a list of affects added by the effect, use for cards like Hide and WInd of Mercury
+        self.effects = [CardEffect(e, idx) for idx, e in enumerate(info["effects"])] if "effects" in info else []
+        # only used for Lute
+        self.effect_to_activate = CardEffect(info["effect_to_activate"], info["effect_to_activate"]["id"] if "id" in info["effect_to_activate"] else 0) if "effect_to_activate" in info and info["effect_to_activate"] else None
+        # seems a little specific to make cards
+        self.make_type = info["make_type"] if "make_type" in info else None
+        # todo: move to other_info?
+        self.multiplier = info["multiplier"] if "multiplier" in info else None
+        # used for Mirror of Fate, Wish Stone, and Disk of Death
+        self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
 
     def __repr__(self):
         return f"{self.as_dict()}"
 
     def as_dict(self):
         return {
-            "activate_on_add": self.activate_on_add,
             "ai_target_types": self.ai_target_types,
             "amount": self.amount,
             "amount_id": self.amount_id,
             "card_descriptions": self.card_descriptions,
-            "card_name": self.card_name,
             "card_names": self.card_names,
             "counters": self.counters,
             "cost": self.cost,
@@ -1876,23 +1888,17 @@ class CardEffect:
             "effect_type": self.effect_type,
             "enabled": self.enabled,
             "id": self.id,
-            "image": self.image,
             "make_type": self.make_type,
             "multiplier": self.multiplier,
             "name": self.name,
-            "original_name": self.original_name,
             "other_info": self.other_info,
-            "power": self.power,
             "sacrifice_on_activate": self.sacrifice_on_activate,
             "show_effect_animation": self.show_effect_animation,
-            "targetted_this_turn": self.targetted_this_turn,
             "target_type": self.target_type,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
-            "toughness": self.toughness,
-            "turns": self.turns,
             "ui_info": self.ui_info,
-            "was_added": self.was_added
         }
+
 
 class CardToken:
     def __init__(self, info):

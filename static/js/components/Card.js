@@ -286,10 +286,6 @@ export class Card {
             attackEffectOptions.fill = Constants.whiteColor;
             if (attackEffect.name == "create_random_townie") {
                 Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
-            } else {
-                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
-                attackEffectOptions.fill = Constants.blackColor;
-                Card.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power, Constants.yellowColor);
             }
         }
 

@@ -490,7 +490,7 @@
 		"description": "Get a 2/1 ghost token when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Ghost of the Cat",
+			"card_names": ["Ghost of the Cat"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
@@ -764,7 +764,7 @@
 		"description": "Get a random artifact from your deck. Summon a 3/3 with Fast and Fade.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Mist Elephant",
+			"card_names": ["Mist Elephant"],
 			"target_type": "self",
 			"effect_type": "spell",
 			"amount": 1
@@ -862,7 +862,7 @@
 		"effects": [
 			{
 				"name": "make_token",
-				"card_name": "Charmed Rat",
+				"card_names": ["Charmed Rat"],
 				"effect_type": "activated",
 				"target_type": "self",
 				"amount": 1,
@@ -1095,7 +1095,7 @@
 		"description": "Make 3/3s with Fast.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Nonapug Decon",
+			"card_names": ["Nonapug Decon"],
 			"target_type": "self",
 			"effect_type": "spell",
 			"amount": 3
@@ -1505,8 +1505,7 @@
 					"amount": 1,
 					"counters": 2,
 					"cost": 0,
-					"power": 0,
-					"was_added": true
+					"power": 0
 				}
 			},
 			{
