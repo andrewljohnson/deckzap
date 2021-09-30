@@ -112,6 +112,9 @@ class Player:
     def has_artifact_target(self):
         return len(self.my_opponent().artifacts) + len(self.artifacts) > 0
 
+    def has_mob_or_artifact_target(self):
+        return self.has_artifact_target() or self.has_mob_target()
+
     def current_mana(self):
         return self.mana + self.mana_from_cards()
 

@@ -1887,8 +1887,7 @@
 			{
 				"name": "restrict_effect_targets_min_cost",
 				"effect_type": "select_mob_target_override",
-				"amount": 3,
-				"ai_target_types": ["opponents_mob", "opponents_artifact"]
+				"amount": 3
 			}
 		]
 	},
@@ -2025,13 +2024,19 @@
 		"cost": 2,
 		"card_type": "spell",
 		"description": "Summon a 2/3. Change a spell being cast to target it.",
-		"effects": [{
-			"name": "redirect_mob_spell",
-			"effect_type": "spell",
-			"target_type": "being_cast_spell",
-			"target_restrictions": [{"target": "mob"}],
-			"ai_target_types": ["being_cast_spell_opponent"]
-		}]
+		"effects": [
+			{
+				"name": "redirect_mob_spell",
+				"effect_type": "spell",
+				"target_type": "being_cast_spell",
+				"target_restrictions": [{"target": "mob"}],
+				"ai_target_types": ["being_cast_spell_opponent"]
+			},
+			{
+				"name": "restrict_effect_targets_mob_targetter",
+				"effect_type": "select_mob_target_override"
+			}
+		]
 	},
 	{
 		"name": "Willing Villager",

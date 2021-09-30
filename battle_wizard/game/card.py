@@ -290,6 +290,8 @@ class Card:
             return self.do_remove_tokens_effect
         elif name == "restrict_effect_targets_min_cost":
             return self.do_restrict_effect_targets_min_cost_effect
+        elif name == "restrict_effect_targets_mob_targetter":
+            return self.do_restrict_effect_targets_mob_targetter_effect
         elif name == "riffle":
             return self.do_riffle_effect
         elif name == "set_can_attack":
@@ -1254,6 +1256,28 @@ class Card:
                     for card in pile:
                         if card.can_be_clicked:
                             has_targets = True
+            self.can_be_clicked = has_targets
+
+    def do_restrict_effect_targets_mob_targetter_effect(self, effect_owner, effect, target_info):
+        if self == effect_owner.selected_spell():
+            for spell in effect_owner.game.stack:
+                card = Card(spell[1])
+                if card.card_type == Constants.spellCardType:
+                    action = spell[0]
+                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
+                        card.can_be_clicked = True
+        elif target_info["move_type"] != "SELECT_CARD_IN_HAND" and effect_owner.current_mana() >= self.cost:
+            # clone the game so we can do a move in the cloned game to select the card with target restrictions
+            # then, check if there are any targets in the cloned game (e.g. card.can_be_clicked == True)
+            game_copy = copy.deepcopy(effect_owner.game)
+            game_copy.play_move({"username": effect_owner.username, "move_type": "SELECT_CARD_IN_HAND", "card": self.id, "override_selection_for_lookahead": True})        
+            has_targets = False
+            for spell in game_copy.stack:
+                card = spell[1]
+                if card["card_type"] == Constants.spellCardType:
+                    action = spell[0]
+                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
+                        has_targets = True
             self.can_be_clicked = has_targets
 
     def do_remove_tokens_effect(self, effect_owner, effect, target_info):

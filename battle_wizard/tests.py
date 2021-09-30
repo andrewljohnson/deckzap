@@ -1283,6 +1283,28 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 2})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
         self.assertEqual(game.players[0].selected_spell(), game.players[0].hand[0])
-        # self.assertEqual(len(game.current_player().in_play), 2)
-        # game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2})
-        # self.assertEqual(len(game.current_player().in_play), 1)
+        self.assertEqual(len(game.current_player().in_play), 2)
+        game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2})
+        self.assertEqual(len(game.current_player().in_play), 1)
+
+    def test_redirect_mob_spell_effect(self):
+        game = self.game_for_decks([["Stone Elemental", "Send Minion"], ["Mayor's Brandy"]])
+        game.players[0].mana += game.players[0].hand[1].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "END_TURN"})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
+        self.assertEqual(len(game.stack), 1)
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        game.play_move({"username": "a", "move_type": "SELECT_STACK_SPELL", "card": 2})
+        self.assertEqual(len(game.opponent().in_play), 2)
+        self.assertEqual(game.opponent().in_play[1].power_with_tokens(game.opponent()), 4)
+
+    def test_redirect_mob_spell_effect_restricted(self):
+        game = self.game_for_decks([["Stone Elemental", "Send Minion"], ["Zap"]])
+        game.players[0].mana += game.players[0].hand[1].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "END_TURN"})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})
+        game.play_move({"username": "b", "move_type": "SELECT_OPPONENT"})
+        self.assertEqual(len(game.stack), 0)

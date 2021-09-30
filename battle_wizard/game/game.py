@@ -279,22 +279,7 @@ class Game:
                     if card.card_type == Constants.artifactCardType:
                         card.can_be_clicked = len(cp.artifacts) != 3
                     if card.card_type == Constants.spellCardType and card.needs_mob_or_artifact_target():
-                        card.can_be_clicked = False
-                        if len(cp.in_play + opp.in_play) > 0:
-                            for mob in cp.in_play + opp.in_play:
-                                if len(card.effects[0].target_restrictions) > 0:
-                                    if list(card.effects[0].target_restrictions[0].keys())[0] == "min_cost":
-                                        if mob.cost >= list(card.effects[0].target_restrictions[0].values())[0]:
-                                            card.can_be_clicked = True
-                                    else:
-                                        card.can_be_clicked = True
-                            for artifact in cp.artifacts + opp.artifacts:
-                                if len(card.effects[0].target_restrictions) > 0:
-                                    if list(card.effects[0].target_restrictions[0].keys())[0] == "min_cost":
-                                        if artifact.cost >= list(card.effects[0].target_restrictions[0].values())[0]:
-                                            card.can_be_clicked = True
-                                else:
-                                    card.can_be_clicked = True
+                        card.can_be_clicked = cp.has_mob_or_artifact_target()
                     if card.card_type == Constants.spellCardType and card.needs_mob_target():
                         card.can_be_clicked = cp.has_mob_target()
                     if card.card_type == Constants.spellCardType and card.needs_artifact_target():
@@ -400,13 +385,8 @@ class Game:
         for spell in self.stack:
             card = spell[1]
             if card["card_type"] == Constants.spellCardType:
-                if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "target" and list(target_restrictions[0].values())[0] == "mob":
-                    action = spell[0]
-                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
-                        card["can_be_clicked"] = True
-                else:
-                    card["can_be_clicked"] = True
-
+                card["can_be_clicked"] = True
+                
     def set_targets_for_being_cast_mob_effect(self):
         for spell in self.stack:
             card = spell[1]
