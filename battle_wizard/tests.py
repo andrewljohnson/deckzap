@@ -1287,6 +1287,58 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 2})
         self.assertEqual(len(game.current_player().in_play), 1)
 
+    def test_restrict_effect_targets_mob_with_guard_effect(self):
+        """
+        """
+        game = self.game_for_decks([["Air Elemental"], ["Sniper Elf"]])
+        for x in range(0,6):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "END_TURN"})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[1].selected_spell(), game.players[1].hand[0])
+
+    def test_restrict_effect_targets_mob_with_guard_effect_no_target(self):
+        """
+        """
+        game = self.game_for_decks([["Stone Elemental"], ["Sniper Elf"]])
+        for x in range(0,5):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "END_TURN"})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[1].selected_spell(), None)
+
+    def test_restrict_effect_targets_mob_with_power_effect(self):
+        """
+        """
+        game = self.game_for_decks([["Ultrachaun"], ["Dragonslayer Elf"]])
+        for x in range(0,6):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "END_TURN"})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[1].selected_spell(), game.players[1].hand[0])
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
+        self.assertEqual(len(game.players[0].in_play), 1)
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
+        self.assertEqual(len(game.players[0].in_play), 0)
+
+    def test_restrict_effect_targets_mob_with_power_effect_no_target(self):
+        """
+        """
+        game = self.game_for_decks([["Stone Elemental"], ["Dragonslayer Elf"]])
+        for x in range(0,6):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "END_TURN"})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[1].selected_spell(), None)
+
     def test_redirect_mob_spell_effect(self):
         game = self.game_for_decks([["Stone Elemental", "Send Minion"], ["Mayor's Brandy"]])
         game.players[0].mana += game.players[0].hand[1].cost

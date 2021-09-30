@@ -2029,7 +2029,6 @@
 				"name": "redirect_mob_spell",
 				"effect_type": "spell",
 				"target_type": "being_cast_spell",
-				"target_restrictions": [{"target": "mob"}],
 				"ai_target_types": ["being_cast_spell_opponent"]
 			},
 			{

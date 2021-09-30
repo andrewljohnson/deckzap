@@ -292,6 +292,10 @@ class Card:
             return self.do_restrict_effect_targets_min_cost_effect
         elif name == "restrict_effect_targets_mob_targetter":
             return self.do_restrict_effect_targets_mob_targetter_effect
+        elif name == "restrict_effect_targets_mob_with_guard":
+            return self.do_restrict_effect_targets_mob_with_guard_effect
+        elif name == "restrict_effect_targets_mob_with_power":
+            return self.do_restrict_effect_targets_mob_with_power_effect            
         elif name == "riffle":
             return self.do_riffle_effect
         elif name == "set_can_attack":
@@ -411,7 +415,7 @@ class Card:
         return effect_targets
 
     def resolve_effect(self, effect_def, effect_owner, effect, target_info):
-        print(f"Resolve effect: {effect.name}");
+        # print(f"Resolve effect: {effect.name}");
         if effect.counters >= 1 and effect.name != "store_mana":
             effect.counters -= 1
         log_lines = effect_def(effect_owner, effect, target_info)
@@ -836,7 +840,7 @@ class Card:
 
     def do_fetch_card_effect_on_player(self, effect_owner, effect, target_info):
         if Constants.artifactCardType in effect.target_type:
-            self.display_deck_artifacts(effect_owner, effect.target_restrictions, "fetch_artifact_into_hand")
+            self.display_deck_artifacts(effect_owner, "fetch_artifact_into_hand")
         elif effect.target_type == "all_cards_in_deck":
             self.display_deck_for_fetch(effect_owner)
         elif effect.target_type == "all_cards_in_played_pile":
@@ -849,13 +853,13 @@ class Card:
 
     def do_fetch_card_into_play_effect_on_player(self, effect_owner, effect, target_info):
         if Constants.artifactCardType in effect.target_type:
-            self.display_deck_artifacts(effect_owner, effect.target_restrictions, "fetch_artifact_into_play")
+            self.display_deck_artifacts(effect_owner, "fetch_artifact_into_play")
         else:
             print("can't fetch unsupported type")
             return None
         return [f"{effect_owner.username} cracks {self.name} to fetch an artifact."]
 
-    def display_deck_artifacts(self, target_player, target_restrictions, choice_type):
+    def display_deck_artifacts(self, target_player, choice_type):
         artifacts = []
         for card in target_player.deck:
             if card.card_type == Constants.artifactCardType:
@@ -880,8 +884,8 @@ class Card:
     def do_force_attack_guard_first_effect(self, effect_owner, effect, target_info):
         guard_mobs = []
         for mob in effect_owner.in_play:
-            for effect in mob.effects:
-                if effect.name == "force_attack_guard_first" and mob.can_be_clicked:
+            for e in mob.effects:
+                if e.name == "force_attack_guard_first" and mob.can_be_clicked:
                     guard_mobs.append(mob)
         if len(guard_mobs) > 0:
             for mob in effect_owner.in_play:
@@ -1014,11 +1018,10 @@ class Card:
             cards_to_kill = []
             min_cost = -1
             max_cost = 9999
-            for r in effect.target_restrictions:
-                if list(r.keys())[0] == "min_cost":
-                    min_cost = list(r.values())[0]
-                if list(r.keys())[0] == "max_cost":
-                    max_cost = list(r.values())[0]
+            if "min_cost" in effect.other_info:
+                min_cost = effect.other_info["min_cost"]
+            if "max_cost" in effect.other_info:
+                max_cost = effect.other_info["max_cost"]
             for player in [effect_owner, effect_owner.game.opponent()]:
                 for card in player.in_play+player.artifacts:
                     if card.cost >= min_cost and card.cost <= max_cost:
@@ -1267,8 +1270,6 @@ class Card:
                     if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
                         card.can_be_clicked = True
         elif target_info["move_type"] != "SELECT_CARD_IN_HAND" and effect_owner.current_mana() >= self.cost:
-            # clone the game so we can do a move in the cloned game to select the card with target restrictions
-            # then, check if there are any targets in the cloned game (e.g. card.can_be_clicked == True)
             game_copy = copy.deepcopy(effect_owner.game)
             game_copy.play_move({"username": effect_owner.username, "move_type": "SELECT_CARD_IN_HAND", "card": self.id, "override_selection_for_lookahead": True})        
             has_targets = False
@@ -1277,6 +1278,38 @@ class Card:
                 if card["card_type"] == Constants.spellCardType:
                     action = spell[0]
                     if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
+                        has_targets = True
+            self.can_be_clicked = has_targets
+
+    def do_restrict_effect_targets_mob_with_guard_effect(self, effect_owner, effect, target_info):
+        if self.id == effect_owner.selected_mob():
+            for player in effect_owner.game.players:
+                for card in player.in_play:
+                    if card.can_be_clicked and not card.has_effect("force_attack_guard_first"):
+                        card.can_be_clicked = False
+        elif target_info["move_type"] not in ["PLAY_CARD", "PLAY_CARD_IN_HAND"] and effect_owner.current_mana() >= self.cost:
+            game_copy = copy.deepcopy(effect_owner.game)
+            game_copy.play_move({"username": effect_owner.username, "move_type": "PLAY_CARD_IN_HAND", "card": self.id, "override_selection_for_lookahead": True})        
+            has_targets = False
+            for player in game_copy.players:
+                for card in player.in_play:
+                    if card.can_be_clicked and card.has_effect("force_attack_guard_first"):
+                        has_targets = True
+            self.can_be_clicked = has_targets
+
+    def do_restrict_effect_targets_mob_with_power_effect(self, effect_owner, effect, target_info):
+        if self.id == effect_owner.selected_mob():
+            for player in effect_owner.game.players:
+                for card in player.in_play:
+                    if card.can_be_clicked and card.power_with_tokens(player) < effect.amount:
+                        card.can_be_clicked = False
+        elif target_info["move_type"] not in ["PLAY_CARD", "PLAY_CARD_IN_HAND"] and effect_owner.current_mana() >= self.cost:
+            game_copy = copy.deepcopy(effect_owner.game)
+            game_copy.play_move({"username": effect_owner.username, "move_type": "PLAY_CARD_IN_HAND", "card": self.id, "override_selection_for_lookahead": True})        
+            has_targets = False
+            for player in game_copy.players:
+                for card in player.in_play:
+                    if card.can_be_clicked and card.power_with_tokens(player) >= effect.amount:
                         has_targets = True
             self.can_be_clicked = has_targets
 
@@ -1568,7 +1601,6 @@ class Card:
     def do_take_extra_turn_effect_on_player(self, effect_owner, effect, target_info):
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
         target_player.remove_temporary_tokens()
-        target_player.game.remove_temporary_effects()
         target_player.clear_damage_this_turn()
         target_player.game.turn += 2
         log_lines = [f"{target_player.username} takes an extra turn."]
@@ -1698,12 +1730,7 @@ class Card:
             if e.target_type == "being_cast_mob" and card.card_type == Constants.mobCardType:
                 return True
             if e.target_type == "being_cast_spell" and card.card_type == Constants.spellCardType:
-                if len(e.target_restrictions) > 0 and list(e.target_restrictions[0].keys())[0] == "target" and list(e.target_restrictions[0].values())[0] == "mob":
-                    action = spell[0]
-                    if "effect_targets" in action and action["effect_targets"][0]["target_type"] == Constants.mobCardType:
-                        return True
-                else:
-                    return True
+                return True
             if e.target_type == "being_cast_artifact" and card.card_type == Constants.artifactCardType:
                 return True
         return False
@@ -1792,7 +1819,6 @@ class Card:
 class CardEffect:
     def __init__(self, info, effect_id):
         self.id = effect_id
-
         self.activate_on_add = info["activate_on_add"] if "activate_on_add" in info else False
         self.ai_target_types = info["ai_target_types"] if "ai_target_types" in info else []
         self.amount = info["amount"] if "amount" in info else None
@@ -1815,11 +1841,11 @@ class CardEffect:
         self.multiplier = info["multiplier"] if "multiplier" in info else None
         self.name = info["name"] if "name" in info else None 
         self.original_name = info["original_name"] if "original_name" in info else None 
+        self.other_info = info["other_info"] if "other_info" in info else {}
         self.power = info["power"] if "power" in info else None
         self.sacrifice_on_activate = info["sacrifice_on_activate"] if "sacrifice_on_activate" in info else False
         self.show_effect_animation = info["show_effect_animation"] if "show_effect_animation" in info else False
         self.targetted_this_turn = info["targetted_this_turn"] if "targetted_this_turn" in info else []
-        self.target_restrictions = info["target_restrictions"] if "target_restrictions" in info else []
         self.target_type = info["target_type"] if "target_type" in info else None
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
         self.toughness = info["toughness"] if "toughness" in info else None
@@ -1855,11 +1881,11 @@ class CardEffect:
             "multiplier": self.multiplier,
             "name": self.name,
             "original_name": self.original_name,
+            "other_info": self.other_info,
             "power": self.power,
             "sacrifice_on_activate": self.sacrifice_on_activate,
             "show_effect_animation": self.show_effect_animation,
             "targetted_this_turn": self.targetted_this_turn,
-            "target_restrictions": self.target_restrictions,
             "target_type": self.target_type,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
             "toughness": self.toughness,

@@ -305,21 +305,21 @@ class Player:
                 else:
                     self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["mob"]:
-                if self.game.players[0].has_target_for_mob_effect(effects[0].target_restrictions) or self.game.players[1].has_target_for_mob_effect(effects[0].target_restrictions):
+                if self.game.players[0].has_target_for_mob_effect() or self.game.players[1].has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["opponents_mob"]:
-                if self.my_opponent().has_target_for_mob_effect(effects[0].target_restrictions):
+                if self.my_opponent().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["self_mob"]:
-                if self.game.current_player().has_target_for_mob_effect(effects[0].target_restrictions):
+                if self.game.current_player().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
@@ -479,15 +479,12 @@ class Player:
     def set_targets_for_selected_mob(self):
         # todo artifacts?
         target_type = None
-        target_restrictions = None
         card = self.selected_mob()
         if self.card_info_to_target["effect_type"] == "mob_comes_into_play":
-                target_type = card.effects[0].target_type
-                target_restrictions = card.effects[0].target_restrictions
+            target_type = card.effects[0].target_type
         elif self.card_info_to_target["effect_type"] == "mob_activated":
             target_type = card.effects_for_type("activated")[0].target_type
-            target_restrictions = card.effects_for_type("activated")[0].target_restrictions
-        self.game.set_targets_for_target_type(target_type, target_restrictions)
+        self.game.set_targets_for_target_type(target_type)
 
     def remove_temporary_tokens(self):
         for c in self.in_play:
@@ -627,31 +624,11 @@ class Player:
 
         return message
 
-    def set_targets_for_mob_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
-            for card in self.in_play:
-                if card.power_with_tokens(self.opponent()) >= list(target_restrictions[0].values())[0]:
-                    card.can_be_clicked = True
-            return
-
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "min_cost":
-            for card in self.in_play:
-                if card.cost >= list(target_restrictions[0].values())[0]:
-                    card.can_be_clicked = True
-            return
-
+    def set_targets_for_mob_effect(self):
         for card in self.in_play:
             card.can_be_clicked = True
 
-    def set_targets_for_artifact_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "min_cost":
-            did_target = False
-            for card in self.artifacts:
-                if card.cost >= list(target_restrictions[0].values())[0]:
-                    card.can_be_clicked = True
-                    did_target = True
-            return
-
+    def set_targets_for_artifact_effect(self):
         for card in self.artifacts:
             card.can_be_clicked = True
 
@@ -678,36 +655,12 @@ class Player:
         for card in self.hand:
             card.can_be_clicked = True
 
-    def set_targets_for_player_mob_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "needs_guard":
-            set_targets = False
-            for e in self.in_play:
-                if e.id != self.card_info_to_target["card_id"]:
-                    if e.has_effect("force_attack_guard_first"):
-                        set_targets = True
-                        e.can_be_clicked = True
-            return
-
-        set_targets = False
+    def set_targets_for_player_mob_effect(self):
         for card in self.in_play:
             if card.id != self.card_info_to_target["card_id"]:
                 card.can_be_clicked = True
-                set_targets = True
 
-    def has_target_for_mob_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
-            for e in self.in_play:
-                if e.id != self.card_info_to_target["card_id"]:
-                    if e.has_effect("force_attack_guard_first"):
-                        return True
-            return False
-
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
-            for e in self.in_play:
-                if e.power_with_tokens(self) >= list(target_restrictions[0].values())[0]:
-                    return True
-            return False
-
+    def has_target_for_mob_effect(self):
         return len(self.in_play) > 0
 
     def clear_artifact_effects_targetted_this_turn(self):

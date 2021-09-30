@@ -134,12 +134,17 @@
 		"toughness": 5,
 		"cost": 6,
 		"description": "Destroy an enemy mob with Guard.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "enter_play",
-			"target_type": "opponents_mob",
-			"target_restrictions": [{"needs_guard": null}]
-		}]
+		"effects": [
+			{
+				"name": "kill",
+				"effect_type": "enter_play",
+				"target_type": "opponents_mob"
+			},
+			{
+				"name": "restrict_effect_targets_mob_with_guard",
+				"effect_type": "select_mob_target_override"
+			}
+		]
 	},
 	{
 		"name": "Dragonslayer Elf",
@@ -149,12 +154,18 @@
 		"toughness": 2,
 		"cost": 3,
 		"description": "Destroy a mob power 6 or greater.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "enter_play",
-			"target_type": "mob",
-			"target_restrictions": [{"power": 6}]
-		}]
+		"effects": [
+			{
+				"name": "kill",
+				"effect_type": "enter_play",
+				"target_type": "mob"
+			},
+			{
+				"name": "restrict_effect_targets_mob_with_power",
+				"effect_type": "select_mob_target_override",
+				"amount": 6
+			}
+		]
 	},
 	{
 		"name": "Mana Tree",
@@ -907,7 +918,7 @@
 			"name": "kill",
 			"effect_type": "spell",
 			"target_type": "all",
-			"target_restrictions": [{"min_cost": 2}, {"max_cost": 5}]
+			"other_info": {"min_cost": 2, "max_cost": 5}
 		}]
 	},
 	{
