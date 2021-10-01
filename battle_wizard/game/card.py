@@ -31,7 +31,6 @@ class Card:
         # used by artifacts to say which effects are useable
         self.effects_can_be_clicked = info["effects_can_be_clicked"] if "effects_can_be_clicked" in info else []
         # used by artifacts to say which effects are un-useable
-        self.effects_exhausted = info["effects_exhausted"] if "effects_exhausted" in info else []
         self.description = info["description"] if "description" in info else None
         self.image = info["image"] if "image" in info else None
         self.is_token = info["is_token"] if "is_token" in info else False
@@ -50,6 +49,7 @@ class Card:
         self.action_added_to_stack_effect_defs = []
         self.activated_effect_defs = []        
         self.after_attack_effect_defs = []
+        self.after_card_resolves_effect_defs = []
         self.after_deals_damage_effect_defs = []
         self.after_deals_damage_opponent_effect_defs = []
         self.after_declared_attack_effect_defs = []
@@ -88,6 +88,8 @@ class Card:
             self.after_deals_damage_opponent_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_declared_attack":
             self.after_declared_attack_effect_defs.append(self.effect_def_for_id(effect))
+        if effect.effect_type == "after_card_resolves": 
+            self.after_card_resolves_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "after_shuffle": 
             self.after_shuffle_effect_defs.append(self.effect_def_for_id(effect))
         if effect.effect_type == "before_draw":
@@ -146,7 +148,6 @@ class Card:
             "description": self.description,
             "effects": [e.as_dict() for e in self.effects],
             "effects_can_be_clicked": self.effects_can_be_clicked,
-            "effects_exhausted": self.effects_exhausted,
             "id": self.id,
             "image": self.image,
             "is_token": self.is_token,
@@ -381,7 +382,7 @@ class Card:
                         # mob was removed from play by a different effect
                         continue
                 spell_to_resolve["log_lines"].append(
-                    self.resolve_effect(effect_def, player, self.effects[idx], spell_to_resolve["effect_targets"][idx])
+                    self.resolve_effect(effect_def, player, self.effects_for_type("spell")[idx], spell_to_resolve["effect_targets"][idx])
                 )
 
             for idx, effect_def in enumerate(self.enter_play_effect_defs):
@@ -392,7 +393,7 @@ class Card:
                         # mob was removed from play by a different effect
                         continue
                 spell_to_resolve["log_lines"].append(
-                    self.resolve_effect(effect_def, player, self.effects[idx], spell_to_resolve["effect_targets"][idx])
+                    self.resolve_effect(effect_def, player, self.effects_for_type("enter_play")[idx], spell_to_resolve["effect_targets"][idx])
                 )
 
             if len(spell_to_resolve["effect_targets"]) == 0:
@@ -400,6 +401,11 @@ class Card:
 
         if self.card_type == Constants.spellCardType:
             player.played_pile.append(self)
+
+        for idx, effect_def in enumerate(self.after_card_resolves_effect_defs):
+            spell_to_resolve["log_lines"].append(
+                self.resolve_effect(effect_def, player, self.effects_for_type("after_card_resolves")[idx], spell_to_resolve["effect_targets"][idx])
+            )
 
         spell_to_resolve["card_names"] = [self.name]
         spell_to_resolve["show_spell"] = self.as_dict()
@@ -1372,7 +1378,7 @@ class Card:
 
     def do_slow_artifact_effect(self, effect_owner, effect, target_info):
         for effect in self.effects:
-            self.effects_exhausted.append(effect)
+            effect.exhausted = True
 
     def do_spell_from_yard_effect(self, effect_owner, effect, target_info):
         spells = []
@@ -1842,6 +1848,8 @@ class CardEffect:
         self.effect_type = info["effect_type"] if "effect_type" in info else None
         # whether or not the effect is enabled and will trigger or can be activated
         self.enabled = info["enabled"] if "enabled" in info else True
+        # this is set after an effect is used, so it can't be used again this turn
+        self.exhausted = info["exhausted"] if "exhausted" in info else False
         # the name of the effect, which gets mapped to a def
         self.name = info["name"] if "name" in info else None         
         # a flag to set on the effect to trigger an animation on the next repaint

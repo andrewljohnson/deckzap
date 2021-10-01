@@ -14,7 +14,7 @@ from battle_wizard.game.player_ai import PlayerAI
 
 class Game:
     def __init__(self, player_type, info=None, player_decks=None):
-        
+
         # player 0 always acts on even turns, player 1 acts on odd turns
         self.actor_turn = int(info["actor_turn"]) if info and "actor_turn" in info else 0
         # a list of all player-derived moves, sufficient to replay the game
@@ -187,7 +187,6 @@ class Game:
         self.current_player().can_be_clicked = False
 
         if cancel_damage and move_type not in ["PLAY_CARD", "PLAY_CARD_IN_HAND", "UNSELECT", "SELECT_OPPONENT", "ATTACK", "RESOLVE_NEXT_STACK", "START_TURN"]:
-            print(f"cancel animations in {move_type}")
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
             for card in self.opponent().in_play + self.current_player().in_play:
@@ -247,10 +246,10 @@ class Game:
                         effect_can_be_used = False if len(cp.hand) == 0 else True
                     if effect.cost > cp.current_mana():
                         effect_can_be_used = False
-                    if effect.name in card.effects_exhausted:
+                    if effect.exhausted:
                         effect_can_be_used = False
                     card.effects_can_be_clicked.append(effect_can_be_used)      
-                if len(card.effects_can_be_clicked) and card.effects_can_be_clicked[0] and len(card.effects_can_be_clicked) == 1 and card.enabled_activated_effects()[0].name not in card.effects_exhausted:
+                if len(card.effects_can_be_clicked) and card.effects_can_be_clicked[0] and len(card.effects_can_be_clicked) == 1 and not card.enabled_activated_effects()[0].exhausted:
                     card.can_be_clicked = True               
                 else: 
                     card.can_be_clicked = False               
@@ -268,7 +267,7 @@ class Game:
                                 card.effect_can_be_used = True
                     if effect.cost > cp.current_mana():
                         effect_can_be_used = False
-                    if effect.name in card.effects_exhausted:
+                    if effect.exhausted:
                         effect_can_be_used = False
                     card.effects_can_be_clicked.append(effect_can_be_used)
                 if cp.can_select_for_attack(card.id):
@@ -658,7 +657,7 @@ class Game:
             effect = [e for e in artifact.effects if e.enabled == True][effect_index]
             if cp.selected_artifact() and artifact.id == cp.selected_artifact().id and artifact.needs_target_for_activated_effect(effect_index):
                 cp.reset_card_info_to_target()
-            elif not effect.name in artifact.effects_exhausted and effect.cost <= cp.current_mana():
+            elif not effect.exhausted and effect.cost <= cp.current_mana():
                 if not artifact.needs_target_for_activated_effect(effect_index):
                     message["move_type"] = "ACTIVATE_ARTIFACT"
                     message = self.play_move(message)
@@ -812,7 +811,7 @@ class Game:
             return None
         e = artifact.enabled_activated_effects()[activated_effect_index]
         artifact.can_activate_effects = False
-        artifact.effects_exhausted = {e.name: True}
+        e.exhausted = True
         
         if "defending_card" in message:
             defending_card, _  = self.get_in_play_for_id(message["defending_card"])

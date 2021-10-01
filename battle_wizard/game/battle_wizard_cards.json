@@ -1811,7 +1811,7 @@
 				"name": "disappear",
 				"description": "Disappear",
 				"description_expanded": "Cards with Disappear don't go to the Played Pile when played, they are removed instead.",
-				"effect_type": "spell",
+				"effect_type": "after_card_resolves",
 				"ui_info": {
 					"effect_type": "fade_out"
 				}

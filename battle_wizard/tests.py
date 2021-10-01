@@ -801,9 +801,9 @@ class GameObjectTests(TestCase):
             game.players[1].mana += card.cost
         game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 2})   
         game.play_move({"username": "b", "move_type": "SELECT_ARTIFACT", "card": 2})        
-        self.assertEqual(len(game.opponent().in_play), 1)
-        self.assertEqual(len(game.opponent().artifacts), 1)
         self.assertEqual(len(game.current_player().artifacts), 1)
+        self.assertEqual(len(game.opponent().artifacts), 1)
+        self.assertEqual(len(game.opponent().in_play), 1)
         game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.play_move({"username": "b", "move_type": "SELECT_ARTIFACT", "card": 2})        

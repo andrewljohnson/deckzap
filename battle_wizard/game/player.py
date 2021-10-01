@@ -404,7 +404,8 @@ class Player:
 
         for r in self.artifacts:
             r.can_activate_effects = True
-            r.effects_exhausted = {}
+            for effect in r.effects:
+                effect.exhausted = False
         return message
 
     def refresh_mana_for_turn(self):
