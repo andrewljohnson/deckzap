@@ -309,6 +309,8 @@ class Card:
             return self.do_spell_from_yard_effect           
         elif name == "stack_counter":
            return  self.do_counter_card_effect
+        elif name == "start_in_hand":
+           return  self.do_start_in_hand_effect
         elif name == "start_in_play":
            return  self.do_start_in_play_effect
         elif name == "store_mana":
@@ -1393,6 +1395,10 @@ class Card:
                 effect_owner.hand.append(spell)
                 effect_owner.played_pile.remove(spell)
                 return [f"{self.name} returns {spell.name} to {effect_owner.username}'s hand."]
+
+    def do_start_in_hand_effect(self, effect_owner, effect, target_info):
+        effect_owner.hand.append(self)
+        effect_owner.deck.remove(self)   
 
     def do_start_in_play_effect(self, effect_owner, effect, target_info):
         if len(effect_owner.artifacts) == 0:

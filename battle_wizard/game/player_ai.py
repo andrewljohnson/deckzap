@@ -11,7 +11,7 @@ class PlayerAI(Player):
         super().__init__(game, info, new)
         self.is_ai = True
         self.ai_running = False
-        self.is_animating = False
+        self.animation_time = 0
         self.last_move_time = None
 
     def legal_moves_for_ai(self):
@@ -155,9 +155,9 @@ class PlayerAI(Player):
 
     def run_ai(self, moves, consumer):
         self.ai_running = True
-        if self.is_animating:
-            self.is_animating = False
-            time.sleep(2.5)
+        if self.animation_time > 0:
+            time.sleep(self.animation_time)
+            self.animation_time = 0
 
         self.last_move_time = datetime.datetime.now()
         if self.username == "random_bot":
@@ -176,10 +176,11 @@ class PlayerAI(Player):
 
         if "show_spell" in message:
             card = Card(message["show_spell"])
-            print(f"show_spell is {card.name}")
             if card.show_level_up:
-                print ("CARD IS LEVELINGCARD IS LEVELINGCARD IS LEVELINGCARD IS LEVELING")
-                self.is_animating = True
+                self.animation_time = 2.5
+
+        if message["move_type"] == "ATTACK":
+            self.animation_time = 1
 
         self.ai_running = False
 

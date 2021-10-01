@@ -1815,7 +1815,14 @@
 				"ui_info": {
 					"effect_type": "fade_out"
 				}
-			}
+			},
+			{
+				"name": "start_in_hand",
+				"effect_type": "after_shuffle",
+				"description": "Starts in Hand",
+				"description_expanded": "This spell starts in your hand.",
+				"description_on_card" : true
+			}			
 		]
 	},
 	{

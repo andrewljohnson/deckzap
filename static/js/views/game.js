@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import { GlowFilter, GodrayFilter, OutlineFilter, ShockwaveFilter } from 'pixi-filters';
+import { GlowFilter, GodrayFilter, OutlineFilter, ShockwaveFilter, VoidFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 import { Bump } from '../lib/bump.js';
 import * as Constants from '../Constants.js';
@@ -348,8 +348,7 @@ export class GameUX {
                     }
                 }
                 if (uiInfo) {
-                    console.log(`animating FADE OUT FOR ${card.name}`)
-                    this.animateFadeOut(sprite);
+                    this.animateDisappear(sprite);
                     setTimeout(() => { 
                         this.finishCastSpell(card, game, player, message, incrementGodrayTime, null)
                     }, oneThousandMS * 2);                    
@@ -367,7 +366,10 @@ export class GameUX {
                     }, oneThousandMS);                    
                 }
             } else {
-                this.finishCastSpell(card, game, player, message, incrementGodrayTime);
+                this.animateFadeOut(sprite);
+                setTimeout(() => { 
+                    this.finishCastSpell(card, game, player, message, incrementGodrayTime);
+                }, oneThousandMS);                    
             }     
         }, oneThousandMS);
 
@@ -793,6 +795,37 @@ export class GameUX {
         window.requestAnimationFrame(eachFrame);         
     }
 
+    animateDisappear(card) {
+        let FADE_DURATION = 2000;
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        var self = this;
+        card.parent.removeChild(card);
+        this.app.stage.addChild(card);
+        let render = currTime => { 
+            card.filters = [new OutlineFilter(1, Constants.blackColor)]
+            card.filterArea = new PIXI.Rectangle(0, card.height * 2 * (currTime /  FADE_DURATION), card.width*2, card.height*2) 
+        }
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame);         
+    }
+
     animateFadeOut(card) {
         var FADE_DURATION = this.attackDuration();
         
@@ -1003,20 +1036,6 @@ export class GameUX {
         return 0.8 * oneThousandMS;
     }
 
-    fadeDuration () {
-        return 2.0 * oneThousandMS;
-    }
-
-    fadeAlphaForTime(t) {
-        if (t <= this.fadeDuration()/2) {
-            return 1;
-        }
-        if (t <= this.fadeDuration()*.99) {
-            return (1 - t / this.fadeDuration() ) * 2;
-        }
-        return 0;
-    }
-
     showChangeTurnAnimation(game) {
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
@@ -1073,6 +1092,20 @@ export class GameUX {
         };
 
         window.requestAnimationFrame(eachFrame); 
+    }
+
+    fadeDuration () {
+        return 2.0 * oneThousandMS;
+    }
+
+    fadeAlphaForTime(t) {
+        if (t <= this.fadeDuration()/2) {
+            return 1;
+        }
+        if (t <= this.fadeDuration()*.99) {
+            return (1 - t / this.fadeDuration() ) * 2;
+        }
+        return 0;
     }
 
     showArrow(fromSprite, toSprite, adjustment={"x":0, "y": 0}){
