@@ -374,11 +374,23 @@ class Card:
                 spell_to_resolve["effect_targets"].append(target)
 
             for idx, effect_def in enumerate(self.spell_effect_defs):
+                target_info = spell_to_resolve["effect_targets"][idx]
+                if "target_type" in target_info and target_info["target_type"] == "mob":
+                    target_mob, _ = player.game.get_in_play_for_id(target_info["id"])
+                    if not target_mob:
+                        # mob was removed from play by a different effect
+                        continue
                 spell_to_resolve["log_lines"].append(
                     self.resolve_effect(effect_def, player, self.effects[idx], spell_to_resolve["effect_targets"][idx])
                 )
 
             for idx, effect_def in enumerate(self.enter_play_effect_defs):
+                target_info = spell_to_resolve["effect_targets"][idx]
+                if "target_type" in target_info and target_info["target_type"] == "mob":
+                    target_mob, _ = player.game.get_in_play_for_id(target_info["id"])
+                    if not target_mob:
+                        # mob was removed from play by a different effect
+                        continue
                 spell_to_resolve["log_lines"].append(
                     self.resolve_effect(effect_def, player, self.effects[idx], spell_to_resolve["effect_targets"][idx])
                 )
@@ -1005,10 +1017,9 @@ class Card:
     def do_kill_effect(self, effect_owner, effect, target_info):
         if effect.target_type == "mob" or effect.target_type == "artifact" or effect.target_type == "mob_or_artifact":
             target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
-            if target_mob:
-                log_lines = [f"{self.name} kills {target_mob.name}."]
-                self.do_kill_effect_on_mob(target_mob, controller)
-                return log_lines
+            log_lines = [f"{self.name} kills {target_mob.name}."]
+            self.do_kill_effect_on_mob(target_mob, controller)
+            return log_lines
         else:
             cards_to_kill = []
             min_cost = -1

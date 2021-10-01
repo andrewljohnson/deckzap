@@ -14,7 +14,7 @@ from battle_wizard.game.player_ai import PlayerAI
 
 class Game:
     def __init__(self, player_type, info=None, player_decks=None):
-
+        
         # player 0 always acts on even turns, player 1 acts on odd turns
         self.actor_turn = int(info["actor_turn"]) if info and "actor_turn" in info else 0
         # a list of all player-derived moves, sufficient to replay the game
