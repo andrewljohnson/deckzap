@@ -121,7 +121,6 @@ class Player:
     def mana_from_cards(self):
         for artifact in self.artifacts:
             for idx, effect in enumerate(artifact.effects_for_type("check_mana")):
-                effect.show_effect_animation = True
                 artifact.resolve_effect(artifact.check_mana_effect_defs[idx], self, effect, {})
         mana = self.card_mana
         self.card_mana = 0
@@ -157,6 +156,8 @@ class Player:
 
     def draw(self, number_of_cards):
         log_lines = []
+        if number_of_cards > 0:
+            log_lines = [f"{self.username} drew {number_of_cards} card for their turn."]
         for i in range(0, number_of_cards):
             if len(self.deck) == 0:
                 for c in self.played_pile:
@@ -182,10 +183,13 @@ class Player:
             self.mana -= 1
             amount_to_spend -= 1
 
+        log_lines = None
         for artifact in self.artifacts:
             for idx, effect in enumerate(artifact.effects_for_type("spend_mana")):
-                effect.show_effect_animation = True
-                artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend})
+                log_lines = artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend})
+                if log_lines:
+                    effect.show_effect_animation = True
+        return log_lines
 
     def artifact_in_play(self, card_id):
         for card in self.artifacts:
@@ -245,7 +249,9 @@ class Player:
             return None
         self.reset_card_info_to_target()
         self.hand.remove(card)
-        self.spend_mana(card.cost)
+        mana_log_lines = self.spend_mana(card.cost)
+        if mana_log_lines:
+            message["log_lines"] += mana_log_lines
 
         self.game.actor_turn += 1
         self.game.stack.append([copy.deepcopy(message), card.as_dict()])

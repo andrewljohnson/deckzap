@@ -486,9 +486,9 @@ class Game:
             # this works because all end_turn triggered effects dont have targets to choose
             effect_targets = mob.unchosen_targets(self.current_player(), effect_type="end_turn")            
             for idx, effect in enumerate(mob.effects_for_type("end_turn")):
-                effect.show_effect_animation = True
                 log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
                 if log_lines:
+                    effect.show_effect_animation = True
                     [message["log_lines"].append(line) for line in log_lines]
 
         self.turn += 1

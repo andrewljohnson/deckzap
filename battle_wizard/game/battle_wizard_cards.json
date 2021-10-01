@@ -335,19 +335,28 @@
 		"cost": 1,
 		"card_type": "spell",
 		"description": "Deal 1 damage. Draw 1 card.",
-		"effects": [{
-			"name": "damage",
-			"effect_type": "spell",
-			"target_type": "any",
-			"amount": 1,
-			"ai_target_types": ["opponent", "opponents_mob"]
-		}, 
-		{
-			"name": "draw",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 1
-		}]
+		"effects": [
+			{
+				"name": "damage",
+				"effect_type": "spell",
+				"target_type": "any",
+				"amount": 1,
+				"ai_target_types": ["opponent", "opponents_mob"]
+			}, 
+			{
+				"name": "draw",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "start_in_hand",
+				"effect_type": "after_shuffle",
+				"description": "Starts in Hand",
+				"description_expanded": "This spell starts in your hand.",
+				"description_on_card" : true
+			}			
+		]
 	},
 	{
 		"name": "Mind Manacles",
@@ -1815,14 +1824,7 @@
 				"ui_info": {
 					"effect_type": "fade_out"
 				}
-			},
-			{
-				"name": "start_in_hand",
-				"effect_type": "after_shuffle",
-				"description": "Starts in Hand",
-				"description_expanded": "This spell starts in your hand.",
-				"description_on_card" : true
-			}			
+			}
 		]
 	},
 	{

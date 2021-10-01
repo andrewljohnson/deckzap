@@ -383,9 +383,9 @@ class Card:
                     if not target_mob:
                         # mob was removed from play by a different effect
                         continue
-                spell_to_resolve["log_lines"].append(
-                    self.resolve_effect(effect_def, player, self.effects_for_type("spell")[idx], spell_to_resolve["effect_targets"][idx])
-                )
+                log_lines = self.resolve_effect(effect_def, player, self.effects_for_type("spell")[idx], spell_to_resolve["effect_targets"][idx])
+                if log_lines:
+                    [spell_to_resolve["log_lines"].append(line) for line in log_lines]
 
             for idx, effect_def in enumerate(self.enter_play_effect_defs):
                 target_info = spell_to_resolve["effect_targets"][idx]
@@ -439,11 +439,20 @@ class Card:
         if effect.counters >= 1 and effect.name != "store_mana":
             effect.counters -= 1
         log_lines = effect_def(effect_owner, effect, target_info)
+        mana_log_lines = None
         if effect.cost > 0:
-            effect_owner.spend_mana(effect.cost)
+            mana_log_lines = effect_owner.spend_mana(effect.cost)
         if effect.cost_hp > 0:
             effect_owner.hit_points -= effect.cost_hp
-        return log_lines
+
+        all_log_lines = None
+        if log_lines or mana_log_lines: 
+            all_log_lines = []
+            if log_lines:
+                all_log_lines += log_lines
+            if mana_log_lines:
+                all_log_lines += mana_log_lines
+        return all_log_lines
 
     def do_add_ambush_effect(self, effect_owner, effect, target_info):
         self.can_attack_mobs = True
@@ -536,10 +545,14 @@ class Card:
 
     def do_buff_power_toughness_from_mana_effect(self, effect_owner, effect, target_info):
         mana_count = effect_owner.current_mana()
-        effect_owner.spend_mana(effect_owner.current_mana())
+
+        log_lines = [f"{self.name} is now {self.power}/{self.toughness}."]
+        mana_log_lines = effect_owner.spend_mana(effect_owner.current_mana())
+        if mana_log_lines:
+            log_lines += mana_log_lines
         self.power += mana_count
         self.toughness += mana_count
-        return [f"{self.name} is now {self.power}/{self.toughness}."]
+        return log_lines
 
     def do_counter_card_effect(self, effect_owner, effect, target_info):
         effect_owner.game.actor_turn += 1
@@ -757,6 +770,7 @@ class Card:
         if self in effect_owner.played_pile:
             effect_owner.played_pile.remove(self)
         self.show_level_up = True
+        return [f"{self.name} disappears from the game instead of going to {effect_owner.username}'s yard."]
 
     def do_double_power_effect_on_mob(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
@@ -792,7 +806,7 @@ class Card:
     def do_draw_or_resurrect_effect(self, effect_owner, effect, target_info):
         # effect_owner
         amount = effect_owner.mana 
-        effect_owner.spend_mana(amount)
+        log_lines = effect_owner.spend_mana(amount)
         dead_mobs = []
         for card in effect_owner.played_pile:
             if card.card_type == Constants.mobCardType:
@@ -806,9 +820,12 @@ class Card:
                 mob = dead_mobs.pop()
                 effect_owner.played_pile.remove(mob)
                 effect_owner.play_mob(mob)
-
-        return [f"{effect_owner.username} did the RITUAL OF THE NIGHT."]
-        return message
+        ritual_line = f"{effect_owner.username} did the RITUAL OF THE NIGHT."
+        if log_lines:
+            log_lines.append(ritual_line)
+        else:
+            log_lines = [ritual_line]
+        return log_lines
 
     def do_enable_activated_effect_effect(self, effect_owner, effect, target_info):
         # todo don't hardcode turning them all off, only needed for Arsenal, which doesn't even equip anymore
@@ -1001,7 +1018,7 @@ class Card:
         return [f"{self.name} levels up."]
 
     def do_keep_effect(self, effect_owner, effect, target_info):
-        log_lines = [f"{effect_owner.username} kept {self.name}."]
+        log_lines = [f"{effect_owner.username} kept a card."]
         if effect.amount and not effect.amount_id:
             old_power = self.power 
             self.power += effect.amount
@@ -1009,14 +1026,12 @@ class Card:
             self.toughness += effect.amount
             if self.power > old_power or self.toughness > old_toughness:
                 self.show_level_up = True
-                log_lines = [f"{effect_owner.username} kept {self.name}, and it grew to {self.power_with_tokens(effect_owner)}/{self.toughness_with_tokens()}."]
         if effect.amount_id == "upgrade":
              upgraded_card = effect_owner.add_to_deck(effect.card_names[0], 1, add_to_hand=True)
              effect_owner.hand.remove(upgraded_card)
              upgraded_card.id = self.id
              upgraded_card.show_level_up = True
              effect_owner.hand.append(upgraded_card)
-             log_lines = [f"{effect_owner.username} kept {self.name} and it upgraded to {upgraded_card.name}."]
         else:
             effect_owner.hand.append(self)
         effect_owner.played_pile.remove(self)
@@ -1130,7 +1145,7 @@ class Card:
         else:
             player.card_choice_info = {"cards": [card1], "choice_type": "make_from_deck"}
 
-        return [f"{self.name} made a card from their deck."]
+        return [f"{player.username} made a card from their deck with {self.name}."]
 
     def do_mana_effect_on_player(self, effect_owner, effect, target_info):
         target_player = Card.player_for_username(effect_owner.game, target_info["id"])
@@ -1351,12 +1366,17 @@ class Card:
     def do_use_stored_mana_effect(self, effect_owner, effect, target_info):
         amount_to_spend = target_info["amount_to_spend"]
         store_effect = None
+        log_lines = None
+        if amount_to_spend > 0:
+            log_lines = [f"{self.name} used {amount_to_spend} mana."]            
         for e in self.effects:
             if e.name == "store_mana":
                 store_effect = e
         while amount_to_spend > 0 and store_effect.counters > 0:                        
             store_effect.counters -= 1
             amount_to_spend -= 1
+        return log_lines
+
     
     def do_riffle_effect(self, effect_owner, effect, target_info):
         player = effect_owner
@@ -1546,7 +1566,6 @@ class Card:
             self.effects.remove(effect)
 
     def do_set_token_effect(self, effect_owner, effect, target_info):
-        print("do_set_token_effect")
         tokens_to_remove = []
         for t in self.tokens:
             if t.id == self.id:
