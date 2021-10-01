@@ -763,7 +763,7 @@ export class Card {
     static uiEffects(card) {
         let uiEffects = [];
         for (let effect of card.effects) {
-            if (effect.ui_info && effect.enabled) {
+            if (effect.ui_info && effect.enabled && card.card_type == Constants.mobCardType) {
                 uiEffects.push(effect);                        
             }            
         }

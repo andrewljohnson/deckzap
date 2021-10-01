@@ -341,18 +341,31 @@ export class GameUX {
         this.isShowingCastAnimation = true;
         setTimeout(() => { 
             if (card.show_level_up) {
-                let shockwave = new ShockwaveFilter();
-                let incrementShockwaveTime = () => {
-                    shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+                let uiInfo = null;
+                for (let effect of card.effects) {
+                    if (effect.ui_info) {
+                        uiInfo = effect.ui_info;
+                    }
                 }
-                this.app.ticker.add(incrementShockwaveTime)
-                if (this.spellBeingCastSprite) {                    
-                    this.spellBeingCastSprite.filters = [shockwave];
+                if (uiInfo) {
+                    console.log(`animating FADE OUT FOR ${card.name}`)
+                    this.animateFadeOut(sprite);
+                    setTimeout(() => { 
+                        this.finishCastSpell(card, game, player, message, incrementGodrayTime, null)
+                    }, oneThousandMS * 2);                    
+                } else {
+                    let shockwave = new ShockwaveFilter();
+                    let incrementShockwaveTime = () => {
+                        shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+                    }
+                    this.app.ticker.add(incrementShockwaveTime)
+                    if (this.spellBeingCastSprite) {                    
+                        this.spellBeingCastSprite.filters = [shockwave];
+                    }
+                    setTimeout(() => { 
+                        this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
+                    }, oneThousandMS);                    
                 }
-                // todo AI plays faster?
-                setTimeout(() => { 
-                    this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
-                }, oneThousandMS);
             } else {
                 this.finishCastSpell(card, game, player, message, incrementGodrayTime);
             }     
@@ -368,16 +381,26 @@ export class GameUX {
         this.spellBeingCastSprite = null;                
         this.clearArrows()
         if (card.show_level_up) {
-            if(incrementShockwaveTime) {
-                this.app.ticker.remove(incrementShockwaveTime);
+            let uiInfo = null;
+            for (let effect of card.effects) {
+                if (effect.ui_info) {
+                    uiInfo = effect.ui_info;
+                }
             }
-            if (card.level != null) {
-                card.level += 1;
+            if (uiInfo) {
+                this.maybeShowCardSelectionView(game);
             } else {
-                card.effects[0].amount += 1            
+                if(incrementShockwaveTime) {
+                    this.app.ticker.remove(incrementShockwaveTime);
+                }
+                if (card.level != null) {
+                    card.level += 1;
+                } else {
+                    card.effects[0].amount += 1            
+                }
+                card.show_level_up = false;
+                this.showCardThatWasCast(card, game, player, message, false);
             }
-            card.show_level_up = false;
-            this.showCardThatWasCast(card, game, player, message, false);
         } else {
             if (this.needsToShowMakeViews) {
                 this.needsToShowMakeViews = false;
@@ -714,14 +737,7 @@ export class GameUX {
         }
         let inPlayLength = player.in_play.length;
         inPlaySprite.children = []
-        let index = 0;
-        if (inPlayLength == 1 || inPlayLength == 2) {
-            index = 3
-        } else if (inPlayLength == 3 || inPlayLength == 4) { 
-            index = 2
-        } else if (inPlayLength == 5 || inPlayLength == 6) { 
-            index = 1
-        }
+        let index = (7 - inPlayLength) * .5;
         let spriteToAnimate = null;
         for (let card of player.in_play) {
             let sprite = this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
@@ -777,6 +793,42 @@ export class GameUX {
         window.requestAnimationFrame(eachFrame);         
     }
 
+    animateFadeOut(card) {
+        var FADE_DURATION = this.attackDuration();
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        var self = this;
+        card.parent.removeChild(card);
+        this.app.stage.addChild(card);
+        function render(currTime) { 
+            // How opaque should head1 be?  Its fade started at currTime=0.
+            // Over FADE_DURATION ms, opacity goes from 0 to 1
+            card.filters = [new PIXI.filters.AlphaFilter(self.alphaForTime(currTime))];
+        }
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame);         
+    }
+
+    alphaForTime(time) {
+        return 1 - time /  this.attackDuration() - .1;
+    }
+
     positionForTime(time, cardSprite, avatarSprite) {
         let ratio = time * 2 / this.attackDuration();
         if (time > this.attackDuration() / 2) {
@@ -797,7 +849,7 @@ export class GameUX {
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
         let sprite = Card.spriteInPlay(card, this, game, player, false);
-        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding + 3;
+        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding *2;
         sprite.position.y = inPlaySprite.position.y + Card.cardHeight/2;
 
         if (cardIdToHide && card.id == cardIdToHide) {

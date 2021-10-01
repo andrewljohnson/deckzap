@@ -1,5 +1,6 @@
 import datetime
 import random
+import time
 from battle_wizard.game.player import Player
 from battle_wizard.game.card import Card
 
@@ -10,6 +11,7 @@ class PlayerAI(Player):
         super().__init__(game, info, new)
         self.is_ai = True
         self.ai_running = False
+        self.is_animating = False
         self.last_move_time = None
 
     def legal_moves_for_ai(self):
@@ -153,6 +155,10 @@ class PlayerAI(Player):
 
     def run_ai(self, moves, consumer):
         self.ai_running = True
+        if self.is_animating:
+            self.is_animating = False
+            time.sleep(2.5)
+
         self.last_move_time = datetime.datetime.now()
         if self.username == "random_bot":
             chosen_move = random.choice(moves)
@@ -165,8 +171,16 @@ class PlayerAI(Player):
 
         print("AI playing " + str(chosen_move))
         chosen_move["log_lines"] = []
-        message = self.game.play_move(chosen_move, save=True)    
+        message = self.game.play_move(chosen_move, save=True)                
         consumer.send_game_message(self.game.as_dict(), message)
+
+        if "show_spell" in message:
+            card = Card(message["show_spell"])
+            print(f"show_spell is {card.name}")
+            if card.show_level_up:
+                print ("CARD IS LEVELINGCARD IS LEVELINGCARD IS LEVELINGCARD IS LEVELING")
+                self.is_animating = True
+
         self.ai_running = False
 
     def aggro_bot_move(self, moves):

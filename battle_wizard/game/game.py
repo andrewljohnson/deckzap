@@ -186,7 +186,8 @@ class Game:
         self.opponent().can_be_clicked = False
         self.current_player().can_be_clicked = False
 
-        if cancel_damage and move_type not in ["PLAY_CARD", "PLAY_CARD_IN_HAND", "UNSELECT", "SELECT_OPPONENT", "ATTACK", "RESOLVE_NEXT_STACK"]:
+        if cancel_damage and move_type not in ["PLAY_CARD", "PLAY_CARD_IN_HAND", "UNSELECT", "SELECT_OPPONENT", "ATTACK", "RESOLVE_NEXT_STACK", "START_TURN"]:
+            print(f"cancel animations in {move_type}")
             self.opponent().damage_to_show = 0
             self.current_player().damage_to_show = 0
             for card in self.opponent().in_play + self.current_player().in_play:
