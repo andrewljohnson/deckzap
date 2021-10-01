@@ -1034,6 +1034,9 @@ class Card:
              effect_owner.hand.append(upgraded_card)
         else:
             effect_owner.hand.append(self)
+        for card in effect_owner.played_pile:
+            print(f"keeping def {card.name} {card.id}")
+        print(f"keeping def {self.name} {self.id}")
         effect_owner.played_pile.remove(self)
         return log_lines
 

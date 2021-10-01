@@ -471,34 +471,73 @@ export class GameUX {
     }
 
     refreshDisplayAfterAnyHandAnimations(message) {
+        let finishRefresh = () => {
+            this.removeCardsFromStage(game)
+            this.updateHand(game);
+            this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
+            this.updateThisPlayerArtifacts(game);
+            this.updateThisPlayerInPlay(game);
+            this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
+            this.updateOpponentHand(game);
+            this.updateOpponentArtifacts(game);
+            this.updateOpponentInPlay(game);
+            this.updateCardPiles(game);
+            this.renderEndTurnButton(game, message);
+            this.addMenuButton(game);
+            this.updateGameNavigator(game);
+            this.maybeShowSpellStack(game);
+            this.maybeShowGameOver(game);
+            this.maybeShowAttackIntent(game);
+            this.maybeShowCardSelectionView(game);
+            this.maybeShowRope(game);
+            this.elevateTopZViews(game, message);
+            this.animateEffects(message, false, true);       
+        }
+
         const game = this.game;
-        this.removeCardsFromStage(game)
-        this.updateHand(game);
-        this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
-        this.updateThisPlayerArtifacts(game);
-        let thisPlayerAttackAnimation = this.updateThisPlayerInPlay(game);
-        this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
-        this.updateOpponentHand(game);
-        this.updateOpponentArtifacts(game);
-        let opponentAttackAnimation = this.updateOpponentInPlay(game);
-        this.updateCardPiles(game);
-        this.renderEndTurnButton(game, message);
-        this.addMenuButton(game);
-        this.updateGameNavigator(game);
-        this.maybeShowSpellStack(game);
-        this.maybeShowGameOver(game);
-        this.maybeShowAttackIntent(game);
-        this.maybeShowCardSelectionView(game);
-        this.maybeShowRope(game);
-        this.elevateTopZViews(game, message);
-        if (thisPlayerAttackAnimation) {
-            thisPlayerAttackAnimation()
+        var isAnimating = this.maybeAnimateMobOnMobAttacks(game, this.thisPlayer(game), message);
+        if (isAnimating) {   
+            setTimeout(() => {finishRefresh();}, this.attackDuration())         
+        } else {
+           finishRefresh() 
         }
-        if (opponentAttackAnimation) {
-            opponentAttackAnimation()
-        }
-        this.animateEffects(message, false, true);
      }
+
+    maybeAnimateMobOnMobAttacks(game, player, message) {
+        if (message["move_type"] == "ATTACK") {
+            let spriteToAnimate = null;
+            for (let sprite of this.app.stage.children) {
+                if (sprite.card && sprite.card.id == message["card"]) {
+                    if (sprite.card.id == message["card"]) {
+                        for (let boardSprite of this.app.stage.children) {
+                            if (boardSprite.card) {
+                                clearDragFilters(boardSprite)    
+                                boardSprite.alpha = 1;                        
+                            }
+                        }
+                        this.app.stage.removeChild(this.dragSprite);
+                        this.dragSprite = null;
+                        if (message["defending_card"]) {
+                            for (let boardSprite of this.app.stage.children) {
+                                if (boardSprite.card && message["defending_card"].id == boardSprite.card.id) {
+                                    console.log("FOUND IT")
+                                    this.animateAttack(sprite, boardSprite, true);
+                                }
+                            }
+                        } else {
+                            if (this.thisPlayer(game).username == message["username"]) {
+                                this.animateAttack(sprite, this.opponentAvatar);
+                            } else {
+                                this.animateAttack(sprite, this.playerAvatar);
+                            }
+                        }
+                        return true;                    
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     updateGameNavigator(game) {
         if (!this.debug) {
@@ -722,11 +761,11 @@ export class GameUX {
     }
 
     updateThisPlayerInPlay(game) {
-        return this.updateInPlay(game, this.thisPlayer(game), this.opponent(game), this.opponentAvatar, this.inPlay);
+        this.updateInPlay(game, this.thisPlayer(game), this.opponent(game), this.opponentAvatar, this.inPlay);
     }
 
     updateOpponentInPlay(game) {
-        return this.updateInPlay(game, this.opponent(game), this.thisPlayer(game), this.playerAvatar, this.inPlayOpponent);
+        this.updateInPlay(game, this.opponent(game), this.thisPlayer(game), this.playerAvatar, this.inPlayOpponent);
     }
 
     updateInPlay(game, player, opponent, opponentAvatarSprite, inPlaySprite) {
@@ -740,25 +779,13 @@ export class GameUX {
         let inPlayLength = player.in_play.length;
         inPlaySprite.children = []
         let index = (7 - inPlayLength) * .5;
-        let spriteToAnimate = null;
         for (let card of player.in_play) {
-            let sprite = this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
-            if (opponent.damage_to_show > 0) {
-                let twoMovesAgo = game.moves[game.moves.length - 2];           
-                if (sprite.card.id == twoMovesAgo["card"]) {
-                    spriteToAnimate = sprite;
-                }
-            }
+            this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
             index++;
-        }
-        if (spriteToAnimate) {
-            return () =>  {
-                this.animateAttackOnPlayer(spriteToAnimate, opponentAvatarSprite);
-            }
         }
     }
 
-    animateAttackOnPlayer(card, avatarSprite) {
+    animateAttack(card, defendingSprite, didAttackMob=false) {
         var FADE_DURATION = this.attackDuration();
         
         // -1 is a flag to indicate if we are rendering the very 1st frame
@@ -772,7 +799,7 @@ export class GameUX {
         function render(currTime) { 
             // How opaque should head1 be?  Its fade started at currTime=0.
             // Over FADE_DURATION ms, opacity goes from 0 to 1
-            card.position = self.positionForTime(currTime, card, avatarSprite);
+            card.position = self.positionForTime(currTime, card, defendingSprite, didAttackMob);
         }
         function eachFrame() {
             var timeRunning = (new Date()).getTime() - startTime;
@@ -862,7 +889,7 @@ export class GameUX {
         return 1 - time /  this.attackDuration() - .1;
     }
 
-    positionForTime(time, cardSprite, avatarSprite) {
+    positionForTime(time, cardSprite, avatarSprite, didAttackMob) {
         let ratio = time * 2 / this.attackDuration();
         if (time > this.attackDuration() / 2) {
             ratio = 2 - ratio
@@ -874,6 +901,10 @@ export class GameUX {
         }
         if (avatarSprite.position.y > cardSprite.originalPosition.y) {
             bumpAdjustmentY = -Card.cardHeight/2;            
+        }
+        if (didAttackMob) {
+            bumpAdjustmentX = 0;
+            bumpAdjustmentY = 0;
         }
         let x = (1 - ratio) * cardSprite.originalPosition.x + ratio * (avatarSprite.position.x + bumpAdjustmentX)
         let y = (1 - ratio) * cardSprite.originalPosition.y + ratio * (avatarSprite.position.y + bumpAdjustmentY)
@@ -1553,6 +1584,7 @@ export class GameUX {
         }
 
         let clickFunction = () => {
+            this.dragSprite = null;
             if (game.stack.length > 0) {
                 this.gameRoom.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
             } else {
@@ -1837,7 +1869,7 @@ function onDragStart(event, cardSprite, gameUX, game) {
             }
         }
     }
-
+    gameUX.dragSprite = cardSprite;
 }
 
 
