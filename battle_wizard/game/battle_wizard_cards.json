@@ -1191,7 +1191,7 @@
 		"card_type": "mob",
 		"power": 2,
 		"toughness": 2,
-		"cost": 1,
+		"cost": 2,
 		"description": "Gets +1/+1 when Kept.",
 		"effects": [
 			{
@@ -1218,7 +1218,7 @@
 			"name": "damage",
 			"effect_type": "spell",
 			"target_type": "any",
-			"amount": 2,
+			"amount": 1,
 			"ai_target_types": ["opponent"]
 		},
 		{
@@ -1245,8 +1245,8 @@
 				"card_descriptions": [
 					"Make a 1/1. Improves when cast.", 
 					"Make a 2/2 Fast. Improves when cast.", 
-					"Make a 4/4 Fast. Improves when cast.", 
-					"Make a 6/6 Fast that draws you a card when it deals damage." 
+					"Make a 3/3 Fast. Improves when cast.", 
+					"Make a 4/4 Fast that draws you a card when it deals damage." 
 				],
 				"effect_type": "spell",
 				"target_type": "self",
@@ -1291,8 +1291,8 @@
 		"discipline": "tech",
 		"image": "air-man.svg",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
+		"power": 3,
+		"toughness": 3,
 		"cost": 2,
 		"effects": [{
 			"name": "add_fast",
@@ -1308,8 +1308,8 @@
 		"image": "robot-antennas.svg",
 		"card_type": "mob",
 		"description": "Draw when this damages an opponent.",
-		"power": 6,
-		"toughness": 6,
+		"power": 4,
+		"toughness": 4,
 		"cost": 3,
 		"effects": [
 			{
@@ -1469,7 +1469,7 @@
 		"card_type": "mob",
 		"power": 1,
 		"toughness": 1,
-		"cost": 0,
+		"cost": 1,
 		"description": "Spend all your mana. This gets +1/+1 per mana.",
 		"effects": [{
 			"name": "buff_power_toughness_from_mana",
