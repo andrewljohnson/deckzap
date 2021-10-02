@@ -1,5 +1,6 @@
 import datetime
 import random
+import time
 from battle_wizard.game.player import Player
 from battle_wizard.game.card import Card
 
@@ -10,6 +11,7 @@ class PlayerAI(Player):
         super().__init__(game, info, new)
         self.is_ai = True
         self.ai_running = False
+        self.animation_time = 0
         self.last_move_time = None
 
     def legal_moves_for_ai(self):
@@ -153,6 +155,10 @@ class PlayerAI(Player):
 
     def run_ai(self, moves, consumer):
         self.ai_running = True
+        if self.animation_time > 0:
+            time.sleep(self.animation_time)
+            self.animation_time = 0
+
         self.last_move_time = datetime.datetime.now()
         if self.username == "random_bot":
             chosen_move = random.choice(moves)
@@ -165,8 +171,17 @@ class PlayerAI(Player):
 
         print("AI playing " + str(chosen_move))
         chosen_move["log_lines"] = []
-        message = self.game.play_move(chosen_move, save=True)    
+        message = self.game.play_move(chosen_move, save=True)                
         consumer.send_game_message(self.game.as_dict(), message)
+
+        if "show_spell" in message:
+            card = Card(message["show_spell"])
+            if card.show_level_up:
+                self.animation_time = 2.5
+
+        if message["move_type"] == "ATTACK":
+            self.animation_time = 1
+
         self.ai_running = False
 
     def aggro_bot_move(self, moves):
@@ -240,11 +255,9 @@ class PlayerAI(Player):
             time_for_next_move = False
             if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
                 time_for_next_move = True
-            self.game.set_clickables()
+            self.game.set_clickables(None)
             moves = self.legal_moves_for_ai()
             if (time_for_next_move or len(moves) == 1) and not self.ai_running:
                 if self.game.players[0].hit_points > 0 and self.hit_points > 0: 
                     print("running AI, choosing from moves: " + str(moves))
                     self.run_ai(moves, consumer)
-
-

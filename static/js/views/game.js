@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import { GlowFilter, GodrayFilter, OutlineFilter, ShockwaveFilter } from 'pixi-filters';
+import { GlowFilter, GodrayFilter, OutlineFilter, ShockwaveFilter, VoidFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 import { Bump } from '../lib/bump.js';
 import * as Constants from '../Constants.js';
@@ -306,9 +306,6 @@ export class GameUX {
                 }
 
                 this.showCardThatWasCast(message.show_spell, game, this.thisPlayer(game), message)
-                setTimeout(() => {   
-                    this.refreshDisplay(message);
-                }, oneThousandMS);
                 return;
             }
         }
@@ -341,21 +338,37 @@ export class GameUX {
         this.isShowingCastAnimation = true;
         setTimeout(() => { 
             if (card.show_level_up) {
-                let shockwave = new ShockwaveFilter();
-                let incrementShockwaveTime = () => {
-                    shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+                let uiInfo = null;
+                for (let effect of card.effects) {
+                    if (effect.ui_info) {
+                        uiInfo = effect.ui_info;
+                    }
                 }
-                this.app.ticker.add(incrementShockwaveTime)
-                if (this.spellBeingCastSprite) {                    
-                    this.spellBeingCastSprite.filters = [shockwave];
+                if (uiInfo) {
+                    this.animateDisappear(sprite);
+                    setTimeout(() => { 
+                        this.finishCastSpell(card, game, player, message, incrementGodrayTime, null)
+                    }, oneThousandMS * 2);                    
+                } else {
+                    let shockwave = new ShockwaveFilter();
+                    let incrementShockwaveTime = () => {
+                        shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
+                    }
+                    this.app.ticker.add(incrementShockwaveTime)
+                    if (this.spellBeingCastSprite) {                    
+                        this.spellBeingCastSprite.filters = [shockwave];
+                    }
+                    setTimeout(() => { 
+                        this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
+                    }, oneThousandMS);                    
                 }
-                // todo AI plays faster?
-                setTimeout(() => { 
-                    this.finishCastSpell(card, game, player, message, incrementGodrayTime, incrementShockwaveTime)
-                }, oneThousandMS);
             } else {
-                this.finishCastSpell(card, game, player, message, incrementGodrayTime);
+                this.animateFadeOut(sprite);
+                setTimeout(() => { 
+                    this.finishCastSpell(card, game, player, message, incrementGodrayTime);
+                }, oneThousandMS);                    
             }     
+            this.refreshDisplay(message);
         }, oneThousandMS);
 
     }
@@ -368,16 +381,26 @@ export class GameUX {
         this.spellBeingCastSprite = null;                
         this.clearArrows()
         if (card.show_level_up) {
-            if(incrementShockwaveTime) {
-                this.app.ticker.remove(incrementShockwaveTime);
+            let uiInfo = null;
+            for (let effect of card.effects) {
+                if (effect.ui_info) {
+                    uiInfo = effect.ui_info;
+                }
             }
-            if (card.level != null) {
-                card.level += 1;
+            if (uiInfo) {
+                this.maybeShowCardSelectionView(game);
             } else {
-                card.effects[0].amount += 1            
+                if(incrementShockwaveTime) {
+                    this.app.ticker.remove(incrementShockwaveTime);
+                }
+                if (card.level != null) {
+                    card.level += 1;
+                } else {
+                    card.effects[0].amount += 1            
+                }
+                card.show_level_up = false;
+                this.showCardThatWasCast(card, game, player, message, false);
             }
-            card.show_level_up = false;
-            this.showCardThatWasCast(card, game, player, message, false);
         } else {
             if (this.needsToShowMakeViews) {
                 this.needsToShowMakeViews = false;
@@ -447,33 +470,72 @@ export class GameUX {
 
     refreshDisplayAfterAnyHandAnimations(message) {
         const game = this.game;
-        this.removeCardsFromStage(game)
-        this.updateHand(game);
-        this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
-        this.updateThisPlayerArtifacts(game);
-        let thisPlayerAttackAnimation = this.updateThisPlayerInPlay(game);
-        this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
-        this.updateOpponentHand(game);
-        this.updateOpponentArtifacts(game);
-        let opponentAttackAnimation = this.updateOpponentInPlay(game);
-        this.updateCardPiles(game);
-        this.renderEndTurnButton(game, message);
-        this.addMenuButton(game);
-        this.updateGameNavigator(game);
-        this.maybeShowSpellStack(game);
-        this.maybeShowGameOver(game);
-        this.maybeShowAttackIntent(game);
-        this.maybeShowCardSelectionView(game);
-        this.maybeShowRope(game);
-        this.elevateTopZViews(game, message);
-        if (thisPlayerAttackAnimation) {
-            thisPlayerAttackAnimation()
+        let finishRefresh = () => {
+            this.removeCardsFromStage(game)
+            this.updateHand(game);
+            this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
+            this.updateThisPlayerArtifacts(game);
+            this.updateThisPlayerInPlay(game);
+            this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
+            this.updateOpponentHand(game);
+            this.updateOpponentArtifacts(game);
+            this.updateOpponentInPlay(game);
+            this.updateCardPiles(game);
+            this.renderEndTurnButton(game, message);
+            this.addMenuButton(game);
+            this.updateGameNavigator(game);
+            this.maybeShowSpellStack(game);
+            this.maybeShowGameOver(game);
+            this.maybeShowAttackIntent(game);
+            this.maybeShowCardSelectionView(game);
+            this.maybeShowRope(game);
+            this.elevateTopZViews(game, message);
+            this.animateEffects(message, false, true);       
         }
-        if (opponentAttackAnimation) {
-            opponentAttackAnimation()
+
+        var isAnimating = this.maybeAnimateMobOnMobAttacks(game, this.thisPlayer(game), message);
+        if (isAnimating) {   
+            setTimeout(() => {finishRefresh();}, this.attackDuration())         
+        } else {
+           finishRefresh() 
         }
-        this.animateEffects(message, false, true);
      }
+
+    maybeAnimateMobOnMobAttacks(game, player, message) {
+        if (message["move_type"] == "ATTACK") {
+            let spriteToAnimate = null;
+            for (let sprite of this.app.stage.children) {
+                if (sprite.card && sprite.card.id == message["card"]) {
+                    if (sprite.card.id == message["card"]) {
+                        for (let boardSprite of this.app.stage.children) {
+                            if (boardSprite.card) {
+                                clearDragFilters(boardSprite)    
+                                boardSprite.alpha = 1;                        
+                            }
+                        }
+                        this.app.stage.removeChild(this.dragSprite);
+                        this.dragSprite = null;
+                        if (message["defending_card"]) {
+                            for (let boardSprite of this.app.stage.children) {
+                                if (boardSprite.card && message["defending_card"].id == boardSprite.card.id) {
+                                    console.log("FOUND IT")
+                                    this.animateAttack(sprite, boardSprite, true);
+                                }
+                            }
+                        } else {
+                            if (this.thisPlayer(game).username == message["username"]) {
+                                this.animateAttack(sprite, this.opponentAvatar);
+                            } else {
+                                this.animateAttack(sprite, this.playerAvatar);
+                            }
+                        }
+                        return true;                    
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     updateGameNavigator(game) {
         if (!this.debug) {
@@ -571,6 +633,9 @@ export class GameUX {
     updateHand(game) {
         for (let i=0;i<this.thisPlayer(game).hand.length;i++) {
             const card = this.thisPlayer(game).hand[i];
+            if (this.dragSprite && card.id == this.dragSprite.card.id) {
+                this.dragSprite.card.can_be_clicked = card.can_be_clicked;
+            }
             this.addHandCard(game, card, i)
         }
     }
@@ -697,11 +762,11 @@ export class GameUX {
     }
 
     updateThisPlayerInPlay(game) {
-        return this.updateInPlay(game, this.thisPlayer(game), this.opponent(game), this.opponentAvatar, this.inPlay);
+        this.updateInPlay(game, this.thisPlayer(game), this.opponent(game), this.opponentAvatar, this.inPlay);
     }
 
     updateOpponentInPlay(game) {
-        return this.updateInPlay(game, this.opponent(game), this.thisPlayer(game), this.playerAvatar, this.inPlayOpponent);
+        this.updateInPlay(game, this.opponent(game), this.thisPlayer(game), this.playerAvatar, this.inPlayOpponent);
     }
 
     updateInPlay(game, player, opponent, opponentAvatarSprite, inPlaySprite) {
@@ -714,33 +779,14 @@ export class GameUX {
         }
         let inPlayLength = player.in_play.length;
         inPlaySprite.children = []
-        let index = 0;
-        if (inPlayLength == 1 || inPlayLength == 2) {
-            index = 3
-        } else if (inPlayLength == 3 || inPlayLength == 4) { 
-            index = 2
-        } else if (inPlayLength == 5 || inPlayLength == 6) { 
-            index = 1
-        }
-        let spriteToAnimate = null;
+        let index = (7 - inPlayLength) * .5;
         for (let card of player.in_play) {
-            let sprite = this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
-            if (opponent.damage_to_show > 0) {
-                let twoMovesAgo = game.moves[game.moves.length - 2];           
-                if (sprite.card.id == twoMovesAgo["card"]) {
-                    spriteToAnimate = sprite;
-                }
-            }
+            this.addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index);
             index++;
-        }
-        if (spriteToAnimate) {
-            return () =>  {
-                this.animateAttackOnPlayer(spriteToAnimate, opponentAvatarSprite);
-            }
         }
     }
 
-    animateAttackOnPlayer(card, avatarSprite) {
+    animateAttack(card, defendingSprite, didAttackMob=false) {
         var FADE_DURATION = this.attackDuration();
         
         // -1 is a flag to indicate if we are rendering the very 1st frame
@@ -754,7 +800,7 @@ export class GameUX {
         function render(currTime) { 
             // How opaque should head1 be?  Its fade started at currTime=0.
             // Over FADE_DURATION ms, opacity goes from 0 to 1
-            card.position = self.positionForTime(currTime, card, avatarSprite);
+            card.position = self.positionForTime(currTime, card, defendingSprite, didAttackMob);
         }
         function eachFrame() {
             var timeRunning = (new Date()).getTime() - startTime;
@@ -777,7 +823,76 @@ export class GameUX {
         window.requestAnimationFrame(eachFrame);         
     }
 
-    positionForTime(time, cardSprite, avatarSprite) {
+    animateDisappear(card) {
+        let FADE_DURATION = 2000;
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        var self = this;
+        card.parent.removeChild(card);
+        this.app.stage.addChild(card);
+        let render = currTime => { 
+            card.filters = [new OutlineFilter(1, Constants.blackColor)]
+            card.filterArea = new PIXI.Rectangle(0, card.height * 2 * (currTime /  FADE_DURATION), card.width*2, card.height*2) 
+        }
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame);         
+    }
+
+    animateFadeOut(card) {
+        var FADE_DURATION = this.attackDuration();
+        
+        // -1 is a flag to indicate if we are rendering the very 1st frame
+        var startTime = -1.0; 
+        
+        // render current frame (whatever frame that may be)
+        var self = this;
+        if (card.parent) {
+            card.parent.removeChild(card);            
+        }
+        this.app.stage.addChild(card);
+        function render(currTime) { 
+            // How opaque should head1 be?  Its fade started at currTime=0.
+            // Over FADE_DURATION ms, opacity goes from 0 to 1
+            card.filters = [new PIXI.filters.AlphaFilter(self.alphaForTime(currTime))];
+        }
+        function eachFrame() {
+            var timeRunning = (new Date()).getTime() - startTime;
+            if (startTime < 0) {
+                startTime = (new Date()).getTime();
+                render(0.0);
+            } else if (timeRunning < FADE_DURATION) {
+                render(timeRunning);
+            } else {
+                return;
+            }
+        
+            window.requestAnimationFrame(eachFrame);
+        };
+
+        window.requestAnimationFrame(eachFrame);         
+    }
+
+    alphaForTime(time) {
+        return 1 - time /  this.attackDuration() - .1;
+    }
+
+    positionForTime(time, cardSprite, avatarSprite, didAttackMob) {
         let ratio = time * 2 / this.attackDuration();
         if (time > this.attackDuration() / 2) {
             ratio = 2 - ratio
@@ -790,6 +905,10 @@ export class GameUX {
         if (avatarSprite.position.y > cardSprite.originalPosition.y) {
             bumpAdjustmentY = -Card.cardHeight/2;            
         }
+        if (didAttackMob) {
+            bumpAdjustmentX = 0;
+            bumpAdjustmentY = 0;
+        }
         let x = (1 - ratio) * cardSprite.originalPosition.x + ratio * (avatarSprite.position.x + bumpAdjustmentX)
         let y = (1 - ratio) * cardSprite.originalPosition.y + ratio * (avatarSprite.position.y + bumpAdjustmentY)
         return {x, y};
@@ -797,7 +916,7 @@ export class GameUX {
 
     addCardToInPlay(game, card, player, inPlaySprite, cardIdToHide, index) {
         let sprite = Card.spriteInPlay(card, this, game, player, false);
-        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding + 3;
+        sprite.position.x = (Card.cardWidth)*index + Card.cardWidth/2 + Constants.padding *2;
         sprite.position.y = inPlaySprite.position.y + Card.cardHeight/2;
 
         if (cardIdToHide && card.id == cardIdToHide) {
@@ -873,9 +992,12 @@ export class GameUX {
     }
 
     maybeShowCardSelectionView(game) {
-        if (!this.isShowingCastAnimation) {
-            this.showSelectionViews(game);
+        if (!this.thisPlayer(game).card_choice_info.cards.length) {
             this.makeCardsInteractive(game)
+        }
+        if (!this.isShowingCastAnimation) {
+            this.makeCardsInteractive(game)
+            this.showSelectionViews(game);
         } else {
             this.needsToShowMakeViews = true;
         }        
@@ -896,7 +1018,7 @@ export class GameUX {
         let ropeTime = tickMS*4;
         this.ropeGodrayTimeTicker = () => {
             if (sprite.position.x >= ropeLength) {
-                this.gameRoom.endTurn()
+                this.gameRoom.sendPlayMoveEvent("END_TURN", {});
                 this.showingRope = false;
                 sprite.filters = []; 
                 this.app.ticker.remove(this.ropeGodrayTimeTicker)            
@@ -949,20 +1071,6 @@ export class GameUX {
 
     attackDuration () {
         return 0.8 * oneThousandMS;
-    }
-
-    fadeDuration () {
-        return 2.0 * oneThousandMS;
-    }
-
-    fadeAlphaForTime(t) {
-        if (t <= this.fadeDuration()/2) {
-            return 1;
-        }
-        if (t <= this.fadeDuration()*.99) {
-            return (1 - t / this.fadeDuration() ) * 2;
-        }
-        return 0;
     }
 
     showChangeTurnAnimation(game) {
@@ -1021,6 +1129,20 @@ export class GameUX {
         };
 
         window.requestAnimationFrame(eachFrame); 
+    }
+
+    fadeDuration () {
+        return 2.0 * oneThousandMS;
+    }
+
+    fadeAlphaForTime(t) {
+        if (t <= this.fadeDuration()/2) {
+            return 1;
+        }
+        if (t <= this.fadeDuration()*.99) {
+            return (1 - t / this.fadeDuration() ) * 2;
+        }
+        return 0;
     }
 
     showArrow(fromSprite, toSprite, adjustment={"x":0, "y": 0}){
@@ -1468,10 +1590,14 @@ export class GameUX {
         }
 
         let clickFunction = () => {
+            this.dragSprite = null;
+            if (this.thisPlayer(game).card_choice_info.cards.length) {
+                return;
+            }
             if (game.stack.length > 0) {
-                this.gameRoom.pass(message)
+                this.gameRoom.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
             } else {
-                this.gameRoom.endTurn()
+                this.gameRoom.sendPlayMoveEvent("END_TURN", {});
             }
             if (this.ropeSprite) {
                 this.showingRope = false;
@@ -1752,7 +1878,7 @@ function onDragStart(event, cardSprite, gameUX, game) {
             }
         }
     }
-
+    gameUX.dragSprite = cardSprite;
 }
 
 

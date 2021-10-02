@@ -143,7 +143,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "after_cast"
+				"effect_type": "mob_changes_zones"
 			},
 			{
 				"name": "protect_with_shield",
@@ -335,19 +335,28 @@
 		"cost": 1,
 		"card_type": "spell",
 		"description": "Deal 1 damage. Draw 1 card.",
-		"effects": [{
-			"name": "damage",
-			"effect_type": "spell",
-			"target_type": "any",
-			"amount": 1,
-			"ai_target_types": ["opponent", "opponents_mob"]
-		}, 
-		{
-			"name": "draw",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 1
-		}]
+		"effects": [
+			{
+				"name": "damage",
+				"effect_type": "spell",
+				"target_type": "any",
+				"amount": 1,
+				"ai_target_types": ["opponent", "opponents_mob"]
+			}, 
+			{
+				"name": "draw",
+				"effect_type": "spell",
+				"target_type": "self",
+				"amount": 1
+			},
+			{
+				"name": "start_in_hand",
+				"effect_type": "after_shuffle",
+				"description": "Starts in Hand",
+				"description_expanded": "This spell starts in your hand.",
+				"description_on_card" : true
+			}			
+		]
 	},
 	{
 		"name": "Mind Manacles",
@@ -490,7 +499,7 @@
 		"description": "Get a 2/1 ghost token when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Ghost of the Cat",
+			"card_names": ["Ghost of the Cat"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
@@ -552,7 +561,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "after_cast"
+				"effect_type": "mob_changes_zones"
 			},
 			{
 				"name": "remove_symbiotic_fast",
@@ -764,7 +773,7 @@
 		"description": "Get a random artifact from your deck. Summon a 3/3 with Fast and Fade.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Mist Elephant",
+			"card_names": ["Mist Elephant"],
 			"target_type": "self",
 			"effect_type": "spell",
 			"amount": 1
@@ -862,7 +871,7 @@
 		"effects": [
 			{
 				"name": "make_token",
-				"card_name": "Charmed Rat",
+				"card_names": ["Charmed Rat"],
 				"effect_type": "activated",
 				"target_type": "self",
 				"amount": 1,
@@ -1095,7 +1104,7 @@
 		"description": "Make 3/3s with Fast.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Nonapug Decon",
+			"card_names": ["Nonapug Decon"],
 			"target_type": "self",
 			"effect_type": "spell",
 			"amount": 3
@@ -1182,7 +1191,7 @@
 		"card_type": "mob",
 		"power": 2,
 		"toughness": 2,
-		"cost": 1,
+		"cost": 2,
 		"description": "Gets +1/+1 when Kept.",
 		"effects": [
 			{
@@ -1209,7 +1218,7 @@
 			"name": "damage",
 			"effect_type": "spell",
 			"target_type": "any",
-			"amount": 2,
+			"amount": 1,
 			"ai_target_types": ["opponent"]
 		},
 		{
@@ -1236,8 +1245,8 @@
 				"card_descriptions": [
 					"Make a 1/1. Improves when cast.", 
 					"Make a 2/2 Fast. Improves when cast.", 
-					"Make a 4/4 Fast. Improves when cast.", 
-					"Make a 6/6 Fast that draws you a card when it deals damage." 
+					"Make a 3/3 Fast. Improves when cast.", 
+					"Make a 4/4 Fast that draws you a card when it deals damage." 
 				],
 				"effect_type": "spell",
 				"target_type": "self",
@@ -1282,8 +1291,8 @@
 		"discipline": "tech",
 		"image": "air-man.svg",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
+		"power": 3,
+		"toughness": 3,
 		"cost": 2,
 		"effects": [{
 			"name": "add_fast",
@@ -1299,8 +1308,8 @@
 		"image": "robot-antennas.svg",
 		"card_type": "mob",
 		"description": "Draw when this damages an opponent.",
-		"power": 6,
-		"toughness": 6,
+		"power": 4,
+		"toughness": 4,
 		"cost": 3,
 		"effects": [
 			{
@@ -1460,7 +1469,7 @@
 		"card_type": "mob",
 		"power": 1,
 		"toughness": 1,
-		"cost": 0,
+		"cost": 1,
 		"description": "Spend all your mana. This gets +1/+1 per mana.",
 		"effects": [{
 			"name": "buff_power_toughness_from_mana",
@@ -1505,8 +1514,7 @@
 					"amount": 1,
 					"counters": 2,
 					"cost": 0,
-					"power": 0,
-					"was_added": true
+					"power": 0
 				}
 			},
 			{
@@ -1812,7 +1820,10 @@
 				"name": "disappear",
 				"description": "Disappear",
 				"description_expanded": "Cards with Disappear don't go to the Played Pile when played, they are removed instead.",
-				"effect_type": "after_cast"
+				"effect_type": "after_card_resolves",
+				"ui_info": {
+					"effect_type": "fade_out"
+				}
 			}
 		]
 	},
@@ -1877,13 +1888,19 @@
 		"cost": 2,
 		"card_type": "spell",
 		"description": "Destroy something that costs more than 3 mana.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "spell",
-			"target_type": "mob_or_artifact",
-			"target_restrictions": [{"min_cost": 3}],
-			"ai_target_types": ["opponents_mob", "opponents_artifact"]
-		}]
+		"effects": [
+			{
+				"name": "kill",
+				"effect_type": "spell",
+				"target_type": "mob_or_artifact",
+				"ai_target_types": ["opponents_mob", "opponents_artifact"]
+			},
+			{
+				"name": "restrict_effect_targets_min_cost",
+				"effect_type": "select_mob_target_override",
+				"amount": 3
+			}
+		]
 	},
 	{
 		"name": "Fine War Music",
@@ -2018,13 +2035,18 @@
 		"cost": 2,
 		"card_type": "spell",
 		"description": "Summon a 2/3. Change a spell being cast to target it.",
-		"effects": [{
-			"name": "redirect_mob_spell",
-			"effect_type": "spell",
-			"target_type": "being_cast_spell",
-			"target_restrictions": [{"target": "mob"}],
-			"ai_target_types": ["being_cast_spell_opponent"]
-		}]
+		"effects": [
+			{
+				"name": "redirect_mob_spell",
+				"effect_type": "spell",
+				"target_type": "being_cast_spell",
+				"ai_target_types": ["being_cast_spell_opponent"]
+			},
+			{
+				"name": "restrict_effect_targets_mob_targetter",
+				"effect_type": "select_mob_target_override"
+			}
+		]
 	},
 	{
 		"name": "Willing Villager",
@@ -2046,10 +2068,10 @@
 		"cost": 2,
 		"effects": [
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			}
 		]
 	},   
@@ -2168,10 +2190,10 @@
 				"effect_type": "after_deals_damage"
 			},
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			}
 		]
 	},
@@ -2185,10 +2207,10 @@
 		"cost": 6,
 		"effects": [
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			}
 		]
 	},
@@ -2271,10 +2293,10 @@
 				"effect_type": "after_deals_damage"
 			},
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			},
 			{
 				"name": "allow_instant_cast",

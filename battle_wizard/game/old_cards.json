@@ -9,11 +9,19 @@
 		"description": "Get a 2/1 dryad token when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Pine Dryad",
+			"card_names": ["Pine Dryad"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+			{
+				"name": "allow_defend_response",
+				"description": "Defend",
+				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
+				"effect_type": "after_declared_attack"
+			}
+		
+		]
 	},
 	{
 		"name": "Pine Dryad",
@@ -34,7 +42,7 @@
 		"description": "Get a 1/2 dryad token with Guard when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Oak Dryad",
+			"card_names": ["Oak Dryad"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
@@ -73,7 +81,7 @@
 		"effects": [
 			{
 				"name": "make_token",
-				"card_name": "Elemental",
+				"card_names": ["Elemental"],
 				"target_type": "opponent",
 				"effect_type": "enter_play",
 				"amount": 2
@@ -134,12 +142,17 @@
 		"toughness": 5,
 		"cost": 6,
 		"description": "Destroy an enemy mob with Guard.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "enter_play",
-			"target_type": "opponents_mob",
-			"target_restrictions": [{"needs_guard": null}]
-		}]
+		"effects": [
+			{
+				"name": "kill",
+				"effect_type": "enter_play",
+				"target_type": "opponents_mob"
+			},
+			{
+				"name": "restrict_effect_targets_mob_with_guard",
+				"effect_type": "select_mob_target_override"
+			}
+		]
 	},
 	{
 		"name": "Dragonslayer Elf",
@@ -149,12 +162,18 @@
 		"toughness": 2,
 		"cost": 3,
 		"description": "Destroy a mob power 6 or greater.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "enter_play",
-			"target_type": "mob",
-			"target_restrictions": [{"power": 6}]
-		}]
+		"effects": [
+			{
+				"name": "kill",
+				"effect_type": "enter_play",
+				"target_type": "mob"
+			},
+			{
+				"name": "restrict_effect_targets_mob_with_power",
+				"effect_type": "select_mob_target_override",
+				"amount": 6
+			}
+		]
 	},
 	{
 		"name": "Mana Tree",
@@ -273,7 +292,7 @@
 				"name": "add_ambush",
 				"description": "Ambush",
 				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "after_cast"
+				"effect_type": "mob_changes_zones"
 			}
 		]	
 	},
@@ -696,7 +715,7 @@
 		"description": "Fill your board with 1/1 mushrooms.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Mushroom",
+			"card_names": ["Mushroom"],
 			"effect_type": "spell",
 			"target_type": "self",
 			"amount": 7
@@ -724,7 +743,7 @@
 			{
 				"amount": 1,
 				"name": "make_token",
-				"card_name": "Townie",
+				"card_names": ["Townie"],
 				"effect_type": "enter_play",
 				"target_type": "self"
 			},
@@ -803,7 +822,7 @@
 		"effects": [
 			{
 				"name": "make_token",
-				"card_name": "Life Guardian Reborn",
+				"card_names": ["Life Guardian Reborn"],
 				"effect_type": "leave_play",
 				"target_type": "self",
 				"amount": 1
@@ -845,7 +864,7 @@
 		"description": "Get an 8/8 mob with Guard when this dies.",
 		"effects": [{
 			"name": "make_token",
-			"card_name": "Great Guardian Reborn",
+			"card_names": ["Great Guardian Reborn"],
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
@@ -885,7 +904,7 @@
 		"description": "Add 2 Town Rangers to your hand.",
 		"effects": [{
 				"name": "create_card",
-				"card_name": "Town Ranger",
+				"card_names": ["Town Ranger"],
 				"effect_type": "enter_play",
 				"target_type": "self",
 				"amount": 2
@@ -907,7 +926,7 @@
 			"name": "kill",
 			"effect_type": "spell",
 			"target_type": "all",
-			"target_restrictions": [{"min_cost": 2}, {"max_cost": 5}]
+			"other_info": {"min_cost": 2, "max_cost": 5}
 		}]
 	},
 	{
@@ -1107,7 +1126,9 @@
 							"outer_strength": 0,
 							"inner_strength": 3,
 							"color": "black"
-						}
+						},
+						"description": "Lurker",
+						"description_expanded": "Lurker mobs can't be targetted by spells or attacks."
 					}
 				],
 				"ai_target_types": ["self_mob"]

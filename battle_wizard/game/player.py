@@ -112,13 +112,15 @@ class Player:
     def has_artifact_target(self):
         return len(self.my_opponent().artifacts) + len(self.artifacts) > 0
 
+    def has_mob_or_artifact_target(self):
+        return self.has_artifact_target() or self.has_mob_target()
+
     def current_mana(self):
         return self.mana + self.mana_from_cards()
 
     def mana_from_cards(self):
         for artifact in self.artifacts:
             for idx, effect in enumerate(artifact.effects_for_type("check_mana")):
-                effect.show_effect_animation = True
                 artifact.resolve_effect(artifact.check_mana_effect_defs[idx], self, effect, {})
         mana = self.card_mana
         self.card_mana = 0
@@ -154,6 +156,8 @@ class Player:
 
     def draw(self, number_of_cards):
         log_lines = []
+        if number_of_cards > 0:
+            log_lines = [f"{self.username} drew {number_of_cards} card for their turn."]
         for i in range(0, number_of_cards):
             if len(self.deck) == 0:
                 for c in self.played_pile:
@@ -179,10 +183,13 @@ class Player:
             self.mana -= 1
             amount_to_spend -= 1
 
+        log_lines = None
         for artifact in self.artifacts:
             for idx, effect in enumerate(artifact.effects_for_type("spend_mana")):
-                effect.show_effect_animation = True
-                artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend})
+                log_lines = artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend})
+                if log_lines:
+                    effect.show_effect_animation = True
+        return log_lines
 
     def artifact_in_play(self, card_id):
         for card in self.artifacts:
@@ -240,20 +247,21 @@ class Player:
         if card.cost > self.current_mana():
             print(f"card costs too much - costs {card.cost}, mana available {self.current_mana()}")
             return None
+
         self.reset_card_info_to_target()
         self.hand.remove(card)
-        self.spend_mana(card.cost)
+        mana_log_lines = self.spend_mana(card.cost)
+        if mana_log_lines:
+            message["log_lines"] += mana_log_lines
 
         self.game.actor_turn += 1
         self.game.stack.append([copy.deepcopy(message), card.as_dict()])
-        self.game.unset_clickables(message["move_type"])
-        self.game.set_clickables()
+        self.game.reset_clickables(message["move_type"])
 
         if not self.game.current_player().has_instants():
             self.game.actor_turn += 1
             message = self.play_card(card.id, message)
-            self.game.unset_clickables(message["move_type"], cancel_damage=False)
-            self.game.set_clickables()
+            self.game.reset_clickables(message["move_type"], cancel_damage=False)
             return message
 
         message["log_lines"].append(f"{self.username} starts to play {card.name}.")
@@ -304,21 +312,21 @@ class Player:
                 else:
                     self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["mob"]:
-                if self.game.players[0].has_target_for_mob_effect(effects[0].target_restrictions) or self.game.players[1].has_target_for_mob_effect(effects[0].target_restrictions):
+                if self.game.players[0].has_target_for_mob_effect() or self.game.players[1].has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["opponents_mob"]:
-                if self.my_opponent().has_target_for_mob_effect(effects[0].target_restrictions):
+                if self.my_opponent().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif effects[0].target_type in ["self_mob"]:
-                if self.game.current_player().has_target_for_mob_effect(effects[0].target_restrictions):
+                if self.game.current_player().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
@@ -371,6 +379,7 @@ class Player:
             message["log_lines"] += log_lines
         message = self.do_start_turn_card_effects(message)
         self.refresh_mana_for_turn()
+        self.game.reset_clickables(message["move_type"])
         return message
 
     def draw_for_turn(self):
@@ -402,7 +411,8 @@ class Player:
 
         for r in self.artifacts:
             r.can_activate_effects = True
-            r.effects_exhausted = {}
+            for effect in r.effects:
+                effect.exhausted = False
         return message
 
     def refresh_mana_for_turn(self):
@@ -477,15 +487,12 @@ class Player:
     def set_targets_for_selected_mob(self):
         # todo artifacts?
         target_type = None
-        target_restrictions = None
         card = self.selected_mob()
         if self.card_info_to_target["effect_type"] == "mob_comes_into_play":
-                target_type = card.effects[0].target_type
-                target_restrictions = card.effects[0].target_restrictions
+            target_type = card.effects[0].target_type
         elif self.card_info_to_target["effect_type"] == "mob_activated":
             target_type = card.effects_for_type("activated")[0].target_type
-            target_restrictions = card.effects_for_type("activated")[0].target_restrictions
-        self.game.set_targets_for_target_type(target_type, target_restrictions)
+        self.game.set_targets_for_target_type(target_type)
 
     def remove_temporary_tokens(self):
         for c in self.in_play:
@@ -573,13 +580,20 @@ class Player:
 
     def select_card_in_hand(self, message):
         card = None
+        print(self.hand)
+        print(self.my_opponent().hand)
         for card_in_hand in self.hand:
+            print(f"{card_in_hand.name} {card_in_hand.id} vs {message['card']}")
             if card_in_hand.id == message["card"]:
                 card = card_in_hand
                 break
         if not card:
             print(f"can't select that Card, it's not in hand")
-            return None
+            return
+
+        if "override_selection_for_lookahead" not in message and not card.can_be_clicked:
+            print(f"can't select that Card, it can't be clicked maybe because there are no legal targets like with Lurker")
+            return
 
         message["card_name"] = card.name
         has_mob_target = False
@@ -588,8 +602,7 @@ class Player:
             artifact = self.selected_artifact()
             if artifact.effects[self.card_info_to_target["effect_index"]].target_type == "hand_card":
                 message = self.game.activate_artifact_on_hand_card(message, self.selected_artifact(), card, self.card_info_to_target["effect_index"])
-                self.game.unset_clickables(message["move_type"])
-                self.game.set_clickables()
+                self.game.reset_clickables(message["move_type"])
                 # cards like Mana Coffin and Duplication Chamber
                 artifact.effects[0].show_effect_animation = True
                 return message
@@ -618,35 +631,15 @@ class Player:
         # todo this is hardcoded, cant support multiple effects per card?
         self.card_info_to_target["effect_index"] = 0
 
-        self.game.unset_clickables(message["move_type"])
-        self.game.set_clickables()
+        self.game.reset_clickables(message["move_type"])
+
         return message
 
-    def set_targets_for_mob_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
-            for card in self.in_play:
-                if card.power_with_tokens(self.opponent()) >= list(target_restrictions[0].values())[0]:
-                    card.can_be_clicked = True
-            return
-
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "min_cost":
-            for card in self.in_play:
-                if card.cost >= list(target_restrictions[0].values())[0]:
-                    card.can_be_clicked = True
-            return
-
+    def set_targets_for_mob_effect(self):
         for card in self.in_play:
             card.can_be_clicked = True
 
-    def set_targets_for_artifact_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "min_cost":
-            did_target = False
-            for card in self.artifacts:
-                if card.cost >= list(target_restrictions[0].values())[0]:
-                    card.can_be_clicked = True
-                    did_target = True
-            return
-
+    def set_targets_for_artifact_effect(self):
         for card in self.artifacts:
             card.can_be_clicked = True
 
@@ -660,56 +653,17 @@ class Player:
             card.can_be_clicked = True
         self.can_be_clicked = True
 
-        if effect:
-            for info in effect.targetted_this_turn:
-                if info["target_type"] == "player":
-                    self.can_be_clicked = False
-                else:
-                    card, _ = self.game.get_in_play_for_id(info["id"])
-                    if card:
-                        card.can_be_clicked = False
-
     def set_targets_for_hand_card_effect(self):
         for card in self.hand:
             card.can_be_clicked = True
 
-    def set_targets_for_player_mob_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "needs_guard":
-            set_targets = False
-            for e in self.in_play:
-                if e.id != self.card_info_to_target["card_id"]:
-                    if e.has_effect("force_attack_guard_first"):
-                        set_targets = True
-                        e.can_be_clicked = True
-            return
-
-        set_targets = False
+    def set_targets_for_player_mob_effect(self):
         for card in self.in_play:
             if card.id != self.card_info_to_target["card_id"]:
                 card.can_be_clicked = True
-                set_targets = True
 
-    def has_target_for_mob_effect(self, target_restrictions):
-        if len(target_restrictions) > 0 and target_restrictions[0] == "needs_guard":
-            for e in self.in_play:
-                if e.id != self.card_info_to_target["card_id"]:
-                    if e.has_effect("force_attack_guard_first"):
-                        return True
-            return False
-
-        if len(target_restrictions) > 0 and list(target_restrictions[0].keys())[0] == "power":
-            for e in self.in_play:
-                if e.power_with_tokens(self) >= list(target_restrictions[0].values())[0]:
-                    return True
-            return False
-
+    def has_target_for_mob_effect(self):
         return len(self.in_play) > 0
-
-    def clear_artifact_effects_targetted_this_turn(self):
-        # for Multishot Bow
-        for r in self.artifacts:
-            for e in r.effects:
-                e.targetted_this_turn = []
 
     def clear_damage_this_turn(self):
         for c in self.in_play:

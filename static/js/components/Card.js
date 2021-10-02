@@ -286,10 +286,6 @@ export class Card {
             attackEffectOptions.fill = Constants.whiteColor;
             if (attackEffect.name == "create_random_townie") {
                 Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
-            } else {
-                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters, Constants.redColor);
-                attackEffectOptions.fill = Constants.blackColor;
-                Card.addCircledLabel(powerX, powerY, cardSprite, attackEffectOptions, attackEffect.power, Constants.yellowColor);
             }
         }
 
@@ -698,6 +694,13 @@ export class Card {
                 if (e.description_expanded != undefined) {
                     infoText.text += `${e.description} - ${e.description_expanded}\n\n`;
                 }                   	        
+                if (e.effects) {
+                    for (let ee of e.effects) {
+                        if (ee.description_expanded != undefined) {
+                            infoText.text += `${ee.description} - ${ee.description_expanded}\n\n`;
+                        }                               
+                    }
+                }                
             }
 	    }
 
@@ -760,7 +763,7 @@ export class Card {
     static uiEffects(card) {
         let uiEffects = [];
         for (let effect of card.effects) {
-            if (effect.ui_info && effect.enabled) {
+            if (effect.ui_info && effect.enabled && card.card_type == Constants.mobCardType) {
                 uiEffects.push(effect);                        
             }            
         }
