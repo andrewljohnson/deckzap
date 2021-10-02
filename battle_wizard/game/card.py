@@ -1034,10 +1034,11 @@ class Card:
              effect_owner.hand.append(upgraded_card)
         else:
             effect_owner.hand.append(self)
-        for card in effect_owner.played_pile:
-            print(f"keeping def {card.name} {card.id}")
-        print(f"keeping def {self.name} {self.id}")
-        effect_owner.played_pile.remove(self)
+        card_to_remove = None
+        for c in effect_owner.played_pile:
+            if c.id == self.id:
+                card_to_remove = c
+        effect_owner.played_pile.remove(c)
         return log_lines
 
     def do_kill_effect(self, effect_owner, effect, target_info):
@@ -1269,8 +1270,8 @@ class Card:
         if not stack_spell:
             return None
 
-        stack_spell[0]["effect_targets"][0]["id"] = effect_owner.game.next_card_id - 1
-        return[f"{stack_spell[1]['name']} was redirected to a newly summoned {token_card_name}."]
+        stack_spell[0]["effect_targets"][0]["id"] = villager_card.id
+        return[f"{stack_spell[1]['name']} was redirected to a newly summoned {villager_card.name}."]
 
 
     def do_restrict_effect_targets_min_cost_effect(self, effect_owner, effect, target_info):

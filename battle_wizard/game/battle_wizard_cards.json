@@ -2068,10 +2068,10 @@
 		"cost": 2,
 		"effects": [
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			}
 		]
 	},   
@@ -2190,10 +2190,10 @@
 				"effect_type": "after_deals_damage"
 			},
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			}
 		]
 	},
@@ -2207,10 +2207,10 @@
 		"cost": 6,
 		"effects": [
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			}
 		]
 	},
@@ -2293,10 +2293,10 @@
 				"effect_type": "after_deals_damage"
 			},
 			{
-				"name": "allow_defend_response",
-				"description": "Defend",
-				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
-				"effect_type": "after_declared_attack"
+				"name": "force_attack_guard_first",
+				"description": "Guard",
+				"description_expanded": "Guard mobs must be attacked before other enemies.",
+				"effect_type": "select_mob_target"
 			},
 			{
 				"name": "allow_instant_cast",

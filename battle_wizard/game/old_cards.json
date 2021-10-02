@@ -13,7 +13,15 @@
 			"effect_type": "leave_play",
 			"target_type": "self",
 			"amount": 1
-		}]
+		},
+			{
+				"name": "allow_defend_response",
+				"description": "Defend",
+				"description_expanded": "Defend mobs that didn't attack last turn can intercept an attack as an instant. Defended attacks are cancelled if the attacker dies.",
+				"effect_type": "after_declared_attack"
+			}
+		
+		]
 	},
 	{
 		"name": "Pine Dryad",
