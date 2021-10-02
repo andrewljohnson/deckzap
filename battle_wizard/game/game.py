@@ -228,7 +228,7 @@ class Game:
                 if len(selected_spell.effects) > 0:     
                     self.set_targets_for_target_type(selected_spell.effects[0].target_type)
         
-        if not cp.card_info_to_target["effect_type"]:
+        if not cp.card_info_to_target["effect_type"] and not len(cp.card_choice_info["cards"]):
             if len(cp.card_choice_info["cards"]) > 0 and cp.card_choice_info["choice_type"] in ["select_mob_for_effect"]:
                 for c in cp.card_choice_info["cards"]:
                     c.can_be_clicked = True
@@ -293,7 +293,9 @@ class Game:
                     if card.card_type == Constants.spellCardType and card.needs_opponent_mob_target_for_spell():
                         card.can_be_clicked = cp.has_opponents_mob_target()
                     if card.card_type == Constants.spellCardType and len(self.stack) > 0 and card.card_subtype == "turn-only":
-                        card.can_be_clicked = False    
+                        card.can_be_clicked = False  
+                    if card.id == cp.card_info_to_target["card_id"]:
+                        card.can_be_clicked = False                        
 
         self.do_set_clickables_effects(move_type)
 
@@ -505,6 +507,10 @@ class Game:
                 break
         if not card:
             print(f"can't play that Card, it's not in hand")
+            return None
+
+        if card.needs_targets_for_spell(): 
+            print(f"can't play that Card, it needs a target")
             return None
 
         self.current_player().reset_card_info_to_target()

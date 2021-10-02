@@ -247,6 +247,7 @@ class Player:
         if card.cost > self.current_mana():
             print(f"card costs too much - costs {card.cost}, mana available {self.current_mana()}")
             return None
+        
         self.reset_card_info_to_target()
         self.hand.remove(card)
         mana_log_lines = self.spend_mana(card.cost)

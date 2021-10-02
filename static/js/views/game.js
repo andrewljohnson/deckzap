@@ -306,9 +306,6 @@ export class GameUX {
                 }
 
                 this.showCardThatWasCast(message.show_spell, game, this.thisPlayer(game), message)
-                setTimeout(() => {   
-                    this.refreshDisplay(message);
-                }, oneThousandMS);
                 return;
             }
         }
@@ -371,6 +368,7 @@ export class GameUX {
                     this.finishCastSpell(card, game, player, message, incrementGodrayTime);
                 }, oneThousandMS);                    
             }     
+            this.refreshDisplay(message);
         }, oneThousandMS);
 
     }
@@ -471,6 +469,7 @@ export class GameUX {
     }
 
     refreshDisplayAfterAnyHandAnimations(message) {
+        const game = this.game;
         let finishRefresh = () => {
             this.removeCardsFromStage(game)
             this.updateHand(game);
@@ -494,7 +493,6 @@ export class GameUX {
             this.animateEffects(message, false, true);       
         }
 
-        const game = this.game;
         var isAnimating = this.maybeAnimateMobOnMobAttacks(game, this.thisPlayer(game), message);
         if (isAnimating) {   
             setTimeout(() => {finishRefresh();}, this.attackDuration())         
@@ -635,6 +633,9 @@ export class GameUX {
     updateHand(game) {
         for (let i=0;i<this.thisPlayer(game).hand.length;i++) {
             const card = this.thisPlayer(game).hand[i];
+            if (this.dragSprite && card.id == this.dragSprite.card.id) {
+                this.dragSprite.card.can_be_clicked = card.can_be_clicked;
+            }
             this.addHandCard(game, card, i)
         }
     }
@@ -861,7 +862,9 @@ export class GameUX {
         
         // render current frame (whatever frame that may be)
         var self = this;
-        card.parent.removeChild(card);
+        if (card.parent) {
+            card.parent.removeChild(card);            
+        }
         this.app.stage.addChild(card);
         function render(currTime) { 
             // How opaque should head1 be?  Its fade started at currTime=0.
@@ -989,9 +992,12 @@ export class GameUX {
     }
 
     maybeShowCardSelectionView(game) {
-        if (!this.isShowingCastAnimation) {
-            this.showSelectionViews(game);
+        if (!this.thisPlayer(game).card_choice_info.cards.length) {
             this.makeCardsInteractive(game)
+        }
+        if (!this.isShowingCastAnimation) {
+            this.makeCardsInteractive(game)
+            this.showSelectionViews(game);
         } else {
             this.needsToShowMakeViews = true;
         }        
@@ -1585,6 +1591,9 @@ export class GameUX {
 
         let clickFunction = () => {
             this.dragSprite = null;
+            if (this.thisPlayer(game).card_choice_info.cards.length) {
+                return;
+            }
             if (game.stack.length > 0) {
                 this.gameRoom.sendPlayMoveEvent("RESOLVE_NEXT_STACK", message);
             } else {
