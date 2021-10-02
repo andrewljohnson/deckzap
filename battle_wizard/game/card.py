@@ -680,7 +680,7 @@ class Card:
 
         target_player.damage(actual_amount)
         for idx, e in enumerate(self.effects_for_type("after_deals_damage_opponent")):
-            self.resolve_effect(self.after_deals_damage_opponent_effect_defs[idx], effect_owner, effect, {"damage": actual_amount}) 
+            self.resolve_effect(self.after_deals_damage_opponent_effect_defs[idx], effect_owner, e, {"damage": actual_amount}) 
         return [f"{self.name} deals {actual_amount} damage to {target_player.username}."]            
 
     def do_damage_effect_on_mob(self, effect, target_card, controller, amount, amount_id=None):
@@ -692,7 +692,7 @@ class Card:
 
         target_card.deal_damage_with_effects(damage_amount, controller)
         for idx, e in enumerate(self.effects_for_type("after_deals_damage")):
-            self.resolve_effect(self.after_deals_damage_effect_defs[idx], effect_owner, effect, {"damage": actual_amount}) 
+            self.resolve_effect(self.after_deals_damage_effect_defs[idx], effect_owner, e, {"damage": actual_amount}) 
 
         if target_card.damage >= target_card.toughness_with_tokens():
             controller.send_card_to_played_pile(target_card, did_kill=True)
