@@ -68,7 +68,7 @@ class Game:
     def opponent(self):
         return self.players[(self.actor_turn + 1) % 2]
 
-    def play_move(self, message, save=False, is_reviewing=False):
+    def play_move(self, message, should_add_to_move_list=False, is_reviewing=False):
         move_type = message["move_type"]
         if not "log_lines" in message:
             message["log_lines"] = []
@@ -84,7 +84,7 @@ class Game:
         else:
             print(f"play_move: {move_type} {message['username']}")
 
-        if save and (message["move_type"] != "JOIN" or len(self.moves) <= 2):
+        if should_add_to_move_list and (message["move_type"] != "JOIN" or len(self.moves) <= 2):
             move_copy = copy.deepcopy(message)
             for key in ["game", "log_lines", "show_spell"]:
                 if key in move_copy:
@@ -399,10 +399,12 @@ class Game:
     def join(self, message, is_reviewing=False):
         join_occured = True
         if len(self.players) == 0:
+            print("PLAYERS IS 0")
             self.players.append(Player(self, message))            
             self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
         elif len(self.players) == 1:
+            print("PLAYERS IS 1")
             message["log_lines"].append(f"{message['username']} joined the game.")
             if self.player_type == "pvai":                        
                 self.players.append(PlayerAI(self, message))
@@ -415,6 +417,7 @@ class Game:
             join_occured = False
 
         if len(self.players) == 2 and join_occured:
+            print("PLAYERS IS 2")
             self.start_game(message, is_reviewing)
         return message
 
@@ -506,11 +509,11 @@ class Game:
                 card = card_in_hand
                 break
         if not card:
-            print(f"can't play that Card, it's not in hand")
+            print(f"can't play that Card, it's not in hand, not card")
             return None
 
         if card.needs_targets_for_spell(): 
-            print(f"can't play that Card, it needs a target")
+            print(f"can't play that Card, it needs a target, needs_targets_for_spell")
             return None
 
         self.current_player().reset_card_info_to_target()

@@ -247,7 +247,7 @@ class Player:
         if card.cost > self.current_mana():
             print(f"card costs too much - costs {card.cost}, mana available {self.current_mana()}")
             return None
-        
+
         self.reset_card_info_to_target()
         self.hand.remove(card)
         mana_log_lines = self.spend_mana(card.cost)
@@ -580,7 +580,10 @@ class Player:
 
     def select_card_in_hand(self, message):
         card = None
+        print(self.hand)
+        print(self.my_opponent().hand)
         for card_in_hand in self.hand:
+            print(f"{card_in_hand.name} {card_in_hand.id} vs {message['card']}")
             if card_in_hand.id == message["card"]:
                 card = card_in_hand
                 break
