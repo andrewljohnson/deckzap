@@ -1,4 +1,5 @@
 import datetime
+import json
 import random
 import time
 from battle_wizard.game.player import Player
@@ -171,15 +172,14 @@ class PlayerAI(Player):
 
         print("AI playing " + str(chosen_move))
         chosen_move["log_lines"] = []
-        message = self.game.play_move(chosen_move, save=True)                
-        consumer.send_game_message(self.game.as_dict(), message)
+        message = consumer.receive(json.dumps(chosen_move))
 
-        if "show_spell" in message:
+        if message and "show_spell" in message:
             card = Card(message["show_spell"])
             if card.show_level_up:
                 self.animation_time = 2.5
 
-        if message["move_type"] == "ATTACK":
+        if message and message["move_type"] == "ATTACK":
             self.animation_time = 1
 
         self.ai_running = False
