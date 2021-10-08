@@ -580,10 +580,7 @@ class Player:
 
     def select_card_in_hand(self, message):
         card = None
-        print(self.hand)
-        print(self.my_opponent().hand)
         for card_in_hand in self.hand:
-            print(f"{card_in_hand.name} {card_in_hand.id} vs {message['card']}")
             if card_in_hand.id == message["card"]:
                 card = card_in_hand
                 break

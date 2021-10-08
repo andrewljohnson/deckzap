@@ -1042,14 +1042,15 @@ class GameObjectTests(TestCase):
             Test Rolling Thunder
         """
         game = self.game_for_decks([["Rolling Thunder"], []])
+        damage = game.players[0].hand[0].effects[0].amount
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT"})
-        self.assertEqual(28, game.players[1].hit_points)
+        self.assertEqual(Player.max_hit_points - damage, game.players[1].hit_points)
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT"})
-        self.assertEqual(25, game.players[1].hit_points)
+        self.assertEqual(Player.max_hit_points - damage - damage - 1, game.players[1].hit_points)
 
     def test_tame_shop_demon(self):
         """
@@ -1157,25 +1158,6 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1})    
         self.assertEqual(game.opponent().can_be_clicked, False)
         self.assertEqual(game.opponent().in_play[0].can_be_clicked, True)
-
-    def test_flock_of_bats(self):
-        """
-            Test allow_defend_response effect of Flock of Bats
-        """
-
-        deck1 = ["Flock of Bats"]
-        deck2 = ["OG Vamp"]
-        game = self.game_for_decks([deck1, deck2])
-        for card in game.players[0].hand:
-            game.players[0].mana += card.cost
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})    
-        game.play_move({"username": "a", "move_type": "END_TURN"})
-        for card in game.players[1].hand:
-            game.players[1].mana += card.cost
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1})    
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1})
-        game.play_move({"username": "b", "move_type": "SELECT_OPPONENT"})
-        self.assertEqual(game.players[0].username, game.current_player().username)
 
     def test_trickster(self):
         """
@@ -1314,8 +1296,8 @@ class GameObjectTests(TestCase):
     def test_restrict_effect_targets_mob_with_power_effect(self):
         """
         """
-        game = self.game_for_decks([["Ultrachaun"], ["Dragonslayer Elf"]])
-        for x in range(0,6):
+        game = self.game_for_decks([["Octopug"], ["Dragonslayer Elf"]])
+        for x in range(0,8):
             game.play_move({"username": "a", "move_type": "END_TURN"})
             game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})

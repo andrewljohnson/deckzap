@@ -379,7 +379,9 @@ class Card:
             for idx, effect_def in enumerate(self.spell_effect_defs):
                 target_info = spell_to_resolve["effect_targets"][idx]
                 if "target_type" in target_info and target_info["target_type"] == "mob":
+                    print(f"looking for ID {target_info['id']}")
                     target_mob, _ = player.game.get_in_play_for_id(target_info["id"])
+                    print(f"the target_mob {target_mob.name}")
                     if not target_mob:
                         # mob was removed from play by a different effect
                         continue
@@ -502,6 +504,7 @@ class Card:
         return [f"{target_mob.name} gets {effect.name}."]
 
     def do_add_tokens_effect(self, effect_owner, effect, target_info):
+        print("do_add_tokens_effect")
         if effect.target_type == 'self_mobs':
             for token in effect.tokens:
                 for mob in effect_owner.in_play:
@@ -1263,8 +1266,11 @@ class Card:
                 break
 
         villager_card = Card({})
+        villager_card.id = effect_owner.game.next_card_id
+
         token_card_name = "Willing Villager"
         villager_card.do_make_token_effect(effect_owner, CardEffect({"amount":1, "card_names": [token_card_name]}, 0), {"id": effect_owner.username})
+        effect_owner.game.next_card_id += 1
 
         # the card was countered by a different counterspell
         if not stack_spell:
