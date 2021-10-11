@@ -1,9 +1,22 @@
-from django.test import TestCase
-from battle_wizard.game.game import Game
-from battle_wizard.game.player import Player
-from battle_wizard.game.player_ai import PlayerAI
+import datetime
+import json
 import os
 import time
+
+from asgiref.sync import sync_to_async
+from channels.routing import URLRouter
+from django.test import TestCase
+from django.urls import re_path
+from battle_wizard.game.consumers import BattleWizardConsumer
+from battle_wizard.models import Deck
+from battle_wizard.game.game import Game
+from battle_wizard.models import GameRecord
+from battle_wizard.models import GlobalDeck
+from battle_wizard.game.player import Player
+from battle_wizard.game.player_ai import PlayerAI
+from battle_wizard.views import add_default_decks
+from channels.testing import WebsocketCommunicator
+from django.contrib.auth.models import User
 
 
 class GameObjectTests(TestCase):
@@ -20,6 +33,94 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "a", "move_type": "JOIN"})
         game.play_move({"username": "b", "move_type": "JOIN"})
         return game
+
+    async def test_ai_consumer(self):
+        """
+            Test that a human and bot that join a game via BattleWizardConsumer can play moves.
+        """
+        p1_username = "a"
+
+        game_record_id = await sync_to_async(self._create_db_records)(p1_username)
+        application = URLRouter([
+            re_path(r'^ws/play/(?P<player_type>\w+)/(?P<game_record_id>\w+)/(?P<ai>\w+)/$', BattleWizardConsumer.as_asgi()),
+        ])
+
+        communicator = WebsocketCommunicator(application, f"/ws/play/pvai/{game_record_id}/True/")
+        connected, subprotocol = await communicator.connect()
+        assert connected
+
+        # test the AI auto-joins and the game begins with player 0 active
+        await communicator.send_json_to({"move_type": "JOIN", "username": p1_username})
+        response = await communicator.receive_from()
+        assert len(self.get_game(response)["players"]) == 2
+
+        # test the human player can end the turn
+        await communicator.send_json_to({"move_type": "END_TURN", "username": p1_username})
+        response = await communicator.receive_from()
+        assert self.get_game(response)["turn"] == 1
+
+        # test the AI player can end the turn
+        bot_username = self.get_game(response)["players"][1]["username"]
+        await communicator.send_json_to({"move_type": "END_TURN", "username": bot_username})
+        response = await communicator.receive_from()
+        assert self.get_game(response)["turn"] == 2
+
+        await communicator.disconnect()
+
+    async def test_pvp_consumer(self):
+        """
+            Test that two humans that join a game via BattleWizardConsumer can play moves.
+        """
+        p1_username = "a"
+        p2_username = "b"
+        await sync_to_async(self._create_user_record)(p1_username)
+        await sync_to_async(self._create_user_record)(p2_username)
+        game_record_id = await sync_to_async(self._create_game_record)()
+
+        application = URLRouter([
+            re_path(r'^ws/play/(?P<player_type>\w+)/(?P<game_record_id>\w+)/$', BattleWizardConsumer.as_asgi()),
+        ])
+
+        communicator = WebsocketCommunicator(application, f"/ws/play/pvp/{game_record_id}/")
+        connected, subprotocol = await communicator.connect()
+        assert connected
+
+        # test the players can join
+        await communicator.send_json_to({"move_type": "JOIN", "username": p1_username})
+        await communicator.receive_from()
+        await communicator.send_json_to({"move_type": "JOIN", "username": p2_username})
+        response = await communicator.receive_from()
+        assert len(self.get_game(response)["players"]) == 2
+
+        # test p1 can end the turn
+        await communicator.send_json_to({"move_type": "END_TURN", "username": p1_username})
+        response = await communicator.receive_from()
+        assert self.get_game(response)["turn"] == 1
+
+        # test p2 can end the turn
+        await communicator.send_json_to({"move_type": "END_TURN", "username": p2_username})
+        response = await communicator.receive_from()
+        assert self.get_game(response)["turn"] == 2
+
+        await communicator.disconnect()
+
+    def _create_db_records(self, username):
+        self._create_user_record(username)
+        return self._create_game_record()
+
+    def _create_user_record(self, username):
+        if not User.objects.filter(username=username).first():
+            user = User.objects.create(username=username)
+            user.save()
+            add_default_decks(username)
+
+    def _create_game_record(self):
+        game_record = GameRecord.objects.create(date_created=datetime.datetime.now())
+        game_record.save()
+        return game_record.id
+
+    def get_game(self, response):
+        return json.loads(response)["payload"]["game"]
 
     def test_ten_card_hand_limit(self):
         """
