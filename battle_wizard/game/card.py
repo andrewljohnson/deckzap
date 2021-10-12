@@ -379,9 +379,7 @@ class Card:
             for idx, effect_def in enumerate(self.spell_effect_defs):
                 target_info = spell_to_resolve["effect_targets"][idx]
                 if "target_type" in target_info and target_info["target_type"] == "mob":
-                    print(f"looking for ID {target_info['id']}")
                     target_mob, _ = player.game.get_in_play_for_id(target_info["id"])
-                    print(f"the target_mob {target_mob.name}")
                     if not target_mob:
                         # mob was removed from play by a different effect
                         continue

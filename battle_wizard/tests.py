@@ -1437,12 +1437,28 @@ class GameObjectTests(TestCase):
 
     def test_redirect_mob_spell_effect_restricted(self):
         game = self.game_for_decks([["Stone Elemental", "Send Minion"], ["Zap"]])
-        game.players[0].mana += game.players[0].hand[1].cost
+        for x in range(0,2):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})
         game.play_move({"username": "b", "move_type": "SELECT_OPPONENT"})
         self.assertEqual(len(game.stack), 0)
+
+    def test_redirect_mob_kill(self):
+        mob_name = "Stone Elemental"
+        game = self.game_for_decks([[mob_name, "Send Minion"], ["Kill"]])
+        for x in range(0,3):
+            game.play_move({"username": "a", "move_type": "END_TURN"})
+            game.play_move({"username": "b", "move_type": "END_TURN"})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.play_move({"username": "a", "move_type": "END_TURN"})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
+        game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        game.play_move({"username": "a", "move_type": "SELECT_STACK_SPELL", "card": 2})
+        self.assertEqual(game.players[0].in_play[0].name, mob_name)
 
     def test_quasar_tap_refreshes(self):
         game = self.game_for_decks([["Quasar Tap", "Stone Elemental"], []])
