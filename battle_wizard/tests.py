@@ -1443,3 +1443,19 @@ class GameObjectTests(TestCase):
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})
         game.play_move({"username": "b", "move_type": "SELECT_OPPONENT"})
         self.assertEqual(len(game.stack), 0)
+
+    def test_quasar_tap_refreshes(self):
+        game = self.game_for_decks([["Quasar Tap", "Stone Elemental"], []])
+        game.players[0].mana += game.players[0].hand[0].cost - game.players[0].mana
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        game.players[0].mana += game.players[0].hand[0].cost
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[0].mana, 1)
+
+    def test_quasar_tap_doesnt_refresh(self):
+        game = self.game_for_decks([["Quasar Tap", "Leprechaun"], []])
+        game.players[0].mana += game.players[0].hand[0].cost - game.players[0].mana
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
+        self.assertEqual(game.players[0].mana, 0)
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
+        self.assertEqual(game.players[0].mana, 0)

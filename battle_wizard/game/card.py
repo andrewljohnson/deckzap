@@ -1370,7 +1370,7 @@ class Card:
         effect_owner.about_to_draw_count -= effect.amount
 
     def do_refresh_mana_effect(self, effect_owner, effect, target_info):
-        if effect_owner.mana == 0:
+        if effect_owner.mana == 0 and target_info["amount_spent"] > 0:
             effect_owner.mana = effect_owner.max_mana
 
     def do_use_stored_mana_effect(self, effect_owner, effect, target_info):
