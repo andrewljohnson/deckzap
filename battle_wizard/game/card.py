@@ -1941,6 +1941,7 @@ class CardEffect:
             "effect_to_activate": self.effect_to_activate.as_dict() if self.effect_to_activate else None,
             "effect_type": self.effect_type,
             "enabled": self.enabled,
+            "exhausted": self.exhausted,
             "id": self.id,
             "make_type": self.make_type,
             "multiplier": self.multiplier,
