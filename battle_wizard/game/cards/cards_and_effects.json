@@ -1,0 +1,132 @@
+{
+   "card_types": {
+      "mob": {
+         "id": "mob",
+         "name": "Mob"
+      },
+      "spell": {
+         "id": "spell",
+         "name": "Spell"
+      }
+   },
+   "cards": [
+      {
+         "card_type": "spell",
+         "cost": 0,
+         "effects": [
+            {
+               "ai_target_types": [
+                  "opponent",
+                  "enemy_mob"
+               ],
+               "amount": 4,
+               "description": "Deal 4 damage to any target.",
+               "effect_type": "spell",
+               "name": "damage",
+               "target_type": "any"
+            },
+            {
+               "amount": 1,
+               "description": "Discard a random card.",
+               "effect_type": "spell",
+               "name": "discard_random",
+               "target_type": "self"
+            }
+         ],
+         "image": "burning-passion.svg",
+         "name": "Inner Fire"
+      },
+      {
+         "card_type": "mob",
+         "cost": 2,
+         "effects": [
+            {
+               "ai_target_types": null,
+               "amount": 1,
+               "description": "When you play a mob, deal 1 damage to a random enemy mob.",
+               "effect_type": "play_friendly_mob",
+               "name": "damage",
+               "target_type": "opponents_mob_random"
+            }
+         ],
+         "image": "crumbling-ball.svg",
+         "name": "Spouty Gas Ball",
+         "power": 3,
+         "toughness": 2
+      },
+      {
+         "card_type": "spell",
+         "cost": 2,
+         "effects": [
+            {
+               "ai_target_types": [
+                  "opponent",
+                  "enemy_mob"
+               ],
+               "amount": 3,
+               "description": "Deal 3 damage to any target.",
+               "effect_type": "spell",
+               "name": "damage",
+               "target_type": "any"
+            }
+         ],
+         "image": "lightning-trio.svg",
+         "name": "Zap"
+      }
+   ],
+   "effect_types": {
+      "play_friendly_mob": {
+         "description": "When you play a mob",
+         "id": "play_friendly_mob",
+         "name": "Play Friendly Mob"
+      },
+      "spell": {
+         "id": "spell",
+         "name": "Spell"
+      }
+   },
+   "effects": [
+      {
+         "ai_target_types": [ ],
+         "amount": 0,
+         "description": "Deal 0 damage to any target.",
+         "effect_type": "spell",
+         "name": "damage",
+         "target_type": "any"
+      },
+      {
+         "amount": 1,
+         "description": "Discard a random card.",
+         "effect_type": "spell",
+         "name": "discard_random",
+         "target_type": "any"
+      }
+   ],
+   "target_types": {
+      "any": {
+         "description": "any target",
+         "id": "any",
+         "name": "Any Player or Mob"
+      },
+      "enemy_mob": {
+         "description": "an enemy mob",
+         "id": "enemy_mob",
+         "name": "Enemy Mob"
+      },
+      "opponent": {
+         "description": "your opponent",
+         "id": "opponent",
+         "name": "Opponent"
+      },
+      "opponents_mob_random": {
+         "description": "a random enemy mob",
+         "id": "opponents_mob_random",
+         "name": "Oponnent's Mob (random)"
+      },
+      "self_player": {
+         "description": "yourself",
+         "id": "self",
+         "name": "Self"
+      }
+   }
+}

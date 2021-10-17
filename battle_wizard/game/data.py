@@ -25,6 +25,21 @@ def all_cards(require_images=False, include_tokens=True):
             if "image" in c or not require_images:
                 subset.append(c)
 
+
+    json_data = open('battle_wizard/game/cards/cards_and_effects.json')
+    cards_and_effects = json.load(json_data)
+    for c in cards_and_effects["cards"]:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                c["discipline"] = "magic"
+                description = ""
+                for e in c["effects"]:
+                    description += e["description"]
+                    if e != c["effects"][-1]:
+                        description += " "
+                c["description"] = description                
+                subset.append(c)
+
     return subset
 
 def hash_for_deck(deck):
