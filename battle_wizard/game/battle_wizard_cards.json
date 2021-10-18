@@ -1,19 +1,5 @@
 [		
 	{
-		"name": "Think",
-		"image": "think.svg",
-		"discipline": "none",
-		"cost": 4,
-		"card_type": "spell",
-		"description": "Draw 3 cards.",
-		"effects": [{
-			"name": "draw",
-			"target_type": "self",
-			"effect_type": "spell",
-			"amount": 3
-		}]
-	},
-	{
 		"name": "Riftwalker Djinn",
 		"image": "djinn.svg",
 		"discipline": "magic",
