@@ -56,6 +56,62 @@
             "cost": 2,
             "effects": [
                 {
+                    "description": "Guard",
+                    "description_expanded": "Guard mobs must be attacked before other enemies.",
+                    "effect_type": "select_mob_target",
+                    "name": "force_attack_guard_first"
+                }
+            ],
+            "image": "lion.svg",
+            "name": "LionKin",
+            "power": 3,
+            "toughness": 3
+        },
+        {
+            "card_type": "mob",
+            "cost": 5,
+            "effects": [
+                {
+                    "description": "Ambush",
+                    "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
+                    "effect_type": "mob_changes_zones",
+                    "name": "add_ambush"
+                },
+                {
+                    "description": "Drain",
+                    "description_expanded": "Gain hit points equal to this mob's power after it deals damage.",
+                    "effect_type": "after_deals_damage",
+                    "name": "drain_hp"
+                },
+                {
+                    "description": "Guard",
+                    "description_expanded": "Guard mobs must be attacked before other enemies.",
+                    "effect_type": "select_mob_target",
+                    "name": "force_attack_guard_first"
+                },
+                {
+                    "description": "Shield",
+                    "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+                    "effect_type": "before_is_damaged",
+                    "name": "protect_with_shield",
+                    "ui_info": {
+                        "color": "white",
+                        "effect_type": "glow",
+                        "inner_strength": 3,
+                        "outer_strength": 0
+                    }
+                }
+            ],
+            "image": "djinn.svg",
+            "name": "Riftwalker Djinn",
+            "power": 3,
+            "toughness": 2
+        },
+        {
+            "card_type": "mob",
+            "cost": 2,
+            "effects": [
+                {
                     "ai_target_types": null,
                     "amount": 1,
                     "description": "When you play a mob, deal 1 damage to a random enemy mob.",
@@ -90,10 +146,30 @@
         }
     ],
     "effect_types": {
+        "after_deals_damage": {
+            "description": "after it deals damage",
+            "id": "after_deals_damage",
+            "name": "After This Deals Damage"
+        },
+        "before_is_damaged": {
+            "description": null,
+            "id": "before_is_damaged",
+            "name": "BEfore This Is Damaged"
+        },
+        "mob_changes_zones": {
+            "description": null,
+            "id": "mob_changes_zones",
+            "name": "Mob Changes Zones"
+        },
         "play_friendly_mob": {
             "description": "When you play a mob",
             "id": "play_friendly_mob",
             "name": "Play Friendly Mob"
+        },
+        "select_mob_target": {
+            "description": null,
+            "id": "select_mob_target",
+            "name": "When Selecting a Target"
         },
         "spell": {
             "description": null,
@@ -102,6 +178,12 @@
         }
     },
     "effects": [
+        {
+            "description": "Ambush",
+            "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
+            "effect_type": "mob_changes_zones",
+            "name": "add_ambush"
+        },
         {
             "ai_target_types": [],
             "amount": 0,
@@ -118,11 +200,35 @@
             "target_type": "any"
         },
         {
+            "description": "Drain",
+            "description_expanded": "Gain hit points equal to this mob's power after it deals damage.",
+            "effect_type": "after_deals_damage",
+            "name": "drain_hp"
+        },
+        {
             "amount": 1,
             "description": "Draw a card.",
             "effect_type": "spell",
             "name": "draw",
             "target_type": "self"
+        },
+        {
+            "description": "Guard",
+            "description_expanded": "Guard mobs must be attacked before other enemies.",
+            "effect_type": "select_mob_target",
+            "name": "force_attack_guard_first"
+        },
+        {
+            "description": "Shield",
+            "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+            "effect_type": "before_is_damaged",
+            "name": "protect_with_shield",
+            "ui_info": {
+                "color": "white",
+                "effect_type": "glow",
+                "inner_strength": 3,
+                "outer_strength": 0
+            }
         }
     ],
     "target_types": {
