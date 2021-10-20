@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="wrapper">
+    <div id="app"></div>
+</div>
+
+<div id="data_store" csrf_token='{% csrf_token %}' username = "{{request.user.username}}" effects_and_types="{{effects_and_types}}"></div>
+{% endblock content %}

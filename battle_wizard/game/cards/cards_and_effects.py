@@ -87,7 +87,7 @@ def card_types(as_dicts=False):
 def effect_types(as_dicts=False):
    all_effect_types = {
       "after_deals_damage": EffectType("after_deals_damage", "After This Deals Damage", "after it deals damage"),
-      "before_is_damaged": EffectType("before_is_damaged", "Before This Is Damaged", None),
+      "before_is_damaged": EffectType("before_is_damaged", "Before This is Damaged", None),
       "select_mob_target": EffectType("select_mob_target", "When Selecting a Target", None), 
       "mob_changes_zones": EffectType("mob_changes_zones", "Mob Changes Zones", None),
       "spell": EffectType("spell", "Spell", None),

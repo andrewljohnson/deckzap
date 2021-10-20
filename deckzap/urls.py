@@ -4,6 +4,7 @@ from django.urls import path
 from battle_wizard.views import build_deck
 from battle_wizard.views import choose_deck_for_match
 from battle_wizard.views import choose_opponent
+from battle_wizard.views import create_card
 from battle_wizard.views import find_game
 from battle_wizard.views import find_match
 from battle_wizard.views import index
@@ -37,4 +38,5 @@ urlpatterns = [
   	path('play/<player_type>/<game_record_id>', play_game),
     path('top_decks', top_decks),
     path('top_players', top_players),
+    path('create_card', create_card),    
  ]

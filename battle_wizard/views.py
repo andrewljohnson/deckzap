@@ -83,6 +83,9 @@ def signup(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
+            next_url = request.GET.get("next", None)
+            if next_url:
+                return redirect(f'/{next_url}')
             return redirect(f'/u/{user.username}')
     else:
         Analytics.log_amplitude(request, "Page View - Sign Up", {"path":"/signup", "page":"sign up"})
@@ -399,3 +402,14 @@ def maybe_save_global_deck(deck, username):
         global_deck = GlobalDeck.objects.create(cards_hash=cards_hash, deck_json=deck, author=User.objects.get(username=username), date_created=datetime.datetime.now())
         global_deck.save()
     return global_deck
+
+def create_card(request):
+    """
+        A view to create a new card.
+    """
+    if not request.user.is_authenticated:
+        return redirect('/signup?next=create_card')
+    Analytics.log_amplitude(request, "Page View - Create Card", {"path":"/create_card", "page":"create card"})
+    json_data = json.load(open('battle_wizard/game/cards/cards_and_effects.json'))
+    del json_data["cards"]
+    return render(request, "create_card.html", {"effects_and_types": json.dumps(json_data)})
