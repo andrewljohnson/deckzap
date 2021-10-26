@@ -58,8 +58,6 @@ Graphics from: https://game-icons.net/
 
 # Working Docs
 
-[Latest card ideas](https://docs.google.com/spreadsheets/d/1QwQofwkO4v2PjAuxQv9dMr1k491FDIUTkObtUcRrdBE/edit#gid=0)
-
 [Figma Assets](https://www.figma.com/file/eSJ5urEoWnWos8uHb5ZsbG/DeckZap-Assets?node-id=0%3A1)
 
-[ToDo](https://docs.google.com/document/d/1XD804l5Vr6fjHL8jLJNQEK_Lt83r0QRgQe9mmT93BJ0/edit?usp=sharing)
+[ToDo](https://docs.google.com/document/d/1lCRn96Zj2yh1rm-wDA4Z1b90QRmvyh-EUM6z9DSxXT8/edit)

@@ -502,6 +502,7 @@ class Card:
         return [f"{target_mob.name} gets {effect.name}."]
 
     def do_add_tokens_effect(self, effect_owner, effect, target_info):
+        print("do_add_tokens_effect")
         if effect.target_type == 'self_mobs':
             for token in effect.tokens:
                 for mob in effect_owner.in_play:
@@ -1263,8 +1264,11 @@ class Card:
                 break
 
         villager_card = Card({})
+        villager_card.id = effect_owner.game.next_card_id
+
         token_card_name = "Willing Villager"
         villager_card.do_make_token_effect(effect_owner, CardEffect({"amount":1, "card_names": [token_card_name]}, 0), {"id": effect_owner.username})
+        effect_owner.game.next_card_id += 1
 
         # the card was countered by a different counterspell
         if not stack_spell:
@@ -1364,7 +1368,7 @@ class Card:
         effect_owner.about_to_draw_count -= effect.amount
 
     def do_refresh_mana_effect(self, effect_owner, effect, target_info):
-        if effect_owner.mana == 0:
+        if effect_owner.mana == 0 and target_info["amount_spent"] > 0:
             effect_owner.mana = effect_owner.max_mana
 
     def do_use_stored_mana_effect(self, effect_owner, effect, target_info):
@@ -1935,6 +1939,7 @@ class CardEffect:
             "effect_to_activate": self.effect_to_activate.as_dict() if self.effect_to_activate else None,
             "effect_type": self.effect_type,
             "enabled": self.enabled,
+            "exhausted": self.exhausted,
             "id": self.id,
             "make_type": self.make_type,
             "multiplier": self.multiplier,

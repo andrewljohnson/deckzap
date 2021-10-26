@@ -399,12 +399,10 @@ class Game:
     def join(self, message, is_reviewing=False):
         join_occured = True
         if len(self.players) == 0:
-            print("PLAYERS IS 0")
             self.players.append(Player(self, message))            
             self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None
             message["log_lines"].append(f"{message['username']} created the game.")
         elif len(self.players) == 1:
-            print("PLAYERS IS 1")
             message["log_lines"].append(f"{message['username']} joined the game.")
             if self.player_type == "pvai":                        
                 self.players.append(PlayerAI(self, message))
@@ -417,7 +415,6 @@ class Game:
             join_occured = False
 
         if len(self.players) == 2 and join_occured:
-            print("PLAYERS IS 2")
             self.start_game(message, is_reviewing)
         return message
 

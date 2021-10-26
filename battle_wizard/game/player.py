@@ -177,8 +177,8 @@ class Player:
         return log_lines if len(log_lines) > 0 else None
 
     def spend_mana(self, amount):
-        amount_to_spend = amount        
-        
+        amount_to_spend = amount 
+
         while self.mana > 0 and amount_to_spend > 0:
             self.mana -= 1
             amount_to_spend -= 1
@@ -186,7 +186,7 @@ class Player:
         log_lines = None
         for artifact in self.artifacts:
             for idx, effect in enumerate(artifact.effects_for_type("spend_mana")):
-                log_lines = artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend})
+                log_lines = artifact.resolve_effect(artifact.spend_mana_effect_defs[idx], self, effect, {"amount_to_spend": amount_to_spend, "amount_spent": amount})
                 if log_lines:
                     effect.show_effect_animation = True
         return log_lines
@@ -580,10 +580,7 @@ class Player:
 
     def select_card_in_hand(self, message):
         card = None
-        print(self.hand)
-        print(self.my_opponent().hand)
         for card_in_hand in self.hand:
-            print(f"{card_in_hand.name} {card_in_hand.id} vs {message['card']}")
             if card_in_hand.id == message["card"]:
                 card = card_in_hand
                 break

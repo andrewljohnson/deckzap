@@ -149,6 +149,12 @@ export class Card {
         cost.position.y = costY;
         cardSprite.addChild(cost);
 
+        // for card builder
+        if (!card.cost && card.cost != 0) {
+            cost.text = "?";
+        }
+
+
 
         let effectsText = "";
         let color = Constants.darkGrayColor;
@@ -539,6 +545,14 @@ export class Card {
             cardToughness = card.toughness;
         }
 
+        // for card builder
+        if (!card.power) {
+            cardPower = "?";
+        }
+        if (!card.toughness) {
+            cardToughness = "?";
+        }
+
         let ptOptions = Constants.textOptions()
         ptOptions.stroke = Constants.blackColor;
         ptOptions.strokeThickness = 2;
@@ -580,7 +594,9 @@ export class Card {
 	        cardId.position.y = powerY;
 	        cardSprite.addChild(cardId);                	
         }
+
     }
+
 
     static addCircledLabel(costX, costY, cardSprite, options, value, fillColor, textAnchor=0) {
         let circle = Card.circleBackground(costX, costY);
@@ -850,6 +866,9 @@ export class Card {
         }
         if (sprite.position.x >= 1585 - Card.cardWidth*2) {
             sprite.position.x = cardSprite.position.x - Card.cardWidth;
+        }
+        if (pixiUX.constructor.name == "CardBuilder") {
+            sprite.position.x = cardSprite.position.x - Card.cardWidth * 1.5 - Constants.padding * 2;
         }
 
         if (pixiUX.constructor.name == "DeckViewer") {

@@ -1,0 +1,419 @@
+{
+    "card_types": {
+        "mob": {
+            "id": "mob",
+            "name": "Mob"
+        },
+        "spell": {
+            "id": "spell",
+            "name": "Spell"
+        }
+    },
+    "cards": [
+        {
+            "card_type": "spell",
+            "cost": 4,
+            "effects": [
+                {
+                    "ai_target_types": [
+                        "self"
+                    ],
+                    "amount": 3,
+                    "description": "Draw 3 cards.",
+                    "effect_type": "spell",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_type_ids": [
+                        "spell",
+                        "play_friendly_mob"
+                    ],
+                    "legal_target_type_ids": [
+                        "opponent",
+                        "self",
+                        "player"
+                    ],
+                    "name": "draw",
+                    "target_type": "self"
+                }
+            ],
+            "image": "think.svg",
+            "name": "Think"
+        },
+        {
+            "card_type": "spell",
+            "cost": 0,
+            "effects": [
+                {
+                    "ai_target_types": [
+                        "opponent",
+                        "enemy_mob"
+                    ],
+                    "amount": 4,
+                    "description": "Deal 4 damage to any target.",
+                    "effect_type": "spell",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_type_ids": [
+                        "spell",
+                        "play_friendly_mob"
+                    ],
+                    "legal_target_type_ids": [
+                        "any",
+                        "enemy_mob",
+                        "opponent",
+                        "opponents_mob_random",
+                        "player",
+                        "self"
+                    ],
+                    "name": "damage",
+                    "target_type": "any"
+                },
+                {
+                    "ai_target_types": null,
+                    "amount": 1,
+                    "description": "Discard a card.",
+                    "effect_type": "spell",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_type_ids": [
+                        "spell",
+                        "play_friendly_mob"
+                    ],
+                    "legal_target_type_ids": [
+                        "opponent",
+                        "self",
+                        "player"
+                    ],
+                    "name": "discard_random",
+                    "target_type": "self"
+                }
+            ],
+            "image": "burning-passion.svg",
+            "name": "Inner Fire"
+        },
+        {
+            "card_type": "mob",
+            "cost": 2,
+            "effects": [
+                {
+                    "description": "Guard",
+                    "description_expanded": "Guard mobs must be attacked before other enemies.",
+                    "effect_type": "select_mob_target",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "force_attack_guard_first"
+                }
+            ],
+            "image": "lion.svg",
+            "name": "LionKin",
+            "power": 3,
+            "toughness": 3
+        },
+        {
+            "card_type": "mob",
+            "cost": 5,
+            "effects": [
+                {
+                    "description": "Ambush",
+                    "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
+                    "effect_type": "mob_changes_zones",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "add_ambush"
+                },
+                {
+                    "description": "Drain",
+                    "description_expanded": "Gain hit points equal to this mob's power after it deals damage.",
+                    "effect_type": "after_deals_damage",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "drain_hp"
+                },
+                {
+                    "description": "Guard",
+                    "description_expanded": "Guard mobs must be attacked before other enemies.",
+                    "effect_type": "select_mob_target",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "force_attack_guard_first"
+                },
+                {
+                    "description": "Shield",
+                    "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+                    "effect_type": "before_is_damaged",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "protect_with_shield",
+                    "ui_info": {
+                        "color": "white",
+                        "effect_type": "glow",
+                        "inner_strength": 3,
+                        "outer_strength": 0
+                    }
+                }
+            ],
+            "image": "djinn.svg",
+            "name": "Riftwalker Djinn",
+            "power": 3,
+            "toughness": 2
+        },
+        {
+            "card_type": "mob",
+            "cost": 2,
+            "effects": [
+                {
+                    "ai_target_types": null,
+                    "amount": 1,
+                    "description": "When you play a mob, deal 1 damage to a random enemy mob.",
+                    "effect_type": "play_friendly_mob",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_type_ids": [
+                        "spell",
+                        "play_friendly_mob"
+                    ],
+                    "legal_target_type_ids": [
+                        "any",
+                        "enemy_mob",
+                        "opponent",
+                        "opponents_mob_random",
+                        "player",
+                        "self"
+                    ],
+                    "name": "damage",
+                    "target_type": "opponents_mob_random"
+                }
+            ],
+            "image": "crumbling-ball.svg",
+            "name": "Spouty Gas Ball",
+            "power": 3,
+            "toughness": 2
+        },
+        {
+            "card_type": "spell",
+            "cost": 2,
+            "effects": [
+                {
+                    "ai_target_types": [
+                        "opponent",
+                        "enemy_mob"
+                    ],
+                    "amount": 3,
+                    "description": "Deal 3 damage to any target.",
+                    "effect_type": "spell",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_type_ids": [
+                        "spell",
+                        "play_friendly_mob"
+                    ],
+                    "legal_target_type_ids": [
+                        "any",
+                        "enemy_mob",
+                        "opponent",
+                        "opponents_mob_random",
+                        "player",
+                        "self"
+                    ],
+                    "name": "damage",
+                    "target_type": "any"
+                }
+            ],
+            "image": "lightning-trio.svg",
+            "name": "Zap"
+        }
+    ],
+    "effect_types": {
+        "after_deals_damage": {
+            "description": "after it deals damage",
+            "id": "after_deals_damage",
+            "name": "After This Deals Damage"
+        },
+        "before_is_damaged": {
+            "description": null,
+            "id": "before_is_damaged",
+            "name": "Before This is Damaged"
+        },
+        "mob_changes_zones": {
+            "description": null,
+            "id": "mob_changes_zones",
+            "name": "Mob Changes Zones"
+        },
+        "play_friendly_mob": {
+            "description": "When you play a mob",
+            "id": "play_friendly_mob",
+            "name": "Play Friendly Mob"
+        },
+        "select_mob_target": {
+            "description": null,
+            "id": "select_mob_target",
+            "name": "When Selecting a Target"
+        },
+        "spell": {
+            "description": null,
+            "id": "spell",
+            "name": "Spell"
+        }
+    },
+    "effects": [
+        {
+            "description": "Ambush",
+            "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
+            "effect_type": "mob_changes_zones",
+            "legal_card_type_ids": [
+                "mob"
+            ],
+            "name": "add_ambush"
+        },
+        {
+            "ai_target_types": [],
+            "amount": 0,
+            "description": "Deal 0 damage to any target.",
+            "effect_type": "spell",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_type_ids": [
+                "spell",
+                "play_friendly_mob"
+            ],
+            "legal_target_type_ids": [
+                "any",
+                "enemy_mob",
+                "opponent",
+                "opponents_mob_random",
+                "player",
+                "self"
+            ],
+            "name": "damage",
+            "target_type": "any"
+        },
+        {
+            "ai_target_types": [
+                "self"
+            ],
+            "amount": 1,
+            "description": "Your opponent discards a card.",
+            "effect_type": "spell",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_type_ids": [
+                "spell",
+                "play_friendly_mob"
+            ],
+            "legal_target_type_ids": [
+                "opponent",
+                "self",
+                "player"
+            ],
+            "name": "discard_random",
+            "target_type": "any"
+        },
+        {
+            "description": "Drain",
+            "description_expanded": "Gain hit points equal to this mob's power after it deals damage.",
+            "effect_type": "after_deals_damage",
+            "legal_card_type_ids": [
+                "mob"
+            ],
+            "name": "drain_hp"
+        },
+        {
+            "ai_target_types": [
+                "self"
+            ],
+            "amount": 1,
+            "description": "Draw a card.",
+            "effect_type": "spell",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_type_ids": [
+                "spell",
+                "play_friendly_mob"
+            ],
+            "legal_target_type_ids": [
+                "opponent",
+                "self",
+                "player"
+            ],
+            "name": "draw",
+            "target_type": "self"
+        },
+        {
+            "description": "Guard",
+            "description_expanded": "Guard mobs must be attacked before other enemies.",
+            "effect_type": "select_mob_target",
+            "legal_card_type_ids": [
+                "mob"
+            ],
+            "name": "force_attack_guard_first"
+        },
+        {
+            "description": "Shield",
+            "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+            "effect_type": "before_is_damaged",
+            "legal_card_type_ids": [
+                "mob"
+            ],
+            "name": "protect_with_shield",
+            "ui_info": {
+                "color": "white",
+                "effect_type": "glow",
+                "inner_strength": 3,
+                "outer_strength": 0
+            }
+        }
+    ],
+    "target_types": {
+        "any": {
+            "description": "any target",
+            "id": "any",
+            "name": "Any Player or Mob"
+        },
+        "enemy_mob": {
+            "description": "an enemy mob",
+            "id": "enemy_mob",
+            "name": "Enemy Mob"
+        },
+        "opponent": {
+            "description": "your opponent",
+            "id": "opponent",
+            "name": "Opponent"
+        },
+        "opponents_mob_random": {
+            "description": "a random enemy mob",
+            "id": "opponents_mob_random",
+            "name": "Opponent's Mob (random)"
+        },
+        "player": {
+            "description": "Target player",
+            "id": "player",
+            "name": "Player"
+        },
+        "self": {
+            "description": "yourself",
+            "id": "self",
+            "name": "Self"
+        }
+    }
+}

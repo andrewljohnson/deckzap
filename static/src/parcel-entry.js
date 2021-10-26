@@ -1,6 +1,9 @@
 // this import due to: https://flaviocopes.com/parcel-regeneratorruntime-not-defined/
 import 'regenerator-runtime/runtime'
 
+import { CardBuilder } from '../js/views/CardBuilder';
+import { CardBuilderEffects } from '../js/views/CardBuilderEffects';
+import { CardBuilderNameAndImage } from '../js/views/CardBuilderNameAndImage';
 import { DeckBuilder } from '../js/views/DeckBuilder';
 import { DeckViewer } from '../js/views/DeckViewer';
 import { GameRoom } from '../js/components/GameRoom';
@@ -35,4 +38,22 @@ if (window.location.pathname.startsWith("/play")) {
     new TopPlayers("app", JSON.parse(document.getElementById("data_store").getAttribute("players")));
 } else if (window.location.pathname.startsWith("/top_decks")) {
     new TopDecks("app", JSON.parse(document.getElementById("data_store").getAttribute("decks")));
+} else if (window.location.pathname.startsWith("/create_card")) {
+    if (window.location.pathname.endsWith("effects")) {
+        new CardBuilderEffects(
+            "app", 
+            JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
+            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
+            JSON.parse(document.getElementById("data_store").getAttribute("card_id")),
+        );        
+    } else if (window.location.pathname.endsWith("name_and_image")) {
+        new CardBuilderNameAndImage(
+            "app", 
+            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
+            JSON.parse(document.getElementById("data_store").getAttribute("card_id")),
+        );        
+    } else if (window.location.pathname.endsWith("mob_stats")) {
+    } else {
+        new CardBuilder("app");        
+    }
 }
