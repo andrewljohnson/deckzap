@@ -3,6 +3,14 @@ from django.contrib import admin
 from django.db import models
 
 
+class CustomCard(models.Model):
+	"""
+		A custom card is a card designed by a user.
+	"""
+	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+	date_created = models.DateTimeField()
+	card_json = models.JSONField(default=dict)
+
 class Deck(models.Model):
 	"""
 		A Deck is an instance of a GlobalDeck owned by a certain user.
@@ -42,6 +50,7 @@ class GlobalDeck(models.Model):
 	deck_json = models.JSONField()
 
 
+admin.site.register(CustomCard)
 admin.site.register(Deck)
 admin.site.register(GameRecord)
 admin.site.register(GlobalDeck)

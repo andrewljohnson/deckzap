@@ -21,13 +21,13 @@ export class CardTypePicker {
 				self.cardTypeDescriptionText.parent.removeChild(self.cardTypeDescriptionText);
 				self.cardTypeDescriptionText = null;
 			}
-			let cardTypeDescription = "Mob\n\n• up to seven in play\n• mobs can attack players and other mobs\n• the simplest mob has just power and hit points, but mobs can also have special effects";
+			let cardTypeDescription = "Mob\n\n• up to seven in play\n• mobs can attack players and other mobs\n• the simplest mob has just power and hit points, but mobs can also have effects";
 			if (this.id == "spell") {
 				cardTypeDescription = "Spell\n\n• does one or more effects when cast\n• spell cards go to your discard pile immediately when cast and don't go into play like Mobs";
 			}
 	        self.cardTypeDescriptionText = new PIXI.Text(cardTypeDescription, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.darkGrayColor});
-	        self.cardTypeDescriptionText.position.x = mob.position.x - choiceWidth + Constants.padding;
-	        self.cardTypeDescriptionText.position.y = mob.position.y + choiceHeight;
+	        self.cardTypeDescriptionText.position.x = spell.position.x - choiceWidth + Constants.padding;
+	        self.cardTypeDescriptionText.position.y = spell.position.y + choiceHeight;
 	        pixiUX.app.stage.addChild(self.cardTypeDescriptionText);
 
 			clickFunction(this.id)
@@ -35,33 +35,33 @@ export class CardTypePicker {
 
 	    const choiceWidth = 45;
 	    const choiceHeight = 90;
-	    let mob = Constants.ovalSprite(
-			pixiUX,
-			"wizard-face.svg",
-			"Mob",
-			choiceWidth,
-			choiceHeight,
-			"mob",
-			choiceWidth + Constants.padding * 2,
-			yPosition + Constants.padding * 3 + choiceHeight/2,
-			switchCardType	
-	    );
-
 	    let spell = Constants.ovalSprite(
 			pixiUX,
-			"robot-antennas.svg",
+			"magick-trick.svg",
 			"Spell",
 			choiceWidth,
 			choiceHeight,
 			"spell",
-			mob.position.x + choiceWidth * 2.5,
-			mob.position.y,
+			choiceWidth + Constants.padding * 2,
+			yPosition + Constants.padding * 3 + choiceHeight/2,
 			switchCardType 	
 	    );
+	    let mob = Constants.ovalSprite(
+			pixiUX,
+			"robot-antennas.svg",
+			"Mob",
+			choiceWidth,
+			choiceHeight,
+			"mob",
+			spell.position.x + choiceWidth * 2.5,
+			spell.position.y,
+			switchCardType	
+	    );
 
-       this.mob = mob;
+
        this.spell = spell;
-       this.position = this.mob.position;
+       this.mob = mob;
+       this.position = this.spell.position;
 
 	}
 

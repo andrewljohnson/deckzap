@@ -196,4 +196,36 @@ export function infoListText(discipline) {
         return "Magic\n\n• 30 card deck\n• more mana each turn\n• draw one card a turn";
     }
     return "Tech\n\n• 15 card deck\n• 3 mana each turn\n• new hand each turn";
+}
+
+export async function postData(url, data) {
+    const csrftoken = getCookie('csrftoken');
+    // Default options are marked with *
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+
+        },
+        body: JSON.stringify(data) 
+    });
+    return response.json(); // parses JSON response into native JavaScript objects
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+        }
+        }
     }
+    return cookieValue;
+}
