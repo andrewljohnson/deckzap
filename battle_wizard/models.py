@@ -11,6 +11,13 @@ class CustomCard(models.Model):
 	date_created = models.DateTimeField()
 	card_json = models.JSONField(default=dict)
 
+class CustomCardImage(models.Model):
+	"""
+		An image used in a custom card, which can only be used once.
+	"""
+	card = models.ForeignKey(CustomCard, on_delete=models.SET_NULL, null=True)
+	filename = models.TextField(null=True)
+
 class Deck(models.Model):
 	"""
 		A Deck is an instance of a GlobalDeck owned by a certain user.
@@ -51,6 +58,7 @@ class GlobalDeck(models.Model):
 
 
 admin.site.register(CustomCard)
+admin.site.register(CustomCardImage)
 admin.site.register(Deck)
 admin.site.register(GameRecord)
 admin.site.register(GlobalDeck)
