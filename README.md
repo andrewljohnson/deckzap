@@ -18,7 +18,10 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 
 `python manage.py migrate`
 
+`python manage.py load-images-to-db`
+
 `python manage.py runserver`
+
 
 # Set up on Digital Ocean
 
@@ -51,6 +54,10 @@ I had to change the nginx config recommended to this code to get it to work for 
             proxy_pass http://channels-backend;
         }
     }
+
+## Django setup on DO
+
+Do the same commands as in "Running Locally" above, except `python manage.py runserver`. These are needed to build the JS and to load some data into the DB.
 
 # Graphics
 
