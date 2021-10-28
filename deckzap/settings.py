@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'battle_wizard',
+    'create_cards',
 ]
 
 MIDDLEWARE = [
