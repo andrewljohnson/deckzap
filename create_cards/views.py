@@ -104,7 +104,7 @@ def name_and_image(request, card_id):
         }
     )
 
-def get_card_info(request):
+def get_effect_for_info(request):
     """
         A POST view to get a calculated card for some info set by a form in the UX.
     """

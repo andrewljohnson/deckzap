@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 const TextInput = require("pixi-text-input");
-import * as Constants from '../Constants.js';
-import { Card } from '../components/Card.js';
+import * as Constants from '../../Constants.js';
+import { Card } from '../../components/Card.js';
 import { CardBuilderBase } from './CardBuilderBase.js'
 
 export class CardBuilderCost extends CardBuilderBase {
@@ -11,7 +11,6 @@ export class CardBuilderCost extends CardBuilderBase {
         this.originalCardInfo = originalCardInfo;
         this.cardID = cardID;
         this.loadUX(containerID);
-
     }
 
     cardInfo() {
@@ -43,13 +42,13 @@ export class CardBuilderCost extends CardBuilderBase {
     }
 
     nextButtonClicked() {
-        Constants.postData('/create_card/save_cost', { card_info: this.cardInfo(), card_id: this.cardID })
+        Constants.postData(`${this.baseURL()}/save_cost`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
                 console.log(data); 
                 alert("error saving card");
             } else {
-                window.location.href = `/create_card/${this.cardID}/name_and_image`
+                window.location.href = `${this.baseURL()}/${this.cardID}/name_and_image`
             }
         })
     }
@@ -81,4 +80,10 @@ export class CardBuilderCost extends CardBuilderBase {
             this.updateCard();
         })
     }
+
+    updateCard() {
+        super.updateCard();
+        this.toggleNextButton(parseInt(this.userCardCost) >= 0 && parseInt(this.userCardCost) <= 10);
+    }
+
 }

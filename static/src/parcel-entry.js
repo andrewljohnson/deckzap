@@ -1,10 +1,10 @@
 // this import due to: https://flaviocopes.com/parcel-regeneratorruntime-not-defined/
 import 'regenerator-runtime/runtime'
 
-import { CardBuilder } from '../js/views/CardBuilder';
-import { CardBuilderCost } from '../js/views/CardBuilderCost';
-import { CardBuilderEffects } from '../js/views/CardBuilderEffects';
-import { CardBuilderNameAndImage } from '../js/views/CardBuilderNameAndImage';
+import { CardBuilder } from '../js/views/create_cards/CardBuilder';
+import { CardBuilderCost } from '../js/views/create_cards/CardBuilderCost';
+import { CardBuilderEffects } from '../js/views/create_cards/CardBuilderEffects';
+import { CardBuilderNameAndImage } from '../js/views/create_cards/CardBuilderNameAndImage';
 import { DeckBuilder } from '../js/views/DeckBuilder';
 import { DeckViewer } from '../js/views/DeckViewer';
 import { GameRoom } from '../js/components/GameRoom';

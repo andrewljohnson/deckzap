@@ -1,10 +1,10 @@
 import * as PIXI from 'pixi.js'
 const TextInput = require("pixi-text-input");
-import * as Constants from '../Constants.js';
-import { Card } from '../components/Card.js';
+import * as Constants from '../../Constants.js';
+import { Card } from '../../components/Card.js';
 import { CardBuilderBase } from './CardBuilderBase.js'
 import { Scrollbox } from 'pixi-scrollbox'
-import { SVGRasterizer } from '../components/SVGRasterizer.js';
+import { SVGRasterizer } from '../../components/SVGRasterizer.js';
 import { OutlineFilter } from 'pixi-filters';
 
 export class CardBuilderNameAndImage extends CardBuilderBase {
@@ -41,14 +41,14 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
         if (this.userCardName) {
             return this.userCardName;
         }
-        return "Unnamed Card";
+        return this.defaultCardName();
     }
 
     cardImage() {
         if (this.userCardImage) {
             return this.userCardImage;
         }
-        return "uncertainty.svg";
+        return this.defaultCardImageFilename();
     }
 
     title() {
@@ -56,7 +56,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
     }
 
     nextButtonClicked() {
-        Constants.postData('/create_card/save_name_and_image', { card_info: this.cardInfo(), card_id: this.cardID })
+        Constants.postData(`${this.baseURL()}/save_name_and_image`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
                 console.log(data); 
@@ -93,11 +93,11 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
                 borderStyle: 'solid',
             }
         })
-        nameInput.placeholder = 'Unnamed Card'
+        nameInput.placeholder = this.defaultCardName();
         nameInput.position.x = x;
         nameInput.position.y = nameLabel.position.y + nameLabel.height + Constants.padding * 4;
         this.app.stage.addChild(nameInput);
-        const cardImagesPath = "/static/images/card-art-custom/";
+        const cardImagesPath = this.customImagesURL();
         nameInput.on('input', text => {
             this.newText = text;
             if (this.doneTyping) {
@@ -115,6 +115,10 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
             }, 200)
 
         })
+    }
+
+    customImagesURL() {
+        return "/static/images/card-art-custom/";
     }
 
     addImagePicker(yPosition) {
@@ -155,7 +159,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
                     self.selectedImageText.alpha = unselectedAlpha;
                 }
                 self.userCardImage = this.imageInfo.filename;
-                const cardImagesPath = "/static/images/card-art-custom/";
+                const cardImagesPath = self.customImagesURL();
                 self.clearTextureCache(cardImagesPath, this.imageInfo.filename);
                 const rasterizer = new SVGRasterizer(self.app, cardImagesPath);
                 rasterizer.loadCardImages([self.cardInfo()]);
@@ -185,4 +189,10 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
         PIXI.BaseTexture.removeFromCache(this.cardName() + "?large")
         PIXI.Texture.removeFromCache(this.cardName() + "?large")        
     }
+
+    updateCard() {
+        super.updateCard();
+        this.toggleNextButton(this.userCardName && this.userCardImage);
+    }
+
 }
