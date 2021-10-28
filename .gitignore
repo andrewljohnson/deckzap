@@ -133,5 +133,5 @@ database/
 .DS_Store
 staticfiles/
 
-battle_wizard/game/cards/images
+static/images/card-art-custom
 battle_wizard/management/commands/unprocessed-images

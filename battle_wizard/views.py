@@ -15,6 +15,7 @@ from battle_wizard.game.data import default_deck_vampire_lich
 from battle_wizard.game.data import hash_for_deck
 from battle_wizard.forms import SignUpForm
 from battle_wizard.models import CustomCard
+from battle_wizard.models import CustomCardImage
 from battle_wizard.models import Deck
 from battle_wizard.models import GameRecord
 from battle_wizard.models import GlobalDeck
@@ -29,7 +30,7 @@ from django.http import Http404
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
-
+from operator import itemgetter
 
 def index(request):
     """
@@ -430,15 +431,39 @@ def create_card(request):
     )
     return render(request, "create_card.html", {})
 
-def save_effects(request):
+def save_cost(request):
     """
-        A POST view to save a the effects for a new card.
+        A POST view to save the mana cost for a new card.
     """
     if request.method == "POST":
         info = json.load(request)
         card_info = info["card_info"]
         if "card_id" not in info:
-            error_message = "card_type required to save a new card"
+            error_message = "card_id required to save cost for a card"
+            print(error_message)
+            return JsonResponse({"error": error_message})
+        else: 
+            custom_card = CustomCard.objects.get(id=info["card_id"])
+            if custom_card.author != request.user:
+                error_message = "only the card's author can edit a CustomCard"
+                print(error_message)
+                return JsonResponse({"error": error_message})
+            custom_card.card_json = card_info
+            custom_card.save()
+            Analytics.log_amplitude(request, "Save Card Cost", {})
+            return JsonResponse({})
+    else:
+        return JsonResponse({"error": "Unsupported request type"})
+
+def save_effects(request):
+    """
+        A POST view to save the effects for a new card.
+    """
+    if request.method == "POST":
+        info = json.load(request)
+        card_info = info["card_info"]
+        if "card_id" not in info:
+            error_message = "card_id required to save effects for a card"
             print(error_message)
             return JsonResponse({"error": error_message})
         else: 
@@ -450,6 +475,39 @@ def save_effects(request):
             custom_card.card_json = card_info
             custom_card.save()
             Analytics.log_amplitude(request, "Save Card Effects", {})
+            return JsonResponse({})
+    else:
+        return JsonResponse({"error": "Unsupported request type"})
+
+def save_name_and_image(request):
+    """
+        A POST view to save the name and image for a new card.
+    """
+    if request.method == "POST":
+        info = json.load(request)
+        card_info = info["card_info"]
+        if "card_id" not in info:
+            error_message = "card_id required to save name and image for a card"
+            print(error_message)
+            return JsonResponse({"error": error_message})
+        else: 
+            custom_card = CustomCard.objects.get(id=info["card_id"])
+            if custom_card.author != request.user:
+                error_message = "only the card's author can edit a CustomCard"
+                print(error_message)
+                return JsonResponse({"error": error_message})
+            image = CustomCardImage.objects.filter(card=None, filename=card_info["image"]).first()
+            if image:
+                image.card = custom_card
+                image.save()
+            else:
+                error_message = f"CustomCardImage for file {card_info['image']} is not available"
+                print(error_message)
+                return JsonResponse({"error": error_message})
+
+            custom_card.card_json = card_info
+            custom_card.save()
+            Analytics.log_amplitude(request, "Save Card Name and Image", {})
             return JsonResponse({})
     else:
         return JsonResponse({"error": "Unsupported request type"})
@@ -497,6 +555,23 @@ def create_card_effects(request, card_id):
             "effects_and_types": json.dumps(json_data)}
         )
 
+def create_card_cost(request, card_id):
+    """
+        A view to set the mana cost for a new card.
+    """
+    if not request.user.is_authenticated:
+        return redirect(f"/signup?next={request.path}")
+    Analytics.log_amplitude(
+        request, 
+        "Page View - Create Card Cost", 
+        {"page":"create card cost"}
+    )
+    return render(
+        request, 
+        "create_card_cost.html", 
+        {"card_id":card_id, "card_info": json.dumps(CustomCard.objects.get(id=card_id).card_json)}
+    )
+
 def create_card_mob_stats(request, card_id):
     """
         A view to create the effects for a new card.
@@ -525,10 +600,18 @@ def create_card_name_and_image(request, card_id):
         "Page View - Create Card Name and Image", 
         {"page":"create card name and image"}
     )
+
+    images = CustomCardImage.objects.filter(card=None)
+    image_paths = sorted([{"path": f"/static/card-art-custom/{image.filename}", "name":image.filename.removesuffix(".svg"), "filename":image.filename} for image in images], key=itemgetter('name'))
+
     return render(
         request, 
         "create_card_name_and_image.html", 
-        {"card_id":card_id, "card_info": json.dumps(CustomCard.objects.get(id=card_id).card_json)}
+        {
+            "card_id":card_id, 
+            "card_info": json.dumps(CustomCard.objects.get(id=card_id).card_json),
+            "image_paths": json.dumps(image_paths)
+        }
     )
 
 def create_card_get_card_info(request):

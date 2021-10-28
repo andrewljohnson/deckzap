@@ -2,6 +2,7 @@
 import 'regenerator-runtime/runtime'
 
 import { CardBuilder } from '../js/views/CardBuilder';
+import { CardBuilderCost } from '../js/views/CardBuilderCost';
 import { CardBuilderEffects } from '../js/views/CardBuilderEffects';
 import { CardBuilderNameAndImage } from '../js/views/CardBuilderNameAndImage';
 import { DeckBuilder } from '../js/views/DeckBuilder';
@@ -44,13 +45,20 @@ if (window.location.pathname.startsWith("/play")) {
             "app", 
             JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
-            JSON.parse(document.getElementById("data_store").getAttribute("card_id")),
+            document.getElementById("data_store").getAttribute("card_id"),
         );        
     } else if (window.location.pathname.endsWith("name_and_image")) {
         new CardBuilderNameAndImage(
             "app", 
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_id")),
+            JSON.parse(document.getElementById("data_store").getAttribute("image_paths")),
+        );        
+    } else if (window.location.pathname.endsWith("cost")) {
+        new CardBuilderCost(
+            "app", 
+            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
+            document.getElementById("data_store").getAttribute("card_id"),
         );        
     } else if (window.location.pathname.endsWith("mob_stats")) {
     } else {
