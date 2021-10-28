@@ -4,10 +4,11 @@ import * as Constants from '../Constants.js';
 
 export class SVGRasterizer {
 
-	constructor(app) {		
+	constructor(app, cardImagesPath=null) {		
         // keys for images that have been rendered to the cache already
         this.loadedImageKeys = new Set()
         this.app = app
+        this.cardImagesPath = cardImagesPath;
 	}
 
 	loadCardImages(cards) {
@@ -36,7 +37,8 @@ export class SVGRasterizer {
         if (!imageName) {
             imageName = "uncertainty.svg";
         }
-        return window.location.protocol + "//" + window.location.host + Constants.cardImagesPath + imageName;
+        let cardImagesPath = this.cardImagesPath ? this.cardImagesPath : Constants.cardImagesPath;
+        return window.location.protocol + "//" + window.location.host + cardImagesPath + imageName;
     }
 
     loadCardImage(cardType, loaderID, loaderURL) {

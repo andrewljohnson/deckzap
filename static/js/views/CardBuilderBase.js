@@ -15,7 +15,6 @@ export class CardBuilderBase {
         let appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
         let appHeight = (Card.cardHeight) * 15;
         Constants.setUpPIXIApp(this, appHeight, appWidth)
-        this.rasterizer = new SVGRasterizer(this.app);
     }
 
     loadUX(containerID) {
@@ -28,7 +27,7 @@ export class CardBuilderBase {
         this.app.stage.addChild(background);
         let titleText = this.addTitle();
         this.addNextButton();
-        this.rasterizer.loadCardImages([this.cardInfo()]);
+        new SVGRasterizer(this.app).loadCardImages([this.cardInfo()]);
         this.app.loader.load(() => {
             this.addTitle();
             this.addNextButton();
@@ -82,6 +81,8 @@ export class CardBuilderBase {
     }
 
     addCardSprite() {
+        console.log("addCardSprite")
+        console.log(this.cardInfo())
         let cardSprite = Card.sprite(this.cardInfo(), this);
         let cardHeight = Card.cardHeight;
         cardSprite.position.x = this.nextButton.position.x + Card.cardWidth * 1.25 / 2;
@@ -89,6 +90,15 @@ export class CardBuilderBase {
         this.app.stage.addChild(cardSprite);
         cardSprite.interactive = true;
         this.card = cardSprite;
+    }
+
+    cardDescription() {
+        if (this.effects && this.effects.length) {
+            return this.effects[0].description;
+        }
+        if (this.originalCardInfo.effects && this.originalCardInfo.effects.length) {
+            return this.originalCardInfo.effects[0].description;
+        }
     }
 
     cardInfo() {

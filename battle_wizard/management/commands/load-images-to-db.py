@@ -1,4 +1,5 @@
 from battle_wizard.models import CustomCardImage
+from scripts.update_svgs import resize_svg
 from django.core.management.base import BaseCommand, CommandError
 import os
 import shutil
@@ -16,7 +17,7 @@ class Command(BaseCommand):
             zip_ref.extractall(extract_to_dir)
 
 
-        dir_to_store_images = os.path.join(dirname, "../../game/cards/images")
+        dir_to_store_images = os.path.join(dirname, "../../../static/images/card-art-custom")
         if not os.path.isdir(dir_to_store_images):
             os.mkdir(dir_to_store_images)
         for subdir, dirs, files in os.walk(extract_to_dir):
@@ -25,8 +26,10 @@ class Command(BaseCommand):
                 shutil.copy2(filepath, dir_to_store_images)
 
         for entry in os.scandir(dir_to_store_images):
-            if not CustomCardImage.objects.filter(filename=entry.name).first():
-                cci = CustomCardImage.objects.create(filename=entry.name)
-                cci.save()
+            if entry.name.endswith('svg'):
+                resize_svg(entry.path)
+                if not CustomCardImage.objects.filter(filename=entry.name).first():
+                    cci = CustomCardImage.objects.create(filename=entry.name)
+                    cci.save()
 
         shutil.rmtree(extract_to_dir)

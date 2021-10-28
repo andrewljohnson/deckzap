@@ -3,15 +3,18 @@ const TextInput = require("pixi-text-input");
 import * as Constants from '../Constants.js';
 import { Card } from '../components/Card.js';
 import { CardBuilderBase } from './CardBuilderBase.js'
-
+import { Scrollbox } from 'pixi-scrollbox'
+import { SVGRasterizer } from '../components/SVGRasterizer.js';
+import { OutlineFilter } from 'pixi-filters';
 
 export class CardBuilderNameAndImage extends CardBuilderBase {
 
-    constructor(containerID, originalCardInfo, cardID) {
+    constructor(containerID, originalCardInfo, cardID, imagePaths) {
         super(containerID)
         this.originalCardInfo = originalCardInfo;
         this.effects = originalCardInfo.effects ? originalCardInfo.effects : [];
         this.cardID = cardID;
+        this.imagePaths = imagePaths;
         this.loadUX(containerID);
     }
 
@@ -19,6 +22,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
         return {
             name: this.cardName(), 
             card_type: this.originalCardInfo.card_type, 
+            cost: this.originalCardInfo.cost, 
             image: this.cardImage(), 
             effects: this.originalCardInfo.effects, 
             description:this.cardDescription()
@@ -28,6 +32,8 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
     loadUXAfterCardImageLoads() {
         super.loadUXAfterCardImageLoads()
         const yPosition = this.titleText.position.y + this.titleText.height + Constants.padding * 4;
+        this.addNameInput(Constants.padding * 2, yPosition)
+        this.addImagePicker(yPosition + 100);
         this.updateCard();
     }
 
@@ -45,11 +51,6 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
         return "uncertainty.svg";
     }
 
-    cardDescription() {
-        if (this.effects && this.effects.length) {
-            return this.effects[0].description;
-        }
-    }
     title() {
         return "Choose Name and Image"
     }
@@ -61,13 +62,127 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
                 console.log(data); 
                 alert("error saving card");
             } else {
-                window.location.href = `/create_card/${this.cardID}/name_and_image`
+                window.location.href = `/`
             }
         })
+    }
+
+    nextButtonTitle() {
+        return "Save Card"
     }
 
     updateCard() {
         super.updateCard();
     }     
 
+    addNameInput(x, y) {
+        const nameLabel = new PIXI.Text("Card Name", {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.blackColor});
+        nameLabel.position.x = x;
+        nameLabel.position.y = y;
+        this.app.stage.addChild(nameLabel);    
+
+        let nameInput = new TextInput({
+            input: {
+                fontSize: '14pt',
+                width: (200 - 5) + 'px',
+                textAlign: 'center',
+            }, 
+            box: {
+                borderWidth: '1px',
+                stroke: 'black',
+                borderStyle: 'solid',
+            }
+        })
+        nameInput.placeholder = 'Unnamed Card'
+        nameInput.position.x = x;
+        nameInput.position.y = nameLabel.position.y + nameLabel.height + Constants.padding * 4;
+        this.app.stage.addChild(nameInput);
+        const cardImagesPath = "/static/images/card-art-custom/";
+        nameInput.on('input', text => {
+            this.newText = text;
+            if (this.doneTyping) {
+                clearTimeout(this.doneTyping);                
+            }
+            this.doneTyping = setTimeout(()=>{ 
+                this.clearTextureCache(cardImagesPath, this.cardImage());
+                this.userCardName = text;
+                const rasterizer = new SVGRasterizer(this.app, cardImagesPath);
+                rasterizer.loadCardImages([this.cardInfo()]);
+                this.app.loader.load(() => {
+                    this.updateCard()
+                    this.app.loader.reset()
+                });        
+            }, 200)
+
+        })
+    }
+
+    addImagePicker(yPosition) {
+        const scrollboxWidth = 250;
+        const scrollboxHeight = 600;
+        const scrollbox = new Scrollbox({ boxWidth: scrollboxWidth, boxHeight: scrollboxHeight})
+        scrollbox.position.x = Constants.padding * 2;
+        scrollbox.position.y = yPosition;
+        const background = new PIXI.Sprite.from(PIXI.Texture.WHITE);
+        background.tint = Constants.whiteColor
+        background.width = scrollboxWidth;
+        background.height = 20 * this.imagePaths.length;
+        scrollbox.content.addChild(background);
+        scrollbox.content.filters = [
+          new OutlineFilter(1, Constants.blackColor),
+        ]
+        this.app.stage.addChild(scrollbox);
+
+        let line = -1;
+        const bmFontName = "bmArial";
+        const font = PIXI.BitmapFont.from(
+            bmFontName, 
+            { fontFamily: "Arial", fontSize: 12 }, 
+            { resolution: window.devicePixelRatio }
+        );
+        const self = this;
+        const unselectedAlpha = .6;
+        for (let text of this.imagePaths) {
+            line += 1
+            let textSprite = new PIXI.BitmapText(text.name, {fontName: bmFontName, wordWrap: true, wordWrapWidth: 360});
+            textSprite.alpha = unselectedAlpha;
+            textSprite.position.x = 5;
+            textSprite.position.y = line * 20 + 5;
+            textSprite.imageInfo = text;
+            textSprite.on("click", function (e) { 
+                scrollbox.content.interactiveChildren = false;
+                if (self.selectedImageText) {
+                    self.selectedImageText.alpha = unselectedAlpha;
+                }
+                self.userCardImage = this.imageInfo.filename;
+                const cardImagesPath = "/static/images/card-art-custom/";
+                self.clearTextureCache(cardImagesPath, this.imageInfo.filename);
+                const rasterizer = new SVGRasterizer(self.app, cardImagesPath);
+                rasterizer.loadCardImages([self.cardInfo()]);
+                self.app.loader.load(() => {
+                    self.updateCard()
+                    self.app.loader.reset()
+                    scrollbox.content.interactiveChildren = true;
+                });        
+                self.selectedImageText = this;
+                this.alpha = 1;
+            })
+            textSprite.buttonMode = true;
+            textSprite.interactive = true;
+            scrollbox.content.addChild(textSprite);
+        }
+
+    }
+
+    clearTextureCache(cardImagesPath, filename) {
+        let fullPath = window.location.protocol + "//" + window.location.host + cardImagesPath + filename
+        PIXI.BaseTexture.removeFromCache(fullPath)
+        PIXI.Texture.removeFromCache(fullPath)
+        PIXI.BaseTexture.removeFromCache(fullPath + "?large")
+        PIXI.Texture.removeFromCache(fullPath + "?large")
+        PIXI.BaseTexture.removeFromCache(this.cardName())
+        PIXI.Texture.removeFromCache(this.cardName())
+        PIXI.BaseTexture.removeFromCache(this.cardName() + "?large")
+        PIXI.Texture.removeFromCache(this.cardName() + "?large")        
+    }
 }

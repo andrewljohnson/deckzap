@@ -75,12 +75,6 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.updateCard();
     }
 
-    cardDescription() {
-        if (this.effects && this.effects.length) {
-            return this.effects[0].description;
-        }
-    }
-
     selectTarget(target_label) {
         for (let target in this.cardsAndEffects.target_types) {
             if (target == target_label) {
@@ -208,7 +202,7 @@ export class CardBuilderEffects extends CardBuilderBase {
                 console.log(data); 
                 alert("error saving card");
             } else {
-                window.location.href = `/create_card/${this.cardID}/name_and_image`
+                window.location.href = `/create_card/${this.cardID}/cost`
             }
         })
     }

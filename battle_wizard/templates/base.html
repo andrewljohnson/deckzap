@@ -19,7 +19,6 @@
 			<ul class="right-menu">
 					<li><a href=https://github.com/andrewljohnson/deckzap target=_new>GitHub</a>
 					<li><a href=https://deckzap.substack.com/ target=_new>Substack</a></li>					
-					<li><a href=https://discord.gg/eMrHZCTVN9 target=_new>Discord</a></li>					
 			</ul>
 			<ul>
 				{% if not user.is_authenticated %}
@@ -28,6 +27,7 @@
 				{% if user.is_authenticated %}
 					<li><a href=/u/{{user.username}}>My Decks</a></li>
 				{% endif %}
+					<li><a href=/create_card>Create Cards</a></li>
 					<li><a href=/top_players>Top Players</a></li>
 					<li><a href=/top_decks>Top Decks</a></li>
 				{% if user.is_authenticated %}
