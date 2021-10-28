@@ -1,4 +1,4 @@
-from battle_wizard.models import CustomCardImage
+from create_cards.models import CustomCardImage
 from scripts.update_svgs import resize_svg
 from django.core.management.base import BaseCommand, CommandError
 import os

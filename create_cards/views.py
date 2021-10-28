@@ -36,7 +36,7 @@ def effects(request, card_id):
         "Page View - Create Card Effects", 
         {"page":"create card effects"}
     )
-    json_data = json.load(open('battle_wizard/game/cards/cards_and_effects.json'))
+    json_data = json.load(open('create_cards/cards_and_effects.json'))
     del json_data["cards"]
     return render(request, "create_card_effects.html", 
         {
