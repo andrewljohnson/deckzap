@@ -26,7 +26,7 @@ def all_cards(require_images=False, include_tokens=True):
                 subset.append(c)
 
 
-    json_data = open('battle_wizard/game/cards/cards_and_effects.json')
+    json_data = open('create_cards/cards_and_effects.json')
     cards_and_effects = json.load(json_data)
     for c in cards_and_effects["cards"]:
         if include_tokens or ("is_token" not in c or c["is_token"] == False):

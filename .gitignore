@@ -134,4 +134,4 @@ database/
 staticfiles/
 
 static/images/card-art-custom
-battle_wizard/management/commands/unprocessed-images
+create_cards/management/commands/unprocessed-images
