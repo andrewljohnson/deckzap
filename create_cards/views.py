@@ -165,6 +165,12 @@ def save_cost(request):
     """
     return create_card_save(request, "card_id", "Save Card Cost")
 
+def save_mob_stats(request):
+    """
+        A POST view to save the mana cost for a new card.
+    """
+    return create_card_save(request, "card_id", "Save Mob Stats")
+
 def save_effects(request):
     """
         A POST view to save the effects for a new card.

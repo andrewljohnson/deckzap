@@ -7,12 +7,14 @@ from create_cards.views import mob_stats
 from create_cards.views import name_and_image
 from create_cards.views import save_cost
 from create_cards.views import save_effects
+from create_cards.views import save_mob_stats
 from create_cards.views import save_name_and_image
 from create_cards.views import save_new_card
 
 urlpatterns = [
     path('save_cost', save_cost),    
     path('save_effects', save_effects),    
+    path('save_mob_stats', save_mob_stats),    
     path('save_name_and_image', save_name_and_image),    
     path('save_new', save_new_card),    
     path('<card_id>/cost', cost),

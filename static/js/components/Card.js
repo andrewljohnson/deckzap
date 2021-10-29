@@ -546,7 +546,7 @@ export class Card {
         }
 
         // for card builder
-        if (!card.power) {
+        if (!card.power && card.power != 0) {
             cardPower = "?";
         }
         if (!card.toughness) {
