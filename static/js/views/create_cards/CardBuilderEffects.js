@@ -1,16 +1,16 @@
 import * as PIXI from 'pixi.js'
 const TextInput = require("pixi-text-input");
-import * as Constants from '../Constants.js';
-import { ButtonPicker } from '../components/ButtonPicker.js';
-import { Card } from '../components/Card.js';
+import * as Constants from '../../Constants.js';
+import { ButtonPicker } from '../../components/ButtonPicker.js';
+import { Card } from '../../components/Card.js';
 import { CardBuilderBase } from './CardBuilderBase.js'
 
 
 export class CardBuilderEffects extends CardBuilderBase {
 
-    constructor(containerID, cardsAndEffects, originalCardInfo, cardID) {
+    constructor(containerID, effectsAndTypes, originalCardInfo, cardID) {
         super(containerID)
-        this.cardsAndEffects = cardsAndEffects;
+        this.effectsAndTypes = effectsAndTypes;
         this.originalCardInfo = originalCardInfo;
         this.effects = originalCardInfo.effects ? originalCardInfo.effects : [];
         this.cardID = cardID;
@@ -19,12 +19,19 @@ export class CardBuilderEffects extends CardBuilderBase {
 
     cardInfo() {
         return {
-            name: "Unnamed Card", 
+            name: this.defaultCardName(), 
+            image: this.defaultCardImageFilename(), 
             card_type: this.originalCardInfo.card_type, 
-            image: "uncertainty.svg", 
             effects: this.effects, 
             description:this.cardDescription()
         };
+    }
+
+    cardDescription() {
+        if (this.effects && this.effects.length) {
+            return this.effects[0].description;
+        }
+        return super.cardDescription()
     }
 
     loadUXAfterCardImageLoads() {
@@ -34,7 +41,7 @@ export class CardBuilderEffects extends CardBuilderBase {
             Constants.padding, 
             yPosition, 
             "Effect Name", 
-            this.cardsAndEffects.effects.filter(effect => {
+            this.effectsAndTypes.effects.filter(effect => {
                 return effect.legal_card_type_ids.includes(this.cardInfo().card_type);
             }).map(effect => {
                 return effect.name;
@@ -46,7 +53,7 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     selectEffect(effect_label) {
-        for (let effect of this.cardsAndEffects.effects) {
+        for (let effect of this.effectsAndTypes.effects) {
             if (effect.name == effect_label) {
                 this.effect = effect;
             }
@@ -54,6 +61,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         if (this.effectDescription) {
             this.effectDescription.parent.removeChild(this.effectDescription);
         }
+        this.targetSelected = false;
         this.removeAmountControl();
         this.removeTargetControl();
         let description = this.effect.description_expanded ? this.effect.description_expanded : this.effect.description;
@@ -76,9 +84,10 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     selectTarget(target_label) {
-        for (let target in this.cardsAndEffects.target_types) {
+        this.targetSelected = true;
+        for (let target in this.effectsAndTypes.target_types) {
             if (target == target_label) {
-                this.target = this.cardsAndEffects.target_types[target];
+                this.target = this.effectsAndTypes.target_types[target];
             }
         }
         if (this.targetDescription) {
@@ -95,7 +104,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         if ("amount" in this.effect && !this.amountLabel) {
             this.addAmountInput(Constants.padding, this.targetDescription.position.y + this.targetDescription.height + Constants.padding * 2);
         } 
-        Constants.postData('/create_card/get_card_info', { card_info: this.cardInfo(), card_id: this.cardID })
+        Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
                 console.log(data); 
@@ -118,7 +127,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         let amountInput = new TextInput({
             input: {
                 fontSize: '14pt',
-                width: (100 - 5) + 'px',
+                width: (200 - 5) + 'px',
                 textAlign: 'center',
             }, 
             box: {
@@ -128,17 +137,15 @@ export class CardBuilderEffects extends CardBuilderBase {
             }
         })
         amountInput.placeholder = 'Amount for Effect'
-        amountInput.text = 1;
         amountInput.position.x = x;
         amountInput.position.y = this.amountLabel.position.y + this.amountLabel.height + Constants.padding * 4;
         this.app.stage.addChild(amountInput);
         this.amountInput = amountInput;
-        this.effects[0].amount = 1
         this.amountInput.on('input', text => {
             amountInput.text = text
             this.effects[0].amount = text
 
-            Constants.postData('/create_card/get_card_info', { card_info: this.cardInfo(), card_id: this.cardID })
+            Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
             .then(data => {
                 if("error" in data) {
                     console.log(data); 
@@ -188,7 +195,7 @@ export class CardBuilderEffects extends CardBuilderBase {
 
 
     selectEffectType(effect_type_label) {
-        // console.log(this.cardsAndEffects.effect_types[effect_type_label]);
+        // console.log(this.effectsAndTypes.effect_types[effect_type_label]);
     }
 
     title() {
@@ -196,15 +203,19 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     nextButtonClicked() {
-        Constants.postData('/create_card/save_effects', { card_info: this.cardInfo(), card_id: this.cardID })
+        Constants.postData(`${this.baseURL()}/save_effects`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
                 console.log(data); 
                 alert("error saving card");
             } else {
-                window.location.href = `/create_card/${this.cardID}/cost`
+                window.location.href = `${this.baseURL()}/${this.cardID}/cost`
             }
         })
     }
 
+    updateCard() {
+        super.updateCard();
+        this.toggleNextButton(this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0);
+    }
 }

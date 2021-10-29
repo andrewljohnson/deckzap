@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
-import * as Constants from '../Constants.js';
-import { Card } from '../components/Card.js';
-import { SVGRasterizer } from '../components/SVGRasterizer.js';
+import * as Constants from '../../Constants.js';
+import { Card } from '../../components/Card.js';
+import { SVGRasterizer } from '../../components/SVGRasterizer.js';
 
 
 export class CardBuilderBase {
@@ -69,7 +69,14 @@ export class CardBuilderBase {
         );
         this.nextButton = b
         this.app.stage.addChild(b);
+        this.toggleNextButton(false);
         return b;
+    }
+
+    toggleNextButton(enabled) {
+        this.nextButton.background.tint = enabled ? Constants.blueColor : Constants.darkGrayColor;
+        this.nextButton.background.buttonMode = enabled;
+        this.nextButton.background.interactive = enabled;
     }
 
     updateCard() {
@@ -81,8 +88,6 @@ export class CardBuilderBase {
     }
 
     addCardSprite() {
-        console.log("addCardSprite")
-        console.log(this.cardInfo())
         let cardSprite = Card.sprite(this.cardInfo(), this);
         let cardHeight = Card.cardHeight;
         cardSprite.position.x = this.nextButton.position.x + Card.cardWidth * 1.25 / 2;
@@ -92,14 +97,25 @@ export class CardBuilderBase {
         this.card = cardSprite;
     }
 
+    baseURL() {
+        return "/create_card";
+    }
+
+    defaultCardName() {
+        return "Unnamed Card";
+    }
+
+    defaultCardImageFilename() {
+        return "uncertainty.svg";
+    }
+
     cardDescription() {
-        if (this.effects && this.effects.length) {
-            return this.effects[0].description;
-        }
         if (this.originalCardInfo.effects && this.originalCardInfo.effects.length) {
             return this.originalCardInfo.effects[0].description;
         }
     }
+
+    // functions override by subclasses 
 
     cardInfo() {
         return {};
@@ -110,11 +126,11 @@ export class CardBuilderBase {
     loadUXAfterCardImageLoads() { }
 
     title() {
-        return ""
+        return "";
     }
 
     nextButtonTitle() {
-        return "Next"
+        return "Next";
     }
 
     nextButtonClicked() { }
