@@ -10,6 +10,7 @@ from create_cards.models import CustomCardImage
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
+from inspect import signature
 from operator import itemgetter
 
 def create_card(request):
@@ -125,13 +126,28 @@ def get_effect_for_info(request):
                 effect_def = Effects.discard_random
             elif effect["name"] == "draw":
                 effect_def = Effects.draw
+            elif effect["name"] == "add_ambush":
+                effect_def = Effects.add_ambush
+            elif effect["name"] == "drain_hp":
+                effect_def = Effects.drain_hp
+            elif effect["name"] == "force_attack_guard_first":
+                effect_def = Effects.force_attack_guard_first
+            elif effect["name"] == "protect_with_shield":
+                effect_def = Effects.protect_with_shield
             else:
                 return JsonResponse({"error": f"Unsupported effect name {effect['name']}"})
-            amount = effect["amount"]
-            effect_type = effect_types()[effect["effect_type"]]
-            target_type = target_types()[effect["target_type"]]
-            ai_target_types = effect["ai_target_types"]
-            server_effect = effect_def(amount, effect_type, target_type, ai_target_types)
+            if len(signature(effect_def).parameters) == 0:
+                # for mob abilities like Ambush, Drain, Guard, and Shield
+                server_effect = effect_def()
+            else:
+                # all non-ability-effects take 5 parameters
+                server_effect = effect_def(
+                    card_info["card_type"], 
+                    int(effect["amount"]), 
+                    effect_types()[effect["effect_type"]], 
+                    target_types()[effect["target_type"]], 
+                    effect["ai_target_types"]
+                )
             return JsonResponse({"server_effect": server_effect})
     else:
         return JsonResponse({"error": "Unsupported request type"})
