@@ -25,6 +25,8 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
             cost: this.originalCardInfo.cost, 
             image: this.cardImage(), 
             effects: this.originalCardInfo.effects, 
+            power: this.originalCardInfo.power, 
+            toughness: this.originalCardInfo.toughness, 
             description:this.cardDescription()
         };
     }

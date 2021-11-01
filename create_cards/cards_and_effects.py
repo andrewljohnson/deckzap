@@ -87,6 +87,7 @@ def effect_types(as_dicts=False):
    all_effect_types = {
       "after_deals_damage": EffectType("after_deals_damage", "After This Deals Damage", "after it deals damage"),
       "before_is_damaged": EffectType("before_is_damaged", "Before This is Damaged", None),
+      "enters_play": EffectType("enters_play", "Enters Play", "When this enters play"),
       "select_mob_target": EffectType("select_mob_target", "When Selecting a Target", None), 
       "mob_changes_zones": EffectType("mob_changes_zones", "Mob Changes Zones", None),
       "spell": EffectType("spell", "Spell", None),
@@ -134,32 +135,40 @@ class Effects:
       }      
 
    @staticmethod
-   def damage(amount, effect_type, target_type, ai_target_type_ids=None):
+   def damage(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
       if effect_type.description != None:
          description = f"{effect_type.description}, deal {amount} damage to {target_type.description}." 
       else:
          description = f"Deal {amount} damage to {target_type.description}."   
+
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
          "effect_type": effect_type.id,
          "description": description,
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_type_ids": [effect_types()["spell"].id, effect_types()["play_friendly_mob"].id],
+         "legal_effect_type_ids": Effects.effect_types_for_card_type_id(card_type_id),
          "legal_target_type_ids": [key for key, value in target_types().items()],
          "name": "damage",
          "target_type": target_type.id
       }
 
    @staticmethod
-   def discard_random(amount, effect_type, target_type, ai_target_type_ids=None):
+   def effect_types_for_card_type_id(card_type_id):      
+      if card_type_id == card_types()["mob"].id:
+         return [effect_types()["enters_play"].id, effect_types()["play_friendly_mob"].id]
+      else: # the other card_type_id is spell
+         return [effect_types()["spell"].id]
+
+   @staticmethod
+   def discard_random(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
          "effect_type": effect_type.id,
-         "description": Effects.description_for_cards_effect("discard", target_type, amount),
+         "description": Effects.description_for_cards_effect("discard", target_type, amount, effect_type),
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_type_ids": [effect_types()["spell"].id, effect_types()["play_friendly_mob"].id],
+         "legal_effect_type_ids": Effects.effect_types_for_card_type_id(card_type_id),
          "legal_target_type_ids": [target_types()["opponent"].id, target_types()["self"].id, target_types()["player"].id],
          "name": "discard_random",
          "target_type": target_type.id
@@ -177,14 +186,14 @@ class Effects:
       }
 
    @staticmethod
-   def draw(amount, effect_type, target_type, ai_target_type_ids=None):
+   def draw(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
          "effect_type": effect_type.id,
-         "description": Effects.description_for_cards_effect("draw", target_type, amount),
+         "description": Effects.description_for_cards_effect("draw", target_type, amount, effect_type),
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_type_ids": [effect_types()["spell"].id, effect_types()["play_friendly_mob"].id],
+         "legal_effect_type_ids": Effects.effect_types_for_card_type_id(card_type_id),
          "legal_target_type_ids": [target_types()["opponent"].id, target_types()["self"].id, target_types()["player"].id],
          "name": "draw",
          "target_type": target_type.id,
@@ -224,33 +233,36 @@ class Effects:
       self_target_type = target_types()["self"]
       effects = [
          Effects.add_ambush(),
-         Effects.damage(0, spell_effect_type, any_target_type, []),
-         Effects.discard_random(1, spell_effect_type, any_target_type, [opponent_target_type.id]),
+         Effects.damage(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
+         Effects.discard_random(card_types()["spell"].id, 1, spell_effect_type, any_target_type, [opponent_target_type.id]),
          Effects.drain_hp(),
-         Effects.draw(1, spell_effect_type, self_target_type, [self_target_type.id]),
+         Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.force_attack_guard_first(),
          Effects.protect_with_shield(),         
       ]
       return effects
 
    @staticmethod
-   def description_for_cards_effect(action_word, target_type, amount):
+   def description_for_cards_effect(action_word, target_type, amount, effect_type):
       if target_type.id == "self":
          if amount == 1:
-            return f"{action_word.capitalize()} a card."
+            description = f"{action_word.capitalize()} a card."
          else:
-            return f"{action_word.capitalize()} {amount} cards."
+            description = f"{action_word.capitalize()} {amount} cards."
       elif target_type.id == "player": 
          if amount == 1: 
-            return f"Target player {action_word}s a card."
+            description = f"Target player {action_word}s a card."
          else:
-            return f"Target player {action_word}s {amount} cards."
+            description = f"Target player {action_word}s {amount} cards."
       else: #target_type.id == "opponent"
          if amount == 1:
-            return f"Your opponent {action_word}s a card."
+            description = f"Your opponent {action_word}s a card."
          else:
-            return f"Your opponent {action_word}s {amount} cards."
-
+            description = f"Your opponent {action_word}s {amount} cards."
+      if effect_type.description != None:
+         description = description[0].lower() + description[1:]
+         description = f"{effect_type.description}, {description}" 
+      return description   
 
 
 class Cards:
@@ -266,7 +278,7 @@ class Cards:
                4,
                card_types()["spell"],
                [
-                  Effects.draw(3, effect_types()["spell"], target_types()["self"], [target_types()["self"].id])
+                  Effects.draw(card_types()["spell"].id, 3, effect_types()["spell"], target_types()["self"], [target_types()["self"].id])
                ]
          ),
          CardInfo(
@@ -276,15 +288,18 @@ class Cards:
                card_types()["spell"],
                [
                   Effects.damage(
+                     card_types()["spell"].id, 
                      4, 
                      effect_types()["spell"],
                      target_types()["any"], 
                      [target_types()["opponent"].id, target_types()["enemy_mob"].id]
                   ),
                   Effects.discard_random(
+                     card_types()["spell"].id, 
                      1, 
                      effect_types()["spell"], 
                      target_types()["self"],
+                     [],
                   ),                  
                ]
          ),
@@ -322,6 +337,7 @@ class Cards:
                2,
                [
                   Effects.damage(
+                     card_types()["mob"].id, 
                      1, 
                      effect_types()["play_friendly_mob"],
                      target_types()["opponents_mob_random"], 
@@ -336,6 +352,7 @@ class Cards:
                card_types()["spell"],
                [
                   Effects.damage(
+                     card_types()["spell"].id, 
                      3, 
                      effect_types()["spell"],
                      target_types()["any"], 

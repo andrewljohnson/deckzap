@@ -4,6 +4,7 @@ import 'regenerator-runtime/runtime'
 import { CardBuilder } from '../js/views/create_cards/CardBuilder';
 import { CardBuilderCost } from '../js/views/create_cards/CardBuilderCost';
 import { CardBuilderEffects } from '../js/views/create_cards/CardBuilderEffects';
+import { CardBuilderMobStats } from '../js/views/create_cards/CardBuilderMobStats';
 import { CardBuilderNameAndImage } from '../js/views/create_cards/CardBuilderNameAndImage';
 import { DeckBuilder } from '../js/views/DeckBuilder';
 import { DeckViewer } from '../js/views/DeckViewer';
@@ -61,6 +62,11 @@ if (window.location.pathname.startsWith("/play")) {
             document.getElementById("data_store").getAttribute("card_id"),
         );        
     } else if (window.location.pathname.endsWith("mob_stats")) {
+        new CardBuilderMobStats(
+            "app", 
+            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
+            document.getElementById("data_store").getAttribute("card_id"),
+        );        
     } else {
         new CardBuilder("app");        
     }

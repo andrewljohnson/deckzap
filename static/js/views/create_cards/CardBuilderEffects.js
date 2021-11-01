@@ -22,6 +22,8 @@ export class CardBuilderEffects extends CardBuilderBase {
             name: this.defaultCardName(), 
             image: this.defaultCardImageFilename(), 
             card_type: this.originalCardInfo.card_type, 
+            power: this.originalCardInfo.power, 
+            toughness: this.originalCardInfo.toughness, 
             effects: this.effects, 
             description:this.cardDescription()
         };
@@ -62,8 +64,9 @@ export class CardBuilderEffects extends CardBuilderBase {
             this.effectDescription.parent.removeChild(this.effectDescription);
         }
         this.targetSelected = false;
-        this.removeAmountControl();
         this.removeTargetControl();
+        this.removeEffectTypeControl();
+        this.removeAmountControl();
         let description = this.effect.description_expanded ? this.effect.description_expanded : this.effect.description;
         this.effectDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
         this.effectDescription.position.x = Constants.padding;
@@ -71,6 +74,76 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.app.stage.addChild(this.effectDescription);     
 
         let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
+        
+        this.effects = [this.effect]
+        Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
+        .then(data => {
+            if("error" in data) {
+                console.log(data); 
+                alert("error fetching effect info");
+            } else {
+                this.effect = data.server_effect
+                this.effects = [this.effect]
+                this.updateCard();
+                if (this.originalCardInfo.card_type == Constants.mobCardType && this.effect.legal_target_type_ids) {
+                    this.addEffectTypePicker()
+                } else if (this.originalCardInfo.card_type == Constants.spellCardType) {
+                    let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
+                    this.addTargetTypePicker(yPosition);
+                } else {
+                    // it's a mob ability like Ambush, Drain, Guard, or Shield
+                    this.getEffectForInfo();
+                }
+            }
+        });
+
+    }
+
+    addEffectTypePicker() {
+        // mobs only, because spells always have effect type spell
+        const yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
+        const effectTypePicker = new ButtonPicker(
+            Constants.padding, 
+            yPosition, 
+            "Effect Trigger", 
+            this.effect.legal_effect_type_ids,
+            effect_type_label => { this.selectEffectType(effect_type_label) }).container;
+        this.app.stage.addChild(effectTypePicker);
+        this.effectTypePicker = effectTypePicker;
+    }
+
+    selectEffectType(effect_type_label) {
+        if (this.effectTypeDescription) {
+            this.effectTypeDescription.parent.removeChild(this.effectTypeDescription);
+        }
+        this.effect.effect_type = effect_type_label;
+        this.effects = [this.effect];
+        let description = this.effectsAndTypes["effect_types"][effect_type_label].description;
+        this.effectTypeDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
+        this.effectTypeDescription.position.x = Constants.padding;
+        this.effectTypeDescription.position.y = this.effectTypePicker.position.y + this.effectTypePicker.height + Constants.padding * 2;
+        this.app.stage.addChild(this.effectTypeDescription);     
+        Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
+        .then(data => {
+            if("error" in data) {
+                console.log(data); 
+                alert("error fetching effect info");
+            } else {
+                this.effect = data.server_effect
+                this.effects = [this.effect]
+                this.updateCard();
+                if (this.effect.legal_target_type_ids) {
+                    let yPosition = this.effectTypeDescription.position.y + this.effectTypeDescription.height + Constants.padding * 4;
+                    this.addTargetTypePicker(yPosition);
+                } else {
+                    this.getEffectForInfo();
+                }
+            }
+        });        
+    }
+
+    addTargetTypePicker (yPosition) {
+        this.removeTargetControl();
         const targetTypePicker = new ButtonPicker(
             Constants.padding, 
             yPosition, 
@@ -79,8 +152,6 @@ export class CardBuilderEffects extends CardBuilderBase {
             target_label => { this.selectTarget(target_label) }).container;
         this.app.stage.addChild(targetTypePicker);
         this.targetTypePicker = targetTypePicker;
-        this.effects = [this.effect]
-        this.updateCard();
     }
 
     selectTarget(target_label) {
@@ -104,6 +175,10 @@ export class CardBuilderEffects extends CardBuilderBase {
         if ("amount" in this.effect && !this.amountLabel) {
             this.addAmountInput(Constants.padding, this.targetDescription.position.y + this.targetDescription.height + Constants.padding * 2);
         } 
+        this.getEffectForInfo();
+    }
+
+    getEffectForInfo() {
         Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
@@ -158,19 +233,6 @@ export class CardBuilderEffects extends CardBuilderBase {
             });
 
         })
-
-        /*
-        MOBS ONLY
-        const yPosition = this.amountInput.position.y + this.amountInput.height + Constants.padding * 4;
-        const effectTypePicker = new ButtonPicker(
-            Constants.padding, 
-            yPosition, 
-            "Effect Trigger", 
-            this.effect.legal_effect_type_ids,
-            effect_type_label => { this.selectEffectType(effect_type_label) }).container;
-        this.app.stage.addChild(effectTypePicker);
-        this.effectTypePicker = effectTypePicker;
-        */
     }
 
     removeTargetControl() {
@@ -193,9 +255,15 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.amountInput = null;
     }
 
-
-    selectEffectType(effect_type_label) {
-        // console.log(this.effectsAndTypes.effect_types[effect_type_label]);
+    removeEffectTypeControl() {
+        if (this.effectTypeDescription) {
+            this.effectTypeDescription.parent.removeChild(this.effectTypeDescription);
+        }
+        if (this.effectTypePicker) {
+            this.effectTypePicker.parent.removeChild(this.effectTypePicker);
+        }
+        this.effectTypeDescription = null;
+        this.effectTypePicker = null;
     }
 
     title() {
@@ -216,6 +284,8 @@ export class CardBuilderEffects extends CardBuilderBase {
 
     updateCard() {
         super.updateCard();
-        this.toggleNextButton(this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0);
+        const choseMobAbility = this.effect && !this.effect.legal_target_type_ids;
+        const completedNonMobAbilityEffect = this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0;
+        this.toggleNextButton(choseMobAbility || completedNonMobAbilityEffect);
     }
 }

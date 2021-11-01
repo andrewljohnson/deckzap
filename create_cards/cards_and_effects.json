@@ -58,8 +58,7 @@
                         "spell"
                     ],
                     "legal_effect_type_ids": [
-                        "spell",
-                        "play_friendly_mob"
+                        "spell"
                     ],
                     "legal_target_type_ids": [
                         "any",
@@ -73,7 +72,7 @@
                     "target_type": "any"
                 },
                 {
-                    "ai_target_types": null,
+                    "ai_target_types": [],
                     "amount": 1,
                     "description": "Discard a card.",
                     "effect_type": "spell",
@@ -182,7 +181,7 @@
                         "spell"
                     ],
                     "legal_effect_type_ids": [
-                        "spell",
+                        "enters_play",
                         "play_friendly_mob"
                     ],
                     "legal_target_type_ids": [
@@ -219,8 +218,7 @@
                         "spell"
                     ],
                     "legal_effect_type_ids": [
-                        "spell",
-                        "play_friendly_mob"
+                        "spell"
                     ],
                     "legal_target_type_ids": [
                         "any",
@@ -248,6 +246,11 @@
             "description": null,
             "id": "before_is_damaged",
             "name": "Before This is Damaged"
+        },
+        "enters_play": {
+            "description": "When this enters play",
+            "id": "enters_play",
+            "name": "Enters Play"
         },
         "mob_changes_zones": {
             "description": null,
@@ -290,8 +293,7 @@
                 "spell"
             ],
             "legal_effect_type_ids": [
-                "spell",
-                "play_friendly_mob"
+                "spell"
             ],
             "legal_target_type_ids": [
                 "any",
