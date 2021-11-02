@@ -216,23 +216,37 @@ export class CardBuilderEffects extends CardBuilderBase {
         amountInput.position.y = this.amountLabel.position.y + this.amountLabel.height + Constants.padding * 4;
         this.app.stage.addChild(amountInput);
         this.amountInput = amountInput;
+        this.lastText = 0;
         this.amountInput.on('input', text => {
-            amountInput.text = text
+            console.log(this.isWholeNumber(text));
+            console.log(text);
+            if (!this.isWholeNumber(text) && text) {
+                this.amountInput.text = this.lastText;
+                return;
+            }
+            amountInput.text = text;
+            this.lastText = text;
             this.effects[0].amount = text
 
-            Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
-            .then(data => {
-                if("error" in data) {
-                    console.log(data); 
-                    alert("error fetching effect info");
-                } else {
-                    this.effect = data.server_effect
-                    this.effects = [this.effect]
-                    this.updateCard();
-                }
-            });
+            if (text) {
+                Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
+                .then(data => {
+                    if("error" in data) {
+                        console.log(data); 
+                        alert("error fetching effect info");
+                    } else {
+                        this.effect = data.server_effect
+                        this.effects = [this.effect]
+                        this.updateCard();
+                    }
+                });                
+            }
 
         })
+    }
+
+    isWholeNumber(value) {
+        return /^-?\d+$/.test(value);
     }
 
     removeTargetControl() {

@@ -9,7 +9,7 @@
     "pixi-scrollbox": "^2.3.1",
     "pixi-text-input": "^1.0.6",
     "pixi-viewport": "^4.31.0",
-    "pixi.js": "^6.1.2",
+    "pixi.js": "^6.1.2"
   },
   "scripts": {
     "build": "parcel build static/src/parcel-entry.js --out-file main --out-dir static/dist --public-url ./",
