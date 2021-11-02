@@ -77,8 +77,15 @@ export class CardBuilderCost extends CardBuilderBase {
         costInput.position.x = x;
         costInput.position.y = costLabel.position.y + costLabel.height + Constants.padding * 4;
         this.app.stage.addChild(costInput);
+        this.lastText = 0;
+        this.costInput = costInput;
         costInput.on('input', text => {
+            if (!Constants.isWholeNumber(text) && text) {
+                this.costInput.text = this.lastText;
+                return;
+            }
             this.userCardCost = text;
+            this.lastText = text;
             this.updateCard();
         })
     }

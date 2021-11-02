@@ -218,9 +218,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.amountInput = amountInput;
         this.lastText = 0;
         this.amountInput.on('input', text => {
-            console.log(this.isWholeNumber(text));
-            console.log(text);
-            if (!this.isWholeNumber(text) && text) {
+            if (!Constants.isWholeNumber(text) && text) {
                 this.amountInput.text = this.lastText;
                 return;
             }

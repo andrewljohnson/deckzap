@@ -229,3 +229,8 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+export function isWholeNumber(value) {
+    return /^-?\d+$/.test(value);
+}
+

@@ -44,9 +44,9 @@ def all_cards(require_images=False, include_tokens=True):
     custom_cards = CustomCard.objects.all().exclude(card_json__name="Unnamed Card")
     for card in custom_cards:
         card.card_json["discipline"] = "magic"
+        # todo handle this during card creation
         card.card_json["cost"] = int(card.card_json["cost"])
         subset.append(card.card_json)
-        print(card.card_json)
 
     return subset
 
