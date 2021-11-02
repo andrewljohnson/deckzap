@@ -1,4 +1,5 @@
 import json
+from create_cards.models import CustomCard
 
 class Constants:    
     spellCardType = "spell"
@@ -39,6 +40,13 @@ def all_cards(require_images=False, include_tokens=True):
                         description += " "
                 c["description"] = description                
                 subset.append(c)
+
+    custom_cards = CustomCard.objects.all().exclude(card_json__name="Unnamed Card")
+    for card in custom_cards:
+        card.card_json["discipline"] = "magic"
+        card.card_json["cost"] = int(card.card_json["cost"])
+        subset.append(card.card_json)
+        print(card.card_json)
 
     return subset
 
