@@ -18,6 +18,7 @@ urlpatterns = [
     path('save_name_and_image', save_name_and_image),    
     path('save_new', save_new_card),    
     path('<card_id>/cost', cost),
+    path('<card_id>/effects/<effect_index>', effects),
     path('<card_id>/effects', effects),
     path('<card_id>/mob_stats', mob_stats),
     path('<card_id>/name_and_image', name_and_image),

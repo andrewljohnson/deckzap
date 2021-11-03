@@ -26,7 +26,7 @@ def create_card(request):
     )
     return render(request, "create_card.html", {})
 
-def effects(request, card_id):
+def effects(request, card_id, effect_index=0):
     """
         A view to create the effects for a new card.
     """
@@ -42,9 +42,11 @@ def effects(request, card_id):
     return render(request, "create_card_effects.html", 
         {
             "card_id":card_id, 
+            "effect_index":effect_index, 
             "card_info": json.dumps(CustomCard.objects.get(id=card_id).card_json), 
-            "effects_and_types": json.dumps(json_data)}
-        )
+            "effects_and_types": json.dumps(json_data)
+        }
+    )
 
 def cost(request, card_id):
     """
@@ -118,7 +120,7 @@ def get_effect_for_info(request):
             return JsonResponse({"error": error_message})
         else: 
             Analytics.log_amplitude(request, "Create Card Get Card Info", {})
-            effect = card_info["effects"][0]
+            effect = card_info["effects"][-1]
             effect_def = None
             if effect["name"] == "damage":
                 effect_def = Effects.damage

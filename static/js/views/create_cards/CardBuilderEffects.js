@@ -8,11 +8,12 @@ import { CardBuilderBase } from './CardBuilderBase.js'
 
 export class CardBuilderEffects extends CardBuilderBase {
 
-    constructor(containerID, effectsAndTypes, originalCardInfo, cardID) {
+    constructor(containerID, effectsAndTypes, originalCardInfo, cardID, effectIndex) {
         super(containerID)
         this.effectsAndTypes = effectsAndTypes;
         this.originalCardInfo = originalCardInfo;
         this.effects = originalCardInfo.effects ? originalCardInfo.effects : [];
+        this.effectIndex = effectIndex;
         this.cardID = cardID;
         this.loadUX(containerID);
     }
@@ -31,7 +32,17 @@ export class CardBuilderEffects extends CardBuilderBase {
 
     cardDescription() {
         if (this.effects && this.effects.length) {
-            return this.effects[0].description;
+            let description = "";
+            for (let effect of this.effects) {
+                description += effect.description;
+                if (!effect.description.endsWith(".")) {
+                    description += ".";
+                }
+                if (effect != this.effects[this.effects.length - 1]) {
+                    description += " ";
+                }
+            }
+            return description;
         }
         return super.cardDescription()
     }
@@ -39,15 +50,29 @@ export class CardBuilderEffects extends CardBuilderBase {
     loadUXAfterCardImageLoads() {
         super.loadUXAfterCardImageLoads()
         const yPosition = this.titleText.position.y + this.titleText.height + Constants.padding * 4;
+        let effects = this.effectsAndTypes.effects.filter(effect => {
+                return effect.legal_card_type_ids.includes(this.cardInfo().card_type);
+            })
+        let unusedOrDuplicableEffects = [];
+        for (let effect of effects) {
+            let used = false;
+            for (let usedEffect of this.effects) {
+                if (usedEffect.name == effect.name) {
+                    used = true;
+                }
+            }
+            if (effect.effect_type == "spell" || !used) {
+                unusedOrDuplicableEffects.push(effect);
+            } 
+        }
+        let effectNames = unusedOrDuplicableEffects.map(effect => {
+                return effect.name;
+        });
         const effectPicker = new ButtonPicker(
             Constants.padding, 
             yPosition, 
             "Effect Name", 
-            this.effectsAndTypes.effects.filter(effect => {
-                return effect.legal_card_type_ids.includes(this.cardInfo().card_type);
-            }).map(effect => {
-                return effect.name;
-            }),
+            effectNames,
             effect_label => { this.selectEffect(effect_label) }).container;
         this.app.stage.addChild(effectPicker);
         this.effectPicker = effectPicker;
@@ -55,6 +80,7 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     selectEffect(effect_label) {
+        this.removeAddEffectButton();
         for (let effect of this.effectsAndTypes.effects) {
             if (effect.name == effect_label) {
                 this.effect = effect;
@@ -75,7 +101,8 @@ export class CardBuilderEffects extends CardBuilderBase {
 
         let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
         
-        this.effects = [this.effect]
+        this.updateEffects();
+        this.app.stage.interactiveChildren = false;  
         Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
@@ -83,7 +110,7 @@ export class CardBuilderEffects extends CardBuilderBase {
                 alert("error fetching effect info");
             } else {
                 this.effect = data.server_effect
-                this.effects = [this.effect]
+                this.updateEffects();
                 this.updateCard();
                 if (this.originalCardInfo.card_type == Constants.mobCardType && this.effect.legal_target_type_ids) {
                     this.addEffectTypePicker()
@@ -95,7 +122,16 @@ export class CardBuilderEffects extends CardBuilderBase {
                     this.getEffectForInfo();
                 }
             }
+            this.app.stage.interactiveChildren = true;  
         });
+    }
+
+    updateEffects() {
+        if (this.effects.length == this.effectIndex) {
+            this.effects.push(this.effect);
+        } else {
+            this.effects[this.effects.length - 1] = this.effect            
+        }
 
     }
 
@@ -113,24 +149,27 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     selectEffectType(effect_type_label) {
+        this.removeAddEffectButton();
+        this.targetSelected = false;
         if (this.effectTypeDescription) {
             this.effectTypeDescription.parent.removeChild(this.effectTypeDescription);
         }
         this.effect.effect_type = effect_type_label;
-        this.effects = [this.effect];
+        this.updateEffects();
         let description = this.effectsAndTypes["effect_types"][effect_type_label].description;
         this.effectTypeDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
         this.effectTypeDescription.position.x = Constants.padding;
         this.effectTypeDescription.position.y = this.effectTypePicker.position.y + this.effectTypePicker.height + Constants.padding * 2;
-        this.app.stage.addChild(this.effectTypeDescription);     
+        this.app.stage.addChild(this.effectTypeDescription);   
+        this.app.stage.interactiveChildren = false;  
         Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
                 console.log(data); 
                 alert("error fetching effect info");
             } else {
-                this.effect = data.server_effect
-                this.effects = [this.effect]
+                this.effect = data.server_effect;
+                this.updateEffects();
                 this.updateCard();
                 if (this.effect.legal_target_type_ids) {
                     let yPosition = this.effectTypeDescription.position.y + this.effectTypeDescription.height + Constants.padding * 4;
@@ -139,7 +178,8 @@ export class CardBuilderEffects extends CardBuilderBase {
                     this.getEffectForInfo();
                 }
             }
-        });        
+            this.app.stage.interactiveChildren = true;  
+            });        
     }
 
     addTargetTypePicker (yPosition) {
@@ -171,7 +211,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.app.stage.addChild(this.targetDescription);    
 
         this.effect["target_type"] = target_label
-        this.effects = [this.effect];
+        this.updateEffects();
         if ("amount" in this.effect && !this.amountLabel) {
             this.addAmountInput(Constants.padding, this.targetDescription.position.y + this.targetDescription.height + Constants.padding * 2);
         } 
@@ -186,7 +226,7 @@ export class CardBuilderEffects extends CardBuilderBase {
                 alert("error fetching effect info");
             } else {
                 this.effect = data.server_effect
-                this.effects = [this.effect]
+                this.updateEffects();
                 this.updateCard();
             }
         });
@@ -222,9 +262,10 @@ export class CardBuilderEffects extends CardBuilderBase {
                 this.amountInput.text = this.lastText;
                 return;
             }
+            this.removeAddEffectButton();
             amountInput.text = text;
             this.lastText = text;
-            this.effects[0].amount = text
+            this.effects[this.effectIndex].amount = text
 
             if (text) {
                 Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
@@ -233,8 +274,8 @@ export class CardBuilderEffects extends CardBuilderBase {
                         console.log(data); 
                         alert("error fetching effect info");
                     } else {
-                        this.effect = data.server_effect
-                        this.effects = [this.effect]
+                        this.effect = data.server_effect;
+                        this.updateEffects();
                         this.updateCard();
                     }
                 });                
@@ -282,22 +323,71 @@ export class CardBuilderEffects extends CardBuilderBase {
         return "Choose Effects"
     }
 
-    nextButtonClicked() {
+    updateCard() {
+        super.updateCard();
+        const choseMobAbility = this.effect && !this.effect.legal_target_type_ids;
+        const completedNonMobAbilityEffect = this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0;
+        const formComplete = choseMobAbility || completedNonMobAbilityEffect
+        this.toggleNextButton(formComplete);
+        if (formComplete) {
+            let yPosition = Constants.padding * 4;
+            if (this.amountInput) {
+                yPosition += this.amountInput.position.y + this.amountLabel.height;
+            } else {
+                yPosition += this.effectPicker.position.y + this.effectPicker.height;
+
+            }
+            this.addAdditionalEffectButton(yPosition);
+        }
+    }
+
+    addAdditionalEffectButton(buttonY) {
+        this.removeAddEffectButton();
+        const buttonWidth = Card.cardWidth * 1.25;
+        const buttonHeight = 40;
+        const buttonX = Constants.padding * 3 + buttonWidth / 2;
+        let buttonTitle = "Add Another Effect";
+        let b = Card.button(
+            buttonTitle, 
+            Constants.blueColor, 
+            Constants.whiteColor, 
+            buttonX, 
+            buttonY,
+            () => {
+                this.additionalEffectButtonClicked();
+            },
+            null,
+            buttonWidth
+        );
+        this.app.stage.addChild(b);
+        this.addEffectButton = b
+    }
+
+    removeAddEffectButton() {
+        if (this.addEffectButton) {
+            this.addEffectButton.parent.removeChild(this.addEffectButton);
+            this.addEffectButton = null;
+        }
+    }
+
+    additionalEffectButtonClicked() {
+        this.nextButtonClicked(true);
+    }
+
+    nextButtonClicked(additionalEffectButtonClicked=false) {
         Constants.postData(`${this.baseURL()}/save_effects`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
                 console.log(data); 
                 alert("error saving card");
             } else {
-                window.location.href = `${this.baseURL()}/${this.cardID}/cost`
+                if(additionalEffectButtonClicked) {
+                    window.location.href = `${this.baseURL()}/${this.cardID}/effects/${this.effects.length}`
+                } else {
+                    window.location.href = `${this.baseURL()}/${this.cardID}/cost`
+                }
             }
         })
     }
 
-    updateCard() {
-        super.updateCard();
-        const choseMobAbility = this.effect && !this.effect.legal_target_type_ids;
-        const completedNonMobAbilityEffect = this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0;
-        this.toggleNextButton(choseMobAbility || completedNonMobAbilityEffect);
-    }
 }

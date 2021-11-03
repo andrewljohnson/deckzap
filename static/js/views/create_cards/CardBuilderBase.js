@@ -111,8 +111,22 @@ export class CardBuilderBase {
 
     cardDescription() {
         if (this.originalCardInfo.effects && this.originalCardInfo.effects.length) {
-            return this.originalCardInfo.effects[0].description;
+            return this.descriptionForEffects(this.originalCardInfo.effects);
         }
+    }
+
+    descriptionForEffects(effects) {
+        let description = "";
+        for (let effect of effects) {
+            description += effect.description;
+            if (!effect.description.endsWith(".")) {
+                description += ".";
+            }
+            if (effect != effects[effects.length - 1]) {
+                description += " ";
+            }
+        }
+        return description;
     }
 
     // functions override by subclasses 
