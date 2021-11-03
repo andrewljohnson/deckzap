@@ -867,8 +867,8 @@ export class Card {
         if (sprite.position.x >= 1585 - Card.cardWidth*2) {
             sprite.position.x = cardSprite.position.x - Card.cardWidth;
         }
-        if (pixiUX.constructor.name == "CardBuilder") {
-            sprite.position.x = cardSprite.position.x - Card.cardWidth * 1.5 - Constants.padding * 2;
+        if (pixiUX.constructor.name.startsWith("CardBuilder")) {
+            sprite.position.x = cardSprite.position.x - Card.cardWidth * 2.5 + Constants.padding * 3;
         }
 
         if (pixiUX.constructor.name == "DeckViewer") {

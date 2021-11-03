@@ -27,7 +27,8 @@ export class CardBuilderBase {
         this.app.stage.addChild(background);
         let titleText = this.addTitle();
         this.addNextButton();
-        new SVGRasterizer(this.app).loadCardImages([this.cardInfo()]);
+        this.rasterizer = new SVGRasterizer(this.app);
+        this.rasterizer.loadCardImages([this.cardInfo()]);
         this.app.loader.load(() => {
             this.addTitle();
             this.addNextButton();
