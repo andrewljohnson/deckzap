@@ -4,12 +4,12 @@
 		"image": "coronation.svg",
 		"discipline": "none",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 3,
+		"strength": 3,
+		"hit_points": 3,
 		"cost": 3,
-		"description": "Double the power of another mob.",
+		"description": "Double the strength of another mob.",
 		"effects": [{
-			"name": "double_power",
+			"name": "double_strength",
 			"effect_type": "enter_play",
 			"target_type": "self_mob"
 		}]	
@@ -19,8 +19,8 @@
 		"image": "wind-hole.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 4,
+		"strength": 3,
+		"hit_points": 4,
 		"cost": 3,
 		"effects": [
 			{
@@ -44,8 +44,8 @@
 		"image": "lightning-tear.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 2,
 		"description": "Deal 2 damage.",
 		"effects": [{
@@ -61,8 +61,8 @@
 		"image": "tornado.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
+		"strength": 2,
+		"hit_points": 2,
 		"cost": 3,
 		"description": "Return a mob to its owner's hand.",
 		"effects": [{
@@ -105,8 +105,8 @@
 		"image": "brasero.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 5,
-		"toughness": 5,
+		"strength": 5,
+		"hit_points": 5,
 		"cost": 5,
 		"effects": [{
 			"name": "add_fast",
@@ -162,8 +162,8 @@
 		"name": "Familiar",
 		"image": "cat.svg",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 2,
+		"strength": 1,
+		"hit_points": 2,
 		"cost": 2,
 		"description": "Draw a card.",
 		"effects": [{
@@ -259,8 +259,8 @@
 		"image": "round-table.svg",
 		"description": "Your other mobs get +1/+1 for every 2 mobs you control, rounded down.",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 4,
+		"strength": 2,
+		"hit_points": 4,
 		"cost": 2,
 		"effects": [{
 			"name": "add_tokens",
@@ -269,8 +269,8 @@
 			"tokens": [{
 				"turns": 1,
 				"target_type": "self_mobs",
-				"power_modifier": 1,
-				"toughness_modifier": 1,
+				"strength_modifier": 1,
+				"hit_points_modifier": 1,
 				"multiplier": "half_self_mobs"
 			}]
 		}]
@@ -280,8 +280,8 @@
 		"image": "totem-mask.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
+		"strength": 2,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "Get a 2/1 ghost token when this dies.",
 		"effects": [{
@@ -299,8 +299,8 @@
 		"image": "spark-spirit.svg",
 		"discipline": "none",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
+		"strength": 2,
+		"hit_points": 1,
 		"cost": 1
 	},
 	{
@@ -309,8 +309,8 @@
 		"image": "bear-face.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 2,
+		"strength": 3,
+		"hit_points": 2,
 		"cost": 1,
 		"effects": [
 			{
@@ -340,8 +340,8 @@
 		"discipline": "none",
 		"card_type": "mob",
 		"description": "Has Fast if something else does.",
-		"power": 2,
-		"toughness": 2,
+		"strength": 2,
+		"hit_points": 2,
 		"cost": 1,
 		"effects": [
 			{
@@ -369,8 +369,8 @@
 		"discipline": "magic",
 		"card_type": "mob",
 		"description": "Gets +1/+1 whenever you play a card.",
-		"power": 0,
-		"toughness": 1,
+		"strength": 0,
+		"hit_points": 1,
 		"cost": 1,
 		"effects": [
 			{
@@ -378,8 +378,8 @@
 				"effect_type": "friendly_card_played",
 				"target_type": "this",
 				"tokens": [{
-					"power_modifier": 1,
-					"toughness_modifier": 1
+					"strength_modifier": 1,
+					"hit_points_modifier": 1
 				}]
 			}
 		]
@@ -440,8 +440,8 @@
 				"effect_type": "enter_play",
 				"target_type": "self_mobs",
 				"tokens": [{
-					"power_modifier": 1,
-					"toughness_modifier": 0,
+					"strength_modifier": 1,
+					"hit_points_modifier": 0,
 					"multiplier": "self_artifacts"
 				}]
 			},
@@ -456,8 +456,8 @@
 				"effect_type": "mob_changes_zones",
 				"target_type": "self_mobs",
 				"tokens": [{
-					"power_modifier": 1,
-					"toughness_modifier": 0,
+					"strength_modifier": 1,
+					"hit_points_modifier": 0,
 					"multiplier": "self_artifacts"
 				}]
 			}
@@ -468,9 +468,9 @@
 		"image": "teacher.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 3,
+		"strength": 3,
 		"description": "Give a friendly mob +2/+2 and Fade.",
-		"toughness": 2,
+		"hit_points": 2,
 		"cost": 2,
 		"effects": [ 
 			{
@@ -478,8 +478,8 @@
 				"effect_type": "enter_play",
 				"target_type": "self_mob",
 				"tokens": [{
-					"power_modifier": 2,
-					"toughness_modifier": 2
+					"strength_modifier": 2,
+					"hit_points_modifier": 2
 				}]
 			},
 			{
@@ -502,8 +502,8 @@
 		"image": "snake-bite.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 3,
+		"strength": 4,
+		"hit_points": 3,
 		"cost": 3,
 		"effects": [
 			{
@@ -533,8 +533,8 @@
 		"discipline": "magic",
 		"card_type": "mob",
 		"description": "Deals you 1 damage at the start of your turn.",
-		"power": 5,
-		"toughness": 5,
+		"strength": 5,
+		"hit_points": 5,
 		"cost": 3,
 		"effects": [
 			{
@@ -579,8 +579,8 @@
 		"image": "elephant-head.svg",
 		"discipline": "none",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 2,
+		"strength": 3,
+		"hit_points": 2,
 		"cost": 2,
 		"effects": [
 			{
@@ -605,8 +605,8 @@
 		"discipline": "none",
 		"card_type": "mob",
 		"description": "+1/+0 for each other mob and artifact you have.",
-		"power": 2,
-		"toughness": 5,
+		"strength": 2,
+		"hit_points": 5,
 		"cost": 5,
 		"effects": [
 			{
@@ -614,8 +614,8 @@
 				"effect_type": "mob_changes_zones",
 				"target_type": "this",
 				"tokens": [{
-					"power_modifier": 1,
-					"toughness_modifier": 0,
+					"strength_modifier": 1,
+					"hit_points_modifier": 0,
 					"multiplier": "self_mobs_and_artifacts"
 				}]
 			},
@@ -671,8 +671,8 @@
 		"is_token": true,
 		"discipline": "tech",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
+		"strength": 2,
+		"hit_points": 2,
 		"cost": 1
 	},
 	{
@@ -702,8 +702,8 @@
 		"discipline": "magic",
 		"image": "mad-scientist.svg",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "Make a card from your deck.",
 		"effects": [{
@@ -768,8 +768,8 @@
 		"discipline": "magic",
 		"card_type": "mob",
 		"image": "architect-mask.svg",
-		"power": 2,
-		"toughness": 3,
+		"strength": 2,
+		"hit_points": 3,
 		"cost": 3,
 		"description": "Get a random spell back from your yard at the end of your turn",
 		"effects": [{
@@ -785,8 +785,8 @@
 		"image": "run.svg",
 		"card_type": "mob",
 		"description": "Draw when this deals damage to your opponent.",
-		"power": 1,
-		"toughness": 3,
+		"strength": 1,
+		"hit_points": 3,
 		"cost": 3,
 		"effects": [
 			{
@@ -841,8 +841,8 @@
 		"discipline": "magic",
 		"image": "drakkar-dragon.svg",
 		"card_type": "mob",
-		"power": 7,
-		"toughness": 7,
+		"strength": 7,
+		"hit_points": 7,
 		"cost": 7,
 		"description": "Make a card from your deck.",
 		"effects": [
@@ -872,8 +872,8 @@
 		"discipline": "magic",
 		"card_type": "mob",
 		"image": "labrador-head.svg",
-		"power": 8,
-		"toughness": 8,
+		"strength": 8,
+		"hit_points": 8,
 		"cost": 8,
 		"description": "Return all mobs to their owners' hands.",
 		"effects": [{
@@ -903,8 +903,8 @@
 		"discipline": "magic",
 		"image": "snout.svg",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 3,
+		"strength": 3,
+		"hit_points": 3,
 		"cost": 3,
 		"effects": [
 			{
@@ -976,8 +976,8 @@
 		"discipline": "tech",
 		"image": "spinning-blades.svg",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
+		"strength": 2,
+		"hit_points": 2,
 		"cost": 2,
 		"description": "Gets +1/+1 when Kept.",
 		"effects": [
@@ -1052,8 +1052,8 @@
 		"discipline": "tech",
 		"image": "troll.svg",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 0
 	},
 	{
@@ -1062,8 +1062,8 @@
 		"discipline": "tech",
 		"image": "ogre.svg",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
+		"strength": 2,
+		"hit_points": 2,
 		"cost": 1,
 		"effects": [{
 			"name": "add_fast",
@@ -1078,8 +1078,8 @@
 		"discipline": "tech",
 		"image": "air-man.svg",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 3,
+		"strength": 3,
+		"hit_points": 3,
 		"cost": 2,
 		"effects": [{
 			"name": "add_fast",
@@ -1095,8 +1095,8 @@
 		"image": "robot-antennas.svg",
 		"card_type": "mob",
 		"description": "Draw when this damages an opponent.",
-		"power": 4,
-		"toughness": 4,
+		"strength": 4,
+		"hit_points": 4,
 		"cost": 3,
 		"effects": [
 			{
@@ -1118,8 +1118,8 @@
 		"image": "aquarium.svg",
 		"card_type": "mob",
 		"description": "Improves when Kept.",
-		"power": 3,
-		"toughness": 3,
+		"strength": 3,
+		"hit_points": 3,
 		"cost": 3,
 		"effects": [
 			{
@@ -1139,8 +1139,8 @@
 		"image": "fish-monster.svg",
 		"card_type": "mob",
 		"description": "Improves when Kept.",
-		"power": 4,
-		"toughness": 4,
+		"strength": 4,
+		"hit_points": 4,
 		"cost": 3,
 		"effects": [
 			{
@@ -1160,8 +1160,8 @@
 		"image": "angler-fish.svg",
 		"card_type": "mob",
 		"description": "Improves when Kept.",
-		"power": 4,
-		"toughness": 4,
+		"strength": 4,
+		"hit_points": 4,
 		"cost": 3,
 		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
@@ -1187,8 +1187,8 @@
 		"image": "piranha.svg",
 		"card_type": "mob",
 		"description": "Improves when Kept.",
-		"power": 4,
-		"toughness": 5,
+		"strength": 4,
+		"hit_points": 5,
 		"cost": 2,
 		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
@@ -1219,8 +1219,8 @@
 		"is_token": true,
 		"image": "helicoprion.svg",
 		"card_type": "mob",
-		"power": 5,
-		"toughness": 6,
+		"strength": 5,
+		"hit_points": 6,
 		"cost": 2,
 		"description": "Draw when this deals damage to your opponent.",
 		"effects": [
@@ -1254,12 +1254,12 @@
 		"discipline": "tech",
 		"image": "rock-golem.svg",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "Spend all your mana. This gets +1/+1 per mana.",
 		"effects": [{
-			"name": "buff_power_toughness_from_mana",
+			"name": "buff_strength_hit_points_from_mana",
 			"effect_type": "enter_play",
 			"target_type": "this"
 		}]
@@ -1301,7 +1301,7 @@
 					"amount": 1,
 					"counters": 2,
 					"cost": 0,
-					"power": 0
+					"strength": 0
 				}
 			},
 			{
@@ -1318,8 +1318,8 @@
 		"image": "berry-bush.svg",
 		"discipline": "tech",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "You have an extra mana each turn.",
 		"effects": [
@@ -1374,8 +1374,8 @@
 			"effect_type": "spell",
 			"target_type": "mob",
 			"tokens": [{
-				"power_modifier": 2,
-				"toughness_modifier": 2
+				"strength_modifier": 2,
+				"hit_points_modifier": 2
 			}],
 			"ai_target_types": ["self_mob"]
 		}]
@@ -1437,8 +1437,8 @@
 		"image": "hooded-figure.svg",
 		"is_token": true,
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 2,
+		"strength": 1,
+		"hit_points": 2,
 		"cost": 1,
 		"effects": [
 			{
@@ -1460,8 +1460,8 @@
 		"image": "spartan-helmet.svg",
 		"is_token": true,
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
+		"strength": 2,
+		"hit_points": 1,
 		"cost": 1,
 		"effects": [
 			{
@@ -1483,8 +1483,8 @@
 		"image": "wizard-face.svg",
 		"is_token": true,
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "Make a spell.",
 		"effects": [
@@ -1508,8 +1508,8 @@
 		"image": "tribal-mask.svg",
 		"is_token": true,
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "Make a mob.",
 		"effects": [
@@ -1533,8 +1533,8 @@
 		"image": "monk-face.svg",
 		"is_token": true,
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 2,
+		"strength": 1,
+		"hit_points": 2,
 		"cost": 1,
 		"description": "Heal for 2.",
 		"effects": [
@@ -1557,8 +1557,8 @@
 		"image": "pig-face.svg",
 		"discipline": "tech",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"effects": [
 			{
@@ -1574,10 +1574,10 @@
 		"image": "angel-outfit.svg",
 		"card_type": "spell",
 		"cost": 1,
-		"description": "Kill a mob. Its controller gains hit points equal to its toughness.",
+		"description": "Kill a mob. Its controller gains hit points equal to its hit_points.",
 		"effects": [
 			{
-				"name": "gain_for_toughness",
+				"name": "gain_for_hit_points",
 				"effect_type": "spell",
 				"target_type": "mob",
 				"ai_target_types": ["opponents_mob"]
@@ -1701,8 +1701,8 @@
 			"effect_type": "spell",
 			"target_type": "self_mobs",
 			"tokens": [{
-				"power_modifier": 2,
-				"toughness_modifier": 2
+				"strength_modifier": 2,
+				"hit_points_modifier": 2
 			}]
 		}]
 	},
@@ -1790,8 +1790,8 @@
 		"card_type": "mob",
 		"image": "female-vampire.svg",
 		"description": "When you draw, gain 1 hit point, or deal 1 damage to an enemy (random).",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"effects": [{
 			"name": "hp_damage_random",
@@ -1805,8 +1805,8 @@
 		"card_type": "mob",
 		"image": "vampire-dracula.svg",
 		"description": "Draw a card at the beginning of your turn.",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"effects": [{
 			"name": "draw",
@@ -1841,8 +1841,8 @@
 		"discipline": "magic",
 		"is_token": true,
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 3,
+		"strength": 2,
+		"hit_points": 3,
 		"cost": 2
 	},
 	{
@@ -1850,8 +1850,8 @@
 		"image": "moon-bats.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 4,
+		"strength": 2,
+		"hit_points": 4,
 		"cost": 2,
 		"effects": [
 			{
@@ -1867,8 +1867,8 @@
 		"image": "resting-vampire.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 3,
+		"strength": 3,
+		"hit_points": 3,
 		"cost": 2,
 		"effects": [
 			{
@@ -1890,8 +1890,8 @@
 		"discipline": "magic",
 		"image": "diamonds-smile.svg",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 4,
+		"strength": 3,
+		"hit_points": 4,
 		"cost": 3,
 		"description": "Replace your normal draw with a choice of 3 cards.",
 		"effects": [
@@ -1912,8 +1912,8 @@
 		"discipline": "magic",
 		"image": "muscle-fat.svg",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
+		"strength": 4,
+		"hit_points": 4,
 		"cost": 3,
 		"description": "Gain 2 hit points at the start of your turn.",
 		"effects": [{
@@ -1928,8 +1928,8 @@
 		"discipline": "magic",
 		"image": "conqueror.svg",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
+		"strength": 4,
+		"hit_points": 4,
 		"cost": 4,
 		"description": "Your other Mobs get +1/+1.",
 		"effects": [
@@ -1938,8 +1938,8 @@
 				"effect_type": "enter_play",
 				"target_type": "self_mobs",
 				"tokens": [{
-					"power_modifier": 1,
-					"toughness_modifier": 1,
+					"strength_modifier": 1,
+					"hit_points_modifier": 1,
 					"multiplier": "self_artifacts"
 				}]
 			},
@@ -1954,8 +1954,8 @@
 				"target_type": "self_mobs",
 				"effect_type": "mob_changes_zones",
 				"tokens": [{
-					"power_modifier": 1,
-					"toughness_modifier": 1,
+					"strength_modifier": 1,
+					"hit_points_modifier": 1,
 					"multiplier": "self_artifacts"
 				}]
 			}
@@ -1966,8 +1966,8 @@
 		"image": "fat.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 5,
-		"toughness": 5,
+		"strength": 5,
+		"hit_points": 5,
 		"cost": 4,
 		"effects": [
 			{
@@ -1989,8 +1989,8 @@
 		"image": "gargoyle.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 7,
-		"toughness": 7,
+		"strength": 7,
+		"hit_points": 7,
 		"cost": 6,
 		"effects": [
 			{
@@ -2069,8 +2069,8 @@
 		"image": "fanged-skull.svg",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 12,
+		"strength": 4,
+		"hit_points": 12,
 		"cost": 9,
 		"effects": [
 			{

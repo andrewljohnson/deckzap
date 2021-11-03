@@ -10,8 +10,8 @@ export class CardBuilderMobStats extends CardBuilderBase {
         super(containerID)
         this.originalCardInfo = originalCardInfo;
         this.cardID = cardID;
-        this.power = 0;
-        this.toughness = 1;
+        this.strength = 0;
+        this.hitPoints = 1;
         this.loadUX(containerID);
     }
 
@@ -20,8 +20,8 @@ export class CardBuilderMobStats extends CardBuilderBase {
             name: this.defaultCardName(), 
             image: this.defaultCardImageFilename(),
             card_type: this.originalCardInfo.card_type, 
-            power: this.power,
-            toughness: this.toughness,
+            strength: this.strength,
+            hit_points: this.hitPoints,
         };
     }
 
@@ -39,7 +39,7 @@ export class CardBuilderMobStats extends CardBuilderBase {
     }
 
     title() {
-        return "Choose Power and Toughness"
+        return "Choose Strength and Hit Points"
     }
 
     nextButtonClicked() {
@@ -55,8 +55,8 @@ export class CardBuilderMobStats extends CardBuilderBase {
     }
 
     addMobStatsInputs(x, y, ) {
-        this.addInput(x, y, "Power", "power");
-        this.addInput(x, y + 100, "toughness");
+        this.addInput(x, y, "Strength", "strength");
+        this.addInput(x, y + 100, "Hit Point", "hitPoints");
     }
 
     addInput(x, y, inputLabelTitle, variableToSet) {
@@ -78,19 +78,19 @@ export class CardBuilderMobStats extends CardBuilderBase {
             }
         })
         input.placeholder = inputLabelTitle;
-        if (variableToSet == "power") {
-            input.text = this.power;
+        if (variableToSet == "strength") {
+            input.text = this.strength;
         } else {
-            input.text = this.toughness;
+            input.text = this.hitPoints;
         }
         input.position.x = x;
         input.position.y = label.position.y + label.height + Constants.padding * 4;
         this.app.stage.addChild(input);
         input.on('input', text => {
-            if (variableToSet == "power") {
-                this.power = text;
+            if (variableToSet == "strength") {
+                this.strength = text;
             } else {
-                this.toughness = text;                
+                this.hitPoints = text;                
             }
             this.updateCard();
         })
@@ -98,7 +98,7 @@ export class CardBuilderMobStats extends CardBuilderBase {
 
     updateCard() {
         super.updateCard();
-        this.toggleNextButton(parseInt(this.power) >= 0 && parseInt(this.toughness) >= 1);
+        this.toggleNextButton(parseInt(this.strength) >= 0 && parseInt(this.hitPoints) >= 1);
     }
 
 }

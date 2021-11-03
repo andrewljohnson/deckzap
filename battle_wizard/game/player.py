@@ -227,7 +227,7 @@ class Player:
             if card.id == card_id:
                 if card.attacked or not (card.can_attack_mobs or card.can_attack_players):
                     return False
-                if card.power_with_tokens(self) <= 0:
+                if card.strength_with_tokens(self) <= 0:
                     return False
                 for t in card.tokens:
                     if t.set_can_act == False:
@@ -497,16 +497,16 @@ class Player:
     def remove_temporary_tokens(self):
         for c in self.in_play:
             perm_tokens = []
-            oldToughness = c.toughness_with_tokens()
+            oldHitPoints = c.hit_points_with_tokens()
             for t in c.tokens:
                 t.turns -= 1
                 if t.turns != 0:
                     perm_tokens.append(t)
             c.tokens = perm_tokens
-            newToughness = c.toughness_with_tokens()
-            toughness_change_from_tokens = oldToughness - newToughness
-            if toughness_change_from_tokens > 0:
-                c.damage -= min(toughness_change_from_tokens, c.damage_this_turn)  
+            newHitPoints = c.hit_points_with_tokens()
+            hit_points_change_from_tokens = oldHitPoints - newHitPoints
+            if hit_points_change_from_tokens > 0:
+                c.damage -= min(hit_points_change_from_tokens, c.damage_this_turn)  
 
     def make_card(self, message):
         if len(self.hand) < self.game.max_hand_size:

@@ -23,8 +23,8 @@ export class CardBuilderEffects extends CardBuilderBase {
             name: this.defaultCardName(), 
             image: this.defaultCardImageFilename(), 
             card_type: this.originalCardInfo.card_type, 
-            power: this.originalCardInfo.power, 
-            toughness: this.originalCardInfo.toughness, 
+            strength: this.originalCardInfo.strength, 
+            hit_points: this.originalCardInfo.hit_points, 
             effects: this.effects, 
             description:this.cardDescription()
         };

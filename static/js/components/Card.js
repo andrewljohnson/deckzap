@@ -285,13 +285,13 @@ export class Card {
         }
 
         if (attackEffect) {
-            let powerX = -cw/2 + Constants.padding * 2;
-            let powerY = ch/2 - Constants.padding * 2;
-            let countersX = powerX + cw - Constants.padding * 4;
+            let strengthX = -cw/2 + Constants.padding * 2;
+            let strengthY = ch/2 - Constants.padding * 2;
+            let countersX = strengthX + cw - Constants.padding * 4;
             let attackEffectOptions = Constants.textOptions(); 
             attackEffectOptions.fill = Constants.whiteColor;
             if (attackEffect.name == "create_random_townie") {
-                Card.addCircledLabel(countersX, powerY, cardSprite, attackEffectOptions, attackEffect.counters);
+                Card.addCircledLabel(countersX, strengthY, cardSprite, attackEffectOptions, attackEffect.counters);
             }
         }
 
@@ -356,7 +356,7 @@ export class Card {
         if (effect) {
             let gems = Constants.manaGems(effect.cost, effect.cost);
             if (effect.cost == 0) {
-                gems = Constants.manaGems(1, 1, "power-button.svg", Constants.blackColor);
+                gems = Constants.manaGems(1, 1, "strength-button.svg", Constants.blackColor);
                 if (card.name == "Lute") {
                     gems = Constants.manaGems(1, 1, "musical-notes.svg", Constants.blackColor);                    
                 }
@@ -518,39 +518,39 @@ export class Card {
     	if (card.damage) {
     		damage = card.damage;
     	}
-        let cardPower = card.power;
-        let cardToughness = card.toughness - damage;
+        let cardStrength = card.strength;
+        let cardHitPoints = card.hit_points - damage;
         if (card.tokens && !useLargeSize) {
             // todo does this code need to be clientside?
             for (let c of card.tokens) {
                 if (c.multiplier == "self_artifacts" && player.artifacts) {
-                    cardPower += c.power_modifier * player.artifacts.length;                        
+                    cardStrength += c.strength_modifier * player.artifacts.length;                        
                 } else if (c.multiplier == "self_mobs_and_artifacts") {
                     if (player.artifacts) {
-                        cardPower += c.power_modifier * player.artifacts.length;                        
+                        cardStrength += c.strength_modifier * player.artifacts.length;                        
                     }
                     if (player.in_play) {
-                        cardPower += c.power_modifier * (player.in_play.length - 1);                        
+                        cardStrength += c.strength_modifier * (player.in_play.length - 1);                        
                     }
                 } else {
-                    cardPower += c.power_modifier;                        
+                    cardStrength += c.strength_modifier;                        
                 }
             }
             for (let c of card.tokens) {
-                cardToughness += c.toughness_modifier;
+                cardHitPoints += c.hit_points_modifier;
             }
         }
         if (useLargeSize) {
-            cardPower = card.power;
-            cardToughness = card.toughness;
+            cardStrength = card.strength;
+            cardHitPoints = card.hit_points;
         }
 
         // for card builder
-        if (!card.power && card.power != 0) {
-            cardPower = "?";
+        if (!card.strength && card.strength != 0) {
+            cardStrength = "?";
         }
-        if (!card.toughness) {
-            cardToughness = "?";
+        if (!card.hit_points) {
+            cardHitPoints = "?";
         }
 
         let ptOptions = Constants.textOptions()
@@ -561,37 +561,37 @@ export class Card {
 
         let centerOfEllipse = 16
 
-        let powerX = - cw/2 + ptOptions.fontSize;
-        let powerY = ch/2 - ptOptions.fontSize + 4;
+        let strengthX = - cw/2 + ptOptions.fontSize;
+        let strengthY = ch/2 - ptOptions.fontSize + 4;
         let defenseX = cw/2 - ptOptions.fontSize + 3;
 
         let imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "piercing-sword.svg"));
         imageSprite.tint = Constants.yellowColor;
         imageSprite.height = 32;
         imageSprite.width = 32;
-        imageSprite.position.x = powerX;
-        imageSprite.position.y = powerY;
+        imageSprite.position.x = strengthX;
+        imageSprite.position.y = strengthY;
         cardSprite.addChild(imageSprite);
 
-        Card.addCircledLabel(powerX, powerY, cardSprite, ptOptions, cardPower, Constants.yellowColor);
+        Card.addCircledLabel(strengthX, strengthY, cardSprite, ptOptions, cardStrength, Constants.yellowColor);
 
         imageSprite = new PIXI.Sprite.from(PIXI.Texture.from(Constants.cardImagesPath + "hearts.svg"));
         imageSprite.tint = Constants.redColor;
         imageSprite.height = 24;
         imageSprite.width = 24;
         imageSprite.position.x = defenseX;
-        imageSprite.position.y = powerY;
+        imageSprite.position.y = strengthY;
         cardSprite.addChild(imageSprite);
 
-        let defense = new PIXI.Text(cardToughness, ptOptions);
+        let defense = new PIXI.Text(cardHitPoints, ptOptions);
         defense.position.x = defenseX;
-        defense.position.y = powerY;
+        defense.position.y = strengthY;
         cardSprite.addChild(defense);        
 
         if (card.id && window.location.hostname.startsWith("127.")) {
 	        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
 	        cardId.position.x = defenseX - Card.cardWidth/4 - 5;
-	        cardId.position.y = powerY;
+	        cardId.position.y = strengthY;
 	        cardSprite.addChild(cardId);                	
         }
 

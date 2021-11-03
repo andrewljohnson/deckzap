@@ -759,7 +759,7 @@ class Game:
             defending_card = self.current_player().in_play_card(defending_card_id)
             message["log_lines"].append(f"{attacking_card.name} intends to attack {defending_card.name}")
         else:
-            message["log_lines"].append(f"{attacking_card.name} intends to attack {self.opponent().username} for {attacking_card.power_with_tokens(self.opponent())}.")
+            message["log_lines"].append(f"{attacking_card.name} intends to attack {self.opponent().username} for {attacking_card.strength_with_tokens(self.opponent())}.")
         # todo rope
 
         return message
@@ -795,7 +795,7 @@ class Game:
             move_to_complete["defending_card"] = defending_card.as_dict()
             move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {defending_card.name}")
         else:
-            damage = attacking_card.power_with_tokens(self.current_player())
+            damage = attacking_card.strength_with_tokens(self.current_player())
             move_to_complete["log_lines"].append(f"{attacking_card.name} attacks {self.opponent().username} for {damage}.")
             self.opponent().damage(damage)
             for idx, effect in enumerate(attacking_card.effects_for_type("after_deals_damage")):
@@ -870,15 +870,15 @@ class Game:
             damaged_card = card_players["damaged_card"]
             controller = card_players["controller"]
             opponent = card_players["opponent"]
-            possible_damage = damage_card.power_with_tokens(opponent)
-            damage = min(damage_card.power_with_tokens(controller), damaged_card.toughness_with_tokens() - damaged_card.damage)
+            possible_damage = damage_card.strength_with_tokens(opponent)
+            damage = min(damage_card.strength_with_tokens(controller), damaged_card.hit_points_with_tokens() - damaged_card.damage)
             damaged_card.deal_damage_with_effects(damage, controller)
             actual_damage = damaged_card.damage_to_show
             for idx, effect in enumerate(damage_card.effects_for_type("after_deals_damage")):
                 damage_card.resolve_effect(damage_card.after_deals_damage_effect_defs[idx], controller, effect, {"damage": actual_damage, "damage_possible": possible_damage}) 
-        if attacking_card.damage >= attacking_card.toughness_with_tokens():
+        if attacking_card.damage >= attacking_card.hit_points_with_tokens():
             self.current_player().send_card_to_played_pile(attacking_card, did_kill=True)
-        if defending_card.damage >= defending_card.toughness_with_tokens():
+        if defending_card.damage >= defending_card.hit_points_with_tokens():
             self.opponent().send_card_to_played_pile(defending_card, did_kill=True)
         return damage
 
