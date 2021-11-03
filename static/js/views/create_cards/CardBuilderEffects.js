@@ -32,17 +32,7 @@ export class CardBuilderEffects extends CardBuilderBase {
 
     cardDescription() {
         if (this.effects && this.effects.length) {
-            let description = "";
-            for (let effect of this.effects) {
-                description += effect.description;
-                if (!effect.description.endsWith(".")) {
-                    description += ".";
-                }
-                if (effect != this.effects[this.effects.length - 1]) {
-                    description += " ";
-                }
-            }
-            return description;
+            return this.descriptionForEffects(this.effects);
         }
         return super.cardDescription()
     }
@@ -102,16 +92,8 @@ export class CardBuilderEffects extends CardBuilderBase {
         let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
         
         this.updateEffects();
-        this.app.stage.interactiveChildren = false;  
-        Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error fetching effect info");
-            } else {
-                this.effect = data.server_effect
-                this.updateEffects();
-                this.updateCard();
+        this.getEffectForInfo(
+            () => {
                 if (this.originalCardInfo.card_type == Constants.mobCardType && this.effect.legal_target_type_ids) {
                     this.addEffectTypePicker()
                 } else if (this.originalCardInfo.card_type == Constants.spellCardType) {
@@ -120,10 +102,9 @@ export class CardBuilderEffects extends CardBuilderBase {
                 } else {
                     // it's a mob ability like Ambush, Drain, Guard, or Shield
                     this.getEffectForInfo();
-                }
+                }                
             }
-            this.app.stage.interactiveChildren = true;  
-        });
+        );
     }
 
     updateEffects() {
@@ -162,15 +143,8 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.effectTypeDescription.position.y = this.effectTypePicker.position.y + this.effectTypePicker.height + Constants.padding * 2;
         this.app.stage.addChild(this.effectTypeDescription);   
         this.app.stage.interactiveChildren = false;  
-        Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error fetching effect info");
-            } else {
-                this.effect = data.server_effect;
-                this.updateEffects();
-                this.updateCard();
+        this.getEffectForInfo(
+            () => {
                 if (this.effect.legal_target_type_ids) {
                     let yPosition = this.effectTypeDescription.position.y + this.effectTypeDescription.height + Constants.padding * 4;
                     this.addTargetTypePicker(yPosition);
@@ -178,8 +152,7 @@ export class CardBuilderEffects extends CardBuilderBase {
                     this.getEffectForInfo();
                 }
             }
-            this.app.stage.interactiveChildren = true;  
-            });        
+        );
     }
 
     addTargetTypePicker (yPosition) {
@@ -218,7 +191,8 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.getEffectForInfo();
     }
 
-    getEffectForInfo() {
+    getEffectForInfo(successFunction=null) {
+        this.app.stage.interactiveChildren = false;  
         Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
         .then(data => {
             if("error" in data) {
@@ -228,7 +202,12 @@ export class CardBuilderEffects extends CardBuilderBase {
                 this.effect = data.server_effect
                 this.updateEffects();
                 this.updateCard();
+                if (successFunction) {
+                    successFunction();
+                }
+
             }
+            this.app.stage.interactiveChildren = true;  
         });
     }
 
@@ -268,17 +247,7 @@ export class CardBuilderEffects extends CardBuilderBase {
             this.effects[this.effectIndex].amount = text
 
             if (text) {
-                Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
-                .then(data => {
-                    if("error" in data) {
-                        console.log(data); 
-                        alert("error fetching effect info");
-                    } else {
-                        this.effect = data.server_effect;
-                        this.updateEffects();
-                        this.updateCard();
-                    }
-                });                
+                this.getEffectForInfo();
             }
 
         })
