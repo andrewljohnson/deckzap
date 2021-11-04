@@ -40,8 +40,3 @@ class GlobalDeck(models.Model):
 	date_created = models.DateTimeField()
 	cards_hash = models.TextField()
 	deck_json = models.JSONField()
-
-
-admin.site.register(Deck)
-admin.site.register(GameRecord)
-admin.site.register(GlobalDeck)

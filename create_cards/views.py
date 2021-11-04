@@ -209,6 +209,16 @@ def create_card_save(request, required_key, event_name):
                 error_message = "only the card's author can edit a CustomCard"
                 print(error_message)
                 return JsonResponse({"error": error_message})
+            if "strength" in card_info:
+                card_info["strength"] = int(card_info["strength"])    
+            if "hit_points" in card_info:
+                card_info["hit_points"] = int(card_info["hit_points"])    
+            if "cost" in card_info:
+                card_info["cost"] = int(card_info["cost"])    
+            if "effects" in card_info:
+                for e in card_info["effects"]:
+                    if "amount" in e:
+                        e["amount"] = int(e["amount"])    
             custom_card.card_json = card_info
             custom_card.save()
             Analytics.log_amplitude(request, event_name, {})
@@ -220,7 +230,6 @@ def save_name_and_image(request):
     """
         A POST view to save the name and image for a new card.
     """
-    return create_card_save(request, "card_id", "Save Card Name and Image")
 
     if request.method == "POST":
         info = json.load(request)
@@ -235,7 +244,9 @@ def save_name_and_image(request):
                 error_message = "only the card's author can edit a CustomCard"
                 print(error_message)
                 return JsonResponse({"error": error_message})
+            print(card_info["image"])
             image = CustomCardImage.objects.filter(card=None, filename=card_info["image"]).first()
+            print(image)
             if image:
                 image.card = custom_card
                 image.save()
