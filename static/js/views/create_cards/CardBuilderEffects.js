@@ -237,7 +237,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.amountInput = amountInput;
         this.lastText = 0;
         this.amountInput.on('input', text => {
-            if (!Constants.isWholeNumber(text) && text) {
+            if (!Constants.isPositiveWholeNumber(text) && text) {
                 this.amountInput.text = this.lastText;
                 return;
             }

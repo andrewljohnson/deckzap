@@ -62,7 +62,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
         .then(data => {
             if("error" in data) {
                 console.log(data); 
-                alert("error saving card");
+                alert(data["error"]);
             } else {
                 window.location.href = `/`
             }

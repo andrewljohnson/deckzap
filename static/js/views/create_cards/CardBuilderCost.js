@@ -80,7 +80,7 @@ export class CardBuilderCost extends CardBuilderBase {
         this.lastText = 0;
         this.costInput = costInput;
         costInput.on('input', text => {
-            if (!Constants.isWholeNumber(text) && text) {
+            if (!Constants.isPositiveWholeNumber(text) && text && text != '0') {
                 this.costInput.text = this.lastText;
                 return;
             }

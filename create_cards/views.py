@@ -2,6 +2,7 @@ import datetime
 import json
 
 from battle_wizard.analytics import Analytics
+from battle_wizard.game.data import all_cards
 from create_cards.cards_and_effects import Effects
 from create_cards.cards_and_effects import effect_types
 from create_cards.cards_and_effects import target_types
@@ -239,14 +240,18 @@ def save_name_and_image(request):
             print(error_message)
             return JsonResponse({"error": error_message})
         else: 
+            same_name = False
+            for card in all_cards():
+                if card["name"] == card_info["name"]:
+                    error_message = f"Please choose a different name, {card_info['name']} is used by a different card."
+                    print(error_message)
+                    return JsonResponse({"error": error_message})                    
             custom_card = CustomCard.objects.get(id=info["card_id"])
             if custom_card.author != request.user:
                 error_message = "only the card's author can edit a CustomCard"
                 print(error_message)
                 return JsonResponse({"error": error_message})
-            print(card_info["image"])
             image = CustomCardImage.objects.filter(card=None, filename=card_info["image"]).first()
-            print(image)
             if image:
                 image.card = custom_card
                 image.save()
