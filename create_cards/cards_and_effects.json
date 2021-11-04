@@ -21,20 +21,32 @@
                     "amount": 3,
                     "description": "Draw 3 cards.",
                     "effect_type": "spell",
+                    "id": "draw",
                     "legal_card_type_ids": [
                         "mob",
                         "spell"
                     ],
-                    "legal_effect_type_ids": [
-                        "spell",
-                        "play_friendly_mob"
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
                     ],
-                    "legal_target_type_ids": [
-                        "opponent",
-                        "self",
-                        "player"
+                    "legal_target_types": [
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        }
                     ],
-                    "name": "draw",
+                    "name": "Draw",
                     "target_type": "self"
                 }
             ],
@@ -53,22 +65,44 @@
                     "amount": 4,
                     "description": "Deal 4 damage to any target.",
                     "effect_type": "spell",
+                    "id": "damage",
                     "legal_card_type_ids": [
                         "mob",
                         "spell"
                     ],
-                    "legal_effect_type_ids": [
-                        "spell"
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
                     ],
-                    "legal_target_type_ids": [
-                        "any",
-                        "enemy_mob",
-                        "opponent",
-                        "opponents_mob_random",
-                        "player",
-                        "self"
+                    "legal_target_types": [
+                        {
+                            "id": "any",
+                            "name": "Any Player or Mob"
+                        },
+                        {
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "opponents_mob_random",
+                            "name": "Opponent's Mob (random)"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        }
                     ],
-                    "name": "damage",
+                    "name": "Damage",
                     "target_type": "any"
                 },
                 {
@@ -76,20 +110,32 @@
                     "amount": 1,
                     "description": "Discard a card.",
                     "effect_type": "spell",
+                    "id": "discard",
                     "legal_card_type_ids": [
                         "mob",
                         "spell"
                     ],
-                    "legal_effect_type_ids": [
-                        "spell",
-                        "play_friendly_mob"
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
                     ],
-                    "legal_target_type_ids": [
-                        "opponent",
-                        "self",
-                        "player"
+                    "legal_target_types": [
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        }
                     ],
-                    "name": "discard_random",
+                    "name": "Discard",
                     "target_type": "self"
                 }
             ],
@@ -104,16 +150,17 @@
                     "description": "Guard",
                     "description_expanded": "Guard mobs must be attacked before other enemies.",
                     "effect_type": "select_mob_target",
+                    "id": "guard",
                     "legal_card_type_ids": [
                         "mob"
                     ],
-                    "name": "force_attack_guard_first"
+                    "name": "Guard"
                 }
             ],
+            "hit_points": 3,
             "image": "lion.svg",
             "name": "LionKin",
-            "strength": 3,
-            "hit_points": 3
+            "strength": 3
         },
         {
             "card_type": "mob",
@@ -123,37 +170,41 @@
                     "description": "Ambush",
                     "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
                     "effect_type": "mob_changes_zones",
+                    "id": "ambush",
                     "legal_card_type_ids": [
                         "mob"
                     ],
-                    "name": "add_ambush"
+                    "name": "Ambush"
                 },
                 {
                     "description": "Drain",
                     "description_expanded": "Gain hit points equal to this mob's strength after it deals damage.",
                     "effect_type": "after_deals_damage",
+                    "id": "drain",
                     "legal_card_type_ids": [
                         "mob"
                     ],
-                    "name": "drain_hp"
+                    "name": "Drain"
                 },
                 {
                     "description": "Guard",
                     "description_expanded": "Guard mobs must be attacked before other enemies.",
                     "effect_type": "select_mob_target",
+                    "id": "guard",
                     "legal_card_type_ids": [
                         "mob"
                     ],
-                    "name": "force_attack_guard_first"
+                    "name": "Guard"
                 },
                 {
                     "description": "Shield",
                     "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
                     "effect_type": "before_is_damaged",
+                    "id": "shield",
                     "legal_card_type_ids": [
                         "mob"
                     ],
-                    "name": "protect_with_shield",
+                    "name": "Shield",
                     "ui_info": {
                         "color": "white",
                         "effect_type": "glow",
@@ -162,10 +213,10 @@
                     }
                 }
             ],
+            "hit_points": 2,
             "image": "djinn.svg",
             "name": "Riftwalker Djinn",
-            "strength": 3,
-            "hit_points": 2
+            "strength": 3
         },
         {
             "card_type": "mob",
@@ -176,30 +227,55 @@
                     "amount": 1,
                     "description": "When you play a mob, deal 1 damage to a random enemy mob.",
                     "effect_type": "play_friendly_mob",
+                    "id": "damage",
                     "legal_card_type_ids": [
                         "mob",
                         "spell"
                     ],
-                    "legal_effect_type_ids": [
-                        "enters_play",
-                        "play_friendly_mob"
+                    "legal_effect_types": [
+                        {
+                            "id": "enters_play",
+                            "name": "Enters Play"
+                        },
+                        {
+                            "id": "play_friendly_mob",
+                            "name": "Play Friendly Mob"
+                        }
                     ],
-                    "legal_target_type_ids": [
-                        "any",
-                        "enemy_mob",
-                        "opponent",
-                        "opponents_mob_random",
-                        "player",
-                        "self"
+                    "legal_target_types": [
+                        {
+                            "id": "any",
+                            "name": "Any Player or Mob"
+                        },
+                        {
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "opponents_mob_random",
+                            "name": "Opponent's Mob (random)"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        }
                     ],
-                    "name": "damage",
+                    "name": "Damage",
                     "target_type": "opponents_mob_random"
                 }
             ],
+            "hit_points": 2,
             "image": "crumbling-ball.svg",
             "name": "Spouty Gas Ball",
-            "strength": 3,
-            "hit_points": 2
+            "strength": 3
         },
         {
             "card_type": "spell",
@@ -213,22 +289,44 @@
                     "amount": 3,
                     "description": "Deal 3 damage to any target.",
                     "effect_type": "spell",
+                    "id": "damage",
                     "legal_card_type_ids": [
                         "mob",
                         "spell"
                     ],
-                    "legal_effect_type_ids": [
-                        "spell"
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
                     ],
-                    "legal_target_type_ids": [
-                        "any",
-                        "enemy_mob",
-                        "opponent",
-                        "opponents_mob_random",
-                        "player",
-                        "self"
+                    "legal_target_types": [
+                        {
+                            "id": "any",
+                            "name": "Any Player or Mob"
+                        },
+                        {
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "opponents_mob_random",
+                            "name": "Opponent's Mob (random)"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        }
                     ],
-                    "name": "damage",
+                    "name": "Damage",
                     "target_type": "any"
                 }
             ],
@@ -278,32 +376,55 @@
             "description": "Ambush",
             "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
             "effect_type": "mob_changes_zones",
+            "id": "ambush",
             "legal_card_type_ids": [
                 "mob"
             ],
-            "name": "add_ambush"
+            "name": "Ambush"
         },
         {
             "ai_target_types": [],
             "amount": 0,
             "description": "Deal 0 damage to any target.",
             "effect_type": "spell",
+            "id": "damage",
             "legal_card_type_ids": [
                 "mob",
                 "spell"
             ],
-            "legal_effect_type_ids": [
-                "spell"
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
             ],
-            "legal_target_type_ids": [
-                "any",
-                "enemy_mob",
-                "opponent",
-                "opponents_mob_random",
-                "player",
-                "self"
+            "legal_target_types": [
+                {
+                    "id": "any",
+                    "name": "Any Player or Mob"
+                },
+                {
+                    "id": "enemy_mob",
+                    "name": "Enemy Mob"
+                },
+                {
+                    "id": "opponent",
+                    "name": "Opponent"
+                },
+                {
+                    "id": "opponents_mob_random",
+                    "name": "Opponent's Mob (random)"
+                },
+                {
+                    "id": "player",
+                    "name": "Player"
+                },
+                {
+                    "id": "self",
+                    "name": "Self"
+                }
             ],
-            "name": "damage",
+            "name": "Damage",
             "target_type": "any"
         },
         {
@@ -313,30 +434,43 @@
             "amount": 1,
             "description": "Your opponent discards a card.",
             "effect_type": "spell",
+            "id": "discard",
             "legal_card_type_ids": [
                 "mob",
                 "spell"
             ],
-            "legal_effect_type_ids": [
-                "spell",
-                "play_friendly_mob"
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
             ],
-            "legal_target_type_ids": [
-                "opponent",
-                "self",
-                "player"
+            "legal_target_types": [
+                {
+                    "id": "opponent",
+                    "name": "Opponent"
+                },
+                {
+                    "id": "self",
+                    "name": "Self"
+                },
+                {
+                    "id": "player",
+                    "name": "Player"
+                }
             ],
-            "name": "discard_random",
+            "name": "Discard",
             "target_type": "any"
         },
         {
             "description": "Drain",
             "description_expanded": "Gain hit points equal to this mob's strength after it deals damage.",
             "effect_type": "after_deals_damage",
+            "id": "drain",
             "legal_card_type_ids": [
                 "mob"
             ],
-            "name": "drain_hp"
+            "name": "Drain"
         },
         {
             "ai_target_types": [
@@ -345,39 +479,53 @@
             "amount": 1,
             "description": "Draw a card.",
             "effect_type": "spell",
+            "id": "draw",
             "legal_card_type_ids": [
                 "mob",
                 "spell"
             ],
-            "legal_effect_type_ids": [
-                "spell",
-                "play_friendly_mob"
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
             ],
-            "legal_target_type_ids": [
-                "opponent",
-                "self",
-                "player"
+            "legal_target_types": [
+                {
+                    "id": "opponent",
+                    "name": "Opponent"
+                },
+                {
+                    "id": "self",
+                    "name": "Self"
+                },
+                {
+                    "id": "player",
+                    "name": "Player"
+                }
             ],
-            "name": "draw",
+            "name": "Draw",
             "target_type": "self"
         },
         {
             "description": "Guard",
             "description_expanded": "Guard mobs must be attacked before other enemies.",
             "effect_type": "select_mob_target",
+            "id": "guard",
             "legal_card_type_ids": [
                 "mob"
             ],
-            "name": "force_attack_guard_first"
+            "name": "Guard"
         },
         {
             "description": "Shield",
             "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
             "effect_type": "before_is_damaged",
+            "id": "shield",
             "legal_card_type_ids": [
                 "mob"
             ],
-            "name": "protect_with_shield",
+            "name": "Shield",
             "ui_info": {
                 "color": "white",
                 "effect_type": "glow",

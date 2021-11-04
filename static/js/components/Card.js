@@ -115,7 +115,7 @@ export class Card {
 	        for (let e of card.effects) {
 	            if (e.effect_type == "activated" && e.enabled) {
 	                activatedEffects.push(e)
-	                if (e.name == "create_random_townie") {
+	                if (e.id == "create_random_townie") {
 	                    attackEffect = e;
 	                }
 	            }
@@ -290,7 +290,7 @@ export class Card {
             let countersX = strengthX + cw - Constants.padding * 4;
             let attackEffectOptions = Constants.textOptions(); 
             attackEffectOptions.fill = Constants.whiteColor;
-            if (attackEffect.name == "create_random_townie") {
+            if (attackEffect.id == "create_random_townie") {
                 Card.addCircledLabel(countersX, strengthY, cardSprite, attackEffectOptions, attackEffect.counters);
             }
         }
@@ -322,7 +322,7 @@ export class Card {
         let cardTexture = Card.cardTextureInPlay;
         for (let e of card.effects) {
             // todo: set texture string in JSON
-            if (e.name == "force_attack_guard_first") {
+            if (e.id == "guard") {
                 cardTexture = Card.cardTextureInPlayGuard;
             }                    
         }
@@ -336,7 +336,7 @@ export class Card {
         if (card.name == "Mana Battery") {
             let currentBatteryMana = 0;
             for (let effect of card.effects) {
-                if (effect.name == "store_mana") {
+                if (effect.id == "store_mana") {
                     currentBatteryMana = Math.max(0, effect.counters);
                 }
             }
@@ -389,7 +389,7 @@ export class Card {
         for (let e of card.effects) {
             if (e.effect_type == "activated" && e.enabled) {
                 activatedEffects.push(e)
-                if (e.name == "create_random_townie") {
+                if (e.id == "create_random_townie") {
                     attackEffect = e;
                 }
             }

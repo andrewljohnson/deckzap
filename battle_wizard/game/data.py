@@ -26,7 +26,6 @@ def all_cards(require_images=False, include_tokens=True):
             if "image" in c or not require_images:
                 subset.append(c)
 
-
     json_data = open('create_cards/cards_and_effects.json')
     cards_and_effects = json.load(json_data)
     for c in cards_and_effects["cards"]:

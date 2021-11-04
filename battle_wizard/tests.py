@@ -294,7 +294,7 @@ class GameObjectTests(TestCase):
 
     def test_mind_manacles_ambush_target(self):
         """
-            Test take_control effect lets caster attack with a mob that has the add_ambush effect.
+            Test take_control effect lets caster attack with a mob that has the ambush effect.
         """
         game = self.game_for_decks([["Stone Elemental", "Tame-ish Sabretooth"], ["Mind Manacles"]])
         for x in range(0,8):
@@ -1244,7 +1244,7 @@ class GameObjectTests(TestCase):
 
     def test_tameish_sabretooth(self):
         """
-            Test add_ambush effect of Tame-ish Sabretooth
+            Test ambush effect of Tame-ish Sabretooth
         """
 
         deck1 = ["Stone Elemental"]

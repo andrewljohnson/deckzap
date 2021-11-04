@@ -123,22 +123,22 @@ def get_effect_for_info(request):
             Analytics.log_amplitude(request, "Create Card Get Card Info", {})
             effect = card_info["effects"][-1]
             effect_def = None
-            if effect["name"] == "damage":
+            if effect["id"] == "damage":
                 effect_def = Effects.damage
-            elif effect["name"] == "discard_random":
-                effect_def = Effects.discard_random
-            elif effect["name"] == "draw":
+            elif effect["id"] == "discard":
+                effect_def = Effects.discard
+            elif effect["id"] == "draw":
                 effect_def = Effects.draw
-            elif effect["name"] == "add_ambush":
-                effect_def = Effects.add_ambush
-            elif effect["name"] == "drain_hp":
-                effect_def = Effects.drain_hp
-            elif effect["name"] == "force_attack_guard_first":
-                effect_def = Effects.force_attack_guard_first
-            elif effect["name"] == "protect_with_shield":
-                effect_def = Effects.protect_with_shield
+            elif effect["id"] == "ambush":
+                effect_def = Effects.ambush
+            elif effect["id"] == "drain":
+                effect_def = Effects.drain
+            elif effect["id"] == "guard":
+                effect_def = Effects.guard
+            elif effect["id"] == "shield":
+                effect_def = Effects.shield
             else:
-                return JsonResponse({"error": f"Unsupported effect name {effect['name']}"})
+                return JsonResponse({"error": f"Unsupported effect id {effect['id']}"})
             if len(signature(effect_def).parameters) == 0:
                 # for mob abilities like Ambush, Drain, Guard, and Shield
                 server_effect = effect_def()

@@ -164,177 +164,177 @@ class Card:
 
 
     def effect_def_for_id(self, effect):
-        name = effect.name
-        if name == "add_ambush":
-            return self.do_add_ambush_effect          
-        elif name == "add_fade":
+        eid = effect.id
+        if eid == "ambush":
+            return self.do_ambush_effect          
+        elif eid == "add_fade":
             return self.do_add_fade_effect          
-        elif name == "add_fast":
+        elif eid == "add_fast":
             return self.do_add_fast_effect          
-        elif name == "add_mob_effects":
+        elif eid == "add_mob_effects":
             return self.do_add_mob_effects_effect
-        elif name == "protect_with_shield":
-            return self.do_protect_with_shield_effect
-        elif name == "add_symbiotic_fast":
+        elif eid == "add_symbiotic_fast":
             return self.do_add_symbiotic_fast_effect
-        elif name == "add_tokens":
+        elif eid == "add_tokens":
             return self.do_add_tokens_effect
-        elif name == "allow_instant_cast":
+        elif eid == "allow_instant_cast":
             return self.do_allow_instant_cast_effect
-        elif name == "allow_defend_response":
+        elif eid == "allow_defend_response":
             return self.do_allow_defend_response_effect
-        elif name == "augment_mana":
+        elif eid == "augment_mana":
             return self.do_augment_mana_effect
-        elif name == "buff_strength_hit_points_from_mana":
+        elif eid == "buff_strength_hit_points_from_mana":
             return self.do_buff_strength_hit_points_from_mana_effect
-        elif name == "create_card":
+        elif eid == "create_card":
             return self.do_create_card_effect
-        elif name == "create_random_townie":
+        elif eid == "create_random_townie":
             return self.do_create_random_townie_effect
-        elif name == "create_random_townie_cheap":
+        elif eid == "create_random_townie_cheap":
             return self.do_create_random_townie_effect_cheap
-        elif name == "damage":
+        elif eid == "damage":
             return self.do_damage_effect
-        elif name == "deal_excess_damage_to_controller":
+        elif eid == "deal_excess_damage_to_controller":
             return self.do_deal_excess_damage_to_controller_effect
-        elif name == "decost_card_next_turn":
+        elif eid == "decost_card_next_turn":
             return self.do_decost_card_next_turn_effect
-        elif name == "decrease_max_mana":
+        elif eid == "decrease_max_mana":
             return self.do_decrease_max_mana_effect
-        elif name == "discard_random":
+        elif eid == "discard":
             return self.do_discard_random_effect_on_player
-        elif name == "disappear":
+        elif eid == "disappear":
             return self.do_disappear_effect
-        elif name in ["duplicate_card_next_turn", "store_for_decosting", "upgrade_card_next_turn"]:
+        elif eid in ["duplicate_card_next_turn", "store_for_decosting", "upgrade_card_next_turn"]:
             return self.do_store_card_for_next_turn_effect
-        elif name == "double_strength":
+        elif eid == "double_strength":
             return self.do_double_strength_effect_on_mob
-        elif name == "drain_hp":
+        elif eid == "drain":
             return self.do_drain_hp_effect
-        elif name == "draw":
+        elif eid == "draw":
             return self.do_draw_effect_on_player
-        elif name == "draw_on_deal_damage":
+        elif eid == "draw_on_deal_damage":
             return self.do_draw_on_deal_damage_effect            
-        elif name == "draw_if_damaged_opponent":
+        elif eid == "draw_if_damaged_opponent":
             return self.do_draw_if_damaged_opponent_effect_on_player
-        elif name == "draw_or_resurrect":
+        elif eid == "draw_or_resurrect":
            return self.do_draw_or_resurrect_effect
-        elif name == "duplicate_card_next_turn":
+        elif eid == "duplicate_card_next_turn":
             return self.do_duplicate_card_next_turn_effect
-        elif name == "enable_activated_effect":
+        elif eid == "enable_activated_effect":
             return self.do_enable_activated_effect_effect
-        elif name == "entwine":
+        elif eid == "entwine":
             return self.do_entwine_effect
-        elif name == "fetch_card":
+        elif eid == "fetch_card":
             return self.do_fetch_card_effect_on_player
-        elif name == "fetch_card_into_play":
+        elif eid == "fetch_card_into_play":
             return self.do_fetch_card_into_play_effect_on_player
-        elif name == "force_attack_guard_first":
-            return self.do_force_attack_guard_first_effect
-        elif name == "gain_for_hit_points":
+        elif eid == "guard":
+            return self.do_guard_effect
+        elif eid == "gain_for_hit_points":
             return self.do_gain_for_hit_points_effect
-        elif name == "hp_damage_random":
+        elif eid == "hp_damage_random":
             return self.do_hp_damage_random_effect
-        elif name == "heal":            
+        elif eid == "heal":            
             return self.do_heal_effect
-        elif name == "improve_damage_all_effects_when_used":
+        elif eid == "improve_damage_all_effects_when_used":
             return self.do_improve_damage_when_used_effect            
-        elif name == "improve_damage_when_used":
+        elif eid == "improve_damage_when_used":
             return self.do_improve_damage_when_used_effect            
-        elif name == "improve_effect_amount_when_cast":
+        elif eid == "improve_effect_amount_when_cast":
             return self.do_improve_effect_amount_when_cast_effect            
-        elif name == "improve_effect_when_cast":
+        elif eid == "improve_effect_when_cast":
             return self.do_improve_effect_when_cast_effect            
-        elif name == "keep":
+        elif eid == "keep":
             return self.do_keep_effect
-        elif name == "kill":
+        elif eid == "kill":
             return self.do_kill_effect
-        elif name == "lose_lurker":
+        elif eid == "lose_lurker":
             return self.do_lose_lurker_effect
-        elif name == "make":
+        elif eid == "make":
             return self.do_make_effect
-        elif name == "make_cheap_with_option":
+        elif eid == "make_cheap_with_option":
             return self.do_make_cheap_with_option_effect
-        elif name == "make_from_deck":
+        elif eid == "make_from_deck":
             return self.do_make_from_deck_effect
-        elif name == "make_token":
+        elif eid == "make_token":
             return self.do_make_token_effect
-        elif name == "make_untargettable":
+        elif eid == "make_untargettable":
             return self.do_make_untargettable_effect
-        elif name == "mana":
+        elif eid == "mana":
             return self.do_mana_effect_on_player
-        elif name == "mana_increase_max":
+        elif eid == "mana_increase_max":
             return self.do_mana_increase_max_effect_on_player
-        elif name == "mana_reduce":
+        elif eid == "mana_reduce":
             return self.do_mana_reduce_effect_on_player
-        elif name == "mana_set_max":
+        elif eid == "mana_set_max":
             return self.do_mana_set_max_effect
-        elif name == "mob_to_artifact":
+        elif eid == "mob_to_artifact":
             return self.do_mob_to_artifact_effect
-        elif name == "preserve_stats":
+        elif eid == "preserve_stats":
             return self.do_preserve_stats_effect
-        elif name == "preserve_effect_improvement":
+        elif eid == "preserve_effect_improvement":
             return self.do_preserve_effect_improvement_effect
-        elif name == "pump_strength":
+        elif eid == "pump_strength":
             return self.do_pump_strength_effect_on_mob
-        elif name == "redirect_mob_spell":
+        elif eid == "redirect_mob_spell":
            return self.do_redirect_mob_spell_effect
-        elif name == "reduce_cost":
+        elif eid == "reduce_cost":
            return self.do_reduce_cost_effect
-        elif name == "reduce_draw":
+        elif eid == "reduce_draw":
            return self.do_reduce_draw_effect
-        elif name == "refresh_mana":
+        elif eid == "refresh_mana":
             return self.do_refresh_mana_effect
-        elif name == "remove_symbiotic_fast":
+        elif eid == "remove_symbiotic_fast":
             return self.do_remove_symbiotic_fast_effect
-        elif name == "remove_tokens":
+        elif eid == "remove_tokens":
             return self.do_remove_tokens_effect
-        elif name == "restrict_effect_targets_min_cost":
+        elif eid == "restrict_effect_targets_min_cost":
             return self.do_restrict_effect_targets_min_cost_effect
-        elif name == "restrict_effect_targets_mob_targetter":
+        elif eid == "restrict_effect_targets_mob_targetter":
             return self.do_restrict_effect_targets_mob_targetter_effect
-        elif name == "restrict_effect_targets_mob_with_guard":
+        elif eid == "restrict_effect_targets_mob_with_guard":
             return self.do_restrict_effect_targets_mob_with_guard_effect
-        elif name == "restrict_effect_targets_mob_with_strength":
+        elif eid == "restrict_effect_targets_mob_with_strength":
             return self.do_restrict_effect_targets_mob_with_strength_effect            
-        elif name == "riffle":
+        elif eid == "riffle":
             return self.do_riffle_effect
-        elif name == "set_can_attack":
+        elif eid == "set_can_attack":
             return self.do_set_can_attack_effect           
-        elif name == "set_token":
+        elif eid == "set_token":
             return self.do_set_token_effect
-        elif name == "slow_artifact":
+        elif eid == "shield":
+            return self.do_shield_effect
+        elif eid == "slow_artifact":
             return self.do_slow_artifact_effect           
-        elif name == "spell_from_yard":
+        elif eid == "spell_from_yard":
             return self.do_spell_from_yard_effect           
-        elif name == "stack_counter":
+        elif eid == "stack_counter":
            return  self.do_counter_card_effect
-        elif name == "start_in_hand":
+        elif eid == "start_in_hand":
            return  self.do_start_in_hand_effect
-        elif name == "start_in_play":
+        elif eid == "start_in_play":
            return  self.do_start_in_play_effect
-        elif name == "store_mana":
+        elif eid == "store_mana":
             return  self.do_store_mana_effect            
-        elif name == "summon_from_deck":
+        elif eid == "summon_from_deck":
             return self.do_summon_from_deck_effect_on_player
-        elif name == "summon_from_deck_artifact":
+        elif eid == "summon_from_deck_artifact":
             return self.do_summon_from_deck_artifact_effect_on_player
-        elif name == "summon_from_hand":
+        elif eid == "summon_from_hand":
             return self.do_summon_from_hand_effect
-        elif name == "switch_hit_points":
+        elif eid == "switch_hit_points":
             return self.do_switch_hit_points_effect
-        elif name == "take_extra_turn":
+        elif eid == "take_extra_turn":
             return self.do_take_extra_turn_effect_on_player
-        elif name == "take_control":
+        elif eid == "take_control":
             return self.do_take_control_effect
-        elif name == "unwind":
+        elif eid == "unwind":
             return self.do_unwind_effect
-        elif name == "upgrade_card_next_turn":
+        elif eid == "upgrade_card_next_turn":
             return self.do_upgrade_card_next_turn_effect
-        elif name == "use_stored_mana":
+        elif eid == "use_stored_mana":
             return self.do_use_stored_mana_effect
         else:
-            print(f"UNSUPPORTED EFFECT NAME: {name}")
+            print(f"UNSUPPORTED EFFECT ID: {eid}")
 
     @staticmethod
     def all_card_objects(require_images=False, include_tokens=True):
@@ -362,7 +362,7 @@ class Card:
         for e in player.in_play + player.artifacts:
             for idx, effect in enumerate(e.effects_for_type("friendly_card_played")):
                 if effect.target_type == "this":
-                    e.do_add_tokens_effect(player, effect, {"id": e.id, "target_type":"mob"})
+                    e.do_add_tokens_effect(player, effect, {"id": e.id_for_game, "target_type":"mob"})
 
         spell_to_resolve["log_lines"].append(f"{player.username} plays {self.name}.")
 
@@ -436,7 +436,7 @@ class Card:
 
     def resolve_effect(self, effect_def, effect_owner, effect, target_info):
         # print(f"Resolve effect: {effect.name}");
-        if effect.counters >= 1 and effect.name != "store_mana":
+        if effect.counters >= 1 and effect.id != "store_mana":
             effect.counters -= 1
         log_lines = effect_def(effect_owner, effect, target_info)
         mana_log_lines = None
@@ -454,13 +454,13 @@ class Card:
                 all_log_lines += mana_log_lines
         return all_log_lines
 
-    def do_add_ambush_effect(self, effect_owner, effect, target_info):
+    def do_ambush_effect(self, effect_owner, effect, target_info):
         self.can_attack_mobs = True
         # clone the game so we can do a move in the cloned game to select the mob with Ambush
         # then, check if there are any mobs that can be attacked in the cloned game (e.g. mob.can_be_clicked == True)
         game_copy = copy.deepcopy(effect_owner.game)
         for mob in game_copy.current_player().in_play:
-            if mob.id == self.id:
+            if mob.id == self.id_for_game:
                 game_copy.play_move({"username": effect_owner.username, "move_type": "SELECT_MOB", "card": self.id})        
         found_attackable_mob = False
         for m in game_copy.opponent().in_play:
@@ -490,7 +490,7 @@ class Card:
         for e in effect.effects:
             existing_effect = False
             for ee in target_mob.effects:
-                if ee.name == e.name:
+                if ee.id == e.id:
                     existing_effect = ee
             if existing_effect:
                 existing_effect.enabled = True
@@ -516,7 +516,7 @@ class Card:
 
     def do_add_token_effect_on_mob(self, effect, effect_owner, target_mob, controller):
         token = copy.deepcopy(effect.tokens[0])
-        token.id = effect.id
+        token.id = effect.id_for_game
         if token.multiplier and token.multiplier == "half_self_mobs":
             for x in range(0, math.floor(len(effect_owner.in_play)/2)):
                 target_mob.tokens.append(token)
@@ -540,7 +540,7 @@ class Card:
     def do_augment_mana_effect(self, effect_owner, effect, target_info):
         store_effect = None
         for e in self.effects:
-            if e.name == "store_mana":
+            if e.id == "store_mana":
                 store_effect = e
         effect_owner.card_mana += store_effect.counters
 
@@ -612,8 +612,8 @@ class Card:
             return
         townies = []
         for c in Card.all_card_objects():
-            for a in c.effects:
-                if a.name == "is_townie":
+            for e in c.effects:
+                if e.id == "is_townie":
                     townies.append(c)
         for x in range(0, effect.amount):
             t = random.choice(townies)
@@ -834,7 +834,7 @@ class Card:
             if e.effect_to_activate:
                 e.enabled = False
         activated_effect = copy.deepcopy(effect.effect_to_activate)
-        activated_effect.id = self.id
+        activated_effect.id_for_game = self.id
         activated_effect.enabled = True
         self.description = activated_effect.description
         self.effects.insert(0, activated_effect)
@@ -914,11 +914,11 @@ class Card:
         else:
             return None
 
-    def do_force_attack_guard_first_effect(self, effect_owner, effect, target_info):
+    def do_guard_effect(self, effect_owner, effect, target_info):
         guard_mobs = []
         for mob in effect_owner.in_play:
             for e in mob.effects:
-                if e.name == "force_attack_guard_first" and mob.can_be_clicked:
+                if e.id == "guard" and mob.can_be_clicked:
                     guard_mobs.append(mob)
         if len(guard_mobs) > 0:
             for mob in effect_owner.in_play:
@@ -936,7 +936,7 @@ class Card:
 
     def do_lose_lurker_effect(self, effect_owner, effect, target_info):
         for effect in self.effects:
-            if effect.name == "make_untargettable":
+            if effect.id == "make_untargettable":
                 effect.enabled = False
 
     def do_heal_effect(self, effect_owner, effect, target_info):
@@ -998,7 +998,7 @@ class Card:
     def do_improve_damage_all_effects_when_used_effect(self, effect_owner, effect, target_info):
         # Doomer
         for e in self.effects:
-            if e.name == "damage":
+            if e.id == "damage":
                 effect.amount += 1
         self.show_level_up = True
         return [f"{self.name} gets improved to deal {self.effects[0].amount} damage."]
@@ -1206,7 +1206,7 @@ class Card:
         target_player.max_mana = min(target_player.max_max_mana(), target_player.max_mana)
         # in case something like Mana Shrub doesn't increase the mana
         if old_max_mana == target_player.max_mana:
-            if len(self.effects) == 2 and self.effects[1].name == "decrease_max_mana":
+            if len(self.effects) == 2 and self.effects[1].id == "decrease_max_mana":
                 self.effects[1].enabled = False
         return [f"{target_player.username} increases their max mana by {effect.amount}."]
 
@@ -1322,7 +1322,7 @@ class Card:
         if self.id == effect_owner.selected_mob():
             for player in effect_owner.game.players:
                 for card in player.in_play:
-                    if card.can_be_clicked and not card.has_effect("force_attack_guard_first"):
+                    if card.can_be_clicked and not card.has_effect("guard"):
                         card.can_be_clicked = False
         elif target_info["move_type"] not in ["PLAY_CARD", "PLAY_CARD_IN_HAND"] and effect_owner.current_mana() >= self.cost:
             game_copy = copy.deepcopy(effect_owner.game)
@@ -1330,7 +1330,7 @@ class Card:
             has_targets = False
             for player in game_copy.players:
                 for card in player.in_play:
-                    if card.can_be_clicked and card.has_effect("force_attack_guard_first"):
+                    if card.can_be_clicked and card.has_effect("guard"):
                         has_targets = True
             self.can_be_clicked = has_targets
 
@@ -1378,7 +1378,7 @@ class Card:
         if amount_to_spend > 0:
             log_lines = [f"{self.name} used {amount_to_spend} mana."]            
         for e in self.effects:
-            if e.name == "store_mana":
+            if e.id == "store_mana":
                 store_effect = e
         while amount_to_spend > 0 and store_effect.counters > 0:                        
             store_effect.counters -= 1
@@ -1525,7 +1525,7 @@ class Card:
         effect_owner.game.opponent().hit_points = cp_hp
         return [f"{effect_owner.username} uses {self.name} to switch hit points with {effect_owner.game.opponent().username}."]
 
-    def do_protect_with_shield_effect(self, effect_owner, effect, target_info):
+    def do_shield_effect(self, effect_owner, effect, target_info):
         if not effect.enabled:
             return
         effect.enabled = False
@@ -1554,7 +1554,8 @@ class Card:
 
     def add_fast_effect_info(self):
         return {
-            "name": "add_fast",
+            "id": "add_fast",
+            "name": "Add Fast",
             "description": "Fast",
             "description_expanded": "Fast mobs may attack the turn they come into play.",
             "effect_type": "enter_play"
@@ -1564,9 +1565,9 @@ class Card:
     def do_remove_symbiotic_fast_effect(self, effect_owner, effect, target_info):
         effects_to_remove = []
         for effect in self.effects:
-            if effect.name == "add_fast":
+            if effect.id == "add_fast":
                 effects_to_remove.append(effect)
-                if not self.has_effect("add_ambush"):
+                if not self.has_effect("ambush"):
                     self.can_attack_mobs = False
                 self.can_attack_players = False
                 break 
@@ -1833,9 +1834,9 @@ class Card:
             hit_points += t.hit_points_modifier
         return hit_points
 
-    def has_effect(self, effect_name):
+    def has_effect(self, effect_id):
         for e in self.effects:
-            if e.name == effect_name:
+            if e.id == effect_id:
                 return True
         return False
 
@@ -1864,7 +1865,7 @@ class Card:
 
 class CardEffect:
     def __init__(self, info, effect_id):
-        self.id = effect_id
+        self.id_for_game = effect_id
         # an integer to be used to size the effect
         self.amount = info["amount"] if "amount" in info else None
         # a string to be used to size the effect
@@ -1883,7 +1884,9 @@ class CardEffect:
         self.enabled = info["enabled"] if "enabled" in info else True
         # this is set after an effect is used, so it can't be used again this turn
         self.exhausted = info["exhausted"] if "exhausted" in info else False
-        # the name of the effect, which gets mapped to a def
+        # the id of the effect, which gets mapped to a def
+        self.id = info["id"] if "id" in info else None         
+        # the name of the effect
         self.name = info["name"] if "name" in info else None         
         # a flag to set on the effect to trigger an animation on the next repaint
         self.show_effect_animation = info["show_effect_animation"] if "show_effect_animation" in info else False
@@ -1944,6 +1947,7 @@ class CardEffect:
             "make_type": self.make_type,
             "multiplier": self.multiplier,
             "name": self.name,
+            "id_for_game": self.id_for_game,
             "other_info": self.other_info,
             "sacrifice_on_activate": self.sacrifice_on_activate,
             "show_effect_animation": self.show_effect_animation,

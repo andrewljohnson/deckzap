@@ -1,2143 +1,2476 @@
-[		
-	{
-		"name": "Training Master",
-		"image": "coronation.svg",
-		"discipline": "none",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 3,
-		"cost": 3,
-		"description": "Double the strength of another mob.",
-		"effects": [{
-			"name": "double_strength",
-			"effect_type": "enter_play",
-			"target_type": "self_mob"
-		}]	
-	},
-	{
-		"name": "Winding One",
-		"image": "wind-hole.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 4,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "lose_lurker",
-				"effect_type": "after_attack"
-			},
-			{
-				"name": "make_untargettable",
-				"effect_type": "select_mob_target_override",
-				"ui_info": {
-					"effect_type": "glow",
-					"outer_strength": 0,
-					"inner_strength": 3,
-					"color": "black"
-				}
-			}
-		]	
-	},
-	{
-		"name": "Lightning Elemental",
-		"image": "lightning-tear.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 2,
-		"description": "Deal 2 damage.",
-		"effects": [{
-			"name": "damage",
-			"effect_type": "enter_play",
-			"target_type": "any",
-			"amount": 2,
-			"ai_target_types": ["opponent"]
-		}]	
-	},
-	{
-		"name": "Tame Tempest",
-		"image": "tornado.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 2,
-		"cost": 3,
-		"description": "Return a mob to its owner's hand.",
-		"effects": [{
-			"name": "unwind",
-			"effect_type": "enter_play",
-			"target_type": "mob",
-			"ai_target_types": ["opponents_mob"]
-		}]	
-	},
-	{
-		"name": "Unwind",
-		"discipline": "magic",
-		"image": "acrobatic.svg",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Return a mob to its owner's hand.",
-		"effects": [{
-			"name": "unwind",
-			"effect_type": "spell",
-			"target_type": "mob",
-			"ai_target_types": ["opponents_mob"]
-		}]
-	},
-	{
-		"name": "Kill",
-		"image": "deathcab.svg",
-		"discipline": "magic",
-		"cost": 4,
-		"card_type": "spell",
-		"description": "Kill a mob.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "spell",
-			"target_type": "mob",
-			"ai_target_types": ["opponents_mob"]
-		}]
-	},
-	{
-		"name": "Inferno Elemental",
-		"image": "brasero.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 5,
-		"hit_points": 5,
-		"cost": 5,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}]	
-	},
-	{
-		"name": "Siz Pop",
-		"image": "bolt-drop.svg",
-		"discipline": "magic",
-		"cost": 1,
-		"card_type": "spell",
-		"description": "Deal 1 damage. Draw 1 card.",
-		"effects": [
-			{
-				"name": "damage",
-				"effect_type": "spell",
-				"target_type": "any",
-				"amount": 1,
-				"ai_target_types": ["opponent", "opponents_mob"]
-			}, 
-			{
-				"name": "draw",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 1
-			},
-			{
-				"name": "start_in_hand",
-				"effect_type": "after_shuffle",
-				"description": "Starts in Hand",
-				"description_expanded": "This spell starts in your hand.",
-				"description_on_card" : true
-			}			
-		]
-	},
-	{
-		"name": "Mind Manacles",
-		"image": "manacles.svg",
-		"discipline": "magic",
-		"cost": 6,
-		"card_type": "spell",
-		"description": "Take control of a mob.",
-		"effects": [{
-			"name": "take_control",
-			"effect_type": "spell",
-			"target_type": "opponents_mob"
-		}]
-	},
-	{
-		"name": "Familiar",
-		"image": "cat.svg",
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 2,
-		"cost": 2,
-		"description": "Draw a card.",
-		"effects": [{
-			"name": "draw",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Bow",
-		"image": "bow-arrow.svg",
-		"discipline": "magic",
-		"card_type": "artifact",
-		"cost": 1,
-		"description": "Pay 1, deal 3 damage to your opponent.",
-		"effects": [
-			{
-				"name": "damage",
-				"effect_type": "activated",
-				"target_type": "opponent",
-				"cost": 1,
-				"amount": 3
-			},
-			{
-				"name": "start_in_play",
-				"effect_type": "after_shuffle"
-			}
-		]
-	},
-	{
-		"name": "Wand",
-		"card_type": "artifact",
-		"image": "orb-wand.svg",
-		"discipline": "magic",
-		"cost": 1,
-		"description": "Pay 0, deal 1 damage to anything.",
-		"effects": [
-			{
-				"name": "damage",
-				"effect_type": "activated",
-				"target_type": "any",
-				"cost": 0,
-				"amount": 1,
-				"ai_target_types": ["opponent", "opponents_mob"]
-			},
-			{
-				"name": "start_in_play",
-				"effect_type": "after_shuffle"
-			}			
-		]
-	},
-	{
-		"name": "Abyssal Crystal",
-		"card_type": "artifact",
-		"image": "moebius-star.svg",
-		"discipline": "magic",
-		"cost": 1,
-		"description": "Pay 1, draw a card and lose 2 hit points.",
-		"effects": [
-			{
-				"name": "draw",
-				"effect_type": "activated",
-				"target_type": "self",
-				"cost": 1,
-				"cost_hp": 2,
-				"amount": 1
-			},
-			{
-				"name": "start_in_play",
-				"effect_type": "after_shuffle"
-			}
-		]
-	},
-	{
-		"name": "Wish Stone",
-		"card_type": "artifact",
-		"discipline": "magic",
-		"image": "rune-stone.svg",
-		"cost": 4,
-		"description": "0: sacrifice this, put a artifact from your deck into play.",
-		"effects": [{
-				"name": "fetch_card_into_play",
-				"effect_type": "activated",
-				"target_type": "artifact_in_deck",
-				"cost": 0,
-				"sacrifice_on_activate": true
-		}]
-	},
-	{
-		"name": "Town Council",
-		"discipline": "tech",
-		"image": "round-table.svg",
-		"description": "Your other mobs get +1/+1 for every 2 mobs you control, rounded down.",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 4,
-		"cost": 2,
-		"effects": [{
-			"name": "add_tokens",
-			"effect_type": "enter_play",
-			"target_type": "self_mobs",
-			"tokens": [{
-				"turns": 1,
-				"target_type": "self_mobs",
-				"strength_modifier": 1,
-				"hit_points_modifier": 1,
-				"multiplier": "half_self_mobs"
-			}]
-		}]
-	},
-	{
-		"name": "Totem Cat",
-		"image": "totem-mask.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 1,
-		"cost": 1,
-		"description": "Get a 2/1 ghost token when this dies.",
-		"effects": [{
-			"name": "make_token",
-			"card_names": ["Ghost of the Cat"],
-			"effect_type": "leave_play",
-			"target_type": "self",
-			"amount": 1
-		}]
-	},
-	{
-
-		"name": "Ghost of the Cat",
-		"is_token": true,
-		"image": "spark-spirit.svg",
-		"discipline": "none",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 1,
-		"cost": 1
-	},
-	{
-
-		"name": "Taunted Bear",
-		"image": "bear-face.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 2,
-		"cost": 1,
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "add_fade",
-				"description": "Fade",
-				"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
-				"effect_type": "start_turn"
-			},
-			{
-				"name": "deal_excess_damage_to_controller",
-				"description": "Stomp",
-				"description_expanded": "Stomp mobs deal excess damage to players.",
-				"effect_type": "after_deals_damage"				
-			}
-		]
-	},
-	{
-
-		"name": "War Scorpion",
-		"image": "scorpion.svg",
-		"discipline": "none",
-		"card_type": "mob",
-		"description": "Has Fast if something else does.",
-		"strength": 2,
-		"hit_points": 2,
-		"cost": 1,
-		"effects": [
-			{
-				"name": "add_ambush",
-				"description": "Ambush",
-				"description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
-				"effect_type": "mob_changes_zones"
-			},
-			{
-				"name": "remove_symbiotic_fast",
-				"effect_type": "mob_changes_zones",
-				"target_type": "self"
-			},
-			{
-				"name": "add_symbiotic_fast",
-				"effect_type": "mob_changes_zones",
-				"target_type": "self"
-			}
-		]
-	},
-	{
-
-		"name": "Berserk Monkey",
-		"image": "monkey.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"description": "Gets +1/+1 whenever you play a card.",
-		"strength": 0,
-		"hit_points": 1,
-		"cost": 1,
-		"effects": [
-			{
-				"name": "add_tokens",
-				"effect_type": "friendly_card_played",
-				"target_type": "this",
-				"tokens": [{
-					"strength_modifier": 1,
-					"hit_points_modifier": 1
-				}]
-			}
-		]
-	},
-	{
-		"name": "Frenzy",
-		"image": "uprising.svg",
-		"discipline": "magic",
-		"cost": 1,
-		"card_type": "spell",
-		"description": "Draw a card this turn. Draw another card if you dealt damage to your opponent.",
-		"effects": [{
-			"name": "draw_if_damaged_opponent",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 1
-		}, 
-		{
-			"name": "draw",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Impale",
-		"image": "spiked-trunk.svg",
-		"discipline": "magic",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Deal 3 damage to a mob and your Opponent.",
-		"effects": [
-			{
-				"name": "damage",
-				"effect_type": "spell",
-				"target_type": "mob",
-				"amount": 3,
-				"ai_target_types": ["opponents_mob"]
-			},
-			{
-				"name": "damage",
-				"effect_type": "spell",
-				"target_type": "opponent",
-				"amount": 3
-			}]
-	},
-	{
-		"name": "Arsenal",
-		"image": "saber-and-pistol.svg",
-		"discipline": "magic",
-		"card_type": "artifact",
-		"cost": 2,
-		"description": "Your mobs get +1/+0 for each artifact you control.",
-		"original_description": "Your mobs get +1/+0 for each artifact you control.",
-		"effects": [
-			{
-				"name": "add_tokens",
-				"effect_type": "enter_play",
-				"target_type": "self_mobs",
-				"tokens": [{
-					"strength_modifier": 1,
-					"hit_points_modifier": 0,
-					"multiplier": "self_artifacts"
-				}]
-			},
-			{
-				"name": "remove_tokens",
-				"effect_type": "leave_play",
-				"target_type": "self_mobs"
-			}
-		,
-			{
-				"name": "set_token",
-				"effect_type": "mob_changes_zones",
-				"target_type": "self_mobs",
-				"tokens": [{
-					"strength_modifier": 1,
-					"hit_points_modifier": 0,
-					"multiplier": "self_artifacts"
-				}]
-			}
-		]
-	},
-	{
-		"name": "Animal Trainer",
-		"image": "teacher.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 3,
-		"description": "Give a friendly mob +2/+2 and Fade.",
-		"hit_points": 2,
-		"cost": 2,
-		"effects": [ 
-			{
-				"name": "add_tokens",
-				"effect_type": "enter_play",
-				"target_type": "self_mob",
-				"tokens": [{
-					"strength_modifier": 2,
-					"hit_points_modifier": 2
-				}]
-			},
-			{
-				"name": "add_mob_effects",
-				"effect_type": "enter_play",
-				"target_type": "mob",
-				"effects": [{
-            		"name": "add_fade",
-            		"description": "Fade",
-            		"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
-            		"effect_type": "start_turn"
-        		}],
-				"ai_target_types": ["self_mob"]
-			}
-		]
-	},
-	{
-
-		"name": "Viper",
-		"image": "snake-bite.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 4,
-		"hit_points": 3,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "add_fade",
-				"description": "Fade",
-				"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
-				"effect_type": "start_turn"
-			},
-			{
-				"name": "deal_excess_damage_to_controller",
-				"description": "Stomp",
-				"description_expanded": "Stomp mobs deal excess damage to players.",
-				"effect_type": "after_deals_damage"				
-			}
-		]
-	},
-	{
-
-		"name": "Enraged Stomper",
-		"image": "mammoth.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"description": "Deals you 1 damage at the start of your turn.",
-		"strength": 5,
-		"hit_points": 5,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "damage",
-				"target_type": "self",
-				"effect_type": "start_turn",
-				"amount": 1
-			},
-			{
-				"name": "deal_excess_damage_to_controller",
-				"description": "Stomp",
-				"description_expanded": "Stomp mobs deal excess damage to players.",
-				"effect_type": "after_deals_damage"				
-			}
-		]
-	},
-	{
-		"name": "Gird for Battle",
-		"image": "armor-punch.svg",
-		"discipline": "none",
-		"card_type": "spell",
-		"cost": 5,
-		"description": "Get a random artifact from your deck. Summon a 3/3 with Fast and Fade.",
-		"effects": [{
-			"name": "make_token",
-			"card_names": ["Mist Elephant"],
-			"target_type": "self",
-			"effect_type": "spell",
-			"amount": 1
-		},
-		{
-			"name": "summon_from_deck_artifact",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 1
-		}		
-	]
-	},
-	{
-		"name": "Mist Elephant",
-		"is_token": true,
-		"image": "elephant-head.svg",
-		"discipline": "none",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 2,
-		"cost": 2,
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "add_fade",
-				"description": "Fade",
-				"description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
-				"effect_type": "start_turn"
-			}
-
-		]
-	},
-	{
-
-		"name": "Spirit of the Stampede",
-		"image": "stomp.svg",
-		"discipline": "none",
-		"card_type": "mob",
-		"description": "+1/+0 for each other mob and artifact you have.",
-		"strength": 2,
-		"hit_points": 5,
-		"cost": 5,
-		"effects": [
-			{
-				"name": "set_token",
-				"effect_type": "mob_changes_zones",
-				"target_type": "this",
-				"tokens": [{
-					"strength_modifier": 1,
-					"hit_points_modifier": 0,
-					"multiplier": "self_mobs_and_artifacts"
-				}]
-			},
-			{
-				"name": "deal_excess_damage_to_controller",
-				"description": "Stomp",
-				"description_expanded": "Stomp mobs deal excess damage to players.",
-				"effect_type": "after_deals_damage"				
-			}
-		]
-	},
-	{
-		"name": "Disk of Death",
-		"card_type": "artifact",
-		"image": "chakram.svg",
-		"discipline": "magic",
-		"cost": 4,
-		"description": "1: sacrifice this, kill all artifacts and mobs.",
-		"effects": [
-			{
-				"name": "kill",
-				"effect_type": "activated",
-				"target_type": "all",
-				"cost": 1,
-				"sacrifice_on_activate": true
-			},
-			{
-				"name": "slow_artifact",
-				"effect_type": "enter_play"
-			}
-
-		]
-	},
-	{
-		"name": "Akbar's Pan Pipes",
-		"card_type": "artifact",
-		"image": "pan-flute.svg",
-		"cost": 4,
-		"description": "Remove a counter: Summon a 2/2 rat.",
-		"effects": [
-			{
-				"name": "make_token",
-				"card_names": ["Charmed Rat"],
-				"effect_type": "activated",
-				"target_type": "self",
-				"amount": 1,
-				"counters": 5
-			}
-		]
-	},
-	{
-		"name": "Charmed Rat",
-		"is_token": true,
-		"discipline": "tech",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 2,
-		"cost": 1
-	},
-	{
-		"name": "Mana Battery",
-		"discipline": "magic",
-		"image": "battery-pack.svg",
-		"card_type": "artifact",
-		"description": "Stores unused mana up to 3.",
-		"cost": 0,
-		"effects": [
-			{
-				"name": "store_mana",
-				"effect_type": "start_turn"
-			},
-			{
-				"name": "use_stored_mana",
-				"effect_type": "spend_mana"
-			},
-			{
-				"name": "augment_mana",
-				"effect_type": "check_mana"
-			}
-		]
-	},
-	{ 
-		"name": "Lil' Maker",
-		"discipline": "magic",
-		"image": "mad-scientist.svg",
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"description": "Make a card from your deck.",
-		"effects": [{
-			"name": "make_from_deck",
-			"effect_type": "enter_play",
-			"target_type": "self",
-			"make_type": "deck_card",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Brarium",
-		"discipline": "magic",
-		"image": "crystal-ball.svg",
-		"card_type": "artifact",
-		"description": "Replace your normal draw with a choice of 3 cards.",
-		"cost": 2,
-		"effects": [
-			{
-				"name": "reduce_draw",
-				"effect_type": "before_draw",
-				"amount": 1
-			},
-			{
-				"name": "make_from_deck",
-				"effect_type": "start_turn"
-			}
-		]
-	},
-	{
-		"name": "Counter Mob",
-		"discipline": "magic",
-		"image": "magic-swirl.svg",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Counter a mob.",
-		"effects": [{
-			"name": "stack_counter",
-			"amount": 2,
-			"effect_type": "spell",
-			"target_type": "being_cast_mob",
-			"ai_target_types": ["being_cast_mob_opponent"]
-		}]
-	},
-	{
-		"name": "Counter Spell",
-		"discipline": "magic",
-		"image": "bolt-spell-cast.svg",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Counter a spell.",
-		"effects": [{
-			"name": "stack_counter",
-			"amount": 2,
-			"effect_type": "spell",
-			"target_type": "being_cast_spell",
-			"ai_target_types": ["being_cast_spell_opponent"]
-		}]
-	},
-	{
-		"name": "Spell Archaeologist",
-		"discipline": "magic",
-		"card_type": "mob",
-		"image": "architect-mask.svg",
-		"strength": 2,
-		"hit_points": 3,
-		"cost": 3,
-		"description": "Get a random spell back from your yard at the end of your turn",
-		"effects": [{
-			"name": "spell_from_yard",
-			"effect_type": "end_turn",
-			"target_type": "self",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Quickster",
-		"discipline": "magic",
-		"image": "run.svg",
-		"card_type": "mob",
-		"description": "Draw when this deals damage to your opponent.",
-		"strength": 1,
-		"hit_points": 3,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage_opponent",
-				"amount": 1
-			},
-			{
-				"name": "allow_instant_cast",
-				"description": "Conjure",
-				"description_expanded": "Conjure mobs may be played as instants.",
-				"effect_type": "action_added_to_stack"
-			}
-		]
-	},
-	{
-		"name": "Orpheus Krustal",
-		"discipline": "magic",
-		"image": "crystal-shine.svg",
-		"card_type": "artifact",
-		"description": "Draw 2 extra cards at the beginning of your turn.",
-		"cost": 5,
-		"effects": [{
-			"name": "draw",
-			"target_type": "self",
-			"effect_type": "start_turn",
-			"amount": 2
-		}]
-	},
-	{
-		"name": "Crazy Control",
-		"discipline": "magic",
-		"image": "misdirection.svg",
-		"cost": 4,
-		"card_type": "spell",
-		"description": "Summon a random mob or artifact from your opponent's hand.",
-		"effects": [{
-			"name": "summon_from_hand",
-			"amount": 1,
-			"effect_type": "spell",
-			"target_type": "opponent"
-		}]
-	},
-	{ 
-		"name": "Legendary Djinn",
-		"discipline": "magic",
-		"image": "drakkar-dragon.svg",
-		"card_type": "mob",
-		"strength": 7,
-		"hit_points": 7,
-		"cost": 7,
-		"description": "Make a card from your deck.",
-		"effects": [
-			{
-				"name": "make_from_deck",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"make_type": "deck_card",
-				"amount": 1
-			},
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "allow_instant_cast",
-				"description": "Conjure",
-				"description_expanded": "Conjure mobs may be played as instants.",
-				"effect_type": "action_added_to_stack"
-			}
-		]
-	},
-	{ 
-		"name": "Octopug",
-		"discipline": "magic",
-		"card_type": "mob",
-		"image": "labrador-head.svg",
-		"strength": 8,
-		"hit_points": 8,
-		"cost": 8,
-		"description": "Return all mobs to their owners' hands.",
-		"effects": [{
-			"name": "unwind",
-			"effect_type": "enter_play",
-			"target_type": "all_mobs"
-		}]
-	},
-	{
-		"name": "Nonapug Whistle",
-		"discipline": "magic",
-		"image": "whistle.svg",
-		"cost": 8,
-		"card_type": "spell",
-		"description": "Make 3/3s with Fast.",
-		"effects": [{
-			"name": "make_token",
-			"card_names": ["Nonapug Decon"],
-			"target_type": "self",
-			"effect_type": "spell",
-			"amount": 3
-		}]
-	},
-	{
-		"name": "Nonapug Decon",
-		"is_token": true,
-		"discipline": "magic",
-		"image": "snout.svg",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 3,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			}
-		]
-	},
-	{
-		"name": "Quasar Tap",
-		"discipline": "magic",
-		"image": "well.svg",
-		"card_type": "artifact",
-		"description": "Refresh your mana after you spend it all.",
-		"cost": 10,
-		"effects": [{
-			"name": "refresh_mana",
-			"effect_type": "spend_mana"
-		}]
-	},
-	{
-		"name": "Find Artifact",
-		"discipline": "tech",
-		"image": "chest.svg",
-		"cost": 0,
-		"card_type": "spell",
-		"description": "Choose 1 of 3 artifacts to make and add to your deck. Cast only on your turn.",
-		"card_subtype": "turn-only",
-		"effects": [{
-			"name": "make",
-			"effect_type": "spell",
-			"target_type": "self",
-			"make_type": "artifact",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Wind of Mercury",
-		"discipline": "tech",
-		"image": "wingfoot.svg",
-		"cost": 1,
-		"card_type": "spell",
-		"description": "Target mob gets Fast. Draw a card.",
-		"effects": [ 
-			{
-				"name": "add_mob_effects",
-				"effect_type": "spell",
-				"target_type": "mob",
-				"effects": [{
-            		"name": "add_fast",
-            		"description": "Fast",
-            		"description_expanded": "Fast mobs may attack the turn they come into play.",
-            		"effect_type": "enter_play"
-        		}],
-				"ai_target_types": ["self_mob"]
-			},
-			{
-				"name": "draw",
-				"target_type": "self",
-				"effect_type": "spell",
-				"amount": 1
-			}
-		]
-	},
-	{
-		"name": "Fidget Spinner",
-		"discipline": "tech",
-		"image": "spinning-blades.svg",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 2,
-		"cost": 2,
-		"description": "Gets +1/+1 when Kept.",
-		"effects": [
-			{
-				"name": "preserve_stats",
-				"effect_type": "sent_to_played_pile"
-			},		
-			{
-				"name": "keep",
-				"effect_type": "discarded_end_of_turn",
-        		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"amount": 1
-			}
-		]
-	},
-	{
-		"name": "Rolling Thunder",
-		"discipline": "tech",
-		"image": "rolling-energy.svg",
-		"cost": 1,
-		"card_type": "spell",
-		"description": "Deal 2 damage. Improves when cast.",
-		"effects": [{
-			"name": "damage",
-			"effect_type": "spell",
-			"target_type": "any",
-			"amount": 1,
-			"ai_target_types": ["opponent"]
-		},
-		{
-			"name": "improve_damage_when_used",
-			"effect_type": "spell",
-			"amount": 1
-		},
-		{
-			"name": "preserve_effect_improvement",
-			"effect_type": "sent_to_played_pile"
-		}]
-	},
-	{
-		"name": "Tame Shop Demon",
-		"discipline": "tech",
-		"image": "pentacle.svg",
-		"card_type": "spell",
-		"cost": 1,
-		"level": 0,
-		"effects": [
-			{
-				"name": "make_token",
-				"card_names": ["Leprechaun", "Awesomerachaun", "Megachaun", "Ultrachaun"],
-				"card_descriptions": [
-					"Make a 1/1. Improves when cast.", 
-					"Make a 2/2 Fast. Improves when cast.", 
-					"Make a 3/3 Fast. Improves when cast.", 
-					"Make a 4/4 Fast that draws you a card when it deals damage." 
-				],
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 1
-			},		
-			{
-				"name": "improve_effect_when_cast",
-				"effect_type": "spell",
-				"amount": 1
-			}
-		]
-	},
-	{
-		"name": "Leprechaun",
-		"is_token": true,
-		"discipline": "tech",
-		"image": "troll.svg",
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 0
-	},
-	{
-		"name": "Awesomerachaun",
-		"is_token": true,
-		"discipline": "tech",
-		"image": "ogre.svg",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 2,
-		"cost": 1,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}]	
-	},
-	{
-		"name": "Megachaun",
-		"is_token": true,
-		"discipline": "tech",
-		"image": "air-man.svg",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 3,
-		"cost": 2,
-		"effects": [{
-			"name": "add_fast",
-			"description": "Fast",
-			"description_expanded": "Fast mobs may attack the turn they come into play.",
-			"effect_type": "enter_play"
-		}]
-	},
-	{
-		"name": "Ultrachaun",
-		"is_token": true,
-		"discipline": "tech",
-		"image": "robot-antennas.svg",
-		"card_type": "mob",
-		"description": "Draw when this damages an opponent.",
-		"strength": 4,
-		"hit_points": 4,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage_opponent",
-				"amount": 1
-			}
-		]
-	},
-	{
-		"name": "Work in Progress",
-		"discipline": "tech",
-		"image": "aquarium.svg",
-		"card_type": "mob",
-		"description": "Improves when Kept.",
-		"strength": 3,
-		"hit_points": 3,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "keep",
-				"amount_id": "upgrade",
-				"effect_type": "discarded_end_of_turn",
-        		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 1"]
-			}
-		]
-	},
-	{
-		"name": "Work in Progress: Stage 1",
-		"discipline": "tech",
-		"is_token": true,
-		"image": "fish-monster.svg",
-		"card_type": "mob",
-		"description": "Improves when Kept.",
-		"strength": 4,
-		"hit_points": 4,
-		"cost": 3,
-		"effects": [
-			{
-				"name": "keep",
-				"amount_id": "upgrade",
-				"effect_type": "discarded_end_of_turn",
-        		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 2"]
-			}
-		]
-	},
-	{
-		"name": "Work in Progress: Stage 2",
-		"discipline": "tech",
-		"is_token": true,
-		"image": "angler-fish.svg",
-		"card_type": "mob",
-		"description": "Improves when Kept.",
-		"strength": 4,
-		"hit_points": 4,
-		"cost": 3,
-		"description": "Draw when this deals damage to your opponent.",
-		"effects": [
-			{
-				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage_opponent",
-				"amount": 1
-			},
-			{
-				"name": "keep",
-				"amount_id": "upgrade",
-				"effect_type": "discarded_end_of_turn",
-        		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 3"]
-			}
-		]
-	},
-	{
-		"name": "Work in Progress: Stage 3",
-		"discipline": "tech",
-		"is_token": true,
-		"image": "piranha.svg",
-		"card_type": "mob",
-		"description": "Improves when Kept.",
-		"strength": 4,
-		"hit_points": 5,
-		"cost": 2,
-		"description": "Draw when this deals damage to your opponent.",
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage_opponent",
-				"amount": 1
-			},
-			{
-				"name": "keep",
-				"amount_id": "upgrade",
-				"effect_type": "discarded_end_of_turn",
-        		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
-        		"card_names": ["Work in Progress: Stage 4"]
-			}
-		]	
-	},
-	{
-		"name": "Work in Progress: Stage 4",
-		"discipline": "tech",
-		"is_token": true,
-		"image": "helicoprion.svg",
-		"card_type": "mob",
-		"strength": 5,
-		"hit_points": 6,
-		"cost": 2,
-		"description": "Draw when this deals damage to your opponent.",
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "draw_on_deal_damage",
-				"effect_type": "after_deals_damage_opponent",
-				"amount": 1
-			},
-			{
-				"name": "allow_instant_cast",
-				"description": "Conjure",
-				"description_expanded": "Conjure mobs may be played as instants.",
-				"effect_type": "action_added_to_stack"
-			},
-			{
-				"name": "keep",
-				"effect_type": "discarded_end_of_turn",
-        		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
-			}
-		]
-	},
-	{ 
-		"name": "Side Project",
-		"discipline": "tech",
-		"image": "rock-golem.svg",
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"description": "Spend all your mana. This gets +1/+1 per mana.",
-		"effects": [{
-			"name": "buff_strength_hit_points_from_mana",
-			"effect_type": "enter_play",
-			"target_type": "this"
-		}]
-	},
-	{
-		"name": "Elemental Ritual",
-		"discipline": "magic",
-		"image": "round-struck.svg",
-		"cost": 0,
-		"card_type": "spell",
-		"description": "Get 2 mana this turn. Cast only on your turn.",
-		"card_subtype": "turn-only",
-		"effects": [{
-			"name": "mana",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 2
-		}]
-	},
-	{
-		"name": "Lute",
-		"discipline": "tech",
-		"card_type": "artifact",
-		"image": "lyre.svg",
-		"cost": 1,
-		"description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
-		"original_description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
-		"effects": [
-			{
-				"name": "enable_activated_effect",
-				"effect_type": "activated",
-				"target_type": "self",
-				"cost": 1,
-				"effect_to_activate": {
-					"name": "create_random_townie",
-					"effect_type": "activated",
-					"description": "Remove a counter: Add a Townie to your hand",
-					"target_type": "self",
-					"amount": 1,
-					"counters": 2,
-					"cost": 0,
-					"strength": 0
-				}
-			},
-			{
-				"name": "start_in_play",
-				"effect_type": "after_shuffle",
-				"description": "Starts in Play",
-				"description_expanded": "This artifact starts in play if you have no other artifacts in play.",
-				"description_on_card" : false
-			}			
-		]
-	},
-	{
-		"name": "Mana Shrub",
-		"image": "berry-bush.svg",
-		"discipline": "tech",
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"description": "You have an extra mana each turn.",
-		"effects": [
-			{
-				"name": "mana_increase_max",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"amount": 1
-			},
-			{
-				"name": "decrease_max_mana",
-				"effect_type": "leave_play",
-				"target_type": "self",
-				"amount": 1
-			}
-		]
-	},
-	{
-		"name": "Tech Crashhouse",
-		"image": "viking-longhouse.svg",
-		"discipline": "tech",
-		"card_type": "spell",
-		"description": "Draw a Townie for each time this has been cast. Reduce their cost by 1.",
-		"cost": 1,
-		"effects": [
-			{
-				"name": "create_random_townie_cheap",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 1
-			},
-			{
-				"name": "improve_effect_amount_when_cast",
-				"effect_type": "spell",
-				"amount": 1
-			},
-			{
-				"name": "preserve_effect_improvement",
-				"effect_type": "sent_to_played_pile"
-			}		
-		]
-	},
-	{
-		"name": "Mayor's Brandy",
-		"image": "brandy-bottle.svg",
-		"discipline": "tech",
-		"cost": 1,
-		"card_type": "spell",
-		"description": "Give a mob +2/+2.",
-		"effects": [{
-			"name": "add_tokens",
-			"effect_type": "spell",
-			"target_type": "mob",
-			"tokens": [{
-				"strength_modifier": 2,
-				"hit_points_modifier": 2
-			}],
-			"ai_target_types": ["self_mob"]
-		}]
-	},
-	{
-		"name": "Song of Patience",
-		"image": "tune-pitch.svg",
-		"discipline": "tech",
-		"cost": 1,
-		"card_type": "spell",
-		"description": "Make a card (cost reduced by 1), or put this back in your hand.",
-		"effects": [
-			{
-				"name": "make_cheap_with_option",
-				"effect_type": "spell",
-				"target_type": "self",
-				"make_type": "any",
-				"amount": 1
-			},
-			{
-				"name": "keep",
-				"effect_type": "discarded_end_of_turn",
-        		"description": "Keep",
-        		"description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn."
-			}
-		]
-	},
-	{
-		"name": "Study the Music",
-		"image": "xylophone.svg",
-		"discipline": "tech",
-		"card_type": "spell",
-		"cost": 1,
-		"description": "Search your deck for a card.",
-		"effects": [{
-			"name": "fetch_card",
-			"effect_type": "spell",
-			"target_type": "all_cards_in_deck",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Song of Rebirth",
-		"image": "embryo.svg",
-		"discipline": "tech",
-		"card_type": "spell",
-		"cost": 1,
-		"description": "Search your played pile for a card.",
-		"effects": [{
-			"name": "fetch_card",
-			"effect_type": "spell",
-			"target_type": "all_cards_in_played_pile",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Town Ranger",
-		"discipline": "tech",
-		"image": "hooded-figure.svg",
-		"is_token": true,
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 2,
-		"cost": 1,
-		"effects": [
-			{
-				"name": "force_attack_guard_first",
-				"description": "Guard",
-				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "select_mob_target"
-			},
-			{
-				"name": "is_townie",
-				"description": "Townie",
-				"description_expanded": "Townies have a weak effect."
-			}			
-		]	
-	},
-	{
-		"name": "Town Fighter",
-		"discipline": "tech",
-		"image": "spartan-helmet.svg",
-		"is_token": true,
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 1,
-		"cost": 1,
-		"effects": [
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			},
-			{
-				"name": "is_townie",
-				"description": "Townie",
-				"description_expanded": "Townies have a weak effect."
-			}			
-		]
-	},
-	{
-		"name": "Town Wizard",
-		"discipline": "tech",
-		"image": "wizard-face.svg",
-		"is_token": true,
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"description": "Make a spell.",
-		"effects": [
-			{
-				"name": "make",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"make_type": "spell",
-				"amount": 1
-			},
-			{
-				"name": "is_townie",
-				"description": "Townie",
-				"description_expanded": "Townies have a weak effect."
-			}			
-		]
-	},
-	{
-		"name": "Town Shaman",
-		"discipline": "tech",
-		"image": "tribal-mask.svg",
-		"is_token": true,
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"description": "Make a mob.",
-		"effects": [
-			{
-				"name": "make",
-				"effect_type": "enter_play",
-				"target_type": "self",
-				"make_type": "mob",
-				"amount": 1
-			},
-			{
-				"name": "is_townie",
-				"description": "Townie",
-				"description_expanded": "Townies have a weak effect."
-			}			
-		]
-	},
-	{
-		"name": "Town Priest",
-		"discipline": "tech",
-		"image": "monk-face.svg",
-		"is_token": true,
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 2,
-		"cost": 1,
-		"description": "Heal for 2.",
-		"effects": [
-			{
-				"name": "heal",
-				"effect_type": "enter_play",
-				"target_type": "any",
-				"amount": 2
-			},
-			{
-				"name": "is_townie",
-				"description": "Townie",
-				"description_expanded": "Townies have a weak effect."
-			}			
-		]
-	},
-	{
-		"name": "Townie",
-		"is_token": true,
-		"image": "pig-face.svg",
-		"discipline": "tech",
-		"card_type": "mob",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"effects": [
-			{
-				"name": "is_townie",
-				"description": "Townie",
-				"description_expanded": "Townies have a weak effect."
-			}			
-		]
-	},
-	{
-		"name": "Push Soul",
-		"discipline": "magic",
-		"image": "angel-outfit.svg",
-		"card_type": "spell",
-		"cost": 1,
-		"description": "Kill a mob. Its controller gains hit points equal to its hit_points.",
-		"effects": [
-			{
-				"name": "gain_for_hit_points",
-				"effect_type": "spell",
-				"target_type": "mob",
-				"ai_target_types": ["opponents_mob"]
-			},		
-			{
-				"name": "kill",
-				"effect_type": "spell",
-				"target_type": "mob"
-			}
-		]
-	},
-	{
-		"name": "Tame Time",
-		"discipline": "magic",
-		"image": "pocket-watch.svg",
-		"cost": 2,
-		"card_type": "spell",
-		"card_subtype": "turn-only",
-		"description": "Take an extra turn. Cast only on your turn.",
-		"effects": [
-			{
-				"effect_type": "spell",
-				"target_type": "self",
-				"name": "take_extra_turn"
-			},
-			{
-				"name": "disappear",
-				"description": "Disappear",
-				"description_expanded": "Cards with Disappear don't go to the Played Pile when played, they are removed instead.",
-				"effect_type": "after_card_resolves",
-				"ui_info": {
-					"effect_type": "fade_out"
-				}
-			}
-		]
-	},
-	{
-		"name": "Duplication Chamber",
-		"discipline": "tech",
-		"card_type": "artifact",
-		"image": "box-unpacking.svg",
-		"cost": 2,
-		"description": "Pay 1, add a card to this. Next turn, get it back with a copy.",
-		"effects": [{
-			"name": "duplicate_card_next_turn",
-			"effect_type": "activated",
-			"target_type": "hand_card",
-			"cost": 1,
-			"amount": 1
-		},
-		{
-			"name": "duplicate_card_next_turn",
-			"effect_type": "start_turn",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Upgrade Chamber",
-		"discipline": "tech",
-		"card_type": "artifact",
-		"image": "ring-box.svg",
-		"cost": 2,
-		"description": "Pay 1, add a card to this. Next turn, get it back upgraded.",
-		"effects": [{
-			"name": "upgrade_card_next_turn",
-			"effect_type": "activated",
-			"target_type": "hand_card",
-			"cost": 1,
-			"amount": 1
-		}, 
-		{
-			"name": "upgrade_card_next_turn",
-			"effect_type": "start_turn",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Study the Masters",
-		"discipline": "tech",
-		"card_type": "spell",
-		"image": "pianist.svg",
-		"cost": 2,
-		"description": "You get an extra mana each turn.",
-		"effects": [{
-			"name": "mana_increase_max",
-			"effect_type": "spell",
-			"target_type": "self",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Sabotage",
-		"discipline": "tech",
-		"image": "dynamite.svg",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Destroy something that costs more than 3 mana.",
-		"effects": [
-			{
-				"name": "kill",
-				"effect_type": "spell",
-				"target_type": "mob_or_artifact",
-				"ai_target_types": ["opponents_mob", "opponents_artifact"]
-			},
-			{
-				"name": "restrict_effect_targets_min_cost",
-				"effect_type": "select_mob_target_override",
-				"amount": 3
-			}
-		]
-	},
-	{
-		"name": "Fine War Music",
-		"discipline": "tech",
-		"image": "drum.svg",
-		"cost": 3,
-		"card_type": "spell",
-		"description": "Give all your mobs +2/+2.",
-		"effects": [{
-			"name": "add_tokens",
-			"effect_type": "spell",
-			"target_type": "self_mobs",
-			"tokens": [{
-				"strength_modifier": 2,
-				"hit_points_modifier": 2
-			}]
-		}]
-	},
-	{
-		"name": "Tech Revenge",
-		"discipline": "tech",
-		"cost": 5,
-		"image": "dwarf-helmet.svg",
-		"card_type": "spell",
-		"description": "Kill a Mob or Artifact. Reduce the cost of this when drawn.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "spell",
-			"target_type": "mob_or_artifact",
-			"ai_target_types": ["opponents_mob", "opponents_artifact"]
-		}, 
-		{
-			"name": "reduce_cost",
-			"effect_type": "was_drawn"
-		}]
-	},
-	{
-		"name": "Song of Fire",
-		"discipline": "tech",
-		"cost": 5,
-		"image": "music-spell.svg",
-		"card_type": "spell",
-		"description": "Reduce the cost of this when drawn. Deal 5 damage to all enemies.",
-		"effects": [{
-			"name": "damage",
-			"effect_type": "spell",
-			"target_type": "opponent",
-			"amount": 5
-		},
-		{
-			"name": "damage",
-			"effect_type": "spell",
-			"target_type": "opponents_mobs",
-			"amount": 5
-		},
-		{
-			"name": "reduce_cost",
-			"effect_type": "was_drawn"
-		}]
-	},
-	{
-		"name": "Mana Coffin",
-		"discipline": "magic",
-		"card_type": "artifact",
-		"image": "coffin.svg",
-		"cost": 2,
-		"description": "Pay 0, add a card to this. Next turn, get it back costing 1 less.",
-		"effects": [
-			{
-				"name": "store_for_decosting",
-				"effect_type": "activated",
-				"target_type": "hand_card",
-				"cost": 0,
-				"amount": 1
-			}, 
-			{
-				"name": "decost_card_next_turn",
-				"effect_type": "start_turn",
-				"amount": 1
-			}
-		]
-	},
-	{
-		"name": "Make Metal",
-		"image": "stone-bust.svg",
-		"discipline": "magic",
-		"cost": 1,
-		"card_type": "spell",
-		"description": "Turn a Mob into an Artifact.",
-		"effects": [{
-			"name": "mob_to_artifact",
-			"effect_type": "spell",
-			"target_type": "mob",
-			"ai_target_types": ["opponents_mob"]
-		}]
-	},
-	{ 
-		"name": "Bright Child Vamp",
-		"discipline": "magic",
-		"card_type": "mob",
-		"image": "female-vampire.svg",
-		"description": "When you draw, gain 1 hit point, or deal 1 damage to an enemy (random).",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"effects": [{
-			"name": "hp_damage_random",
-			"target_type": "any",
-			"effect_type": "draw"
-		}]
-	},
-	{ 
-		"name": "Studious Child Vamp",
-		"discipline": "magic",
-		"card_type": "mob",
-		"image": "vampire-dracula.svg",
-		"description": "Draw a card at the beginning of your turn.",
-		"strength": 1,
-		"hit_points": 1,
-		"cost": 1,
-		"effects": [{
-			"name": "draw",
-			"target_type": "self",
-			"effect_type": "start_turn",
-			"amount": 1
-		}]
-	},
-	{
-		"name": "Send Minion",
-		"image": "pointing.svg",
-		"discipline": "magic",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Summon a 2/3. Change a spell being cast to target it.",
-		"effects": [
-			{
-				"name": "redirect_mob_spell",
-				"effect_type": "spell",
-				"target_type": "being_cast_spell",
-				"ai_target_types": ["being_cast_spell_opponent"]
-			},
-			{
-				"name": "restrict_effect_targets_mob_targetter",
-				"effect_type": "select_mob_target_override"
-			}
-		]
-	},
-	{
-		"name": "Willing Villager",
-		"image": "star-struck.svg",
-		"discipline": "magic",
-		"is_token": true,
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 3,
-		"cost": 2
-	},
-	{
-		"name": "Flock of Bats",
-		"image": "moon-bats.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 2,
-		"hit_points": 4,
-		"cost": 2,
-		"effects": [
-			{
-				"name": "force_attack_guard_first",
-				"description": "Guard",
-				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "select_mob_target"
-			}
-		]
-	},   
-	{
-		"name": "OG Vamp",
-		"image": "resting-vampire.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 3,
-		"cost": 2,
-		"effects": [
-			{
-				"name": "drain_hp",
-				"description": "Drain",
-				"description_expanded": "Gain hit points when this deals damage to your.",
-				"effect_type": "after_deals_damage"
-			},
-			{
-				"name": "add_fast",
-				"description": "Fast",
-				"description_expanded": "Fast mobs may attack the turn they come into play.",
-				"effect_type": "enter_play"
-			}			
-		]
-	},
-	{ 
-		"name": "Enthralled Maker",
-		"discipline": "magic",
-		"image": "diamonds-smile.svg",
-		"card_type": "mob",
-		"strength": 3,
-		"hit_points": 4,
-		"cost": 3,
-		"description": "Replace your normal draw with a choice of 3 cards.",
-		"effects": [
-			{
-				"name": "reduce_draw",
-				"effect_type": "before_draw",
-				"amount": 1
-			},
-			{
-				"name": "make_from_deck",
-				"effect_type": "start_turn"
-			}
-		]
-
-	},
-	{
-		"name": "Solid Vamp Minion",
-		"discipline": "magic",
-		"image": "muscle-fat.svg",
-		"card_type": "mob",
-		"strength": 4,
-		"hit_points": 4,
-		"cost": 3,
-		"description": "Gain 2 hit points at the start of your turn.",
-		"effects": [{
-			"name": "heal",
-			"target_type": "self",
-			"effect_type": "start_turn",
-			"amount": 2
-		}]
-	},
-	{
-		"name": "Vamp Leader",
-		"discipline": "magic",
-		"image": "conqueror.svg",
-		"card_type": "mob",
-		"strength": 4,
-		"hit_points": 4,
-		"cost": 4,
-		"description": "Your other Mobs get +1/+1.",
-		"effects": [
-			{
-				"name": "add_tokens",
-				"effect_type": "enter_play",
-				"target_type": "self_mobs",
-				"tokens": [{
-					"strength_modifier": 1,
-					"hit_points_modifier": 1,
-					"multiplier": "self_artifacts"
-				}]
-			},
-			{
-				"name": "remove_tokens",
-				"effect_type": "leave_play",
-				"target_type": "self_mobs"
-			}
-		,
-			{
-				"name": "set_token",
-				"target_type": "self_mobs",
-				"effect_type": "mob_changes_zones",
-				"tokens": [{
-					"strength_modifier": 1,
-					"hit_points_modifier": 1,
-					"multiplier": "self_artifacts"
-				}]
-			}
-		]
-	},
-	{
-		"name": "Blood Boy Ogre",
-		"image": "fat.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 5,
-		"hit_points": 5,
-		"cost": 4,
-		"effects": [
-			{
-				"name": "drain_hp",
-				"description": "Drain",
-				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "after_deals_damage"
-			},
-			{
-				"name": "force_attack_guard_first",
-				"description": "Guard",
-				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "select_mob_target"
-			}
-		]
-	},
-	{
-		"name": "Elite Guardgoyle",
-		"image": "gargoyle.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 7,
-		"hit_points": 7,
-		"cost": 6,
-		"effects": [
-			{
-				"name": "force_attack_guard_first",
-				"description": "Guard",
-				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "select_mob_target"
-			}
-		]
-	},
-	{
-		"name": "Blood Shriek",
-		"image": "energy-breath.svg",
-		"discipline": "magic",
-		"cost": 7,
-		"card_type": "spell",
-		"description": "Discard your hand. All enemies take damage equal to your hand size.",
-		"effects": [{
-				"name": "damage",
-				"effect_type": "spell",
-				"target_type": "opponent",
-				"amount_id": "hand"
-			},
-			{
-				"name": "damage",
-				"effect_type": "spell",
-				"target_type": "opponents_mobs",
-				"amount_id": "hand"
-			},
-			{
-				"name": "discard_random",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount_id": "hand"
-			}
-		]
-	},
-	{
-		"name": "Doomer",
-		"discipline": "magic",
-		"card_type": "artifact",
-		"image": "extra-time.svg",
-		"cost": 6,
-		"description": "Drain. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
-		"effects": [{
-				"name": "damage",
-				"target_type": "opponent",
-				"effect_type": "end_turn",
-				"amount": 1
-			}, 
-			{
-				"name": "damage",
-				"target_type": "opponents_mobs",
-				"effect_type": "end_turn",
-				"amount": 1
-			},
-			{
-				"name": "improve_damage_all_effects_when_used",
-				"effect_type": "after_deals_damage_opponent",
-				"amount": 1
-			},
-			{
-				"name": "drain_hp",
-				"description": "Drain",
-				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "after_deals_damage"
-			},
-			{
-				"name": "drain_hp",
-				"effect_type": "after_deals_damage_opponent"
-			}
-		]
-	},
-	{
-		"name": "The Ancient",
-		"image": "fanged-skull.svg",
-		"discipline": "magic",
-		"card_type": "mob",
-		"strength": 4,
-		"hit_points": 12,
-		"cost": 9,
-		"effects": [
-			{
-				"name": "drain_hp",
-				"description": "Drain",
-				"description_expanded": "Gain hit points when this deals damage.",
-				"effect_type": "after_deals_damage"
-			},
-			{
-				"name": "force_attack_guard_first",
-				"description": "Guard",
-				"description_expanded": "Guard mobs must be attacked before other enemies.",
-				"effect_type": "select_mob_target"
-			},
-			{
-				"name": "allow_instant_cast",
-				"description": "Conjure",
-				"description_expanded": "Conjure mobs may be played as instants.",
-				"effect_type": "action_added_to_stack"
-			}
-		]
-	},
-	{
-		"name": "Ritual of the Night",
-		"image": "night-vision.svg",
-		"discipline": "magic",
-		"cost": 0,
-		"card_type": "spell",
-		"card_subtype": "turn-only",
-		"description": "Spend all of your mana. For each, draw a card or resurrect a friendly mob. Cast only on your turn.",
-		"effects": [{
-				"name": "draw_or_resurrect",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount_id": "mana"
-			}
-		]
-	},
-	{
-		"name": "Tinker",
-		"discipline": "tech",
-		"image": "gear-hammer.svg",
-		"card_type": "spell",
-		"cost": 0,
-		"card_subtype": "turn-only",
-		"description": "Draw one of the top 2 cards of your deck. Put the other in your played pile. Cast only on your turn.",
-		"effects": [
-			{
-				"name": "riffle",
-				"effect_type": "spell",
-				"target_type": "self",
-				"amount": 2
-			}
-		]
-	},
-	{
-		"name": "Kill Artifact",
-		"discipline": "magic",
-		"image": "hammer-break.svg",
-		"cost": 2,
-		"card_type": "spell",
-		"description": "Kill an artifact.",
-		"effects": [{
-			"name": "kill",
-			"effect_type": "spell",
-			"target_type": "artifact",
-			"ai_target_types": ["opponents_artifact"]
-		}]
-	}
+[
+    {
+        "name": "Training Master",
+        "image": "coronation.svg",
+        "discipline": "none",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 3,
+        "cost": 3,
+        "description": "Double the strength of another mob.",
+        "effects": [
+            {
+                "name": "Double Strength",
+                "effect_type": "enter_play",
+                "target_type": "self_mob",
+                "id": "double_strength"
+            }
+        ]
+    },
+    {
+        "name": "Winding One",
+        "image": "wind-hole.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 4,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Lose Lurker",
+                "effect_type": "after_attack",
+                "id": "lose_lurker"
+            },
+            {
+                "name": "Make Untargettable",
+                "effect_type": "select_mob_target_override",
+                "ui_info": {
+                    "effect_type": "glow",
+                    "outer_strength": 0,
+                    "inner_strength": 3,
+                    "color": "black"
+                },
+                "id": "make_untargettable"
+            }
+        ]
+    },
+    {
+        "name": "Lightning Elemental",
+        "image": "lightning-tear.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 2,
+        "description": "Deal 2 damage.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "enter_play",
+                "target_type": "any",
+                "amount": 2,
+                "ai_target_types": [
+                    "opponent"
+                ],
+                "id": "damage"
+            }
+        ]
+    },
+    {
+        "name": "Tame Tempest",
+        "image": "tornado.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 2,
+        "cost": 3,
+        "description": "Return a mob to its owner's hand.",
+        "effects": [
+            {
+                "name": "Unwind",
+                "effect_type": "enter_play",
+                "target_type": "mob",
+                "ai_target_types": [
+                    "opponents_mob"
+                ],
+                "id": "unwind"
+            }
+        ]
+    },
+    {
+        "name": "Unwind",
+        "discipline": "magic",
+        "image": "acrobatic.svg",
+        "cost": 2,
+        "card_type": "spell",
+        "description": "Return a mob to its owner's hand.",
+        "effects": [
+            {
+                "name": "Unwind",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "ai_target_types": [
+                    "opponents_mob"
+                ],
+                "id": "unwind"
+            }
+        ]
+    },
+    {
+        "name": "Kill",
+        "image": "deathcab.svg",
+        "discipline": "magic",
+        "cost": 4,
+        "card_type": "spell",
+        "description": "Kill a mob.",
+        "effects": [
+            {
+                "name": "Kill",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "ai_target_types": [
+                    "opponents_mob"
+                ],
+                "id": "kill"
+            }
+        ]
+    },
+    {
+        "name": "Inferno Elemental",
+        "image": "brasero.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 5,
+        "hit_points": 5,
+        "cost": 5,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            }
+        ]
+    },
+    {
+        "name": "Siz Pop",
+        "image": "bolt-drop.svg",
+        "discipline": "magic",
+        "cost": 1,
+        "card_type": "spell",
+        "description": "Deal 1 damage. Draw 1 card.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "any",
+                "amount": 1,
+                "ai_target_types": [
+                    "opponent",
+                    "opponents_mob"
+                ],
+                "id": "damage"
+            },
+            {
+                "name": "Draw",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 1,
+                "id": "draw"
+            },
+            {
+                "name": "Start In Hand",
+                "effect_type": "after_shuffle",
+                "description": "Starts in Hand",
+                "description_expanded": "This spell starts in your hand.",
+                "description_on_card": true,
+                "id": "start_in_hand"
+            }
+        ]
+    },
+    {
+        "name": "Mind Manacles",
+        "image": "manacles.svg",
+        "discipline": "magic",
+        "cost": 6,
+        "card_type": "spell",
+        "description": "Take control of a mob.",
+        "effects": [
+            {
+                "name": "Take Control",
+                "effect_type": "spell",
+                "target_type": "opponents_mob",
+                "id": "take_control"
+            }
+        ]
+    },
+    {
+        "name": "Familiar",
+        "image": "cat.svg",
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 2,
+        "cost": 2,
+        "description": "Draw a card.",
+        "effects": [
+            {
+                "name": "Draw",
+                "effect_type": "enter_play",
+                "target_type": "self",
+                "amount": 1,
+                "id": "draw"
+            }
+        ]
+    },
+    {
+        "name": "Bow",
+        "image": "bow-arrow.svg",
+        "discipline": "magic",
+        "card_type": "artifact",
+        "cost": 1,
+        "description": "Pay 1, deal 3 damage to your opponent.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "activated",
+                "target_type": "opponent",
+                "cost": 1,
+                "amount": 3,
+                "id": "damage"
+            },
+            {
+                "name": "Start In Play",
+                "effect_type": "after_shuffle",
+                "id": "start_in_play"
+            }
+        ]
+    },
+    {
+        "name": "Wand",
+        "card_type": "artifact",
+        "image": "orb-wand.svg",
+        "discipline": "magic",
+        "cost": 1,
+        "description": "Pay 0, deal 1 damage to anything.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "activated",
+                "target_type": "any",
+                "cost": 0,
+                "amount": 1,
+                "ai_target_types": [
+                    "opponent",
+                    "opponents_mob"
+                ],
+                "id": "damage"
+            },
+            {
+                "name": "Start In Play",
+                "effect_type": "after_shuffle",
+                "id": "start_in_play"
+            }
+        ]
+    },
+    {
+        "name": "Abyssal Crystal",
+        "card_type": "artifact",
+        "image": "moebius-star.svg",
+        "discipline": "magic",
+        "cost": 1,
+        "description": "Pay 1, draw a card and lose 2 hit points.",
+        "effects": [
+            {
+                "name": "Draw",
+                "effect_type": "activated",
+                "target_type": "self",
+                "cost": 1,
+                "cost_hp": 2,
+                "amount": 1,
+                "id": "draw"
+            },
+            {
+                "name": "Start In Play",
+                "effect_type": "after_shuffle",
+                "id": "start_in_play"
+            }
+        ]
+    },
+    {
+        "name": "Wish Stone",
+        "card_type": "artifact",
+        "discipline": "magic",
+        "image": "rune-stone.svg",
+        "cost": 4,
+        "description": "0: sacrifice this, put a artifact from your deck into play.",
+        "effects": [
+            {
+                "name": "Fetch Card Into Play",
+                "effect_type": "activated",
+                "target_type": "artifact_in_deck",
+                "cost": 0,
+                "sacrifice_on_activate": true,
+                "id": "fetch_card_into_play"
+            }
+        ]
+    },
+    {
+        "name": "Town Council",
+        "discipline": "tech",
+        "image": "round-table.svg",
+        "description": "Your other mobs get +1/+1 for every 2 mobs you control, rounded down.",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 4,
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Add Tokens",
+                "effect_type": "enter_play",
+                "target_type": "self_mobs",
+                "tokens": [
+                    {
+                        "turns": 1,
+                        "target_type": "self_mobs",
+                        "strength_modifier": 1,
+                        "hit_points_modifier": 1,
+                        "multiplier": "half_self_mobs"
+                    }
+                ],
+                "id": "add_tokens"
+            }
+        ]
+    },
+    {
+        "name": "Totem Cat",
+        "image": "totem-mask.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 1,
+        "cost": 1,
+        "description": "Get a 2/1 ghost token when this dies.",
+        "effects": [
+            {
+                "name": "Make Token",
+                "card_names": [
+                    "Ghost of the Cat"
+                ],
+                "effect_type": "leave_play",
+                "target_type": "self",
+                "amount": 1,
+                "id": "make_token"
+            }
+        ]
+    },
+    {
+        "name": "Ghost of the Cat",
+        "is_token": true,
+        "image": "spark-spirit.svg",
+        "discipline": "none",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 1,
+        "cost": 1
+    },
+    {
+        "name": "Taunted Bear",
+        "image": "bear-face.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 2,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Add Fade",
+                "description": "Fade",
+                "description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+                "effect_type": "start_turn",
+                "id": "add_fade"
+            },
+            {
+                "name": "Deal Excess Damage To Controller",
+                "description": "Stomp",
+                "description_expanded": "Stomp mobs deal excess damage to players.",
+                "effect_type": "after_deals_damage",
+                "id": "deal_excess_damage_to_controller"
+            }
+        ]
+    },
+    {
+        "name": "War Scorpion",
+        "image": "scorpion.svg",
+        "discipline": "none",
+        "card_type": "mob",
+        "description": "Has Fast if something else does.",
+        "strength": 2,
+        "hit_points": 2,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Ambush",
+                "description": "Ambush",
+                "description_expanded": "Ambush mobs may attack other mobs the turn they come into play.",
+                "effect_type": "mob_changes_zones",
+                "id": "ambush"
+            },
+            {
+                "name": "Remove Symbiotic Fast",
+                "effect_type": "mob_changes_zones",
+                "target_type": "self",
+                "id": "remove_symbiotic_fast"
+            },
+            {
+                "name": "Add Symbiotic Fast",
+                "effect_type": "mob_changes_zones",
+                "target_type": "self",
+                "id": "add_symbiotic_fast"
+            }
+        ]
+    },
+    {
+        "name": "Berserk Monkey",
+        "image": "monkey.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "description": "Gets +1/+1 whenever you play a card.",
+        "strength": 0,
+        "hit_points": 1,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Add Tokens",
+                "effect_type": "friendly_card_played",
+                "target_type": "this",
+                "tokens": [
+                    {
+                        "strength_modifier": 1,
+                        "hit_points_modifier": 1
+                    }
+                ],
+                "id": "add_tokens"
+            }
+        ]
+    },
+    {
+        "name": "Frenzy",
+        "image": "uprising.svg",
+        "discipline": "magic",
+        "cost": 1,
+        "card_type": "spell",
+        "description": "Draw a card this turn. Draw another card if you dealt damage to your opponent.",
+        "effects": [
+            {
+                "name": "Draw If Damaged Opponent",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 1,
+                "id": "draw_if_damaged_opponent"
+            },
+            {
+                "name": "Draw",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 1,
+                "id": "draw"
+            }
+        ]
+    },
+    {
+        "name": "Impale",
+        "image": "spiked-trunk.svg",
+        "discipline": "magic",
+        "cost": 2,
+        "card_type": "spell",
+        "description": "Deal 3 damage to a mob and your Opponent.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "amount": 3,
+                "ai_target_types": [
+                    "opponents_mob"
+                ],
+                "id": "damage"
+            },
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "opponent",
+                "amount": 3,
+                "id": "damage"
+            }
+        ]
+    },
+    {
+        "name": "Arsenal",
+        "image": "saber-and-pistol.svg",
+        "discipline": "magic",
+        "card_type": "artifact",
+        "cost": 2,
+        "description": "Your mobs get +1/+0 for each artifact you control.",
+        "original_description": "Your mobs get +1/+0 for each artifact you control.",
+        "effects": [
+            {
+                "name": "Add Tokens",
+                "effect_type": "enter_play",
+                "target_type": "self_mobs",
+                "tokens": [
+                    {
+                        "strength_modifier": 1,
+                        "hit_points_modifier": 0,
+                        "multiplier": "self_artifacts"
+                    }
+                ],
+                "id": "add_tokens"
+            },
+            {
+                "name": "Remove Tokens",
+                "effect_type": "leave_play",
+                "target_type": "self_mobs",
+                "id": "remove_tokens"
+            },
+            {
+                "name": "Set Token",
+                "effect_type": "mob_changes_zones",
+                "target_type": "self_mobs",
+                "tokens": [
+                    {
+                        "strength_modifier": 1,
+                        "hit_points_modifier": 0,
+                        "multiplier": "self_artifacts"
+                    }
+                ],
+                "id": "set_token"
+            }
+        ]
+    },
+    {
+        "name": "Animal Trainer",
+        "image": "teacher.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 3,
+        "description": "Give a friendly mob +2/+2 and Fade.",
+        "hit_points": 2,
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Add Tokens",
+                "effect_type": "enter_play",
+                "target_type": "self_mob",
+                "tokens": [
+                    {
+                        "strength_modifier": 2,
+                        "hit_points_modifier": 2
+                    }
+                ],
+                "id": "add_tokens"
+            },
+            {
+                "name": "Add Mob Effects",
+                "effect_type": "enter_play",
+                "target_type": "mob",
+                "effects": [
+                    {
+                        "name": "add_fade",
+                        "description": "Fade",
+                        "description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+                        "effect_type": "start_turn"
+                    }
+                ],
+                "ai_target_types": [
+                    "self_mob"
+                ],
+                "id": "add_mob_effects"
+            }
+        ]
+    },
+    {
+        "name": "Viper",
+        "image": "snake-bite.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 4,
+        "hit_points": 3,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Add Fade",
+                "description": "Fade",
+                "description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+                "effect_type": "start_turn",
+                "id": "add_fade"
+            },
+            {
+                "name": "Deal Excess Damage To Controller",
+                "description": "Stomp",
+                "description_expanded": "Stomp mobs deal excess damage to players.",
+                "effect_type": "after_deals_damage",
+                "id": "deal_excess_damage_to_controller"
+            }
+        ]
+    },
+    {
+        "name": "Enraged Stomper",
+        "image": "mammoth.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "description": "Deals you 1 damage at the start of your turn.",
+        "strength": 5,
+        "hit_points": 5,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Damage",
+                "target_type": "self",
+                "effect_type": "start_turn",
+                "amount": 1,
+                "id": "damage"
+            },
+            {
+                "name": "Deal Excess Damage To Controller",
+                "description": "Stomp",
+                "description_expanded": "Stomp mobs deal excess damage to players.",
+                "effect_type": "after_deals_damage",
+                "id": "deal_excess_damage_to_controller"
+            }
+        ]
+    },
+    {
+        "name": "Gird for Battle",
+        "image": "armor-punch.svg",
+        "discipline": "none",
+        "card_type": "spell",
+        "cost": 5,
+        "description": "Get a random artifact from your deck. Summon a 3/3 with Fast and Fade.",
+        "effects": [
+            {
+                "name": "Make Token",
+                "card_names": [
+                    "Mist Elephant"
+                ],
+                "target_type": "self",
+                "effect_type": "spell",
+                "amount": 1,
+                "id": "make_token"
+            },
+            {
+                "name": "Summon From Deck Artifact",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 1,
+                "id": "summon_from_deck_artifact"
+            }
+        ]
+    },
+    {
+        "name": "Mist Elephant",
+        "is_token": true,
+        "image": "elephant-head.svg",
+        "discipline": "none",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 2,
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Add Fade",
+                "description": "Fade",
+                "description_expanded": "Fade mobs get -1/-1 at the beginning of the turn.",
+                "effect_type": "start_turn",
+                "id": "add_fade"
+            }
+        ]
+    },
+    {
+        "name": "Spirit of the Stampede",
+        "image": "stomp.svg",
+        "discipline": "none",
+        "card_type": "mob",
+        "description": "+1/+0 for each other mob and artifact you have.",
+        "strength": 2,
+        "hit_points": 5,
+        "cost": 5,
+        "effects": [
+            {
+                "name": "Set Token",
+                "effect_type": "mob_changes_zones",
+                "target_type": "this",
+                "tokens": [
+                    {
+                        "strength_modifier": 1,
+                        "hit_points_modifier": 0,
+                        "multiplier": "self_mobs_and_artifacts"
+                    }
+                ],
+                "id": "set_token"
+            },
+            {
+                "name": "Deal Excess Damage To Controller",
+                "description": "Stomp",
+                "description_expanded": "Stomp mobs deal excess damage to players.",
+                "effect_type": "after_deals_damage",
+                "id": "deal_excess_damage_to_controller"
+            }
+        ]
+    },
+    {
+        "name": "Disk of Death",
+        "card_type": "artifact",
+        "image": "chakram.svg",
+        "discipline": "magic",
+        "cost": 4,
+        "description": "1: sacrifice this, kill all artifacts and mobs.",
+        "effects": [
+            {
+                "name": "Kill",
+                "effect_type": "activated",
+                "target_type": "all",
+                "cost": 1,
+                "sacrifice_on_activate": true,
+                "id": "kill"
+            },
+            {
+                "name": "Slow Artifact",
+                "effect_type": "enter_play",
+                "id": "slow_artifact"
+            }
+        ]
+    },
+    {
+        "name": "Akbar's Pan Pipes",
+        "card_type": "artifact",
+        "image": "pan-flute.svg",
+        "cost": 4,
+        "description": "Remove a counter: Summon a 2/2 rat.",
+        "effects": [
+            {
+                "name": "Make Token",
+                "card_names": [
+                    "Charmed Rat"
+                ],
+                "effect_type": "activated",
+                "target_type": "self",
+                "amount": 1,
+                "counters": 5,
+                "id": "make_token"
+            }
+        ]
+    },
+    {
+        "name": "Charmed Rat",
+        "is_token": true,
+        "discipline": "tech",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 2,
+        "cost": 1
+    },
+    {
+        "name": "Mana Battery",
+        "discipline": "magic",
+        "image": "battery-pack.svg",
+        "card_type": "artifact",
+        "description": "Stores unused mana up to 3.",
+        "cost": 0,
+        "effects": [
+            {
+                "name": "Store Mana",
+                "effect_type": "start_turn",
+                "id": "store_mana"
+            },
+            {
+                "name": "Use Stored Mana",
+                "effect_type": "spend_mana",
+                "id": "use_stored_mana"
+            },
+            {
+                "name": "Augment Mana",
+                "effect_type": "check_mana",
+                "id": "augment_mana"
+            }
+        ]
+    },
+    {
+        "name": "Lil' Maker",
+        "discipline": "magic",
+        "image": "mad-scientist.svg",
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "description": "Make a card from your deck.",
+        "effects": [
+            {
+                "name": "Make From Deck",
+                "effect_type": "enter_play",
+                "target_type": "self",
+                "make_type": "deck_card",
+                "amount": 1,
+                "id": "make_from_deck"
+            }
+        ]
+    },
+    {
+        "name": "Brarium",
+        "discipline": "magic",
+        "image": "crystal-ball.svg",
+        "card_type": "artifact",
+        "description": "Replace your normal draw with a choice of 3 cards.",
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Reduce Draw",
+                "effect_type": "before_draw",
+                "amount": 1,
+                "id": "reduce_draw"
+            },
+            {
+                "name": "Make From Deck",
+                "effect_type": "start_turn",
+                "id": "make_from_deck"
+            }
+        ]
+    },
+    {
+        "name": "Counter Mob",
+        "discipline": "magic",
+        "image": "magic-swirl.svg",
+        "cost": 2,
+        "card_type": "spell",
+        "description": "Counter a mob.",
+        "effects": [
+            {
+                "name": "Stack Counter",
+                "amount": 2,
+                "effect_type": "spell",
+                "target_type": "being_cast_mob",
+                "ai_target_types": [
+                    "being_cast_mob_opponent"
+                ],
+                "id": "stack_counter"
+            }
+        ]
+    },
+    {
+        "name": "Counter Spell",
+        "discipline": "magic",
+        "image": "bolt-spell-cast.svg",
+        "cost": 2,
+        "card_type": "spell",
+        "description": "Counter a spell.",
+        "effects": [
+            {
+                "name": "Stack Counter",
+                "amount": 2,
+                "effect_type": "spell",
+                "target_type": "being_cast_spell",
+                "ai_target_types": [
+                    "being_cast_spell_opponent"
+                ],
+                "id": "stack_counter"
+            }
+        ]
+    },
+    {
+        "name": "Spell Archaeologist",
+        "discipline": "magic",
+        "card_type": "mob",
+        "image": "architect-mask.svg",
+        "strength": 2,
+        "hit_points": 3,
+        "cost": 3,
+        "description": "Get a random spell back from your yard at the end of your turn",
+        "effects": [
+            {
+                "name": "Spell From Yard",
+                "effect_type": "end_turn",
+                "target_type": "self",
+                "amount": 1,
+                "id": "spell_from_yard"
+            }
+        ]
+    },
+    {
+        "name": "Quickster",
+        "discipline": "magic",
+        "image": "run.svg",
+        "card_type": "mob",
+        "description": "Draw when this deals damage to your opponent.",
+        "strength": 1,
+        "hit_points": 3,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Draw On Deal Damage",
+                "effect_type": "after_deals_damage_opponent",
+                "amount": 1,
+                "id": "draw_on_deal_damage"
+            },
+            {
+                "name": "Allow Instant Cast",
+                "description": "Conjure",
+                "description_expanded": "Conjure mobs may be played as instants.",
+                "effect_type": "action_added_to_stack",
+                "id": "allow_instant_cast"
+            }
+        ]
+    },
+    {
+        "name": "Orpheus Krustal",
+        "discipline": "magic",
+        "image": "crystal-shine.svg",
+        "card_type": "artifact",
+        "description": "Draw 2 extra cards at the beginning of your turn.",
+        "cost": 5,
+        "effects": [
+            {
+                "name": "Draw",
+                "target_type": "self",
+                "effect_type": "start_turn",
+                "amount": 2,
+                "id": "draw"
+            }
+        ]
+    },
+    {
+        "name": "Crazy Control",
+        "discipline": "magic",
+        "image": "misdirection.svg",
+        "cost": 4,
+        "card_type": "spell",
+        "description": "Summon a random mob or artifact from your opponent's hand.",
+        "effects": [
+            {
+                "name": "Summon From Hand",
+                "amount": 1,
+                "effect_type": "spell",
+                "target_type": "opponent",
+                "id": "summon_from_hand"
+            }
+        ]
+    },
+    {
+        "name": "Legendary Djinn",
+        "discipline": "magic",
+        "image": "drakkar-dragon.svg",
+        "card_type": "mob",
+        "strength": 7,
+        "hit_points": 7,
+        "cost": 7,
+        "description": "Make a card from your deck.",
+        "effects": [
+            {
+                "name": "Make From Deck",
+                "effect_type": "enter_play",
+                "target_type": "self",
+                "make_type": "deck_card",
+                "amount": 1,
+                "id": "make_from_deck"
+            },
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Allow Instant Cast",
+                "description": "Conjure",
+                "description_expanded": "Conjure mobs may be played as instants.",
+                "effect_type": "action_added_to_stack",
+                "id": "allow_instant_cast"
+            }
+        ]
+    },
+    {
+        "name": "Octopug",
+        "discipline": "magic",
+        "card_type": "mob",
+        "image": "labrador-head.svg",
+        "strength": 8,
+        "hit_points": 8,
+        "cost": 8,
+        "description": "Return all mobs to their owners' hands.",
+        "effects": [
+            {
+                "name": "Unwind",
+                "effect_type": "enter_play",
+                "target_type": "all_mobs",
+                "id": "unwind"
+            }
+        ]
+    },
+    {
+        "name": "Nonapug Whistle",
+        "discipline": "magic",
+        "image": "whistle.svg",
+        "cost": 8,
+        "card_type": "spell",
+        "description": "Make 3/3s with Fast.",
+        "effects": [
+            {
+                "name": "Make Token",
+                "card_names": [
+                    "Nonapug Decon"
+                ],
+                "target_type": "self",
+                "effect_type": "spell",
+                "amount": 3,
+                "id": "make_token"
+            }
+        ]
+    },
+    {
+        "name": "Nonapug Decon",
+        "is_token": true,
+        "discipline": "magic",
+        "image": "snout.svg",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 3,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            }
+        ]
+    },
+    {
+        "name": "Quasar Tap",
+        "discipline": "magic",
+        "image": "well.svg",
+        "card_type": "artifact",
+        "description": "Refresh your mana after you spend it all.",
+        "cost": 10,
+        "effects": [
+            {
+                "name": "Refresh Mana",
+                "effect_type": "spend_mana",
+                "id": "refresh_mana"
+            }
+        ]
+    },
+    {
+        "name": "Find Artifact",
+        "discipline": "tech",
+        "image": "chest.svg",
+        "cost": 0,
+        "card_type": "spell",
+        "description": "Choose 1 of 3 artifacts to make and add to your deck. Cast only on your turn.",
+        "card_subtype": "turn-only",
+        "effects": [
+            {
+                "name": "Make",
+                "effect_type": "spell",
+                "target_type": "self",
+                "make_type": "artifact",
+                "amount": 1,
+                "id": "make"
+            }
+        ]
+    },
+    {
+        "name": "Wind of Mercury",
+        "discipline": "tech",
+        "image": "wingfoot.svg",
+        "cost": 1,
+        "card_type": "spell",
+        "description": "Target mob gets Fast. Draw a card.",
+        "effects": [
+            {
+                "name": "Add Mob Effects",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "effects": [
+                    {
+                        "name": "add_fast",
+                        "description": "Fast",
+                        "description_expanded": "Fast mobs may attack the turn they come into play.",
+                        "effect_type": "enter_play"
+                    }
+                ],
+                "ai_target_types": [
+                    "self_mob"
+                ],
+                "id": "add_mob_effects"
+            },
+            {
+                "name": "Draw",
+                "target_type": "self",
+                "effect_type": "spell",
+                "amount": 1,
+                "id": "draw"
+            }
+        ]
+    },
+    {
+        "name": "Fidget Spinner",
+        "discipline": "tech",
+        "image": "spinning-blades.svg",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 2,
+        "cost": 2,
+        "description": "Gets +1/+1 when Kept.",
+        "effects": [
+            {
+                "name": "Preserve Stats",
+                "effect_type": "sent_to_played_pile",
+                "id": "preserve_stats"
+            },
+            {
+                "name": "Keep",
+                "effect_type": "discarded_end_of_turn",
+                "description": "Keep",
+                "description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+                "amount": 1,
+                "id": "keep"
+            }
+        ]
+    },
+    {
+        "name": "Rolling Thunder",
+        "discipline": "tech",
+        "image": "rolling-energy.svg",
+        "cost": 1,
+        "card_type": "spell",
+        "description": "Deal 2 damage. Improves when cast.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "any",
+                "amount": 1,
+                "ai_target_types": [
+                    "opponent"
+                ],
+                "id": "damage"
+            },
+            {
+                "name": "Improve Damage When Used",
+                "effect_type": "spell",
+                "amount": 1,
+                "id": "improve_damage_when_used"
+            },
+            {
+                "name": "Preserve Effect Improvement",
+                "effect_type": "sent_to_played_pile",
+                "id": "preserve_effect_improvement"
+            }
+        ]
+    },
+    {
+        "name": "Tame Shop Demon",
+        "discipline": "tech",
+        "image": "pentacle.svg",
+        "card_type": "spell",
+        "cost": 1,
+        "level": 0,
+        "effects": [
+            {
+                "name": "Make Token",
+                "card_names": [
+                    "Leprechaun",
+                    "Awesomerachaun",
+                    "Megachaun",
+                    "Ultrachaun"
+                ],
+                "card_descriptions": [
+                    "Make a 1/1. Improves when cast.",
+                    "Make a 2/2 Fast. Improves when cast.",
+                    "Make a 3/3 Fast. Improves when cast.",
+                    "Make a 4/4 Fast that draws you a card when it deals damage."
+                ],
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 1,
+                "id": "make_token"
+            },
+            {
+                "name": "Improve Effect When Cast",
+                "effect_type": "spell",
+                "amount": 1,
+                "id": "improve_effect_when_cast"
+            }
+        ]
+    },
+    {
+        "name": "Leprechaun",
+        "is_token": true,
+        "discipline": "tech",
+        "image": "troll.svg",
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 0
+    },
+    {
+        "name": "Awesomerachaun",
+        "is_token": true,
+        "discipline": "tech",
+        "image": "ogre.svg",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 2,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            }
+        ]
+    },
+    {
+        "name": "Megachaun",
+        "is_token": true,
+        "discipline": "tech",
+        "image": "air-man.svg",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 3,
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            }
+        ]
+    },
+    {
+        "name": "Ultrachaun",
+        "is_token": true,
+        "discipline": "tech",
+        "image": "robot-antennas.svg",
+        "card_type": "mob",
+        "description": "Draw when this damages an opponent.",
+        "strength": 4,
+        "hit_points": 4,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Draw On Deal Damage",
+                "effect_type": "after_deals_damage_opponent",
+                "amount": 1,
+                "id": "draw_on_deal_damage"
+            }
+        ]
+    },
+    {
+        "name": "Work in Progress",
+        "discipline": "tech",
+        "image": "aquarium.svg",
+        "card_type": "mob",
+        "description": "Improves when Kept.",
+        "strength": 3,
+        "hit_points": 3,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Keep",
+                "amount_id": "upgrade",
+                "effect_type": "discarded_end_of_turn",
+                "description": "Keep",
+                "description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+                "card_names": [
+                    "Work in Progress: Stage 1"
+                ],
+                "id": "keep"
+            }
+        ]
+    },
+    {
+        "name": "Work in Progress: Stage 1",
+        "discipline": "tech",
+        "is_token": true,
+        "image": "fish-monster.svg",
+        "card_type": "mob",
+        "description": "Improves when Kept.",
+        "strength": 4,
+        "hit_points": 4,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Keep",
+                "amount_id": "upgrade",
+                "effect_type": "discarded_end_of_turn",
+                "description": "Keep",
+                "description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+                "card_names": [
+                    "Work in Progress: Stage 2"
+                ],
+                "id": "keep"
+            }
+        ]
+    },
+    {
+        "name": "Work in Progress: Stage 2",
+        "discipline": "tech",
+        "is_token": true,
+        "image": "angler-fish.svg",
+        "card_type": "mob",
+        "description": "Draw when this deals damage to your opponent.",
+        "strength": 4,
+        "hit_points": 4,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Draw On Deal Damage",
+                "effect_type": "after_deals_damage_opponent",
+                "amount": 1,
+                "id": "draw_on_deal_damage"
+            },
+            {
+                "name": "Keep",
+                "amount_id": "upgrade",
+                "effect_type": "discarded_end_of_turn",
+                "description": "Keep",
+                "description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+                "card_names": [
+                    "Work in Progress: Stage 3"
+                ],
+                "id": "keep"
+            }
+        ]
+    },
+    {
+        "name": "Work in Progress: Stage 3",
+        "discipline": "tech",
+        "is_token": true,
+        "image": "piranha.svg",
+        "card_type": "mob",
+        "description": "Draw when this deals damage to your opponent.",
+        "strength": 4,
+        "hit_points": 5,
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Draw On Deal Damage",
+                "effect_type": "after_deals_damage_opponent",
+                "amount": 1,
+                "id": "draw_on_deal_damage"
+            },
+            {
+                "name": "Keep",
+                "amount_id": "upgrade",
+                "effect_type": "discarded_end_of_turn",
+                "description": "Keep",
+                "description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+                "card_names": [
+                    "Work in Progress: Stage 4"
+                ],
+                "id": "keep"
+            }
+        ]
+    },
+    {
+        "name": "Work in Progress: Stage 4",
+        "discipline": "tech",
+        "is_token": true,
+        "image": "helicoprion.svg",
+        "card_type": "mob",
+        "strength": 5,
+        "hit_points": 6,
+        "cost": 2,
+        "description": "Draw when this deals damage to your opponent.",
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Draw On Deal Damage",
+                "effect_type": "after_deals_damage_opponent",
+                "amount": 1,
+                "id": "draw_on_deal_damage"
+            },
+            {
+                "name": "Allow Instant Cast",
+                "description": "Conjure",
+                "description_expanded": "Conjure mobs may be played as instants.",
+                "effect_type": "action_added_to_stack",
+                "id": "allow_instant_cast"
+            },
+            {
+                "name": "Keep",
+                "effect_type": "discarded_end_of_turn",
+                "description": "Keep",
+                "description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+                "id": "keep"
+            }
+        ]
+    },
+    {
+        "name": "Side Project",
+        "discipline": "tech",
+        "image": "rock-golem.svg",
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "description": "Spend all your mana. This gets +1/+1 per mana.",
+        "effects": [
+            {
+                "name": "Buff Strength Hit Points From Mana",
+                "effect_type": "enter_play",
+                "target_type": "this",
+                "id": "buff_strength_hit_points_from_mana"
+            }
+        ]
+    },
+    {
+        "name": "Elemental Ritual",
+        "discipline": "magic",
+        "image": "round-struck.svg",
+        "cost": 0,
+        "card_type": "spell",
+        "description": "Get 2 mana this turn. Cast only on your turn.",
+        "card_subtype": "turn-only",
+        "effects": [
+            {
+                "name": "Mana",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 2,
+                "id": "mana"
+            }
+        ]
+    },
+    {
+        "name": "Lute",
+        "discipline": "tech",
+        "card_type": "artifact",
+        "image": "lyre.svg",
+        "cost": 1,
+        "description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
+        "original_description": "Pay 1, make this an artifact with 2 charges that fetches Townies.",
+        "effects": [
+            {
+                "name": "Enable Activated Effect",
+                "effect_type": "activated",
+                "target_type": "self",
+                "cost": 1,
+                "effect_to_activate": {
+                    "name": "create_random_townie",
+                    "effect_type": "activated",
+                    "description": "Remove a counter: Add a Townie to your hand",
+                    "target_type": "self",
+                    "amount": 1,
+                    "counters": 2,
+                    "cost": 0,
+                    "strength": 0
+                },
+                "id": "enable_activated_effect"
+            },
+            {
+                "name": "Start In Play",
+                "effect_type": "after_shuffle",
+                "description": "Starts in Play",
+                "description_expanded": "This artifact starts in play if you have no other artifacts in play.",
+                "description_on_card": false,
+                "id": "start_in_play"
+            }
+        ]
+    },
+    {
+        "name": "Mana Shrub",
+        "image": "berry-bush.svg",
+        "discipline": "tech",
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "description": "You have an extra mana each turn.",
+        "effects": [
+            {
+                "name": "Mana Increase Max",
+                "effect_type": "enter_play",
+                "target_type": "self",
+                "amount": 1,
+                "id": "mana_increase_max"
+            },
+            {
+                "name": "Decrease Max Mana",
+                "effect_type": "leave_play",
+                "target_type": "self",
+                "amount": 1,
+                "id": "decrease_max_mana"
+            }
+        ]
+    },
+    {
+        "name": "Tech Crashhouse",
+        "image": "viking-longhouse.svg",
+        "discipline": "tech",
+        "card_type": "spell",
+        "description": "Draw a Townie for each time this has been cast. Reduce their cost by 1.",
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Create Random Townie Cheap",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 1,
+                "id": "create_random_townie_cheap"
+            },
+            {
+                "name": "Improve Effect Amount When Cast",
+                "effect_type": "spell",
+                "amount": 1,
+                "id": "improve_effect_amount_when_cast"
+            },
+            {
+                "name": "Preserve Effect Improvement",
+                "effect_type": "sent_to_played_pile",
+                "id": "preserve_effect_improvement"
+            }
+        ]
+    },
+    {
+        "name": "Mayor's Brandy",
+        "image": "brandy-bottle.svg",
+        "discipline": "tech",
+        "cost": 1,
+        "card_type": "spell",
+        "description": "Give a mob +2/+2.",
+        "effects": [
+            {
+                "name": "Add Tokens",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "tokens": [
+                    {
+                        "strength_modifier": 2,
+                        "hit_points_modifier": 2
+                    }
+                ],
+                "ai_target_types": [
+                    "self_mob"
+                ],
+                "id": "add_tokens"
+            }
+        ]
+    },
+    {
+        "name": "Song of Patience",
+        "image": "tune-pitch.svg",
+        "discipline": "tech",
+        "cost": 1,
+        "card_type": "spell",
+        "description": "Make a card (cost reduced by 1), or put this back in your hand.",
+        "effects": [
+            {
+                "name": "Make Cheap With Option",
+                "effect_type": "spell",
+                "target_type": "self",
+                "make_type": "any",
+                "amount": 1,
+                "id": "make_cheap_with_option"
+            },
+            {
+                "name": "Keep",
+                "effect_type": "discarded_end_of_turn",
+                "description": "Keep",
+                "description_expanded": "Cards with Keep can be Kept by discplines (tech) that discard their hand each turn.",
+                "id": "keep"
+            }
+        ]
+    },
+    {
+        "name": "Study the Music",
+        "image": "xylophone.svg",
+        "discipline": "tech",
+        "card_type": "spell",
+        "cost": 1,
+        "description": "Search your deck for a card.",
+        "effects": [
+            {
+                "name": "Fetch Card",
+                "effect_type": "spell",
+                "target_type": "all_cards_in_deck",
+                "amount": 1,
+                "id": "fetch_card"
+            }
+        ]
+    },
+    {
+        "name": "Song of Rebirth",
+        "image": "embryo.svg",
+        "discipline": "tech",
+        "card_type": "spell",
+        "cost": 1,
+        "description": "Search your played pile for a card.",
+        "effects": [
+            {
+                "name": "Fetch Card",
+                "effect_type": "spell",
+                "target_type": "all_cards_in_played_pile",
+                "amount": 1,
+                "id": "fetch_card"
+            }
+        ]
+    },
+    {
+        "name": "Town Ranger",
+        "discipline": "tech",
+        "image": "hooded-figure.svg",
+        "is_token": true,
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 2,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Guard",
+                "description": "Guard",
+                "description_expanded": "Guard mobs must be attacked before other enemies.",
+                "effect_type": "select_mob_target",
+                "id": "guard"
+            },
+            {
+                "name": "Is Townie",
+                "description": "Townie",
+                "description_expanded": "Townies have a weak effect.",
+                "id": "is_townie"
+            }
+        ]
+    },
+    {
+        "name": "Town Fighter",
+        "discipline": "tech",
+        "image": "spartan-helmet.svg",
+        "is_token": true,
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 1,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            },
+            {
+                "name": "Is Townie",
+                "description": "Townie",
+                "description_expanded": "Townies have a weak effect.",
+                "id": "is_townie"
+            }
+        ]
+    },
+    {
+        "name": "Town Wizard",
+        "discipline": "tech",
+        "image": "wizard-face.svg",
+        "is_token": true,
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "description": "Make a spell.",
+        "effects": [
+            {
+                "name": "Make",
+                "effect_type": "enter_play",
+                "target_type": "self",
+                "make_type": "spell",
+                "amount": 1,
+                "id": "make"
+            },
+            {
+                "name": "Is Townie",
+                "description": "Townie",
+                "description_expanded": "Townies have a weak effect.",
+                "id": "is_townie"
+            }
+        ]
+    },
+    {
+        "name": "Town Shaman",
+        "discipline": "tech",
+        "image": "tribal-mask.svg",
+        "is_token": true,
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "description": "Make a mob.",
+        "effects": [
+            {
+                "name": "Make",
+                "effect_type": "enter_play",
+                "target_type": "self",
+                "make_type": "mob",
+                "amount": 1,
+                "id": "make"
+            },
+            {
+                "name": "Is Townie",
+                "description": "Townie",
+                "description_expanded": "Townies have a weak effect.",
+                "id": "is_townie"
+            }
+        ]
+    },
+    {
+        "name": "Town Priest",
+        "discipline": "tech",
+        "image": "monk-face.svg",
+        "is_token": true,
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 2,
+        "cost": 1,
+        "description": "Heal for 2.",
+        "effects": [
+            {
+                "name": "Heal",
+                "effect_type": "enter_play",
+                "target_type": "any",
+                "amount": 2,
+                "id": "heal"
+            },
+            {
+                "name": "Is Townie",
+                "description": "Townie",
+                "description_expanded": "Townies have a weak effect.",
+                "id": "is_townie"
+            }
+        ]
+    },
+    {
+        "name": "Townie",
+        "is_token": true,
+        "image": "pig-face.svg",
+        "discipline": "tech",
+        "card_type": "mob",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Is Townie",
+                "description": "Townie",
+                "description_expanded": "Townies have a weak effect.",
+                "id": "is_townie"
+            }
+        ]
+    },
+    {
+        "name": "Push Soul",
+        "discipline": "magic",
+        "image": "angel-outfit.svg",
+        "card_type": "spell",
+        "cost": 1,
+        "description": "Kill a mob. Its controller gains hit points equal to its hit_points.",
+        "effects": [
+            {
+                "name": "Gain For Hit Points",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "ai_target_types": [
+                    "opponents_mob"
+                ],
+                "id": "gain_for_hit_points"
+            },
+            {
+                "name": "Kill",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "id": "kill"
+            }
+        ]
+    },
+    {
+        "name": "Tame Time",
+        "discipline": "magic",
+        "image": "pocket-watch.svg",
+        "cost": 2,
+        "card_type": "spell",
+        "card_subtype": "turn-only",
+        "description": "Take an extra turn. Cast only on your turn.",
+        "effects": [
+            {
+                "effect_type": "spell",
+                "target_type": "self",
+                "name": "Take Extra Turn",
+                "id": "take_extra_turn"
+            },
+            {
+                "name": "Disappear",
+                "description": "Disappear",
+                "description_expanded": "Cards with Disappear don't go to the Played Pile when played, they are removed instead.",
+                "effect_type": "after_card_resolves",
+                "ui_info": {
+                    "effect_type": "fade_out"
+                },
+                "id": "disappear"
+            }
+        ]
+    },
+    {
+        "name": "Duplication Chamber",
+        "discipline": "tech",
+        "card_type": "artifact",
+        "image": "box-unpacking.svg",
+        "cost": 2,
+        "description": "Pay 1, add a card to this. Next turn, get it back with a copy.",
+        "effects": [
+            {
+                "name": "Duplicate Card Next Turn",
+                "effect_type": "activated",
+                "target_type": "hand_card",
+                "cost": 1,
+                "amount": 1,
+                "id": "duplicate_card_next_turn"
+            },
+            {
+                "name": "Duplicate Card Next Turn",
+                "effect_type": "start_turn",
+                "amount": 1,
+                "id": "duplicate_card_next_turn"
+            }
+        ]
+    },
+    {
+        "name": "Upgrade Chamber",
+        "discipline": "tech",
+        "card_type": "artifact",
+        "image": "ring-box.svg",
+        "cost": 2,
+        "description": "Pay 1, add a card to this. Next turn, get it back upgraded.",
+        "effects": [
+            {
+                "name": "Upgrade Card Next Turn",
+                "effect_type": "activated",
+                "target_type": "hand_card",
+                "cost": 1,
+                "amount": 1,
+                "id": "upgrade_card_next_turn"
+            },
+            {
+                "name": "Upgrade Card Next Turn",
+                "effect_type": "start_turn",
+                "amount": 1,
+                "id": "upgrade_card_next_turn"
+            }
+        ]
+    },
+    {
+        "name": "Study the Masters",
+        "discipline": "tech",
+        "card_type": "spell",
+        "image": "pianist.svg",
+        "cost": 2,
+        "description": "You get an extra mana each turn.",
+        "effects": [
+            {
+                "name": "Mana Increase Max",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 1,
+                "id": "mana_increase_max"
+            }
+        ]
+    },
+    {
+        "name": "Sabotage",
+        "discipline": "tech",
+        "image": "dynamite.svg",
+        "cost": 2,
+        "card_type": "spell",
+        "description": "Destroy something that costs more than 3 mana.",
+        "effects": [
+            {
+                "name": "Kill",
+                "effect_type": "spell",
+                "target_type": "mob_or_artifact",
+                "ai_target_types": [
+                    "opponents_mob",
+                    "opponents_artifact"
+                ],
+                "id": "kill"
+            },
+            {
+                "name": "Restrict Effect Targets Min Cost",
+                "effect_type": "select_mob_target_override",
+                "amount": 3,
+                "id": "restrict_effect_targets_min_cost"
+            }
+        ]
+    },
+    {
+        "name": "Fine War Music",
+        "discipline": "tech",
+        "image": "drum.svg",
+        "cost": 3,
+        "card_type": "spell",
+        "description": "Give all your mobs +2/+2.",
+        "effects": [
+            {
+                "name": "Add Tokens",
+                "effect_type": "spell",
+                "target_type": "self_mobs",
+                "tokens": [
+                    {
+                        "strength_modifier": 2,
+                        "hit_points_modifier": 2
+                    }
+                ],
+                "id": "add_tokens"
+            }
+        ]
+    },
+    {
+        "name": "Tech Revenge",
+        "discipline": "tech",
+        "cost": 5,
+        "image": "dwarf-helmet.svg",
+        "card_type": "spell",
+        "description": "Kill a Mob or Artifact. Reduce the cost of this when drawn.",
+        "effects": [
+            {
+                "name": "Kill",
+                "effect_type": "spell",
+                "target_type": "mob_or_artifact",
+                "ai_target_types": [
+                    "opponents_mob",
+                    "opponents_artifact"
+                ],
+                "id": "kill"
+            },
+            {
+                "name": "Reduce Cost",
+                "effect_type": "was_drawn",
+                "id": "reduce_cost"
+            }
+        ]
+    },
+    {
+        "name": "Song of Fire",
+        "discipline": "tech",
+        "cost": 5,
+        "image": "music-spell.svg",
+        "card_type": "spell",
+        "description": "Reduce the cost of this when drawn. Deal 5 damage to all enemies.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "opponent",
+                "amount": 5,
+                "id": "damage"
+            },
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "opponents_mobs",
+                "amount": 5,
+                "id": "damage"
+            },
+            {
+                "name": "Reduce Cost",
+                "effect_type": "was_drawn",
+                "id": "reduce_cost"
+            }
+        ]
+    },
+    {
+        "name": "Mana Coffin",
+        "discipline": "magic",
+        "card_type": "artifact",
+        "image": "coffin.svg",
+        "cost": 2,
+        "description": "Pay 0, add a card to this. Next turn, get it back costing 1 less.",
+        "effects": [
+            {
+                "name": "Store For Decosting",
+                "effect_type": "activated",
+                "target_type": "hand_card",
+                "cost": 0,
+                "amount": 1,
+                "id": "store_for_decosting"
+            },
+            {
+                "name": "Decost Card Next Turn",
+                "effect_type": "start_turn",
+                "amount": 1,
+                "id": "decost_card_next_turn"
+            }
+        ]
+    },
+    {
+        "name": "Make Metal",
+        "image": "stone-bust.svg",
+        "discipline": "magic",
+        "cost": 1,
+        "card_type": "spell",
+        "description": "Turn a Mob into an Artifact.",
+        "effects": [
+            {
+                "name": "Mob To Artifact",
+                "effect_type": "spell",
+                "target_type": "mob",
+                "ai_target_types": [
+                    "opponents_mob"
+                ],
+                "id": "mob_to_artifact"
+            }
+        ]
+    },
+    {
+        "name": "Bright Child Vamp",
+        "discipline": "magic",
+        "card_type": "mob",
+        "image": "female-vampire.svg",
+        "description": "When you draw, gain 1 hit point, or deal 1 damage to an enemy (random).",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Hp Damage Random",
+                "target_type": "any",
+                "effect_type": "draw",
+                "id": "hp_damage_random"
+            }
+        ]
+    },
+    {
+        "name": "Studious Child Vamp",
+        "discipline": "magic",
+        "card_type": "mob",
+        "image": "vampire-dracula.svg",
+        "description": "Draw a card at the beginning of your turn.",
+        "strength": 1,
+        "hit_points": 1,
+        "cost": 1,
+        "effects": [
+            {
+                "name": "Draw",
+                "target_type": "self",
+                "effect_type": "start_turn",
+                "amount": 1,
+                "id": "draw"
+            }
+        ]
+    },
+    {
+        "name": "Send Minion",
+        "image": "pointing.svg",
+        "discipline": "magic",
+        "cost": 2,
+        "card_type": "spell",
+        "description": "Summon a 2/3. Change a spell being cast to target it.",
+        "effects": [
+            {
+                "name": "Redirect Mob Spell",
+                "effect_type": "spell",
+                "target_type": "being_cast_spell",
+                "ai_target_types": [
+                    "being_cast_spell_opponent"
+                ],
+                "id": "redirect_mob_spell"
+            },
+            {
+                "name": "Restrict Effect Targets Mob Targetter",
+                "effect_type": "select_mob_target_override",
+                "id": "restrict_effect_targets_mob_targetter"
+            }
+        ]
+    },
+    {
+        "name": "Willing Villager",
+        "image": "star-struck.svg",
+        "discipline": "magic",
+        "is_token": true,
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 3,
+        "cost": 2
+    },
+    {
+        "name": "Flock of Bats",
+        "image": "moon-bats.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 2,
+        "hit_points": 4,
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Guard",
+                "description": "Guard",
+                "description_expanded": "Guard mobs must be attacked before other enemies.",
+                "effect_type": "select_mob_target",
+                "id": "guard"
+            }
+        ]
+    },
+    {
+        "name": "OG Vamp",
+        "image": "resting-vampire.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 3,
+        "cost": 2,
+        "effects": [
+            {
+                "name": "Drain",
+                "description": "Drain",
+                "description_expanded": "Gain hit points when this deals damage to your.",
+                "effect_type": "after_deals_damage",
+                "id": "drain"
+            },
+            {
+                "name": "Add Fast",
+                "description": "Fast",
+                "description_expanded": "Fast mobs may attack the turn they come into play.",
+                "effect_type": "enter_play",
+                "id": "add_fast"
+            }
+        ]
+    },
+    {
+        "name": "Enthralled Maker",
+        "discipline": "magic",
+        "image": "diamonds-smile.svg",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 4,
+        "cost": 3,
+        "description": "Replace your normal draw with a choice of 3 cards.",
+        "effects": [
+            {
+                "name": "Reduce Draw",
+                "effect_type": "before_draw",
+                "amount": 1,
+                "id": "reduce_draw"
+            },
+            {
+                "name": "Make From Deck",
+                "effect_type": "start_turn",
+                "id": "make_from_deck"
+            }
+        ]
+    },
+    {
+        "name": "Solid Vamp Minion",
+        "discipline": "magic",
+        "image": "muscle-fat.svg",
+        "card_type": "mob",
+        "strength": 4,
+        "hit_points": 4,
+        "cost": 3,
+        "description": "Gain 2 hit points at the start of your turn.",
+        "effects": [
+            {
+                "name": "Heal",
+                "target_type": "self",
+                "effect_type": "start_turn",
+                "amount": 2,
+                "id": "heal"
+            }
+        ]
+    },
+    {
+        "name": "Vamp Leader",
+        "discipline": "magic",
+        "image": "conqueror.svg",
+        "card_type": "mob",
+        "strength": 4,
+        "hit_points": 4,
+        "cost": 4,
+        "description": "Your other Mobs get +1/+1.",
+        "effects": [
+            {
+                "name": "Add Tokens",
+                "effect_type": "enter_play",
+                "target_type": "self_mobs",
+                "tokens": [
+                    {
+                        "strength_modifier": 1,
+                        "hit_points_modifier": 1,
+                        "multiplier": "self_artifacts"
+                    }
+                ],
+                "id": "add_tokens"
+            },
+            {
+                "name": "Remove Tokens",
+                "effect_type": "leave_play",
+                "target_type": "self_mobs",
+                "id": "remove_tokens"
+            },
+            {
+                "name": "Set Token",
+                "target_type": "self_mobs",
+                "effect_type": "mob_changes_zones",
+                "tokens": [
+                    {
+                        "strength_modifier": 1,
+                        "hit_points_modifier": 1,
+                        "multiplier": "self_artifacts"
+                    }
+                ],
+                "id": "set_token"
+            }
+        ]
+    },
+    {
+        "name": "Blood Boy Ogre",
+        "image": "fat.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 5,
+        "hit_points": 5,
+        "cost": 4,
+        "effects": [
+            {
+                "name": "Drain",
+                "description": "Drain",
+                "description_expanded": "Gain hit points when this deals damage.",
+                "effect_type": "after_deals_damage",
+                "id": "drain"
+            },
+            {
+                "name": "Guard",
+                "description": "Guard",
+                "description_expanded": "Guard mobs must be attacked before other enemies.",
+                "effect_type": "select_mob_target",
+                "id": "guard"
+            }
+        ]
+    },
+    {
+        "name": "Elite Guardgoyle",
+        "image": "gargoyle.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 7,
+        "hit_points": 7,
+        "cost": 6,
+        "effects": [
+            {
+                "name": "Guard",
+                "description": "Guard",
+                "description_expanded": "Guard mobs must be attacked before other enemies.",
+                "effect_type": "select_mob_target",
+                "id": "guard"
+            }
+        ]
+    },
+    {
+        "name": "Blood Shriek",
+        "image": "energy-breath.svg",
+        "discipline": "magic",
+        "cost": 7,
+        "card_type": "spell",
+        "description": "Discard your hand. All enemies take damage equal to your hand size.",
+        "effects": [
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "opponent",
+                "amount_id": "hand",
+                "id": "damage"
+            },
+            {
+                "name": "Damage",
+                "effect_type": "spell",
+                "target_type": "opponents_mobs",
+                "amount_id": "hand",
+                "id": "damage"
+            },
+            {
+                "name": "Discard Random",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount_id": "hand",
+                "id": "discard"
+            }
+        ]
+    },
+    {
+        "name": "Doomer",
+        "discipline": "magic",
+        "card_type": "artifact",
+        "image": "extra-time.svg",
+        "cost": 6,
+        "description": "Drain. Your opponent and all of their Mobs take 1 damage end of turn. Increase this each turn.",
+        "effects": [
+            {
+                "name": "Damage",
+                "target_type": "opponent",
+                "effect_type": "end_turn",
+                "amount": 1,
+                "id": "damage"
+            },
+            {
+                "name": "Damage",
+                "target_type": "opponents_mobs",
+                "effect_type": "end_turn",
+                "amount": 1,
+                "id": "damage"
+            },
+            {
+                "name": "Improve Damage All Effects When Used",
+                "effect_type": "after_deals_damage_opponent",
+                "amount": 1,
+                "id": "improve_damage_all_effects_when_used"
+            },
+            {
+                "name": "Drain",
+                "description": "Drain",
+                "description_expanded": "Gain hit points when this deals damage.",
+                "effect_type": "after_deals_damage",
+                "id": "drain"
+            },
+            {
+                "name": "Drain",
+                "effect_type": "after_deals_damage_opponent",
+                "id": "drain"
+            }
+        ]
+    },
+    {
+        "name": "The Ancient",
+        "image": "fanged-skull.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 4,
+        "hit_points": 12,
+        "cost": 9,
+        "effects": [
+            {
+                "name": "Drain",
+                "description": "Drain",
+                "description_expanded": "Gain hit points when this deals damage.",
+                "effect_type": "after_deals_damage",
+                "id": "drain"
+            },
+            {
+                "name": "Guard",
+                "description": "Guard",
+                "description_expanded": "Guard mobs must be attacked before other enemies.",
+                "effect_type": "select_mob_target",
+                "id": "guard"
+            },
+            {
+                "name": "Allow Instant Cast",
+                "description": "Conjure",
+                "description_expanded": "Conjure mobs may be played as instants.",
+                "effect_type": "action_added_to_stack",
+                "id": "allow_instant_cast"
+            }
+        ]
+    },
+    {
+        "name": "Ritual of the Night",
+        "image": "night-vision.svg",
+        "discipline": "magic",
+        "cost": 0,
+        "card_type": "spell",
+        "card_subtype": "turn-only",
+        "description": "Spend all of your mana. For each, draw a card or resurrect a friendly mob. Cast only on your turn.",
+        "effects": [
+            {
+                "name": "Draw Or Resurrect",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount_id": "mana",
+                "id": "draw_or_resurrect"
+            }
+        ]
+    },
+    {
+        "name": "Tinker",
+        "discipline": "tech",
+        "image": "gear-hammer.svg",
+        "card_type": "spell",
+        "cost": 0,
+        "card_subtype": "turn-only",
+        "description": "Draw one of the top 2 cards of your deck. Put the other in your played pile. Cast only on your turn.",
+        "effects": [
+            {
+                "name": "Riffle",
+                "effect_type": "spell",
+                "target_type": "self",
+                "amount": 2,
+                "id": "riffle"
+            }
+        ]
+    },
+    {
+        "name": "Kill Artifact",
+        "discipline": "magic",
+        "image": "hammer-break.svg",
+        "cost": 2,
+        "card_type": "spell",
+        "description": "Kill an artifact.",
+        "effects": [
+            {
+                "name": "Kill",
+                "effect_type": "spell",
+                "target_type": "artifact",
+                "ai_target_types": [
+                    "opponents_artifact"
+                ],
+                "id": "kill"
+            }
+        ]
+    }
 ]
