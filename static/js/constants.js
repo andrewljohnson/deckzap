@@ -10,6 +10,7 @@ export const spellCardType = "spell";
 
 // file/networking
 export const cardImagesPath = "/static/images/card-art/";
+export const customCardImagesPath = "/static/images/card-art-custom/";
 export const largeSpriteQueryString = "?large";
 
 // colors

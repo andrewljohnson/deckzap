@@ -153,15 +153,12 @@ export class Card {
         if (!card.cost && card.cost != 0) {
             cost.text = "?";
         }
-
-
-
         let effectsText = "";
         let color = Constants.darkGrayColor;
         if ("effects" in card) {
             let describe_effects = []
 	        for (let e of card.effects) {
-                if (e.description && e.description_on_card) {
+                if (e.description && (e.description_on_card)) {
                     describe_effects.push(e);
                 }
             }
@@ -169,7 +166,11 @@ export class Card {
                 effectsText += e.description;
                 color = Constants.blackColor;
                 if (e != describe_effects[describe_effects.length-1]) {                
-                    effectsText += ", ";
+                    if (e.description.endsWith(".")) {
+                        effectsText += " ";
+                    } else {
+                        effectsText += ", ";
+                    }
                 }               
 	        }
 
@@ -214,22 +215,28 @@ export class Card {
                 baseDescription += " " + d
             }
         }
+
+        if (effectsText.length > 0 && !effectsText.endsWith(".")) {
+            effectsText += ".";
+        }
+
+
         let descriptionOptions = Constants.textOptions();
         descriptionOptions.wordWrapWidth = cw - Constants.padding*4;
 
-        if ((effectsText + ". " + baseDescription).length > 95) {
+        if ((effectsText + baseDescription).length > 95) {
             descriptionOptions.fontSize = 11; 
         }
         if (useLargeSize) {
             descriptionOptions.fontSize = 16; 
 
         }
-        let description = new PIXI.Text(effectsText + ". " + baseDescription, descriptionOptions);
+        let description = new PIXI.Text(effectsText + baseDescription, descriptionOptions);
         if (effectsText.length == 0) {
             description = new PIXI.Text(baseDescription, descriptionOptions);
         }
         if (effectsText.length != 0 && !baseDescription) {
-            description = new PIXI.Text(effectsText + ". ", descriptionOptions);
+            description = new PIXI.Text(effectsText, descriptionOptions);
         }
 
         if (baseDescription || effectsText.length) {
@@ -588,7 +595,7 @@ export class Card {
         defense.position.y = strengthY;
         cardSprite.addChild(defense);        
 
-        if (card.id && window.location.hostname.startsWith("127.")) {
+        if (card.id && card.id > -1 && window.location.hostname.startsWith("127.")) {
 	        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
 	        cardId.position.x = defenseX - Card.cardWidth/4 - 5;
 	        cardId.position.y = strengthY;
@@ -875,14 +882,14 @@ export class Card {
             sprite.position.x = cardSprite.position.x + (Card.cardWidth+Constants.padding*2)*2;
             sprite.position.y = cardSprite.position.y + Card.cardHeight;
         }
-        if (pixiUX.constructor.name == "DeckBuilder") {
-            sprite.position.x = cardSprite.position.x + (Card.cardWidth);
-            sprite.position.y = cardSprite.position.y + Card.cardHeight;
-        }
+
         if (pixiUX.constructor.name == "DeckBuilder" || pixiUX.constructor.name == "OpponentChooser") {
             sprite.position.x = cardSprite.position.x + (Card.cardWidth * 1.5);
             sprite.position.y = cardSprite.position.y + Card.cardHeight / 2;                
             // hax: move this hover to various classes
+            if (pixiUX.constructor.name == "DeckBuilder" && cardSprite.position.x > 500) {
+                sprite.position.x = cardSprite.position.x - (Card.cardWidth * 1.5);
+            }
             if (cardSprite.texture.orig.height == 30) {
                 sprite.position.x = cardSprite.position.x - (Card.cardWidth);
                 sprite.position.y = cardSprite.position.y + Card.cardHeight;                

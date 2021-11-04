@@ -2,7 +2,7 @@ import datetime
 import json
 
 from battle_wizard.analytics import Analytics
-from battle_wizard.game.data import all_cards
+from battle_wizard.game.card import all_cards
 from create_cards.cards_and_effects import Effects
 from create_cards.cards_and_effects import effect_types
 from create_cards.cards_and_effects import target_types

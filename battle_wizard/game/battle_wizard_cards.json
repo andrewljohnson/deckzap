@@ -168,14 +168,6 @@
                 "target_type": "self",
                 "amount": 1,
                 "id": "draw"
-            },
-            {
-                "name": "Start In Hand",
-                "effect_type": "after_shuffle",
-                "description": "Starts in Hand",
-                "description_expanded": "This spell starts in your hand.",
-                "description_on_card": true,
-                "id": "start_in_hand"
             }
         ]
     },
@@ -1814,7 +1806,7 @@
         "image": "angel-outfit.svg",
         "card_type": "spell",
         "cost": 1,
-        "description": "Kill a mob. Its controller gains hit points equal to its hit_points.",
+        "description": "Kill a mob. Its controller gains hit points equal to its hit points.",
         "effects": [
             {
                 "name": "Gain For Hit Points",

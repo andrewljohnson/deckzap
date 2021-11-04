@@ -1,16 +1,15 @@
 import copy
+import json
 import math
 import random
 
-from battle_wizard.game.data import all_cards
 from battle_wizard.game.data import Constants
-
+from create_cards.models import CustomCard
 
 class Card:
     
     def __init__(self, info):
         self.id = info["id"] if "id" in info else -1
-
         self.attacked = info["attacked"] if "attacked" in info else False
         # use by artifacts with activated abilities
         self.can_activate_effects = info["can_activate_effects"] if "can_activate_effects" in info else True
@@ -33,6 +32,7 @@ class Card:
         # used by artifacts to say which effects are un-useable
         self.description = info["description"] if "description" in info else None
         self.image = info["image"] if "image" in info else None
+        self.is_custom = info["is_custom"] if "is_custom" in info else False
         self.is_token = info["is_token"] if "is_token" in info else False
         self.level = info["level"] if "level" in info else None
         self.name = info["name"] if "name" in info else None
@@ -150,6 +150,7 @@ class Card:
             "effects_can_be_clicked": self.effects_can_be_clicked,
             "id": self.id,
             "image": self.image,
+            "is_custom": self.is_custom,
             "is_token": self.is_token,
             "level": self.level,
             "name": self.name,
@@ -1982,3 +1983,38 @@ class CardToken:
             "multiplier": self.multiplier,
             "id": self.id,
         }
+
+def all_cards(require_images=False, include_tokens=True):
+    """
+        Returns a list of all possible cards in the game. 
+    """
+    json_data = open('battle_wizard/game/battle_wizard_cards.json')
+    all_cards = json.load(json_data)
+    subset = []
+    for c in all_cards:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                subset.append(Card(c).as_dict())
+
+    json_data = open('battle_wizard/game/old_cards.json')
+    all_cards = json.load(json_data)
+    for c in all_cards:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                subset.append(Card(c).as_dict())
+
+    json_data = open('create_cards/cards_and_effects.json')
+    cards_and_effects = json.load(json_data)
+    for c in cards_and_effects["cards"]:
+        if include_tokens or ("is_token" not in c or c["is_token"] == False):
+            if "image" in c or not require_images:
+                c["discipline"] = "magic"
+                subset.append(Card(c).as_dict())
+
+    custom_cards = CustomCard.objects.all().exclude(card_json__name="Unnamed Card")
+    for card in custom_cards:
+        card.card_json["discipline"] = "magic"
+        subset.append(Card(card.card_json).as_dict())
+
+    return subset
+
