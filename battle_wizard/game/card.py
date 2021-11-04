@@ -39,10 +39,10 @@ class Card:
         # used by artifacts with activated effects
         self.original_description = info["original_description"] if "original_description" in info else None
         self.owner_username = info["owner_username"] if "owner_username" in info else None
-        self.power = info["power"] if "power" in info else None
+        self.strength = info["strength"] if "strength" in info else None
         self.show_level_up = info["show_level_up"] if "show_level_up" in info else False
         self.tokens = [CardToken(t) for t in info["tokens"]] if "tokens" in info else []
-        self.toughness = info["toughness"] if "toughness" in info else None
+        self.hit_points = info["hit_points"] if "hit_points" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
         # card.effects get mapped into these lists of defs defined on Card
@@ -155,10 +155,10 @@ class Card:
             "name": self.name,
             "original_description": self.original_description,
             "owner_username": self.owner_username,
-            "power": self.power,
+            "strength": self.strength,
             "show_level_up": self.show_level_up,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
-            "toughness": self.toughness,
+            "hit_points": self.hit_points,
             "turn_played": self.turn_played,
         }
 
@@ -185,8 +185,8 @@ class Card:
             return self.do_allow_defend_response_effect
         elif name == "augment_mana":
             return self.do_augment_mana_effect
-        elif name == "buff_power_toughness_from_mana":
-            return self.do_buff_power_toughness_from_mana_effect
+        elif name == "buff_strength_hit_points_from_mana":
+            return self.do_buff_strength_hit_points_from_mana_effect
         elif name == "create_card":
             return self.do_create_card_effect
         elif name == "create_random_townie":
@@ -207,8 +207,8 @@ class Card:
             return self.do_disappear_effect
         elif name in ["duplicate_card_next_turn", "store_for_decosting", "upgrade_card_next_turn"]:
             return self.do_store_card_for_next_turn_effect
-        elif name == "double_power":
-            return self.do_double_power_effect_on_mob
+        elif name == "double_strength":
+            return self.do_double_strength_effect_on_mob
         elif name == "drain_hp":
             return self.do_drain_hp_effect
         elif name == "draw":
@@ -231,8 +231,8 @@ class Card:
             return self.do_fetch_card_into_play_effect_on_player
         elif name == "force_attack_guard_first":
             return self.do_force_attack_guard_first_effect
-        elif name == "gain_for_toughness":
-            return self.do_gain_for_toughness_effect
+        elif name == "gain_for_hit_points":
+            return self.do_gain_for_hit_points_effect
         elif name == "hp_damage_random":
             return self.do_hp_damage_random_effect
         elif name == "heal":            
@@ -275,8 +275,8 @@ class Card:
             return self.do_preserve_stats_effect
         elif name == "preserve_effect_improvement":
             return self.do_preserve_effect_improvement_effect
-        elif name == "pump_power":
-            return self.do_pump_power_effect_on_mob
+        elif name == "pump_strength":
+            return self.do_pump_strength_effect_on_mob
         elif name == "redirect_mob_spell":
            return self.do_redirect_mob_spell_effect
         elif name == "reduce_cost":
@@ -295,8 +295,8 @@ class Card:
             return self.do_restrict_effect_targets_mob_targetter_effect
         elif name == "restrict_effect_targets_mob_with_guard":
             return self.do_restrict_effect_targets_mob_with_guard_effect
-        elif name == "restrict_effect_targets_mob_with_power":
-            return self.do_restrict_effect_targets_mob_with_power_effect            
+        elif name == "restrict_effect_targets_mob_with_strength":
+            return self.do_restrict_effect_targets_mob_with_strength_effect            
         elif name == "riffle":
             return self.do_riffle_effect
         elif name == "set_can_attack":
@@ -475,8 +475,8 @@ class Card:
     def do_add_fade_effect(self, effect_owner, effect, target_info):
         token = {
             "turns": -1,
-            "power_modifier": -1,
-            "toughness_modifier": -1
+            "strength_modifier": -1,
+            "hit_points_modifier": -1
         }
         effect = {
             "tokens": [token],
@@ -525,7 +525,7 @@ class Card:
                 target_mob.tokens.append(token)
         else:
             target_mob.tokens.append(token)
-        if target_mob.toughness_with_tokens() - target_mob.damage <= 0:
+        if target_mob.hit_points_with_tokens() - target_mob.damage <= 0:
             controller.send_card_to_played_pile(target_mob, did_kill=True)
         return [f"{target_mob.name} gets {token}."]
 
@@ -544,15 +544,15 @@ class Card:
                 store_effect = e
         effect_owner.card_mana += store_effect.counters
 
-    def do_buff_power_toughness_from_mana_effect(self, effect_owner, effect, target_info):
+    def do_buff_strength_hit_points_from_mana_effect(self, effect_owner, effect, target_info):
         mana_count = effect_owner.current_mana()
 
-        log_lines = [f"{self.name} is now {self.power}/{self.toughness}."]
+        log_lines = [f"{self.name} is now {self.strength}/{self.hit_points}."]
         mana_log_lines = effect_owner.spend_mana(effect_owner.current_mana())
         if mana_log_lines:
             log_lines += mana_log_lines
-        self.power += mana_count
-        self.toughness += mana_count
+        self.strength += mana_count
+        self.hit_points += mana_count
         return log_lines
 
     def do_counter_card_effect(self, effect_owner, effect, target_info):
@@ -664,7 +664,7 @@ class Card:
         dead_mobs = []
         for mob in mobs:
             mob.deal_damage_with_effects(damage_amount, game.opponent())
-            if mob.damage >= mob.toughness_with_tokens():
+            if mob.damage >= mob.hit_points_with_tokens():
                 dead_mobs.append(mob)
         for mob in dead_mobs:
             game.opponent().send_card_to_played_pile(mob, did_kill=True)
@@ -695,7 +695,7 @@ class Card:
         for idx, e in enumerate(self.effects_for_type("after_deals_damage")):
             self.resolve_effect(self.after_deals_damage_effect_defs[idx], effect_owner, e, {"damage": actual_amount}) 
 
-        if target_card.damage >= target_card.toughness_with_tokens():
+        if target_card.damage >= target_card.hit_points_with_tokens():
             controller.send_card_to_played_pile(target_card, did_kill=True)
 
     def do_deal_excess_damage_to_controller_effect(self, effect_owner, effect, target_info):
@@ -773,10 +773,10 @@ class Card:
         self.show_level_up = True
         return [f"{self.name} disappears from the game instead of going to {effect_owner.username}'s yard."]
 
-    def do_double_power_effect_on_mob(self, effect_owner, effect, target_info):
+    def do_double_strength_effect_on_mob(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
-        target_mob.power += target_mob.power_with_tokens(controller)
-        return [f"{self.name} doubles the power of {target_mob.name}."]
+        target_mob.strength += target_mob.strength_with_tokens(controller)
+        return [f"{self.name} doubles the strength of {target_mob.name}."]
 
     def do_drain_hp_effect(self, effect_owner, effect, target_info):
         effect_owner.hit_points += target_info["damage"]
@@ -868,8 +868,8 @@ class Card:
             self.effects = upgraded_card.effects
             if upgrader_card:
                 self.effects.append(upgrader_card.effects[0])
-            self.power = upgraded_card.power
-            self.toughness = upgraded_card.toughness
+            self.strength = upgraded_card.strength
+            self.hit_points = upgraded_card.hit_points
 
     def do_fetch_card_effect_on_player(self, effect_owner, effect, target_info):
         if Constants.artifactCardType in effect.target_type:
@@ -925,11 +925,11 @@ class Card:
                 mob.can_be_clicked = mob in guard_mobs
             effect_owner.can_be_clicked = False
 
-    def do_gain_for_toughness_effect(self, effect_owner, effect, target_info):
+    def do_gain_for_hit_points_effect(self, effect_owner, effect, target_info):
         target_mob, controller = effect_owner.game.get_in_play_for_id(target_info['id'])
         if target_mob:
             old_hp = controller.hit_points
-            controller.hit_points += target_mob.toughness_with_tokens()
+            controller.hit_points += target_mob.hit_points_with_tokens()
             controller.hit_points = min(controller.max_hit_points, controller.hit_points)
             if controller.hit_points > old_hp:
                 return [f"{controller.username} gained {controller.hit_points - old_hp} from {self.name}."]
@@ -1021,11 +1021,11 @@ class Card:
     def do_keep_effect(self, effect_owner, effect, target_info):
         log_lines = [f"{effect_owner.username} kept a card."]
         if effect.amount and not effect.amount_id:
-            old_power = self.power 
-            self.power += effect.amount
-            old_toughness = self.toughness 
-            self.toughness += effect.amount
-            if self.power > old_power or self.toughness > old_toughness:
+            old_strength = self.strength 
+            self.strength += effect.amount
+            old_hit_points = self.hit_points 
+            self.hit_points += effect.amount
+            if self.strength > old_strength or self.hit_points > old_hit_points:
                 self.show_level_up = True
         if effect.amount_id == "upgrade":
              upgraded_card = effect_owner.add_to_deck(effect.card_names[0], 1, add_to_hand=True)
@@ -1236,20 +1236,20 @@ class Card:
 
     def do_preserve_stats_effect(self, effect_owner, effect, target_info):
         new_card = Card.factory_reset_card(self, effect_owner)
-        old_power = self.power
-        old_toughness = self.toughness
+        old_strength = self.strength
+        old_hit_points = self.hit_points
         old_level = self.level
         for a in dir(self):
             if not a.startswith('__') and not callable(getattr(self, a)):
                 setattr(self, a, getattr(new_card, a))
-        self.power = old_power
-        self.toughness = old_toughness
+        self.strength = old_strength
+        self.hit_points = old_hit_points
         self.level = old_level
 
-    def do_pump_power_effect_on_mob(self, effect_owner, effect, target_info):
+    def do_pump_strength_effect_on_mob(self, effect_owner, effect, target_info):
         target_mob, _ = effect_owner.game.get_in_play_for_id(target_info['id'])
-        target_mob.power += effect.amount
-        return [f"{effect_owner.username} pumps the power of {target_mob.name} by {effect.amount}."]
+        target_mob.strength += effect.amount
+        return [f"{effect_owner.username} pumps the strength of {target_mob.name} by {effect.amount}."]
 
     def do_redirect_mob_spell_effect(self, effect_owner, effect, target_info):
         card_id = target_info["id"]
@@ -1334,11 +1334,11 @@ class Card:
                         has_targets = True
             self.can_be_clicked = has_targets
 
-    def do_restrict_effect_targets_mob_with_power_effect(self, effect_owner, effect, target_info):
+    def do_restrict_effect_targets_mob_with_strength_effect(self, effect_owner, effect, target_info):
         if self.id == effect_owner.selected_mob():
             for player in effect_owner.game.players:
                 for card in player.in_play:
-                    if card.can_be_clicked and card.power_with_tokens(player) < effect.amount:
+                    if card.can_be_clicked and card.strength_with_tokens(player) < effect.amount:
                         card.can_be_clicked = False
         elif target_info["move_type"] not in ["PLAY_CARD", "PLAY_CARD_IN_HAND"] and effect_owner.current_mana() >= self.cost:
             game_copy = copy.deepcopy(effect_owner.game)
@@ -1346,7 +1346,7 @@ class Card:
             has_targets = False
             for player in game_copy.players:
                 for card in player.in_play:
-                    if card.can_be_clicked and card.power_with_tokens(player) >= effect.amount:
+                    if card.can_be_clicked and card.strength_with_tokens(player) >= effect.amount:
                         has_targets = True
             self.can_be_clicked = has_targets
 
@@ -1816,22 +1816,22 @@ class Card:
             return False
         return True
 
-    def power_with_tokens(self, player):
-        power = self.power
+    def strength_with_tokens(self, player):
+        strength = self.strength
         for t in self.tokens:
             if t.multiplier == "self_artifacts":
-                power += t.power_modifier * len(player.artifacts)
+                strength += t.strength_modifier * len(player.artifacts)
             elif t.multiplier == "self_mobs_and_artifacts":
-                power += t.power_modifier * (len(player.artifacts) + len(player.in_play))
+                strength += t.strength_modifier * (len(player.artifacts) + len(player.in_play))
             else:
-                power += t.power_modifier
-        return power
+                strength += t.strength_modifier
+        return strength
 
-    def toughness_with_tokens(self):
-        toughness = self.toughness
+    def hit_points_with_tokens(self):
+        hit_points = self.hit_points
         for t in self.tokens:
-            toughness += t.toughness_modifier
-        return toughness
+            hit_points += t.hit_points_modifier
+        return hit_points
 
     def has_effect(self, effect_name):
         for e in self.effects:
@@ -1955,9 +1955,9 @@ class CardEffect:
 
 class CardToken:
     def __init__(self, info):
-        self.power_modifier = info["power_modifier"] if "power_modifier" in info else 0
+        self.strength_modifier = info["strength_modifier"] if "strength_modifier" in info else 0
         self.set_can_act = info["set_can_act"] if "set_can_act" in info else None
-        self.toughness_modifier = info["toughness_modifier"] if "toughness_modifier" in info else 0
+        self.hit_points_modifier = info["hit_points_modifier"] if "hit_points_modifier" in info else 0
         self.turns = info["turns"] if "turns" in info else -1
         self.multiplier = info["multiplier"] if "multiplier" in info else 0
         self.id = info["id"] if "id" in info else None
@@ -1966,14 +1966,14 @@ class CardToken:
         if self.set_can_act is not None:
             return "Can't Attack"
         if self.id != None:
-            return f"id: {self.id} - +{self.power_modifier}/+{self.toughness_modifier}"
-        return f"+{self.power_modifier}/+{self.toughness_modifier}"
+            return f"id: {self.id} - +{self.strength_modifier}/+{self.hit_points_modifier}"
+        return f"+{self.strength_modifier}/+{self.hit_points_modifier}"
 
     def as_dict(self):
         return {
-            "power_modifier": self.power_modifier,
+            "strength_modifier": self.strength_modifier,
             "set_can_act": self.set_can_act,
-            "toughness_modifier": self.toughness_modifier,
+            "hit_points_modifier": self.hit_points_modifier,
             "turns": self.turns,
             "multiplier": self.multiplier,
             "id": self.id,

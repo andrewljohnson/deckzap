@@ -112,8 +112,8 @@
             ],
             "image": "lion.svg",
             "name": "LionKin",
-            "power": 3,
-            "toughness": 3
+            "strength": 3,
+            "hit_points": 3
         },
         {
             "card_type": "mob",
@@ -130,7 +130,7 @@
                 },
                 {
                     "description": "Drain",
-                    "description_expanded": "Gain hit points equal to this mob's power after it deals damage.",
+                    "description_expanded": "Gain hit points equal to this mob's strength after it deals damage.",
                     "effect_type": "after_deals_damage",
                     "legal_card_type_ids": [
                         "mob"
@@ -164,8 +164,8 @@
             ],
             "image": "djinn.svg",
             "name": "Riftwalker Djinn",
-            "power": 3,
-            "toughness": 2
+            "strength": 3,
+            "hit_points": 2
         },
         {
             "card_type": "mob",
@@ -198,8 +198,8 @@
             ],
             "image": "crumbling-ball.svg",
             "name": "Spouty Gas Ball",
-            "power": 3,
-            "toughness": 2
+            "strength": 3,
+            "hit_points": 2
         },
         {
             "card_type": "spell",
@@ -331,7 +331,7 @@
         },
         {
             "description": "Drain",
-            "description_expanded": "Gain hit points equal to this mob's power after it deals damage.",
+            "description_expanded": "Gain hit points equal to this mob's strength after it deals damage.",
             "effect_type": "after_deals_damage",
             "legal_card_type_ids": [
                 "mob"

@@ -22,15 +22,15 @@ class CardInfo:
 
 
 class CardInfoMob(CardInfo):
-   def __init__(self, name, image, cost, card_type, power, toughness, effects):
+   def __init__(self, name, image, cost, card_type, strength, hit_points, effects):
       super().__init__(name, image, cost, card_type, effects)
-      self.power = power
-      self.toughness = toughness
+      self.strength = strength
+      self.hit_points = hit_points
 
    def as_dict(self):
       info = super().as_dict()
-      info["power"] = self.power
-      info["toughness"] = self.toughness
+      info["strength"] = self.strength
+      info["hit_points"] = self.hit_points
       return info
 
 
@@ -180,7 +180,7 @@ class Effects:
       return {
          "name": "drain_hp",
          "description": "Drain",
-         "description_expanded": f"Gain hit points equal to this mob's power {effect_type.description}.",
+         "description_expanded": f"Gain hit points equal to this mob's strength {effect_type.description}.",
          "effect_type": effect_type.id,
          "legal_card_type_ids": [card_types()["mob"].id],
       }

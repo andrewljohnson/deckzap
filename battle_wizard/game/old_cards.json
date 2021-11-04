@@ -91,8 +91,8 @@
 		"name": "Pine Treant",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 3,
+		"strength": 2,
+		"hit_points": 3,
 		"cost": 3,
 		"description": "Get a 2/1 dryad token when this dies.",
 		"effects": [{
@@ -116,16 +116,16 @@
 		"is_token": true,
 		"race": "elf",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
+		"strength": 2,
+		"hit_points": 1,
 		"cost": 1
 	},
 	{
 		"name": "Oak Treant",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 5,
+		"strength": 3,
+		"hit_points": 5,
 		"cost": 5,
 		"description": "Get a 1/2 dryad token with Guard when this dies.",
 		"effects": [{
@@ -146,8 +146,8 @@
 		"is_token": true,
 		"race": "elf",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
+		"strength": 2,
+		"hit_points": 1,
 		"cost": 1,
 		"effects": [
 			{
@@ -162,8 +162,8 @@
 		"name": "Summon-Happy Genie",
 		"race": "genie",
 		"card_type": "mob",
-		"power": 6,
-		"toughness": 2,
+		"strength": 6,
+		"hit_points": 2,
 		"cost": 5,
 		"description": "Your opponent gets two 1/1 elemental tokens.",
 		"effects": [
@@ -187,16 +187,16 @@
 		"is_token": true,
 		"race": "genie",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 0
 	},
 	{
 		"name": "Porcupine",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 1,
+		"strength": 2,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "Your opponent takes 2 damage when this leaves play.",
 		"effects": [{
@@ -211,8 +211,8 @@
 		"card_type": "mob",
 		"class": "wizard",
 		"race": "genie",
-		"power": 2,
-		"toughness": 3,
+		"strength": 2,
+		"hit_points": 3,
 		"cost": 3,
 		"description": "Draw a card.",
 		"effects": [{
@@ -226,8 +226,8 @@
 		"name": "Sniper Elf",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 5,
+		"strength": 4,
+		"hit_points": 5,
 		"cost": 6,
 		"description": "Destroy an enemy mob with Guard.",
 		"effects": [
@@ -246,10 +246,10 @@
 		"name": "Dragonslayer Elf",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 2,
+		"strength": 4,
+		"hit_points": 2,
 		"cost": 3,
-		"description": "Destroy a mob power 6 or greater.",
+		"description": "Destroy a mob strength 6 or greater.",
 		"effects": [
 			{
 				"name": "kill",
@@ -257,7 +257,7 @@
 				"target_type": "mob"
 			},
 			{
-				"name": "restrict_effect_targets_mob_with_power",
+				"name": "restrict_effect_targets_mob_with_strength",
 				"effect_type": "select_mob_target_override",
 				"amount": 6
 			}
@@ -267,8 +267,8 @@
 		"name": "Mana Tree",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 0,
-		"toughness": 4,
+		"strength": 0,
+		"hit_points": 4,
 		"cost": 3,
 		"description": "You have an extra mana each turn.",
 		"effects": [{
@@ -287,9 +287,9 @@
 		"name": "Unstable Tempest",
 		"race": "genie",
 		"card_type": "mob",
-		"power": 3,
+		"strength": 3,
 		"description": "Take 2 damage.",
-		"toughness": 2,
+		"hit_points": 2,
 		"cost": 1,
 		"effects": [{
 			"name": "damage",
@@ -302,9 +302,9 @@
 		"name": "Energizer",
 		"race": "genie",
 		"card_type": "mob",
-		"power": 1,
+		"strength": 1,
 		"description": "Give a mob gets +2/+0 this turn.",
-		"toughness": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"effects": [{
 			"name": "add_tokens",
@@ -312,8 +312,8 @@
 			"target_type": "mob",
 			"tokens": [{
 				"turns": 1,
-				"power_modifier": 2,
-				"toughness_modifier": 0
+				"strength_modifier": 2,
+				"hit_points_modifier": 0
 			}]
 		}]
 	},
@@ -321,9 +321,9 @@
 		"name": "Elven Vanguard",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 3,
+		"strength": 3,
 		"description": "Give a mob gets +1/+1 this turn.",
-		"toughness": 2,
+		"hit_points": 2,
 		"cost": 2,
 		"effects": [{
 			"name": "add_tokens",
@@ -331,8 +331,8 @@
 			"target_type": "mob",
 			"tokens": [{
 				"turns": 1,
-				"power_modifier": 1,
-				"toughness_modifier": 1
+				"strength_modifier": 1,
+				"hit_points_modifier": 1
 			}]
 		}]
 	},
@@ -340,8 +340,8 @@
 		"name": "Mist Elemental",
 		"race": "genie",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 3,
+		"strength": 1,
+		"hit_points": 3,
 		"cost": 1,
 		"effects": [
 			{
@@ -356,8 +356,8 @@
 		"name": "Largest Gorilla in the Forest",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 8,
-		"toughness": 8,
+		"strength": 8,
+		"hit_points": 8,
 		"cost": 9,
 		"effects": [
 			{
@@ -372,8 +372,8 @@
 		"name": "Tame-ish Sabretooth",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 7,
-		"toughness": 7,
+		"strength": 7,
+		"hit_points": 7,
 		"cost": 8,
 		"effects": [
 			{
@@ -388,8 +388,8 @@
 		"name": "Centaur",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 5,
+		"strength": 3,
+		"hit_points": 5,
 		"cost": 4,
 		"effects": [
 			{
@@ -405,8 +405,8 @@
 		"name": "Gold Dragon",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 6,
-		"toughness": 6,
+		"strength": 6,
+		"hit_points": 6,
 		"cost": 5,
 		"description": "Draw a card.",
 		"effects": [{
@@ -420,8 +420,8 @@
 		"name": "Rainbow Dragon",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 6,
-		"toughness": 6,
+		"strength": 6,
+		"hit_points": 6,
 		"cost": 5,
 		"description": "Make a spell.",
 		"effects": [{
@@ -437,8 +437,8 @@
 		"image": "fairy.svg",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
+		"strength": 4,
+		"hit_points": 4,
 		"cost": 6,
 		"description": "Draw 4 cards.",
 		"effects": [{
@@ -456,8 +456,8 @@
 		"name": "Nature's Guardian",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 8,
-		"toughness": 8,
+		"strength": 8,
+		"hit_points": 8,
 		"cost": 6,
 		"effects": [
 			{
@@ -499,8 +499,8 @@
 			"target_type": "mob",
 			"tokens": [{
 				"turns": 1,
-				"power_modifier": 3,
-				"toughness_modifier": 3
+				"strength_modifier": 3,
+				"hit_points_modifier": 3
 			}]
 		}]
 	},
@@ -516,8 +516,8 @@
 			"target_type": "self_mobs",
 			"tokens": [{
 				"turns": 1,
-				"power_modifier": 4,
-				"toughness_modifier": 4}
+				"strength_modifier": 4,
+				"hit_points_modifier": 4}
 			]
 		}]
 	},
@@ -616,8 +616,8 @@
 		"class": "sorcerer",
 		"description": "Draw when this damages your opponent.",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 3,
+		"strength": 1,
+		"hit_points": 3,
 		"cost": 3,
 		"effects": [
 			{
@@ -643,8 +643,8 @@
 		"name": "Fire Elemental",
 		"race": "genie",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 3,
+		"strength": 3,
+		"hit_points": 3,
 		"cost": 4,
 		"effects": [
 			{
@@ -660,8 +660,8 @@
 		"race": "genie",
 		"card_type": "mob",
 		"description": "Return all other mobs to their owners' hands.",
-		"power": 3,
-		"toughness": 3,
+		"strength": 3,
+		"hit_points": 3,
 		"cost": 6,
 		"effects": [
 			{
@@ -738,15 +738,15 @@
 	{
 		"name": "Orc",
 		"card_type": "mob",
-		"power": 3,
-		"toughness": 4,
+		"strength": 3,
+		"hit_points": 4,
 		"cost": 2
 	},
 	{
 		"name": "Common Bunger",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 5,
+		"strength": 4,
+		"hit_points": 5,
 		"cost": 4
 	},
 	{
@@ -791,8 +791,8 @@
 	{
 		"name": "The Biggest One",
 		"card_type": "mob",
-		"power": 15,
-		"toughness": 15,
+		"strength": 15,
+		"hit_points": 15,
 		"cost": 10
 	},
 		{
@@ -814,8 +814,8 @@
 		"is_token": true,
 		"race": "elf",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 0
 	},
 	{
@@ -823,8 +823,8 @@
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 1,
+		"strength": 1,
+		"hit_points": 1,
 		"cost": 1,
 		"description": "Summon a Townie.",
 		"effects": [
@@ -847,8 +847,8 @@
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
+		"strength": 2,
+		"hit_points": 2,
 		"cost": 2,
 		"description": "Add a Townie to your hand.",
 		"effects": [
@@ -869,9 +869,9 @@
 		"name": "Bewitching Lights",
 		"race": "elf",
 		"card_type": "mob",
-		"power": 2,
+		"strength": 2,
 		"description": "Your opponent discards when damaged by this.",
-		"toughness": 2,
+		"hit_points": 2,
 		"cost": 3,
 		"effects": [
 			{
@@ -903,8 +903,8 @@
 		"race": "elf",
 		"class": "sorcerer",
 		"card_type": "mob",
-		"power": 7,
-		"toughness": 7,
+		"strength": 7,
+		"hit_points": 7,
 		"cost": 1,
 		"description": "Get a 7/7 mob with Drain when this dies.",
 		"effects": [
@@ -929,8 +929,8 @@
 		"race": "elf",
 		"class": "sorcerer",
 		"card_type": "mob",
-		"power": 7,
-		"toughness": 7,
+		"strength": 7,
+		"hit_points": 7,
 		"cost": 7,
 		"effects": [
 			{
@@ -946,8 +946,8 @@
 		"race": "elf",
 		"class": "sorcerer",
 		"card_type": "mob",
-		"power": 8,
-		"toughness": 8,
+		"strength": 8,
+		"hit_points": 8,
 		"cost": 8,
 		"description": "Get an 8/8 mob with Guard when this dies.",
 		"effects": [{
@@ -969,8 +969,8 @@
 		"race": "elf",
 		"class": "sorcerer",
 		"card_type": "mob",
-		"power": 8,
-		"toughness": 8,
+		"strength": 8,
+		"hit_points": 8,
 		"cost": 8,
 		"effects": [
 			{
@@ -986,8 +986,8 @@
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "mob",
-		"power": 5,
-		"toughness": 5,
+		"strength": 5,
+		"hit_points": 5,
 		"cost": 5,
 		"description": "Add 2 Town Rangers to your hand.",
 		"effects": [{
@@ -1022,8 +1022,8 @@
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 9,
+		"strength": 4,
+		"hit_points": 9,
 		"cost": 7,
 		"description": "Gain control of a random mob at the beginning of your turn.",
 		"effects": [{
@@ -1060,8 +1060,8 @@
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "mob",
-		"power": 8,
-		"toughness": 8,
+		"strength": 8,
+		"hit_points": 8,
 		"cost": 8,
 		"description": "Draw 2 cards. Draw an extra card each turn",
 		"effects": [
@@ -1098,8 +1098,8 @@
 		"race": "gnome",
 		"class": "bard",
 		"card_type": "mob",
-		"power": 6,
-		"toughness": 6,
+		"strength": 6,
+		"hit_points": 6,
 		"cost": 9,
 		"description": "All your other mobs get +3/+3 and may attack again.",
 		"effects": [
@@ -1109,8 +1109,8 @@
 				"target_type": "self_mobs",
 				"tokens": [{
 					"turns": 1,
-					"power_modifier": 3,
-					"toughness_modifier": 3
+					"strength_modifier": 3,
+					"hit_points_modifier": 3
 				}]
 			},
 			{
@@ -1132,8 +1132,8 @@
 		"race": "genie",
 		"class": "wizard",
 		"card_type": "mob",
-		"power": 4,
-		"toughness": 4,
+		"strength": 4,
+		"hit_points": 4,
 		"cost": 4,
 		"description": "Make a card from your deck.",
 		"effects": [{
@@ -1148,8 +1148,8 @@
 		"name": "Stone Elemental",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 2,
-		"toughness": 2,
+		"strength": 2,
+		"hit_points": 2,
 		"cost": 1
 	},
 
@@ -1157,8 +1157,8 @@
 		"name": "Air Elemental",
 		"discipline": "magic",
 		"card_type": "mob",
-		"power": 1,
-		"toughness": 5,
+		"strength": 1,
+		"hit_points": 5,
 		"cost": 2,
 		"effects": [
 			{

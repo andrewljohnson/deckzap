@@ -21,7 +21,7 @@ export class CardTypePicker {
 				self.cardTypeDescriptionText.parent.removeChild(self.cardTypeDescriptionText);
 				self.cardTypeDescriptionText = null;
 			}
-			let cardTypeDescription = "Mob\n\n• up to seven in play\n• mobs can attack players and other mobs\n• the simplest mob has just power and hit points, but mobs can also have effects";
+			let cardTypeDescription = "Mob\n\n• up to seven in play\n• mobs can attack players and other mobs\n• the simplest mob has just strength and hit points, but mobs can also have effects";
 			if (this.id == "spell") {
 				cardTypeDescription = "Spell\n\n• does one or more effects when cast\n• spell cards go to your discard pile immediately when cast and don't go into play like Mobs";
 			}

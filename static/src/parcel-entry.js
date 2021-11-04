@@ -41,12 +41,13 @@ if (window.location.pathname.startsWith("/play")) {
 } else if (window.location.pathname.startsWith("/top_decks")) {
     new TopDecks("app", JSON.parse(document.getElementById("data_store").getAttribute("decks")));
 } else if (window.location.pathname.startsWith("/create_card")) {
-    if (window.location.pathname.endsWith("effects")) {
+    if (window.location.pathname.includes("effects")) {
         new CardBuilderEffects(
             "app", 
             JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             document.getElementById("data_store").getAttribute("card_id"),
+            document.getElementById("data_store").getAttribute("effect_index"),
         );        
     } else if (window.location.pathname.endsWith("name_and_image")) {
         new CardBuilderNameAndImage(

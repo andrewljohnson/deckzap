@@ -18,5 +18,9 @@ class CustomCardImage(models.Model):
     card = models.ForeignKey(CustomCard, on_delete=models.SET_NULL, null=True)
     filename = models.TextField(null=True)
 
-admin.site.register(CustomCard)
-admin.site.register(CustomCardImage)
+    def card_name(self):
+        if self.card:
+            return self.card.card_json["name"]
+        return ""
+
+    card_name.admin_order_field  = 'card'

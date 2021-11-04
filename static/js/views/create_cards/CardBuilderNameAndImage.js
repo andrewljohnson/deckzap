@@ -25,8 +25,8 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
             cost: this.originalCardInfo.cost, 
             image: this.cardImage(), 
             effects: this.originalCardInfo.effects, 
-            power: this.originalCardInfo.power, 
-            toughness: this.originalCardInfo.toughness, 
+            strength: this.originalCardInfo.strength, 
+            hit_points: this.originalCardInfo.hit_points, 
             description:this.cardDescription()
         };
     }
@@ -106,6 +106,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
                 clearTimeout(this.doneTyping);                
             }
             this.doneTyping = setTimeout(()=>{ 
+                this.imageScrollbox.content.interactiveChildren = false;
                 this.clearTextureCache(cardImagesPath, this.cardImage());
                 this.userCardName = text;
                 const rasterizer = new SVGRasterizer(this.app, cardImagesPath);
@@ -113,6 +114,8 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
                 this.app.loader.load(() => {
                     this.updateCard()
                     this.app.loader.reset()
+                    this.imageScrollbox.content.interactiveChildren = true;
+
                 });        
             }, 200)
 
@@ -138,6 +141,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
           new OutlineFilter(1, Constants.blackColor),
         ]
         this.app.stage.addChild(scrollbox);
+        this.imageScrollbox = scrollbox;
 
         let line = -1;
         const bmFontName = "bmArial";
