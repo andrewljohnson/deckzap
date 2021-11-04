@@ -125,8 +125,8 @@ def get_effect_for_info(request):
             effect_def = None
             if effect["id"] == "damage":
                 effect_def = Effects.damage
-            elif effect["id"] == "discard":
-                effect_def = Effects.discard
+            elif effect["id"] == "discard_random":
+                effect_def = Effects.discard_random
             elif effect["id"] == "draw":
                 effect_def = Effects.draw
             elif effect["id"] == "ambush":

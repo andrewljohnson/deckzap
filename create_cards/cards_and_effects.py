@@ -177,7 +177,7 @@ class Effects:
          ]
 
    @staticmethod
-   def discard(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
+   def discard_random(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
@@ -190,8 +190,8 @@ class Effects:
             {"id": target_types()["self"].id, "name": target_types()["self"].name},
             {"id": target_types()["player"].id, "name": target_types()["player"].name}
          ],
-         "id": "discard",
-         "name": "Discard",
+         "id": "discard_random",
+         "name": "Discard Random",
          "target_type": target_type.id
       }
 
@@ -263,7 +263,7 @@ class Effects:
       effects = [
          Effects.ambush(),
          Effects.damage(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
-         Effects.discard(card_types()["spell"].id, 1, spell_effect_type, any_target_type, [opponent_target_type.id]),
+         Effects.discard_random(card_types()["spell"].id, 1, spell_effect_type, any_target_type, [opponent_target_type.id]),
          Effects.drain(),
          Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.guard(),
@@ -323,7 +323,7 @@ class Cards:
                      target_types()["any"], 
                      [target_types()["opponent"].id, target_types()["enemy_mob"].id]
                   ),
-                  Effects.discard(
+                  Effects.discard_random(
                      card_types()["spell"].id, 
                      1, 
                      effect_types()["spell"], 

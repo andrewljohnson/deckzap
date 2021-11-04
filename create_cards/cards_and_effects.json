@@ -110,7 +110,7 @@
                     "amount": 1,
                     "description": "Discard a card.",
                     "effect_type": "spell",
-                    "id": "discard",
+                    "id": "discard_random",
                     "legal_card_type_ids": [
                         "mob",
                         "spell"
@@ -135,7 +135,7 @@
                             "name": "Player"
                         }
                     ],
-                    "name": "Discard",
+                    "name": "Discard Random",
                     "target_type": "self"
                 }
             ],
@@ -434,7 +434,7 @@
             "amount": 1,
             "description": "Your opponent discards a card.",
             "effect_type": "spell",
-            "id": "discard",
+            "id": "discard_random",
             "legal_card_type_ids": [
                 "mob",
                 "spell"
@@ -459,7 +459,7 @@
                     "name": "Player"
                 }
             ],
-            "name": "Discard",
+            "name": "Discard Random",
             "target_type": "any"
         },
         {

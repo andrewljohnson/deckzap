@@ -1021,11 +1021,11 @@
         "cost": 3,
         "effects": [
             {
-                "name": "Discard",
+                "name": "Discard Random",
                 "effect_type": "after_deals_damage_opponent",
                 "target_type": "opponent",
                 "amount": 1,
-                "id": "discard"
+                "id": "discard_random"
             }
         ]
     },

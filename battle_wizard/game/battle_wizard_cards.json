@@ -2332,7 +2332,7 @@
                 "effect_type": "spell",
                 "target_type": "self",
                 "amount_id": "hand",
-                "id": "discard"
+                "id": "discard_random"
             }
         ]
     },

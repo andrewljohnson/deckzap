@@ -200,7 +200,7 @@ class Card:
             return self.do_decost_card_next_turn_effect
         elif eid == "decrease_max_mana":
             return self.do_decrease_max_mana_effect
-        elif eid == "discard":
+        elif eid == "discard_random":
             return self.do_discard_random_effect_on_player
         elif eid == "disappear":
             return self.do_disappear_effect
