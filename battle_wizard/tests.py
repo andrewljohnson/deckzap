@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import json
 import os
@@ -51,7 +52,7 @@ class GameObjectTests(TestCase):
 
         # test the AI auto-joins and the game begins with player 0 active
         await communicator.send_json_to({"move_type": "JOIN", "username": p1_username})
-        response = await communicator.receive_from()
+        response = await asyncio.wait_for(communicator.receive_from(), timeout=1.0) 
         assert len(self.get_game(response)["players"]) == 2
 
         # test the human player can end the turn
@@ -89,7 +90,7 @@ class GameObjectTests(TestCase):
         await communicator.send_json_to({"move_type": "JOIN", "username": p1_username})
         await communicator.receive_from()
         await communicator.send_json_to({"move_type": "JOIN", "username": p2_username})
-        response = await communicator.receive_from()
+        response = await asyncio.wait_for(communicator.receive_from(), timeout=1.0)
         assert len(self.get_game(response)["players"]) == 2
 
         # test p1 can end the turn

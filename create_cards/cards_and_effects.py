@@ -102,6 +102,8 @@ def target_types(as_dicts=False):
    all_target_types = {
       "any": TargetType("any", "Any Player or Mob", "any target"),
       "enemy_mob": TargetType("enemy_mob", "Enemy Mob", "an enemy mob"),
+      "friendly_mob": TargetType("friendly_mob", "Friendly Mob", "a friendly mob"),
+      "mob": TargetType("mob", "Mob", "a mob"),
       "opponent": TargetType("opponent", "Opponent", "your opponent"),
       "opponents_mob_random": TargetType("opponents_mob_random", "Opponent's Mob (random)", "a random enemy mob"),
       "player": TargetType("player", "Player", "Target player"),
@@ -238,6 +240,24 @@ class Effects:
       }      
 
    @staticmethod
+   def make_from_deck(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
+      return {
+         "ai_target_types": ai_target_type_ids,
+         "effect_type": effect_type.id,
+         "description": "Make a card from your deck.",
+         "legal_card_type_ids": [key for key, value in card_types().items()],
+         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_target_types": [
+            target_types()["opponent"].as_dict(),
+            target_types()["self"].as_dict(),
+            target_types()["player"].as_dict(),
+         ],
+         "id": "make_from_deck",
+         "name": "Make from Deck",
+         "target_type": target_type.id,
+      }
+
+   @staticmethod
    def shield():
       return {
          "id": "shield",
@@ -255,9 +275,33 @@ class Effects:
       }   
 
    @staticmethod
+   def unwind(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
+      if effect_type.description != None:
+         description = f"{effect_type.description}, return {target_type.description} to its owner's hand."
+      else:
+         description = f"Return {target_type.description} to its owner's hand."
+
+      return {
+         "ai_target_types": ai_target_type_ids,
+         "effect_type": effect_type.id,
+         "description": description,
+         "legal_card_type_ids": [key for key, value in card_types().items()],
+         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_target_types": [
+            target_types()["mob"].as_dict(),
+            target_types()["enemy_mob"].as_dict(),
+            target_types()["friendly_mob"].as_dict(),
+         ],
+         "id": "unwind",
+         "name": "Unwind",
+         "target_type": target_type.id,
+      }
+
+   @staticmethod
    def all():
       spell_effect_type = effect_types()["spell"]
       any_target_type = target_types()["any"]
+      mob_target_type = target_types()["mob"]
       opponent_target_type = target_types()["self"]
       self_target_type = target_types()["self"]
       effects = [
@@ -267,7 +311,9 @@ class Effects:
          Effects.drain(),
          Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.guard(),
+         Effects.make_from_deck(card_types()["spell"].id, None, spell_effect_type, self_target_type, []),
          Effects.shield(),         
+         Effects.unwind(card_types()["spell"].id, None, spell_effect_type, mob_target_type, [mob_target_type.id]),
       ]
       return effects
 
@@ -301,6 +347,114 @@ class Cards:
 
    def all():
       cards = [
+         CardInfoMob(
+               "Cat", 
+               "cat.svg",
+               1,
+               card_types()["mob"],
+               2,
+               1,
+               []
+         ),
+         CardInfoMob(
+               "Hound", 
+               "labrador-head.svg",
+               2,
+               card_types()["mob"],
+               3,
+               2,
+               []
+         ),
+         CardInfoMob(
+               "Gargoyle", 
+               "gargoyle.svg",
+               3,
+               card_types()["mob"],
+               4,
+               3,
+               []
+         ),
+         CardInfoMob(
+               "Demon", 
+               "fanged-skull.svg",
+               4,
+               card_types()["mob"],
+               5,
+               4,
+               []
+         ),
+         CardInfoMob(
+               "Troll", 
+               "troll.svg",
+               5,
+               card_types()["mob"],
+               6,
+               5,
+               []
+         ),
+         CardInfoMob(
+               "Ogre", 
+               "ogre.svg",
+               6,
+               card_types()["mob"],
+               7,
+               6,
+               []
+         ),
+         CardInfoMob(
+               "Dragon", 
+               "drakkar-dragon.svg",
+               7,
+               card_types()["mob"],
+               8,
+               7,
+               []
+         ),
+         CardInfo(
+               "Zap", 
+               "lightning-trio.svg",
+               1,
+               card_types()["spell"],
+               [
+                  Effects.damage(
+                     card_types()["spell"].id, 
+                     3, 
+                     effect_types()["spell"],
+                     target_types()["any"], 
+                     [target_types()["opponent"].id, target_types()["enemy_mob"].id]
+                  )
+               ]
+         ),
+         CardInfo(
+               "Meditate", 
+               "enlightenment.svg",
+               1,
+               card_types()["spell"],
+               [
+                  Effects.make_from_deck(
+                     card_types()["spell"].id, 
+                     None, 
+                     effect_types()["spell"],
+                     target_types()["self"], 
+                     []
+                  )
+               ]
+         ),
+         CardInfo(
+               "Unwind", 
+               "acrobatic.svg",
+               2,
+               card_types()["spell"],
+               [
+                  Effects.unwind(
+                     card_types()["spell"].id, 
+                     3, 
+                     effect_types()["spell"],
+                     target_types()["mob"], 
+                     [target_types()["enemy_mob"].id]
+                  )
+               ]
+         ),
          CardInfo(
                "Think", 
                "think.svg",
@@ -372,21 +526,6 @@ class Cards:
                      target_types()["opponents_mob_random"], 
                      None
                   )                  
-               ]
-         ),
-         CardInfo(
-               "Zap", 
-               "lightning-trio.svg",
-               2,
-               card_types()["spell"],
-               [
-                  Effects.damage(
-                     card_types()["spell"].id, 
-                     3, 
-                     effect_types()["spell"],
-                     target_types()["any"], 
-                     [target_types()["opponent"].id, target_types()["enemy_mob"].id]
-                  )
                ]
          ),
       ]

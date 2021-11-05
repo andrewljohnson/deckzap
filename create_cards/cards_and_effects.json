@@ -11,6 +11,221 @@
     },
     "cards": [
         {
+            "card_type": "mob",
+            "cost": 1,
+            "effects": [],
+            "hit_points": 1,
+            "image": "cat.svg",
+            "name": "Cat",
+            "strength": 2
+        },
+        {
+            "card_type": "mob",
+            "cost": 2,
+            "effects": [],
+            "hit_points": 2,
+            "image": "labrador-head.svg",
+            "name": "Hound",
+            "strength": 3
+        },
+        {
+            "card_type": "mob",
+            "cost": 3,
+            "effects": [],
+            "hit_points": 3,
+            "image": "gargoyle.svg",
+            "name": "Gargoyle",
+            "strength": 4
+        },
+        {
+            "card_type": "mob",
+            "cost": 4,
+            "effects": [],
+            "hit_points": 4,
+            "image": "fanged-skull.svg",
+            "name": "Demon",
+            "strength": 5
+        },
+        {
+            "card_type": "mob",
+            "cost": 5,
+            "effects": [],
+            "hit_points": 5,
+            "image": "troll.svg",
+            "name": "Troll",
+            "strength": 6
+        },
+        {
+            "card_type": "mob",
+            "cost": 6,
+            "effects": [],
+            "hit_points": 6,
+            "image": "ogre.svg",
+            "name": "Ogre",
+            "strength": 7
+        },
+        {
+            "card_type": "mob",
+            "cost": 7,
+            "effects": [],
+            "hit_points": 7,
+            "image": "drakkar-dragon.svg",
+            "name": "Dragon",
+            "strength": 8
+        },
+        {
+            "card_type": "spell",
+            "cost": 1,
+            "effects": [
+                {
+                    "ai_target_types": [
+                        "opponent",
+                        "enemy_mob"
+                    ],
+                    "amount": 3,
+                    "description": "Deal 3 damage to any target.",
+                    "effect_type": "spell",
+                    "id": "damage",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "id": "any",
+                            "name": "Any Player or Mob"
+                        },
+                        {
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "id": "friendly_mob",
+                            "name": "Friendly Mob"
+                        },
+                        {
+                            "id": "mob",
+                            "name": "Mob"
+                        },
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "opponents_mob_random",
+                            "name": "Opponent's Mob (random)"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        }
+                    ],
+                    "name": "Damage",
+                    "target_type": "any"
+                }
+            ],
+            "image": "lightning-trio.svg",
+            "name": "Zap"
+        },
+        {
+            "card_type": "spell",
+            "cost": 1,
+            "effects": [
+                {
+                    "ai_target_types": [],
+                    "description": "Make a card from your deck.",
+                    "effect_type": "spell",
+                    "id": "make_from_deck",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "description": "your opponent",
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "description": "yourself",
+                            "id": "self",
+                            "name": "Self"
+                        },
+                        {
+                            "description": "Target player",
+                            "id": "player",
+                            "name": "Player"
+                        }
+                    ],
+                    "name": "Make from Deck",
+                    "target_type": "self"
+                }
+            ],
+            "image": "enlightenment.svg",
+            "name": "Meditate"
+        },
+        {
+            "card_type": "spell",
+            "cost": 2,
+            "effects": [
+                {
+                    "ai_target_types": [
+                        "enemy_mob"
+                    ],
+                    "description": "Return a mob to its owner's hand.",
+                    "effect_type": "spell",
+                    "id": "unwind",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "description": "a mob",
+                            "id": "mob",
+                            "name": "Mob"
+                        },
+                        {
+                            "description": "an enemy mob",
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "description": "a friendly mob",
+                            "id": "friendly_mob",
+                            "name": "Friendly Mob"
+                        }
+                    ],
+                    "name": "Unwind",
+                    "target_type": "mob"
+                }
+            ],
+            "image": "acrobatic.svg",
+            "name": "Unwind"
+        },
+        {
             "card_type": "spell",
             "cost": 4,
             "effects": [
@@ -84,6 +299,14 @@
                         {
                             "id": "enemy_mob",
                             "name": "Enemy Mob"
+                        },
+                        {
+                            "id": "friendly_mob",
+                            "name": "Friendly Mob"
+                        },
+                        {
+                            "id": "mob",
+                            "name": "Mob"
                         },
                         {
                             "id": "opponent",
@@ -252,6 +475,14 @@
                             "name": "Enemy Mob"
                         },
                         {
+                            "id": "friendly_mob",
+                            "name": "Friendly Mob"
+                        },
+                        {
+                            "id": "mob",
+                            "name": "Mob"
+                        },
+                        {
                             "id": "opponent",
                             "name": "Opponent"
                         },
@@ -276,62 +507,6 @@
             "image": "crumbling-ball.svg",
             "name": "Spouty Gas Ball",
             "strength": 3
-        },
-        {
-            "card_type": "spell",
-            "cost": 2,
-            "effects": [
-                {
-                    "ai_target_types": [
-                        "opponent",
-                        "enemy_mob"
-                    ],
-                    "amount": 3,
-                    "description": "Deal 3 damage to any target.",
-                    "effect_type": "spell",
-                    "id": "damage",
-                    "legal_card_type_ids": [
-                        "mob",
-                        "spell"
-                    ],
-                    "legal_effect_types": [
-                        {
-                            "id": "spell",
-                            "name": "Spell"
-                        }
-                    ],
-                    "legal_target_types": [
-                        {
-                            "id": "any",
-                            "name": "Any Player or Mob"
-                        },
-                        {
-                            "id": "enemy_mob",
-                            "name": "Enemy Mob"
-                        },
-                        {
-                            "id": "opponent",
-                            "name": "Opponent"
-                        },
-                        {
-                            "id": "opponents_mob_random",
-                            "name": "Opponent's Mob (random)"
-                        },
-                        {
-                            "id": "player",
-                            "name": "Player"
-                        },
-                        {
-                            "id": "self",
-                            "name": "Self"
-                        }
-                    ],
-                    "name": "Damage",
-                    "target_type": "any"
-                }
-            ],
-            "image": "lightning-trio.svg",
-            "name": "Zap"
         }
     ],
     "effect_types": {
@@ -406,6 +581,14 @@
                 {
                     "id": "enemy_mob",
                     "name": "Enemy Mob"
+                },
+                {
+                    "id": "friendly_mob",
+                    "name": "Friendly Mob"
+                },
+                {
+                    "id": "mob",
+                    "name": "Mob"
                 },
                 {
                     "id": "opponent",
@@ -518,6 +701,41 @@
             "name": "Guard"
         },
         {
+            "ai_target_types": [],
+            "description": "Make a card from your deck.",
+            "effect_type": "spell",
+            "id": "make_from_deck",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
+            ],
+            "legal_target_types": [
+                {
+                    "description": "your opponent",
+                    "id": "opponent",
+                    "name": "Opponent"
+                },
+                {
+                    "description": "yourself",
+                    "id": "self",
+                    "name": "Self"
+                },
+                {
+                    "description": "Target player",
+                    "id": "player",
+                    "name": "Player"
+                }
+            ],
+            "name": "Make from Deck",
+            "target_type": "self"
+        },
+        {
             "description": "Shield",
             "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
             "effect_type": "before_is_damaged",
@@ -532,6 +750,43 @@
                 "inner_strength": 3,
                 "outer_strength": 0
             }
+        },
+        {
+            "ai_target_types": [
+                "mob"
+            ],
+            "description": "Return a mob to its owner's hand.",
+            "effect_type": "spell",
+            "id": "unwind",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
+            ],
+            "legal_target_types": [
+                {
+                    "description": "a mob",
+                    "id": "mob",
+                    "name": "Mob"
+                },
+                {
+                    "description": "an enemy mob",
+                    "id": "enemy_mob",
+                    "name": "Enemy Mob"
+                },
+                {
+                    "description": "a friendly mob",
+                    "id": "friendly_mob",
+                    "name": "Friendly Mob"
+                }
+            ],
+            "name": "Unwind",
+            "target_type": "mob"
         }
     ],
     "target_types": {
@@ -544,6 +799,16 @@
             "description": "an enemy mob",
             "id": "enemy_mob",
             "name": "Enemy Mob"
+        },
+        "friendly_mob": {
+            "description": "a friendly mob",
+            "id": "friendly_mob",
+            "name": "Friendly Mob"
+        },
+        "mob": {
+            "description": "a mob",
+            "id": "mob",
+            "name": "Mob"
         },
         "opponent": {
             "description": "your opponent",

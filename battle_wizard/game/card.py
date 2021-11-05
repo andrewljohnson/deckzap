@@ -360,10 +360,10 @@ class Card:
 
     def resolve(self, player, spell_to_resolve):
         print(f"resolving {self.name}")
-        for e in player.in_play + player.artifacts:
-            for idx, effect in enumerate(e.effects_for_type("friendly_card_played")):
+        for m in player.in_play + player.artifacts:
+            for idx, effect in enumerate(m.effects_for_type("friendly_card_played")):
                 if effect.target_type == "this":
-                    e.do_add_tokens_effect(player, effect, {"id": e.id_for_game, "target_type":"mob"})
+                    m.do_add_tokens_effect(player, effect, {"id": m.id, "target_type":"mob"})
 
         spell_to_resolve["log_lines"].append(f"{player.username} plays {self.name}.")
 
@@ -461,7 +461,7 @@ class Card:
         # then, check if there are any mobs that can be attacked in the cloned game (e.g. mob.can_be_clicked == True)
         game_copy = copy.deepcopy(effect_owner.game)
         for mob in game_copy.current_player().in_play:
-            if mob.id == self.id_for_game:
+            if mob.id == self.id:
                 game_copy.play_move({"username": effect_owner.username, "move_type": "SELECT_MOB", "card": self.id})        
         found_attackable_mob = False
         for m in game_copy.opponent().in_play:
@@ -1988,9 +1988,10 @@ def all_cards(require_images=False, include_tokens=True):
     """
         Returns a list of all possible cards in the game. 
     """
+    subset = []
+
     json_data = open('battle_wizard/game/battle_wizard_cards.json')
     all_cards = json.load(json_data)
-    subset = []
     for c in all_cards:
         if include_tokens or ("is_token" not in c or c["is_token"] == False):
             if "image" in c or not require_images:

@@ -1382,11 +1382,13 @@
                 "target_type": "mob",
                 "effects": [
                     {
-                        "name": "lose_lurker",
+                        "name": "Lose Lurker",
+                        "id": "lose_lurker",
                         "effect_type": "after_attack"
                     },
                     {
-                        "name": "make_untargettable",
+                        "name": "Make Untargettable",
+                        "id": "make_untargettable",
                         "effect_type": "select_mob_target_override",
                         "ui_info": {
                             "effect_type": "glow",
@@ -1422,5 +1424,50 @@
                 "id": "heal"
             }
         ]
+    },
+    {
+        "name": "Training Master",
+        "image": "coronation.svg",
+        "discipline": "none",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 3,
+        "cost": 3,
+        "description": "Double the strength of another mob.",
+        "effects": [
+            {
+                "name": "Double Strength",
+                "effect_type": "enter_play",
+                "target_type": "self_mob",
+                "id": "double_strength"
+            }
+        ]
+    },
+    {
+        "name": "Winding One",
+        "image": "wind-hole.svg",
+        "discipline": "magic",
+        "card_type": "mob",
+        "strength": 3,
+        "hit_points": 4,
+        "cost": 3,
+        "effects": [
+            {
+                "name": "Lose Lurker",
+                "effect_type": "after_attack",
+                "id": "lose_lurker"
+            },
+            {
+                "name": "Make Untargettable",
+                "effect_type": "select_mob_target_override",
+                "ui_info": {
+                    "effect_type": "glow",
+                    "outer_strength": 0,
+                    "inner_strength": 3,
+                    "color": "black"
+                },
+                "id": "make_untargettable"
+            }
+        ]
     }
-]
+ ]
