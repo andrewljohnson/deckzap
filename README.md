@@ -20,6 +20,8 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 
 `python manage.py load-images-to-db`
 
+`python create_cards/make_json.py`
+
 `python manage.py runserver`
 
 
