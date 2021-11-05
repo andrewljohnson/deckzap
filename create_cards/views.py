@@ -2,6 +2,7 @@ import datetime
 import json
 
 from battle_wizard.analytics import Analytics
+from battle_wizard.game.card import all_cards
 from create_cards.cards_and_effects import Effects
 from create_cards.cards_and_effects import effect_types
 from create_cards.cards_and_effects import target_types
@@ -122,22 +123,22 @@ def get_effect_for_info(request):
             Analytics.log_amplitude(request, "Create Card Get Card Info", {})
             effect = card_info["effects"][-1]
             effect_def = None
-            if effect["name"] == "damage":
+            if effect["id"] == "damage":
                 effect_def = Effects.damage
-            elif effect["name"] == "discard_random":
+            elif effect["id"] == "discard_random":
                 effect_def = Effects.discard_random
-            elif effect["name"] == "draw":
+            elif effect["id"] == "draw":
                 effect_def = Effects.draw
-            elif effect["name"] == "add_ambush":
-                effect_def = Effects.add_ambush
-            elif effect["name"] == "drain_hp":
-                effect_def = Effects.drain_hp
-            elif effect["name"] == "force_attack_guard_first":
-                effect_def = Effects.force_attack_guard_first
-            elif effect["name"] == "protect_with_shield":
-                effect_def = Effects.protect_with_shield
+            elif effect["id"] == "ambush":
+                effect_def = Effects.ambush
+            elif effect["id"] == "drain":
+                effect_def = Effects.drain
+            elif effect["id"] == "guard":
+                effect_def = Effects.guard
+            elif effect["id"] == "shield":
+                effect_def = Effects.shield
             else:
-                return JsonResponse({"error": f"Unsupported effect name {effect['name']}"})
+                return JsonResponse({"error": f"Unsupported effect id {effect['id']}"})
             if len(signature(effect_def).parameters) == 0:
                 # for mob abilities like Ambush, Drain, Guard, and Shield
                 server_effect = effect_def()
@@ -239,14 +240,18 @@ def save_name_and_image(request):
             print(error_message)
             return JsonResponse({"error": error_message})
         else: 
+            same_name = False
+            for card in all_cards():
+                if card["name"] == card_info["name"]:
+                    error_message = f"Please choose a different name, {card_info['name']} is used by a different card."
+                    print(error_message)
+                    return JsonResponse({"error": error_message})                    
             custom_card = CustomCard.objects.get(id=info["card_id"])
             if custom_card.author != request.user:
                 error_message = "only the card's author can edit a CustomCard"
                 print(error_message)
                 return JsonResponse({"error": error_message})
-            print(card_info["image"])
             image = CustomCardImage.objects.filter(card=None, filename=card_info["image"]).first()
-            print(image)
             if image:
                 image.card = custom_card
                 image.save()

@@ -24,6 +24,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
             card_type: this.originalCardInfo.card_type, 
             cost: this.originalCardInfo.cost, 
             image: this.cardImage(), 
+            is_custom: true, 
             effects: this.originalCardInfo.effects, 
             strength: this.originalCardInfo.strength, 
             hit_points: this.originalCardInfo.hit_points, 
@@ -62,7 +63,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
         .then(data => {
             if("error" in data) {
                 console.log(data); 
-                alert("error saving card");
+                alert(data["error"]);
             } else {
                 window.location.href = `/`
             }
@@ -109,7 +110,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
                 this.imageScrollbox.content.interactiveChildren = false;
                 this.clearTextureCache(cardImagesPath, this.cardImage());
                 this.userCardName = text;
-                const rasterizer = new SVGRasterizer(this.app, cardImagesPath);
+                const rasterizer = new SVGRasterizer(this.app);
                 rasterizer.loadCardImages([this.cardInfo()]);
                 this.app.loader.load(() => {
                     this.updateCard()

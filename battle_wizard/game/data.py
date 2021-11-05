@@ -1,54 +1,9 @@
-import json
 from create_cards.models import CustomCard
 
 class Constants:    
     spellCardType = "spell"
     mobCardType = "mob"
     artifactCardType = "artifact"
-
-
-def all_cards(require_images=False, include_tokens=True):
-    """
-        Returns a list of all possible cards in the game. 
-    """
-    json_data = open('battle_wizard/game/battle_wizard_cards.json')
-    all_cards = json.load(json_data)
-    subset = []
-    for c in all_cards:
-        if include_tokens or ("is_token" not in c or c["is_token"] == False):
-            if "image" in c or not require_images:
-                subset.append(c)
-
-    json_data = open('battle_wizard/game/old_cards.json')
-    all_cards = json.load(json_data)
-    for c in all_cards:
-        if include_tokens or ("is_token" not in c or c["is_token"] == False):
-            if "image" in c or not require_images:
-                subset.append(c)
-
-
-    json_data = open('create_cards/cards_and_effects.json')
-    cards_and_effects = json.load(json_data)
-    for c in cards_and_effects["cards"]:
-        if include_tokens or ("is_token" not in c or c["is_token"] == False):
-            if "image" in c or not require_images:
-                c["discipline"] = "magic"
-                description = ""
-                for e in c["effects"]:
-                    description += e["description"]
-                    if e != c["effects"][-1]:
-                        description += " "
-                c["description"] = description                
-                subset.append(c)
-
-    custom_cards = CustomCard.objects.all().exclude(card_json__name="Unnamed Card")
-    for card in custom_cards:
-        card.card_json["discipline"] = "magic"
-        # todo handle this during card creation
-        card.card_json["cost"] = int(card.card_json["cost"])
-        subset.append(card.card_json)
-
-    return subset
 
 def hash_for_deck(deck):
     strings = []

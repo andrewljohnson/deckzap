@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import json
 import os
@@ -51,7 +52,7 @@ class GameObjectTests(TestCase):
 
         # test the AI auto-joins and the game begins with player 0 active
         await communicator.send_json_to({"move_type": "JOIN", "username": p1_username})
-        response = await communicator.receive_from()
+        response = await asyncio.wait_for(communicator.receive_from(), timeout=1.0) 
         assert len(self.get_game(response)["players"]) == 2
 
         # test the human player can end the turn
@@ -89,7 +90,7 @@ class GameObjectTests(TestCase):
         await communicator.send_json_to({"move_type": "JOIN", "username": p1_username})
         await communicator.receive_from()
         await communicator.send_json_to({"move_type": "JOIN", "username": p2_username})
-        response = await communicator.receive_from()
+        response = await asyncio.wait_for(communicator.receive_from(), timeout=1.0)
         assert len(self.get_game(response)["players"]) == 2
 
         # test p1 can end the turn
@@ -294,7 +295,7 @@ class GameObjectTests(TestCase):
 
     def test_mind_manacles_ambush_target(self):
         """
-            Test take_control effect lets caster attack with a mob that has the add_ambush effect.
+            Test take_control effect lets caster attack with a mob that has the ambush effect.
         """
         game = self.game_for_decks([["Stone Elemental", "Tame-ish Sabretooth"], ["Mind Manacles"]])
         for x in range(0,8):
@@ -1244,7 +1245,7 @@ class GameObjectTests(TestCase):
 
     def test_tameish_sabretooth(self):
         """
-            Test add_ambush effect of Tame-ish Sabretooth
+            Test ambush effect of Tame-ish Sabretooth
         """
 
         deck1 = ["Stone Elemental"]

@@ -47,7 +47,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         for (let effect of effects) {
             let used = false;
             for (let usedEffect of this.effects) {
-                if (usedEffect.name == effect.name) {
+                if (usedEffect.id == effect.id) {
                     used = true;
                 }
             }
@@ -55,24 +55,24 @@ export class CardBuilderEffects extends CardBuilderBase {
                 unusedOrDuplicableEffects.push(effect);
             } 
         }
-        let effectNames = unusedOrDuplicableEffects.map(effect => {
-                return effect.name;
+        let effectNamesAndIDs = unusedOrDuplicableEffects.map(effect => {
+                return {name: effect.name, id: effect.id};
         });
         const effectPicker = new ButtonPicker(
             Constants.padding, 
             yPosition, 
             "Effect Name", 
-            effectNames,
-            effect_label => { this.selectEffect(effect_label) }).container;
+            effectNamesAndIDs,
+            effect_id => { this.selectEffect(effect_id) }).container;
         this.app.stage.addChild(effectPicker);
         this.effectPicker = effectPicker;
         this.updateCard();
     }
 
-    selectEffect(effect_label) {
+    selectEffect(effect_id) {
         this.removeAddEffectButton();
         for (let effect of this.effectsAndTypes.effects) {
-            if (effect.name == effect_label) {
+            if (effect.id == effect_id) {
                 this.effect = effect;
             }
         }
@@ -94,7 +94,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.updateEffects();
         this.getEffectForInfo(
             () => {
-                if (this.originalCardInfo.card_type == Constants.mobCardType && this.effect.legal_target_type_ids) {
+                if (this.originalCardInfo.card_type == Constants.mobCardType && this.effect.legal_target_types) {
                     this.addEffectTypePicker()
                 } else if (this.originalCardInfo.card_type == Constants.spellCardType) {
                     let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
@@ -123,21 +123,21 @@ export class CardBuilderEffects extends CardBuilderBase {
             Constants.padding, 
             yPosition, 
             "Effect Trigger", 
-            this.effect.legal_effect_type_ids,
-            effect_type_label => { this.selectEffectType(effect_type_label) }).container;
+            this.effect.legal_effect_types,
+            effect_type_id => { this.selectEffectType(effect_type_id) }).container;
         this.app.stage.addChild(effectTypePicker);
         this.effectTypePicker = effectTypePicker;
     }
 
-    selectEffectType(effect_type_label) {
+    selectEffectType(effect_type_id) {
         this.removeAddEffectButton();
         this.targetSelected = false;
         if (this.effectTypeDescription) {
             this.effectTypeDescription.parent.removeChild(this.effectTypeDescription);
         }
-        this.effect.effect_type = effect_type_label;
+        this.effect.effect_type = effect_type_id;
         this.updateEffects();
-        let description = this.effectsAndTypes["effect_types"][effect_type_label].description;
+        let description = this.effectsAndTypes["effect_types"][effect_type_id].description;
         this.effectTypeDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
         this.effectTypeDescription.position.x = Constants.padding;
         this.effectTypeDescription.position.y = this.effectTypePicker.position.y + this.effectTypePicker.height + Constants.padding * 2;
@@ -145,7 +145,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.app.stage.interactiveChildren = false;  
         this.getEffectForInfo(
             () => {
-                if (this.effect.legal_target_type_ids) {
+                if (this.effect.legal_target_types) {
                     let yPosition = this.effectTypeDescription.position.y + this.effectTypeDescription.height + Constants.padding * 4;
                     this.addTargetTypePicker(yPosition);
                 } else {
@@ -161,29 +161,30 @@ export class CardBuilderEffects extends CardBuilderBase {
             Constants.padding, 
             yPosition, 
             "Target", 
-            this.effect.legal_target_type_ids,
-            target_label => { this.selectTarget(target_label) }).container;
+            this.effect.legal_target_types,
+            target_id => { this.selectTarget(target_id) }).container;
         this.app.stage.addChild(targetTypePicker);
         this.targetTypePicker = targetTypePicker;
     }
 
-    selectTarget(target_label) {
+    selectTarget(target_id) {
         this.targetSelected = true;
         for (let target in this.effectsAndTypes.target_types) {
-            if (target == target_label) {
+            if (this.effectsAndTypes.target_types[target].id == target_id) {
                 this.target = this.effectsAndTypes.target_types[target];
             }
         }
         if (this.targetDescription) {
             this.targetDescription.parent.removeChild(this.targetDescription);
         }
+        console.log(this.target)
         let description = this.target.name;
         this.targetDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
         this.targetDescription.position.x = Constants.padding;
         this.targetDescription.position.y = this.targetTypePicker.position.y + this.targetTypePicker.height + Constants.padding * 2;
         this.app.stage.addChild(this.targetDescription);    
 
-        this.effect["target_type"] = target_label
+        this.effect["target_type"] = target_id
         this.updateEffects();
         if ("amount" in this.effect && !this.amountLabel) {
             this.addAmountInput(Constants.padding, this.targetDescription.position.y + this.targetDescription.height + Constants.padding * 2);
@@ -237,7 +238,7 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.amountInput = amountInput;
         this.lastText = 0;
         this.amountInput.on('input', text => {
-            if (!Constants.isWholeNumber(text) && text) {
+            if (!Constants.isPositiveWholeNumber(text) && text) {
                 this.amountInput.text = this.lastText;
                 return;
             }
@@ -294,7 +295,7 @@ export class CardBuilderEffects extends CardBuilderBase {
 
     updateCard() {
         super.updateCard();
-        const choseMobAbility = this.effect && !this.effect.legal_target_type_ids;
+        const choseMobAbility = this.effect && !this.effect.legal_target_types;
         const completedNonMobAbilityEffect = this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0;
         const formComplete = choseMobAbility || completedNonMobAbilityEffect
         this.toggleNextButton(formComplete);

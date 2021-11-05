@@ -6,7 +6,7 @@ import * as Constants from '../Constants.js';
 
 export class ButtonPicker {
 
-    constructor(x, y, labelText, labels, clickFunction) {
+    constructor(x, y, labelText, namesAndIDs, clickFunction) {
         let container = new PIXI.Container();
         this.container = container;
         container.position.x = x;
@@ -22,8 +22,8 @@ export class ButtonPicker {
         let index = 0;
         this.buttons = [];
         var self = this;
-        for (let label of labels) {
-            let buttonTitle = label;
+        for (let info of namesAndIDs) {
+            let buttonTitle = info.name;
             let b = Card.button(
                 buttonTitle, 
                 Constants.brownColor, 
@@ -40,7 +40,7 @@ export class ButtonPicker {
                         new GlowFilter({ innerStrength: 0, outerStrength: 2, color: Constants.yellowColor})
                     ];
                     this.tint = Constants.blueColor;
-                    clickFunction(label)
+                    clickFunction(info.id)
                 },
                 null,
                 buttonWidth

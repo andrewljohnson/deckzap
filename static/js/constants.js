@@ -10,6 +10,7 @@ export const spellCardType = "spell";
 
 // file/networking
 export const cardImagesPath = "/static/images/card-art/";
+export const customCardImagesPath = "/static/images/card-art-custom/";
 export const largeSpriteQueryString = "?large";
 
 // colors
@@ -230,7 +231,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-export function isWholeNumber(value) {
-    return /^-?\d+$/.test(value);
+export function isPositiveWholeNumber(value) {
+    return /^-?\d+$/.test(value) && parseInt(value) >= 0;
 }
 

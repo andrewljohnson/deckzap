@@ -2,7 +2,7 @@ import datetime
 import json
 
 from battle_wizard.analytics import Analytics
-from battle_wizard.game.data import all_cards
+from battle_wizard.game.card import all_cards
 from battle_wizard.game.data import default_deck_dwarf_bard
 from battle_wizard.game.data import default_deck_dwarf_tinkerer
 from battle_wizard.game.data import default_deck_genie_wizard
