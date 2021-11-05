@@ -17,7 +17,7 @@ jobs:
         run: |
           echo DEBUG=0 >> .env
           echo PROJECT_NAME=deckzap >> .env
-          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+          echo SECRET_KEY="${{ secrets.SECRET_KEY }}" >> .env
           echo SQL_ENGINE=django.db.backends.postgresql_psycopg2 >> .env
           echo SQL_DATABASE=${{ secrets.SQL_DATABASE }} >> .env
           echo SQL_USER=${{ secrets.SQL_USER }} >> .env
