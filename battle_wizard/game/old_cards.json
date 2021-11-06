@@ -1200,7 +1200,7 @@
             {
                 "name": "Take Control",
                 "effect_type": "start_turn",
-                "target_type": "opponents_mob_random",
+                "target_type": "enemy_mob_random",
                 "id": "take_control"
             },
             {

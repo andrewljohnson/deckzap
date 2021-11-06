@@ -105,7 +105,8 @@ def target_types(as_dicts=False):
       "friendly_mob": TargetType("friendly_mob", "Friendly Mob", "a friendly mob"),
       "mob": TargetType("mob", "Mob", "a mob"),
       "opponent": TargetType("opponent", "Opponent", "your opponent"),
-      "opponents_mob_random": TargetType("opponents_mob_random", "Opponent's Mob (random)", "a random enemy mob"),
+      "friendly_mob_random": TargetType("friendly_mob_random", "Friendly Mob (random)", "a random friendly mob"),
+      "enemy_mob_random": TargetType("enemy_mob_random", "Enemy Mob (random)", "a random enemy mob"),
       "player": TargetType("player", "Player", "Target player"),
       "self": TargetType("self", "Self", "yourself")
    }
@@ -135,6 +136,7 @@ class Effects:
          "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
          "effect_type": effect_types()["mob_changes_zones"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "power_points": 4,
       }      
 
    @staticmethod
@@ -154,8 +156,37 @@ class Effects:
          "legal_target_types": [{"id": value.id, "name": value.name} for key, value in target_types().items()],
          "id": "damage",
          "name": "Damage",
+         "power_points": Effects.damage_power_points(amount, target_type), 
          "target_type": target_type.id
       }
+
+   def damage_power_points(amount, target_type):
+      if target_type.id == "opponent":
+         return amount / 2
+      elif target_type.id == "self":
+         return -amount / 2
+      elif target_type.id == "player":
+         return amount / 2 + 1
+      elif target_type.id == "friendly_mob":
+         return -amount / 2 * 2
+      elif target_type.id == "any":
+         return amount + 1
+      elif target_type.id == "enemy_mob":
+         return amount
+      elif target_type.id == "friendly_mob_random":
+         return -amount
+      elif target_type.id == "enemy_mob_random":
+         return amount
+      elif target_type.id == "mob":
+         return amount + 1 
+      elif target_type.id == "all_friendly_mobs":
+         return -amount * 3
+      elif target_type.id == "all_mobs":
+         return amount * 3
+      elif target_type.id == "all_enemy_mobs":
+         return amount * 5
+      else:
+         print(f"unsupported target_type {target_type.id} for damage effect")
 
    @staticmethod
    def effect_types_for_card_type_id(card_type_id):      
@@ -194,7 +225,8 @@ class Effects:
          ],
          "id": "discard_random",
          "name": "Discard Random",
-         "target_type": target_type.id
+         "target_type": target_type.id,
+         "power_points": Effects.draw_power_points(amount, target_type) * -1, 
       }
 
    @staticmethod
@@ -207,6 +239,7 @@ class Effects:
          "description_expanded": f"Gain hit points equal to this mob's strength {effect_type.description}.",
          "effect_type": effect_type.id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "power_points": 2,
       }
 
    @staticmethod
@@ -225,8 +258,23 @@ class Effects:
          ],
          "id": "draw",
          "name": "Draw",
+         "power_points": Effects.draw_power_points(amount, target_type), 
          "target_type": target_type.id,
       }
+
+   @staticmethod
+   def draw_power_points(amount, target_type):
+      """
+         Returns the power_points for an effect that returns mobs to their owner's hand.
+      """
+      if target_type.id == "opponent":
+         return -amount * 3
+      elif target_type.id == "self":
+         return amount * 3
+      elif target_type.id == "player":
+         return amount * 3 + 1
+      else:
+         print(f"unsupported target_type {target_type.id} for draw effect")
 
    @staticmethod
    def guard():
@@ -237,6 +285,7 @@ class Effects:
          "description_expanded": "Guard mobs must be attacked before other enemies.",
          "effect_type": effect_types()["select_mob_target"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "power_points": 3,
       }      
 
    @staticmethod
@@ -248,13 +297,12 @@ class Effects:
          "legal_card_type_ids": [key for key, value in card_types().items()],
          "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
          "legal_target_types": [
-            target_types()["opponent"].as_dict(),
             target_types()["self"].as_dict(),
-            target_types()["player"].as_dict(),
          ],
          "id": "make_from_deck",
          "name": "Make from Deck",
          "target_type": target_type.id,
+         "power_points": 3,
       }
 
    @staticmethod
@@ -266,6 +314,7 @@ class Effects:
          "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
          "effect_type": effect_types()["before_is_damaged"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "power_points": 3,
          "ui_info": {
             "effect_type": "glow",
             "outer_strength": 0,
@@ -294,8 +343,29 @@ class Effects:
          ],
          "id": "unwind",
          "name": "Unwind",
+         "power_points": Effects.unwind_power_points(target_type), 
          "target_type": target_type.id,
       }
+
+   @staticmethod
+   def unwind_power_points(target_type):
+      """
+         Returns the power_points for an effect that returns mobs to their owner's hand.
+      """
+      if target_type.id == "friendly_mob":
+         return -4
+      elif target_type.id == "enemy_mob":
+         return 4
+      elif target_type.id == "mob":
+         return 5
+      elif target_type.id == "all_friendly_mobs":
+         return -20
+      elif target_type.id == "all_mobs":
+         return 12
+      elif target_type.id == "all_enemy_mobs":
+         return 20
+      else:
+         print(f"unsupported target_type {target_type.id} for unwind effect")
 
    @staticmethod
    def all():
@@ -307,7 +377,7 @@ class Effects:
       effects = [
          Effects.ambush(),
          Effects.damage(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
-         Effects.discard_random(card_types()["spell"].id, 1, spell_effect_type, any_target_type, [opponent_target_type.id]),
+         Effects.discard_random(card_types()["spell"].id, 1, spell_effect_type, opponent_target_type, [opponent_target_type.id]),
          Effects.drain(),
          Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.guard(),
@@ -413,7 +483,7 @@ class Cards:
          CardInfo(
                "Zap", 
                "lightning-trio.svg",
-               1,
+               2,
                card_types()["spell"],
                [
                   Effects.damage(
@@ -458,10 +528,10 @@ class Cards:
          CardInfo(
                "Think", 
                "think.svg",
-               4,
+               3,
                card_types()["spell"],
                [
-                  Effects.draw(card_types()["spell"].id, 3, effect_types()["spell"], target_types()["self"], [target_types()["self"].id])
+                  Effects.draw(card_types()["spell"].id, 2, effect_types()["spell"], target_types()["self"], [target_types()["self"].id])
                ]
          ),
          CardInfo(
@@ -523,7 +593,7 @@ class Cards:
                      card_types()["mob"].id, 
                      1, 
                      effect_types()["play_friendly_mob"],
-                     target_types()["opponents_mob_random"], 
+                     target_types()["enemy_mob_random"], 
                      None
                   )                  
                ]
