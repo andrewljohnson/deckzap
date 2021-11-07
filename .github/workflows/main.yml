@@ -80,12 +80,13 @@ jobs:
           docker pull ${{ env.NGINX_IMAGE }} || true
       - name: Run tests
         run: |
-          docker-compose run --rm web python manage.py test
+          docker-compose -f docker-compose.ci.yml run --rm web python manage.py test
 
   deploy:
     name: Deploy to DigitalOcean
     runs-on: ubuntu-latest
     needs: test
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1

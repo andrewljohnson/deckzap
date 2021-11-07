@@ -10,8 +10,7 @@ services:
     image: "${WEB_IMAGE}"
     command: gunicorn deckzap.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - static_volume:/usr/src/app/staticfiles
-      - media_volume:/usr/src/app/mediafiles
+      - .:/usr/src/app/
     expose:
       - 8000
     env_file: .env
@@ -28,7 +27,3 @@ services:
       - 80:80
     depends_on:
       - web
-
-volumes:
-  static_volume:
-  media_volume:
