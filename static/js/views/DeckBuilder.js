@@ -50,13 +50,14 @@ export class DeckBuilder {
 	        if (this.decks[this.discipline].id != null) {
 	        	this.disciplinePicker.disable();
 	        }
+	        // todo: totally remove this maybe
+	        this.disciplinePicker.disciplineDescriptionText.parent.removeChild(this.disciplinePicker.disciplineDescriptionText);
+	        this.disciplinePicker.magic.parent.removeChild(this.disciplinePicker.magic);
+	        this.disciplinePicker.tech.parent.removeChild(this.disciplinePicker.tech);
 	}
 
 	addTitle() {
-		let title = "Build Deck";
-		if (this.decks[this.discipline].id != null) {
-			title = "Edit Deck"
-		}
+		let title = "Choose Cards for Deck";
 		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			title = "View Deck: " + this.decks[this.discipline].title			
 		}
@@ -64,6 +65,7 @@ export class DeckBuilder {
         	titleText.position.x = Constants.padding;
         	titleText.position.y = Constants.padding * 1.5;
         	this.app.stage.addChild(titleText);		
+        	this.titleText = titleText;
         	return titleText;
 	}
 
@@ -153,7 +155,11 @@ export class DeckBuilder {
 		}
 		if (!this.cardsContainer) {
 			let containerY = this.disciplinePicker.position.y+80;
-			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, this.disciplinePicker.position.x-45, containerY);
+			let containerX = this.disciplinePicker.position.x-45
+			// todo: totally remove disciplinePicker maybe
+			containerX = this.titleText.position.x;
+			containerY = this.titleText.position.y + this.titleText.height + Constants.padding * 2;
+			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, containerX, containerY);
 		}
 		this.cardsContainer.deck = {"cards":disciplineCards};
 		this.cardsContainer.redisplayDeck();				
