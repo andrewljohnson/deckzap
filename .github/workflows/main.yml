@@ -80,7 +80,7 @@ jobs:
           docker pull ${{ env.NGINX_IMAGE }} || true
       - name: Run tests
         run: |
-          docker-compose -f docker-compose.ci.yml run --rm web python manage.py test
+          docker-compose -f docker-compose.ci.yml run --rm web python manage.py test --noinput
 
   deploy:
     name: Deploy to DigitalOcean
