@@ -28,14 +28,13 @@ export class OpponentChooser {
 		background.tint = 0xEEEEEE;
 		background.height = (Card.cardHeight) * 12
 		this.app.stage.addChild(background);
-
-	        let titleText = this.addTitle()
-	        this.playerTypePicker = new PlayerTypePicker(this, Constants.padding, titleText.position.y + titleText.height + Constants.padding*3, playerIndex => {this.selectPlayer(playerIndex)} )
-	        let subtitleText = this.addChooseDeckTitle();
-	        this.deckPickerTitle = subtitleText;
-	        this.deckPicker = new DeckPicker(this, this.opponentDecks, this.allCards, this.playerTypePicker.position.y + 140, deckIndex => {this.selectOpponentDeck(deckIndex)}, true);
+        let titleText = this.addTitle()
+        this.playerTypePicker = new PlayerTypePicker(this, Constants.padding, titleText.position.y + titleText.height + Constants.padding*3, playerIndex => {this.selectPlayer(playerIndex)} )
+        let subtitleText = this.addChooseDeckTitle();
+        this.deckPickerTitle = subtitleText;
+        this.deckPicker = new DeckPicker(this, this.opponentDecks, this.allCards, this.playerTypePicker.position.y + 140, deckIndex => {this.selectOpponentDeck(deckIndex)}, true);
 		this.deckContainer = new DeckContainer(this, this.opponentDecks[0], this.allCards, this.app.renderer.width / this.app.renderer.resolution - Card.cardWidth* 3 - Constants.padding * 4, 90 );
-	        this.playerTypePicker.select(0);
+	    this.playerTypePicker.select(0);
 		this.deckPicker.select(this.deckPicker.options.length-1);
 		this.addPlayButton();		
 	}
@@ -93,6 +92,11 @@ export class OpponentChooser {
 		} else {
 			this.showDeckSelector();			
 		}
+		for (let option of this.deckPicker.options) {
+			option.alpha = 0;
+		}
+		this.deckPickerTitle.alpha = 0;		
+		this.deckContainer.background.alpha = 0;		
 	}
 
 	hideDeckSelector() {

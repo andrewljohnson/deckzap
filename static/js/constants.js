@@ -20,6 +20,7 @@ export const brownColor = 0x765C48;
 export const redColor = 0xff0000;
 export const purpleColor = 0xff00ff;
 export const blueColor = 0x0000ff;
+export const lightBlueColor = 0xAAAAff;
 export const lightRedColor = 0xff7b7b;
 export const lightBrownColor = 0xDFBF9F;
 export const yellowColor = 0xEAFF00;

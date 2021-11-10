@@ -3,6 +3,7 @@ import json
 
 from battle_wizard.analytics import Analytics
 from battle_wizard.game.card import all_cards
+from battle_wizard.game.data import default_deck
 from battle_wizard.game.data import default_deck_dwarf_bard
 from battle_wizard.game.data import default_deck_dwarf_tinkerer
 from battle_wizard.game.data import default_deck_genie_wizard
@@ -92,10 +93,11 @@ def add_default_decks(username):
     """
         The initial decks for a new player.
     """
-    save_new_to_decks_database(username, default_deck_vampire_lich())
-    save_new_to_decks_database(username, default_deck_genie_wizard())
-    save_new_to_decks_database(username, default_deck_dwarf_tinkerer())
-    save_new_to_decks_database(username, default_deck_dwarf_bard())
+    save_new_to_decks_database(username, default_deck())
+    # save_new_to_decks_database(username, default_deck_vampire_lich())
+    # save_new_to_decks_database(username, default_deck_genie_wizard())
+    # save_new_to_decks_database(username, default_deck_dwarf_tinkerer())
+    # save_new_to_decks_database(username, default_deck_dwarf_bard())
    
 def logout(request):
     """
@@ -140,10 +142,11 @@ def choose_opponent(request, deck_id):
     cards = all_cards(require_images=True, include_tokens=False)
     cards = sorted(cards, key = lambda i: (i['cost'], i['card_type'], i['name']))
     json_opponent_decks = [
-        default_deck_vampire_lich(),
-        default_deck_genie_wizard(),
-        default_deck_dwarf_tinkerer(),
-        default_deck_dwarf_bard()
+        default_deck(),
+        # default_deck_vampire_lich(),
+        # default_deck_genie_wizard(),
+        # default_deck_dwarf_tinkerer(),
+        # default_deck_dwarf_bard()
     ]
     Analytics.log_amplitude(request, "Page View - Choose Opponent", {"path":"/choose_opponent/", "page":"choose opponent for match"})
     return render(request, "choose_opponent.html", 

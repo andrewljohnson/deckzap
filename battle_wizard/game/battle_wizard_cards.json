@@ -43,44 +43,6 @@
         ]
     },
     {
-        "name": "Unwind",
-        "discipline": "magic",
-        "image": "acrobatic.svg",
-        "cost": 2,
-        "card_type": "spell",
-        "description": "Return a mob to its owner's hand.",
-        "effects": [
-            {
-                "name": "Unwind",
-                "effect_type": "spell",
-                "target_type": "mob",
-                "ai_target_types": [
-                    "opponents_mob"
-                ],
-                "id": "unwind"
-            }
-        ]
-    },
-    {
-        "name": "Kill",
-        "image": "deathcab.svg",
-        "discipline": "magic",
-        "cost": 4,
-        "card_type": "spell",
-        "description": "Kill a mob.",
-        "effects": [
-            {
-                "name": "Kill",
-                "effect_type": "spell",
-                "target_type": "mob",
-                "ai_target_types": [
-                    "opponents_mob"
-                ],
-                "id": "kill"
-            }
-        ]
-    },
-    {
         "name": "Inferno Elemental",
         "image": "brasero.svg",
         "discipline": "magic",
@@ -1966,7 +1928,7 @@
             {
                 "name": "Damage",
                 "effect_type": "spell",
-                "target_type": "opponents_mobs",
+                "target_type": "enemy_mobs",
                 "amount": 5,
                 "id": "damage"
             },
@@ -2281,7 +2243,7 @@
             {
                 "name": "Damage",
                 "effect_type": "spell",
-                "target_type": "opponents_mobs",
+                "target_type": "enemy_mobs",
                 "amount_id": "hand",
                 "id": "damage"
             },
@@ -2311,7 +2273,7 @@
             },
             {
                 "name": "Damage",
-                "target_type": "opponents_mobs",
+                "target_type": "enemy_mobs",
                 "effect_type": "end_turn",
                 "amount": 1,
                 "id": "damage"

@@ -59,6 +59,9 @@ export class Card {
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
         let imageSprite = Card.framedSprite(loaderId, ch/2+Constants.defaultFontSize/2 + Constants.padding, cw - 6, pixiUX.app);
+        if (card.card_type == "spell") {
+            imageSprite.tint = Constants.lightBlueColor;
+        }
         let ellipseTopper = 0;
         if (card.card_type == Constants.mobCardType || card.card_type == Constants.artifactCardType) {
             ellipseTopper = Constants.padding * 2;

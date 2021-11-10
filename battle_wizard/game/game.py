@@ -4,6 +4,7 @@ import random
 
 from battle_wizard.game.card import Card
 from battle_wizard.game.data import Constants
+from battle_wizard.game.data import default_deck 
 from battle_wizard.game.data import default_deck_genie_wizard 
 from battle_wizard.game.data import default_deck_dwarf_tinkerer
 from battle_wizard.game.data import default_deck_dwarf_bard
@@ -406,7 +407,8 @@ class Game:
             message["log_lines"].append(f"{message['username']} joined the game.")
             if self.player_type == "pvai":                        
                 self.players.append(PlayerAI(self, message))
-                self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
+                # self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else random.choice([default_deck_genie_wizard()["url"], default_deck_dwarf_tinkerer()["url"], default_deck_dwarf_bard()["url"], default_deck_vampire_lich()["url"]])
+                self.players[len(self.players)-1].deck_id = message["opponent_deck_id"] if "opponent_deck_id" in message else default_deck()
             else:
                 self.players.append(Player(self, message))
                 self.players[len(self.players)-1].deck_id = int(message["deck_id"]) if "deck_id" in message and message["deck_id"] != "None" else None

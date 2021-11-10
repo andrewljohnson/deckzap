@@ -13,10 +13,58 @@
         {
             "card_type": "mob",
             "cost": 1,
+            "effects": [
+                {
+                    "description": "Shield",
+                    "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
+                    "effect_type": "before_is_damaged",
+                    "id": "shield",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "Shield",
+                    "power_points": 3,
+                    "ui_info": {
+                        "color": "white",
+                        "effect_type": "glow",
+                        "inner_strength": 3,
+                        "outer_strength": 0
+                    }
+                }
+            ],
+            "hit_points": 1,
+            "image": "fairy.svg",
+            "name": "Fairy",
+            "strength": 1
+        },
+        {
+            "card_type": "mob",
+            "cost": 1,
             "effects": [],
             "hit_points": 1,
             "image": "cat.svg",
             "name": "Cat",
+            "strength": 2
+        },
+        {
+            "card_type": "mob",
+            "cost": 2,
+            "effects": [
+                {
+                    "description": "Ambush",
+                    "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
+                    "effect_type": "mob_changes_zones",
+                    "id": "ambush",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "Ambush",
+                    "power_points": 1
+                }
+            ],
+            "hit_points": 2,
+            "image": "scorpion.svg",
+            "name": "War Scorpion",
             "strength": 2
         },
         {
@@ -31,11 +79,53 @@
         {
             "card_type": "mob",
             "cost": 3,
+            "effects": [
+                {
+                    "description": "Drain",
+                    "description_expanded": "Gain hit points equal to this mob's strength after it deals damage.",
+                    "effect_type": "after_deals_damage",
+                    "id": "drain",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "Drain",
+                    "power_points": 1
+                }
+            ],
+            "hit_points": 4,
+            "image": "vampire-dracula.svg",
+            "name": "Vampire",
+            "strength": 3
+        },
+        {
+            "card_type": "mob",
+            "cost": 3,
             "effects": [],
             "hit_points": 3,
-            "image": "gargoyle.svg",
-            "name": "Gargoyle",
+            "image": "mammoth.svg",
+            "name": "Mammoth",
             "strength": 4
+        },
+        {
+            "card_type": "mob",
+            "cost": 4,
+            "effects": [
+                {
+                    "description": "Guard",
+                    "description_expanded": "Guard mobs must be attacked before other enemies.",
+                    "effect_type": "select_mob_target",
+                    "id": "guard",
+                    "legal_card_type_ids": [
+                        "mob"
+                    ],
+                    "name": "Guard",
+                    "power_points": 1
+                }
+            ],
+            "hit_points": 5,
+            "image": "gargoyle.svg",
+            "name": "Guard-goyle",
+            "strength": 3
         },
         {
             "card_type": "mob",
@@ -102,6 +192,10 @@
                             "name": "Any Player or Mob"
                         },
                         {
+                            "id": "enemy_mobs",
+                            "name": "All Enemy Mobs"
+                        },
+                        {
                             "id": "enemy_mob",
                             "name": "Enemy Mob"
                         },
@@ -141,6 +235,79 @@
             ],
             "image": "lightning-trio.svg",
             "name": "Zap"
+        },
+        {
+            "card_type": "spell",
+            "cost": 1,
+            "effects": [
+                {
+                    "ai_target_types": [
+                        "self",
+                        "friendly_mob"
+                    ],
+                    "amount": 3,
+                    "description": "Heal any target for 3.",
+                    "effect_type": "spell",
+                    "id": "heal",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "id": "any",
+                            "name": "Any Player or Mob"
+                        },
+                        {
+                            "id": "enemy_mobs",
+                            "name": "All Enemy Mobs"
+                        },
+                        {
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "id": "friendly_mob",
+                            "name": "Friendly Mob"
+                        },
+                        {
+                            "id": "mob",
+                            "name": "Mob"
+                        },
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "friendly_mob_random",
+                            "name": "Friendly Mob (random)"
+                        },
+                        {
+                            "id": "enemy_mob_random",
+                            "name": "Enemy Mob (random)"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        }
+                    ],
+                    "name": "Heal",
+                    "power_points": 2,
+                    "target_type": "any"
+                }
+            ],
+            "image": "monk-face.svg",
+            "name": "Heal"
         },
         {
             "card_type": "spell",
@@ -227,9 +394,7 @@
             "cost": 3,
             "effects": [
                 {
-                    "ai_target_types": [
-                        "self"
-                    ],
+                    "ai_target_types": [],
                     "amount": 2,
                     "description": "Draw 2 cards.",
                     "effect_type": "spell",
@@ -268,15 +433,49 @@
         },
         {
             "card_type": "spell",
-            "cost": 0,
+            "cost": 2,
+            "effects": [
+                {
+                    "ai_target_types": [],
+                    "amount": 1,
+                    "description": "You get 1 extra mana on upcoming turns.",
+                    "effect_type": "spell",
+                    "id": "mana_increase_max",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        }
+                    ],
+                    "name": "Mana Increase Max",
+                    "power_points": 5,
+                    "target_type": "self"
+                }
+            ],
+            "image": "pianist.svg",
+            "name": "Study the Masters"
+        },
+        {
+            "card_type": "spell",
+            "cost": 4,
             "effects": [
                 {
                     "ai_target_types": [
                         "opponent",
                         "enemy_mob"
                     ],
-                    "amount": 4,
-                    "description": "Deal 4 damage to any target.",
+                    "amount": 6,
+                    "description": "Deal 6 damage to any target.",
                     "effect_type": "spell",
                     "id": "damage",
                     "legal_card_type_ids": [
@@ -293,6 +492,10 @@
                         {
                             "id": "any",
                             "name": "Any Player or Mob"
+                        },
+                        {
+                            "id": "enemy_mobs",
+                            "name": "All Enemy Mobs"
                         },
                         {
                             "id": "enemy_mob",
@@ -328,13 +531,171 @@
                         }
                     ],
                     "name": "Damage",
-                    "power_points": 5,
+                    "power_points": 9,
                     "target_type": "any"
-                },
+                }
+            ],
+            "image": "wind-hole.svg",
+            "name": "Explode"
+        },
+        {
+            "card_type": "spell",
+            "cost": 7,
+            "effects": [
                 {
                     "ai_target_types": [],
-                    "amount": 1,
-                    "description": "Discard a card.",
+                    "amount": 4,
+                    "description": "Deal 4 damage to all enemy mobs.",
+                    "effect_type": "spell",
+                    "id": "damage",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "id": "any",
+                            "name": "Any Player or Mob"
+                        },
+                        {
+                            "id": "enemy_mobs",
+                            "name": "All Enemy Mobs"
+                        },
+                        {
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "id": "friendly_mob",
+                            "name": "Friendly Mob"
+                        },
+                        {
+                            "id": "mob",
+                            "name": "Mob"
+                        },
+                        {
+                            "id": "opponent",
+                            "name": "Opponent"
+                        },
+                        {
+                            "id": "friendly_mob_random",
+                            "name": "Friendly Mob (random)"
+                        },
+                        {
+                            "id": "enemy_mob_random",
+                            "name": "Enemy Mob (random)"
+                        },
+                        {
+                            "id": "player",
+                            "name": "Player"
+                        },
+                        {
+                            "id": "self",
+                            "name": "Self"
+                        }
+                    ],
+                    "name": "Damage",
+                    "power_points": 14,
+                    "target_type": "enemy_mobs"
+                }
+            ],
+            "image": "rolling-energy.svg",
+            "name": "Rolling Flames"
+        },
+        {
+            "card_type": "spell",
+            "cost": 5,
+            "effects": [
+                {
+                    "ai_target_types": [
+                        "enemy_mob"
+                    ],
+                    "description": "Kill a mob.",
+                    "effect_type": "spell",
+                    "id": "kill",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "description": "a mob",
+                            "id": "mob",
+                            "name": "Mob"
+                        },
+                        {
+                            "description": "an enemy mob",
+                            "id": "enemy_mob",
+                            "name": "Enemy Mob"
+                        },
+                        {
+                            "description": "a friendly mob",
+                            "id": "friendly_mob",
+                            "name": "Friendly Mob"
+                        }
+                    ],
+                    "name": "Kill",
+                    "power_points": 10,
+                    "target_type": "mob"
+                }
+            ],
+            "image": "deathcab.svg",
+            "name": "Kill"
+        },
+        {
+            "card_type": "spell",
+            "cost": 8,
+            "effects": [
+                {
+                    "ai_target_types": [],
+                    "description": "Take an extra turn.",
+                    "effect_type": "spell",
+                    "id": "take_extra_turn",
+                    "legal_card_type_ids": [
+                        "mob",
+                        "spell"
+                    ],
+                    "legal_effect_types": [
+                        {
+                            "id": "spell",
+                            "name": "Spell"
+                        }
+                    ],
+                    "legal_target_types": [
+                        {
+                            "description": "yourself",
+                            "id": "self",
+                            "name": "Self"
+                        }
+                    ],
+                    "name": "Take Extra Turn",
+                    "power_points": 17,
+                    "target_type": "self"
+                }
+            ],
+            "image": "pocket-watch.svg",
+            "name": "Tame Time"
+        },
+        {
+            "card_type": "spell",
+            "cost": 3,
+            "effects": [
+                {
+                    "ai_target_types": [],
+                    "amount": 2,
+                    "description": "Your opponent discards 2 cards.",
                     "effect_type": "spell",
                     "id": "discard_random",
                     "legal_card_type_ids": [
@@ -362,165 +723,12 @@
                         }
                     ],
                     "name": "Discard Random",
-                    "power_points": -3,
-                    "target_type": "self"
+                    "power_points": 6,
+                    "target_type": "opponent"
                 }
             ],
-            "image": "burning-passion.svg",
-            "name": "Inner Fire"
-        },
-        {
-            "card_type": "mob",
-            "cost": 2,
-            "effects": [
-                {
-                    "description": "Guard",
-                    "description_expanded": "Guard mobs must be attacked before other enemies.",
-                    "effect_type": "select_mob_target",
-                    "id": "guard",
-                    "legal_card_type_ids": [
-                        "mob"
-                    ],
-                    "name": "Guard",
-                    "power_points": 3
-                }
-            ],
-            "hit_points": 3,
-            "image": "lion.svg",
-            "name": "LionKin",
-            "strength": 3
-        },
-        {
-            "card_type": "mob",
-            "cost": 5,
-            "effects": [
-                {
-                    "description": "Ambush",
-                    "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
-                    "effect_type": "mob_changes_zones",
-                    "id": "ambush",
-                    "legal_card_type_ids": [
-                        "mob"
-                    ],
-                    "name": "Ambush",
-                    "power_points": 4
-                },
-                {
-                    "description": "Drain",
-                    "description_expanded": "Gain hit points equal to this mob's strength after it deals damage.",
-                    "effect_type": "after_deals_damage",
-                    "id": "drain",
-                    "legal_card_type_ids": [
-                        "mob"
-                    ],
-                    "name": "Drain",
-                    "power_points": 2
-                },
-                {
-                    "description": "Guard",
-                    "description_expanded": "Guard mobs must be attacked before other enemies.",
-                    "effect_type": "select_mob_target",
-                    "id": "guard",
-                    "legal_card_type_ids": [
-                        "mob"
-                    ],
-                    "name": "Guard",
-                    "power_points": 3
-                },
-                {
-                    "description": "Shield",
-                    "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
-                    "effect_type": "before_is_damaged",
-                    "id": "shield",
-                    "legal_card_type_ids": [
-                        "mob"
-                    ],
-                    "name": "Shield",
-                    "power_points": 3,
-                    "ui_info": {
-                        "color": "white",
-                        "effect_type": "glow",
-                        "inner_strength": 3,
-                        "outer_strength": 0
-                    }
-                }
-            ],
-            "hit_points": 2,
-            "image": "djinn.svg",
-            "name": "Riftwalker Djinn",
-            "strength": 3
-        },
-        {
-            "card_type": "mob",
-            "cost": 2,
-            "effects": [
-                {
-                    "ai_target_types": null,
-                    "amount": 1,
-                    "description": "When you play a mob, deal 1 damage to a random enemy mob.",
-                    "effect_type": "play_friendly_mob",
-                    "id": "damage",
-                    "legal_card_type_ids": [
-                        "mob",
-                        "spell"
-                    ],
-                    "legal_effect_types": [
-                        {
-                            "id": "enters_play",
-                            "name": "Enters Play"
-                        },
-                        {
-                            "id": "play_friendly_mob",
-                            "name": "Play Friendly Mob"
-                        }
-                    ],
-                    "legal_target_types": [
-                        {
-                            "id": "any",
-                            "name": "Any Player or Mob"
-                        },
-                        {
-                            "id": "enemy_mob",
-                            "name": "Enemy Mob"
-                        },
-                        {
-                            "id": "friendly_mob",
-                            "name": "Friendly Mob"
-                        },
-                        {
-                            "id": "mob",
-                            "name": "Mob"
-                        },
-                        {
-                            "id": "opponent",
-                            "name": "Opponent"
-                        },
-                        {
-                            "id": "friendly_mob_random",
-                            "name": "Friendly Mob (random)"
-                        },
-                        {
-                            "id": "enemy_mob_random",
-                            "name": "Enemy Mob (random)"
-                        },
-                        {
-                            "id": "player",
-                            "name": "Player"
-                        },
-                        {
-                            "id": "self",
-                            "name": "Self"
-                        }
-                    ],
-                    "name": "Damage",
-                    "power_points": 1,
-                    "target_type": "enemy_mob_random"
-                }
-            ],
-            "hit_points": 2,
-            "image": "crumbling-ball.svg",
-            "name": "Spouty Gas Ball",
-            "strength": 3
+            "image": "diamonds-smile.svg",
+            "name": "Daze"
         }
     ],
     "effect_types": {
@@ -570,7 +778,7 @@
                 "mob"
             ],
             "name": "Ambush",
-            "power_points": 4
+            "power_points": 1
         },
         {
             "ai_target_types": [],
@@ -592,6 +800,10 @@
                 {
                     "id": "any",
                     "name": "Any Player or Mob"
+                },
+                {
+                    "id": "enemy_mobs",
+                    "name": "All Enemy Mobs"
                 },
                 {
                     "id": "enemy_mob",
@@ -675,7 +887,7 @@
                 "mob"
             ],
             "name": "Drain",
-            "power_points": 2
+            "power_points": 1
         },
         {
             "ai_target_types": [
@@ -722,7 +934,69 @@
                 "mob"
             ],
             "name": "Guard",
-            "power_points": 3
+            "power_points": 1
+        },
+        {
+            "ai_target_types": [],
+            "amount": 0,
+            "description": "Heal any target for 0.",
+            "effect_type": "spell",
+            "id": "heal",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
+            ],
+            "legal_target_types": [
+                {
+                    "id": "any",
+                    "name": "Any Player or Mob"
+                },
+                {
+                    "id": "enemy_mobs",
+                    "name": "All Enemy Mobs"
+                },
+                {
+                    "id": "enemy_mob",
+                    "name": "Enemy Mob"
+                },
+                {
+                    "id": "friendly_mob",
+                    "name": "Friendly Mob"
+                },
+                {
+                    "id": "mob",
+                    "name": "Mob"
+                },
+                {
+                    "id": "opponent",
+                    "name": "Opponent"
+                },
+                {
+                    "id": "friendly_mob_random",
+                    "name": "Friendly Mob (random)"
+                },
+                {
+                    "id": "enemy_mob_random",
+                    "name": "Enemy Mob (random)"
+                },
+                {
+                    "id": "player",
+                    "name": "Player"
+                },
+                {
+                    "id": "self",
+                    "name": "Self"
+                }
+            ],
+            "name": "Heal",
+            "power_points": 1,
+            "target_type": "any"
         },
         {
             "ai_target_types": [],
@@ -751,6 +1025,32 @@
             "target_type": "self"
         },
         {
+            "ai_target_types": [],
+            "amount": 1,
+            "description": "You get 1 extra mana on upcoming turns.",
+            "effect_type": "spell",
+            "id": "mana_increase_max",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
+            ],
+            "legal_target_types": [
+                {
+                    "id": "self",
+                    "name": "Self"
+                }
+            ],
+            "name": "Mana Increase Max",
+            "power_points": 5,
+            "target_type": "self"
+        },
+        {
             "description": "Shield",
             "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
             "effect_type": "before_is_damaged",
@@ -766,6 +1066,32 @@
                 "inner_strength": 3,
                 "outer_strength": 0
             }
+        },
+        {
+            "ai_target_types": [],
+            "description": "Take an extra turn.",
+            "effect_type": "spell",
+            "id": "take_extra_turn",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
+            ],
+            "legal_target_types": [
+                {
+                    "description": "yourself",
+                    "id": "self",
+                    "name": "Self"
+                }
+            ],
+            "name": "Take Extra Turn",
+            "power_points": 17,
+            "target_type": "self"
         },
         {
             "ai_target_types": [
@@ -821,6 +1147,11 @@
             "description": "a random enemy mob",
             "id": "enemy_mob_random",
             "name": "Enemy Mob (random)"
+        },
+        "enemy_mobs": {
+            "description": "all enemy mobs",
+            "id": "enemy_mobs",
+            "name": "All Enemy Mobs"
         },
         "friendly_mob": {
             "description": "a friendly mob",

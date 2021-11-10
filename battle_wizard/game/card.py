@@ -143,7 +143,20 @@ class Card:
     def __repr__(self):
         return f"{self.as_dict()}"
 
-    def as_dict(self):
+    def as_dict(self, for_card_builder=False):
+        if for_card_builder:
+            return {
+                "card_type": self.card_type,
+                "cost": self.cost,
+                "effects": [e.as_dict(for_card_builder=True) for e in self.effects],
+                "image": self.image,
+                "is_custom": self.is_custom,
+                "name": self.name,
+                "power_points": self.power_points,
+                "strength": self.strength,
+                "hit_points": self.hit_points
+            }
+
         return {
             "attacked": self.attacked,
             "can_activate_effects": self.can_activate_effects,
@@ -439,8 +452,8 @@ class Card:
                 effect_targets.append({"id": player.username, "target_type":"player"})
             elif e.target_type == "opponent":          
                 effect_targets.append({"id": player.game.opponent().username, "target_type":"player"})
-            elif e.target_type == "opponents_mobs":          
-                effect_targets.append({"target_type":"opponents_mobs"})
+            elif e.target_type == "enemy_mobs":          
+                effect_targets.append({"target_type":"enemy_mobs"})
             elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "self_mobs" or e.target_type == "all":          
                 effect_targets.append({"target_type": e.target_type})
             elif e.target_type in ["all_cards_in_deck", "all_cards_in_played_pile"]:          
@@ -651,7 +664,7 @@ class Card:
         elif target_type == "player":
             target_player = Card.player_for_username(effect_owner.game, target_id)
             return self.do_damage_effect_on_player(effect, effect_owner, target_player, effect.amount, effect.amount_id)
-        elif target_type == "opponents_mobs":
+        elif target_type == "enemy_mobs":
             return self.damage_mobs(effect_owner.game, effect_owner.game.opponent().in_play, damage_amount, effect_owner.username, f"{effect_owner.game.opponent().username}'s mobs")
         elif effect.target_type == "enemy_mob_random":
             if len(effect_owner.my_opponent().in_play) > 0:
@@ -1942,7 +1955,21 @@ class CardEffect:
     def __repr__(self):
         return f"{self.as_dict()}"
 
-    def as_dict(self):
+    def as_dict(self, for_card_builder=False):
+        if for_card_builder:
+            return {
+                "ai_target_types": self.ai_target_types,
+                "amount": self.amount,
+                "amount_id": self.amount_id,
+                "cost": self.cost,
+                "description": self.description,
+                "description_expanded": self.description_expanded,
+                "effect_type": self.effect_type,
+                "id": self.id,
+                "name": self.name,
+                "power_points": self.power_points,
+                "target_type": self.target_type
+            }
         return {
             "ai_target_types": self.ai_target_types,
             "amount": self.amount,

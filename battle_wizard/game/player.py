@@ -4,6 +4,7 @@ import random
 
 from battle_wizard.game.card import Card, CardEffect
 from battle_wizard.game.data import Constants
+from battle_wizard.game.data import default_deck 
 from battle_wizard.game.data import default_deck_genie_wizard 
 from battle_wizard.game.data import default_deck_dwarf_tinkerer
 from battle_wizard.game.data import default_deck_dwarf_bard
@@ -737,7 +738,10 @@ class Player:
             deck_to_use = default_deck_dwarf_bard()
         elif id_or_url == "draw_go":
             deck_to_use = default_deck_genie_wizard()
+        elif id_or_url == "vanilla":
+            deck_to_use = default_deck()
         else:
-            deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
+            deck_to_use = default_deck()
+            # deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
 
         return deck_to_use

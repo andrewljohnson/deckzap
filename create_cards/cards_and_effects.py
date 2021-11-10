@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import sys
 
@@ -101,6 +102,7 @@ def effect_types(as_dicts=False):
 def target_types(as_dicts=False): 
    all_target_types = {
       "any": TargetType("any", "Any Player or Mob", "any target"),
+      "enemy_mobs": TargetType("enemy_mobs", "All Enemy Mobs", "all enemy mobs"),
       "enemy_mob": TargetType("enemy_mob", "Enemy Mob", "an enemy mob"),
       "friendly_mob": TargetType("friendly_mob", "Friendly Mob", "a friendly mob"),
       "mob": TargetType("mob", "Mob", "a mob"),
@@ -136,7 +138,7 @@ class Effects:
          "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
          "effect_type": effect_types()["mob_changes_zones"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
-         "power_points": 4,
+         "power_points": 1,
       }      
 
    @staticmethod
@@ -161,32 +163,42 @@ class Effects:
       }
 
    def damage_power_points(amount, target_type):
+      points = None
       if target_type.id == "opponent":
-         return amount / 2
+         points = amount / 2
       elif target_type.id == "self":
-         return -amount / 2
+         points = -amount / 2
       elif target_type.id == "player":
-         return amount / 2 + 1
+         points = amount / 2 + 1
       elif target_type.id == "friendly_mob":
-         return -amount / 2 * 2
+         points = -amount / 2 * 2
       elif target_type.id == "any":
-         return amount + 1
+         points = amount + 1
       elif target_type.id == "enemy_mob":
-         return amount
+         points = amount
       elif target_type.id == "friendly_mob_random":
-         return -amount
+         points = -amount
       elif target_type.id == "enemy_mob_random":
-         return amount
+         points = amount
       elif target_type.id == "mob":
-         return amount + 1 
-      elif target_type.id == "all_friendly_mobs":
-         return -amount * 3
+         points = amount + 1 
+      elif target_type.id == "friendly_mobs":
+         points = -amount * 2
       elif target_type.id == "all_mobs":
-         return amount * 3
-      elif target_type.id == "all_enemy_mobs":
-         return amount * 5
+         points = amount * 2
+      elif target_type.id == "enemy_mobs":
+         points = amount * 3
       else:
          print(f"unsupported target_type {target_type.id} for damage effect")
+
+      if amount >= 15:
+         points *= 4
+      elif amount >= 10:
+         points *= 2
+      elif amount >= 4:
+         points += 2
+
+      return points
 
    @staticmethod
    def effect_types_for_card_type_id(card_type_id):      
@@ -226,8 +238,22 @@ class Effects:
          "id": "discard_random",
          "name": "Discard Random",
          "target_type": target_type.id,
-         "power_points": Effects.draw_power_points(amount, target_type) * -1, 
+         "power_points": Effects.discard_power_points(amount, target_type), 
       }
+
+   @staticmethod
+   def discard_power_points(amount, target_type):
+      """
+         Returns the power_points for an effect that returns mobs to their owner's hand.
+      """
+      if target_type.id == "opponent":
+         return amount * 3
+      elif target_type.id == "self":
+         return -amount * 3
+      elif target_type.id == "player":
+         return amount * 3 + 1
+      else:
+         print(f"unsupported target_type {target_type.id} for discard effect")
 
    @staticmethod
    def drain():
@@ -239,7 +265,7 @@ class Effects:
          "description_expanded": f"Gain hit points equal to this mob's strength {effect_type.description}.",
          "effect_type": effect_type.id,
          "legal_card_type_ids": [card_types()["mob"].id],
-         "power_points": 2,
+         "power_points": 1,
       }
 
    @staticmethod
@@ -285,8 +311,53 @@ class Effects:
          "description_expanded": "Guard mobs must be attacked before other enemies.",
          "effect_type": effect_types()["select_mob_target"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
-         "power_points": 3,
+         "power_points": 1,
       }      
+
+   @staticmethod
+   def heal(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
+      if effect_type.description != None:
+         description = f"{effect_type.description}, heal {target_type.description} for {amount}."
+      else:
+         description = f"Heal {target_type.description} for {amount}."
+
+      return {
+         "ai_target_types": ai_target_type_ids,
+         "amount": amount,
+         "effect_type": effect_type.id,
+         "description": description,
+         "legal_card_type_ids": [key for key, value in card_types().items()],
+         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_target_types": [{"id": value.id, "name": value.name} for key, value in target_types().items()],
+         "id": "heal",
+         "name": "Heal",
+         "power_points": math.ceil(Effects.damage_power_points(amount, target_type) / 2), 
+         "target_type": target_type.id
+      }
+
+   @staticmethod
+   def kill(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
+      if effect_type.description != None:
+         description = f"{effect_type.description}, kill {target_type.description}."
+      else:
+         description = f"Kill {target_type.description}."
+
+      return {
+         "ai_target_types": ai_target_type_ids,
+         "effect_type": effect_type.id,
+         "description": description,
+         "legal_card_type_ids": [key for key, value in card_types().items()],
+         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_target_types": [
+            target_types()["mob"].as_dict(),
+            target_types()["enemy_mob"].as_dict(),
+            target_types()["friendly_mob"].as_dict()
+         ],
+         "id": "kill",
+         "name": "Kill",
+         "power_points": Effects.unwind_power_points(target_type) * 2, 
+         "target_type": target_type.id
+      }
 
    @staticmethod
    def make_from_deck(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
@@ -303,6 +374,24 @@ class Effects:
          "name": "Make from Deck",
          "target_type": target_type.id,
          "power_points": 3,
+      }
+
+   @staticmethod
+   def mana_increase_max(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
+      return {
+         "ai_target_types": ai_target_type_ids,
+         "amount": amount,
+         "effect_type": effect_type.id,
+         "description": f"You get {amount} extra mana on upcoming turns.",
+         "legal_card_type_ids": [key for key, value in card_types().items()],
+         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_target_types": [
+            {"id": target_types()["self"].id, "name": target_types()["self"].name},
+         ],
+         "id": "mana_increase_max",
+         "name": "Mana Increase Max",
+         "power_points": amount * 5, 
+         "target_type": target_type.id,
       }
 
    @staticmethod
@@ -324,6 +413,23 @@ class Effects:
       }   
 
    @staticmethod
+   def take_extra_turn(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
+      return {
+         "ai_target_types": ai_target_type_ids,
+         "effect_type": effect_type.id,
+         "description": "Take an extra turn.",
+         "legal_card_type_ids": [key for key, value in card_types().items()],
+         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_target_types": [
+            target_types()["self"].as_dict(),
+         ],
+         "id": "take_extra_turn",
+         "name": "Take Extra Turn",
+         "target_type": target_type.id,
+         "power_points": 17,
+      }
+
+   @staticmethod
    def unwind(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
       if effect_type.description != None:
          description = f"{effect_type.description}, return {target_type.description} to its owner's hand."
@@ -339,12 +445,12 @@ class Effects:
          "legal_target_types": [
             target_types()["mob"].as_dict(),
             target_types()["enemy_mob"].as_dict(),
-            target_types()["friendly_mob"].as_dict(),
+            target_types()["friendly_mob"].as_dict()
          ],
          "id": "unwind",
          "name": "Unwind",
          "power_points": Effects.unwind_power_points(target_type), 
-         "target_type": target_type.id,
+         "target_type": target_type.id
       }
 
    @staticmethod
@@ -358,11 +464,11 @@ class Effects:
          return 4
       elif target_type.id == "mob":
          return 5
-      elif target_type.id == "all_friendly_mobs":
+      elif target_type.id == "friendly_mobs":
          return -20
       elif target_type.id == "all_mobs":
          return 12
-      elif target_type.id == "all_enemy_mobs":
+      elif target_type.id == "enemy_mobs":
          return 20
       else:
          print(f"unsupported target_type {target_type.id} for unwind effect")
@@ -381,8 +487,11 @@ class Effects:
          Effects.drain(),
          Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.guard(),
+         Effects.heal(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
          Effects.make_from_deck(card_types()["spell"].id, None, spell_effect_type, self_target_type, []),
+         Effects.mana_increase_max(card_types()["spell"].id, 1, spell_effect_type, self_target_type, []),
          Effects.shield(),         
+         Effects.take_extra_turn(card_types()["spell"].id, None, spell_effect_type, self_target_type, []),
          Effects.unwind(card_types()["spell"].id, None, spell_effect_type, mob_target_type, [mob_target_type.id]),
       ]
       return effects
@@ -418,6 +527,17 @@ class Cards:
    def all():
       cards = [
          CardInfoMob(
+               "Fairy", 
+               "fairy.svg",
+               1,
+               card_types()["mob"],
+               1,
+               1,
+               [
+                  Effects.shield()
+               ]
+         ),
+         CardInfoMob(
                "Cat", 
                "cat.svg",
                1,
@@ -425,6 +545,17 @@ class Cards:
                2,
                1,
                []
+         ),
+         CardInfoMob(
+               "War Scorpion", 
+               "scorpion.svg",
+               2,
+               card_types()["mob"],
+               2,
+               2,
+               [
+                  Effects.ambush()
+               ]
          ),
          CardInfoMob(
                "Hound", 
@@ -436,13 +567,35 @@ class Cards:
                []
          ),
          CardInfoMob(
-               "Gargoyle", 
-               "gargoyle.svg",
+               "Vampire", 
+               "vampire-dracula.svg",
+               3,
+               card_types()["mob"],
+               3,
+               4,
+               [
+                  Effects.drain()
+               ]
+         ),
+         CardInfoMob(
+               "Mammoth", 
+               "mammoth.svg",
                3,
                card_types()["mob"],
                4,
                3,
                []
+         ),
+         CardInfoMob(
+               "Guard-goyle", 
+               "gargoyle.svg",
+               4,
+               card_types()["mob"],
+               3,
+               5,
+               [
+                  Effects.guard()
+               ]
          ),
          CardInfoMob(
                "Demon", 
@@ -496,6 +649,21 @@ class Cards:
                ]
          ),
          CardInfo(
+               "Heal", 
+               "monk-face.svg",
+               1,
+               card_types()["spell"],
+               [
+                  Effects.heal(
+                     card_types()["spell"].id, 
+                     3, 
+                     effect_types()["spell"],
+                     target_types()["any"], 
+                     [target_types()["self"].id, target_types()["friendly_mob"].id]
+                  )
+               ]
+         ),
+         CardInfo(
                "Meditate", 
                "enlightenment.svg",
                1,
@@ -518,7 +686,7 @@ class Cards:
                [
                   Effects.unwind(
                      card_types()["spell"].id, 
-                     3, 
+                     1, 
                      effect_types()["spell"],
                      target_types()["mob"], 
                      [target_types()["enemy_mob"].id]
@@ -531,72 +699,150 @@ class Cards:
                3,
                card_types()["spell"],
                [
-                  Effects.draw(card_types()["spell"].id, 2, effect_types()["spell"], target_types()["self"], [target_types()["self"].id])
+                  Effects.draw(card_types()["spell"].id, 2, effect_types()["spell"], target_types()["self"], [])
                ]
          ),
          CardInfo(
-               "Inner Fire", 
-               "burning-passion.svg",
-               0,
+               "Study the Masters", 
+               "pianist.svg",
+               2,
+               card_types()["spell"],
+               [
+                  Effects.mana_increase_max(card_types()["spell"].id, 1, effect_types()["spell"], target_types()["self"], [])
+               ]
+         ),
+         CardInfo(
+               "Explode", 
+               "wind-hole.svg",
+               4,
+               card_types()["spell"],
+               [
+                  Effects.damage(
+                     card_types()["spell"].id, 
+                     6, 
+                     effect_types()["spell"],
+                     target_types()["any"], 
+                     [target_types()["opponent"].id, target_types()["enemy_mob"].id]
+                  )
+               ]
+         ),
+         CardInfo(
+               "Rolling Flames", 
+               "rolling-energy.svg",
+               7,
                card_types()["spell"],
                [
                   Effects.damage(
                      card_types()["spell"].id, 
                      4, 
                      effect_types()["spell"],
-                     target_types()["any"], 
-                     [target_types()["opponent"].id, target_types()["enemy_mob"].id]
-                  ),
-                  Effects.discard_random(
+                     target_types()["enemy_mobs"], 
+                     []
+                  )
+               ]
+         ),
+         CardInfo(
+               "Kill", 
+               "deathcab.svg",
+               5,
+               card_types()["spell"],
+               [
+                  Effects.kill(
                      card_types()["spell"].id, 
                      1, 
+                     effect_types()["spell"],
+                     target_types()["mob"], 
+                     [target_types()["enemy_mob"].id]
+                  )
+               ]
+         ),
+         CardInfo(
+               "Tame Time", 
+               "pocket-watch.svg",
+               8,
+               card_types()["spell"],
+               [
+                  Effects.take_extra_turn(card_types()["spell"].id, None, effect_types()["spell"], target_types()["self"], [])
+               ]
+         ),
+         CardInfo(
+               "Daze", 
+               "diamonds-smile.svg",
+               3,
+               card_types()["spell"],
+               [
+                  Effects.discard_random(
+                     card_types()["spell"].id, 
+                     2, 
                      effect_types()["spell"], 
-                     target_types()["self"],
+                     target_types()["opponent"],
                      [],
                   ),                  
                ]
          ),
-         CardInfoMob(
-               "LionKin", 
-               "lion.svg",
-               2,
-               card_types()["mob"],
-               3,
-               3,
-               [
-                  Effects.guard(),                  
-               ]
-         ),
-         CardInfoMob(
-               "Riftwalker Djinn", 
-               "djinn.svg",
-               5,
-               card_types()["mob"],
-               3,
-               2,
-               [
-                  Effects.ambush(),                  
-                  Effects.drain(),                  
-                  Effects.guard(),                  
-                  Effects.shield(),                  
-               ]
-         ),
-         CardInfoMob(
-               "Spouty Gas Ball", 
-               "crumbling-ball.svg",
-               2,
-               card_types()["mob"],
-               3,
-               2,
-               [
-                  Effects.damage(
-                     card_types()["mob"].id, 
-                     1, 
-                     effect_types()["play_friendly_mob"],
-                     target_types()["enemy_mob_random"], 
-                     None
-                  )                  
-               ]
-         ),
+         # CardInfo(
+         #       "Inner Fire", 
+         #       "burning-passion.svg",
+         #       0,
+         #       card_types()["spell"],
+         #       [
+         #          Effects.damage(
+         #             card_types()["spell"].id, 
+         #             4, 
+         #             effect_types()["spell"],
+         #             target_types()["any"], 
+         #             [target_types()["opponent"].id, target_types()["enemy_mob"].id]
+         #          ),
+         #          Effects.discard_random(
+         #             card_types()["spell"].id, 
+         #             1, 
+         #             effect_types()["spell"], 
+         #             target_types()["self"],
+         #             [],
+         #          ),                  
+         #       ]
+         # ),
+         # CardInfoMob(
+         #       "LionKin", 
+         #       "lion.svg",
+         #       2,
+         #       card_types()["mob"],
+         #       3,
+         #       3,
+         #       [
+         #          Effects.guard(),                  
+         #       ]
+         # ),
+         # CardInfoMob(
+         #       "Riftwalker Djinn", 
+         #       "djinn.svg",
+         #       5,
+         #       card_types()["mob"],
+         #       3,
+         #       2,
+         #       [
+         #          Effects.ambush(),                  
+         #          Effects.drain(),                  
+         #          Effects.guard(),                  
+         #          Effects.shield(),                  
+         #       ]
+         # ),
+         # CardInfoMob(
+         #       "Spouty Gas Ball", 
+         #       "crumbling-ball.svg",
+         #       2,
+         #       card_types()["mob"],
+         #       3,
+         #       2,
+         #       [
+         #          Effects.damage(
+         #             card_types()["mob"].id, 
+         #             1, 
+         #             effect_types()["play_friendly_mob"],
+         #             target_types()["enemy_mob_random"], 
+         #             None
+         #          )                  
+         #       ]
+         # ),
       ]
       return [card_info.as_dict() for card_info in cards]

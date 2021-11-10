@@ -200,6 +200,7 @@ export class DeckBuilder {
 					addedCard = card;
 				}
 			}
+			console.log(dcName)
 			salaryCapText += this.decks[this.discipline]["cards"][dcName] * addedCard.power_points;
 		}
 		this.salaryCap = salaryCapText;
