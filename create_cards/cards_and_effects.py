@@ -547,7 +547,7 @@ class Cards:
                []
          ),
          CardInfoMob(
-               "War Scorpion", 
+               "Scorpion", 
                "scorpion.svg",
                2,
                card_types()["mob"],
@@ -780,69 +780,69 @@ class Cards:
                   ),                  
                ]
          ),
-         # CardInfo(
-         #       "Inner Fire", 
-         #       "burning-passion.svg",
-         #       0,
-         #       card_types()["spell"],
-         #       [
-         #          Effects.damage(
-         #             card_types()["spell"].id, 
-         #             4, 
-         #             effect_types()["spell"],
-         #             target_types()["any"], 
-         #             [target_types()["opponent"].id, target_types()["enemy_mob"].id]
-         #          ),
-         #          Effects.discard_random(
-         #             card_types()["spell"].id, 
-         #             1, 
-         #             effect_types()["spell"], 
-         #             target_types()["self"],
-         #             [],
-         #          ),                  
-         #       ]
-         # ),
-         # CardInfoMob(
-         #       "LionKin", 
-         #       "lion.svg",
-         #       2,
-         #       card_types()["mob"],
-         #       3,
-         #       3,
-         #       [
-         #          Effects.guard(),                  
-         #       ]
-         # ),
-         # CardInfoMob(
-         #       "Riftwalker Djinn", 
-         #       "djinn.svg",
-         #       5,
-         #       card_types()["mob"],
-         #       3,
-         #       2,
-         #       [
-         #          Effects.ambush(),                  
-         #          Effects.drain(),                  
-         #          Effects.guard(),                  
-         #          Effects.shield(),                  
-         #       ]
-         # ),
-         # CardInfoMob(
-         #       "Spouty Gas Ball", 
-         #       "crumbling-ball.svg",
-         #       2,
-         #       card_types()["mob"],
-         #       3,
-         #       2,
-         #       [
-         #          Effects.damage(
-         #             card_types()["mob"].id, 
-         #             1, 
-         #             effect_types()["play_friendly_mob"],
-         #             target_types()["enemy_mob_random"], 
-         #             None
-         #          )                  
-         #       ]
-         # ),
+         CardInfo(
+               "Inner Fire", 
+               "burning-passion.svg",
+               0,
+               card_types()["spell"],
+               [
+                  Effects.damage(
+                     card_types()["spell"].id, 
+                     4, 
+                     effect_types()["spell"],
+                     target_types()["any"], 
+                     [target_types()["opponent"].id, target_types()["enemy_mob"].id]
+                  ),
+                  Effects.discard_random(
+                     card_types()["spell"].id, 
+                     1, 
+                     effect_types()["spell"], 
+                     target_types()["self"],
+                     [],
+                  ),                  
+               ]
+         ),
+         CardInfoMob(
+               "LionKin", 
+               "lion.svg",
+               2,
+               card_types()["mob"],
+               3,
+               3,
+               [
+                  Effects.guard(),                  
+               ]
+         ),
+         CardInfoMob(
+               "Riftwalker Djinn", 
+               "djinn.svg",
+               5,
+               card_types()["mob"],
+               3,
+               2,
+               [
+                  Effects.ambush(),                  
+                  Effects.drain(),                  
+                  Effects.guard(),                  
+                  Effects.shield(),                  
+               ]
+         ),
+         CardInfoMob(
+               "Spouty Gas Ball", 
+               "crumbling-ball.svg",
+               2,
+               card_types()["mob"],
+               3,
+               2,
+               [
+                  Effects.damage(
+                     card_types()["mob"].id, 
+                     1, 
+                     effect_types()["play_friendly_mob"],
+                     target_types()["enemy_mob_random"], 
+                     None
+                  )                  
+               ]
+         ),
       ]
       return [card_info.as_dict() for card_info in cards]
