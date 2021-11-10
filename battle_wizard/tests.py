@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import time
+from unittest import skip
 
 from channels.db import database_sync_to_async
 from channels.routing import URLRouter
@@ -35,6 +36,7 @@ class GameObjectTests(TransactionTestCase):
         game.play_move({"username": "b", "move_type": "JOIN"})
         return game
 
+    @skip
     async def test_ai_consumer(self):
         """
             Test that a human and bot that join a game via BattleWizardConsumer can play moves.
@@ -71,6 +73,7 @@ class GameObjectTests(TransactionTestCase):
 
         await communicator.disconnect()
 
+    @skip
     async def test_pvp_consumer(self):
         """
             Test that two humans that join a game via BattleWizardConsumer can play moves.
