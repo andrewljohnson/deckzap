@@ -4,6 +4,7 @@ import json
 from battle_wizard.analytics import Analytics
 from battle_wizard.game.card import all_cards
 from battle_wizard.game.card import Card
+from battle_wizard.game.data import Constants
 from create_cards.cards_and_effects import Effects
 from create_cards.cards_and_effects import effect_types
 from create_cards.cards_and_effects import target_types
@@ -184,7 +185,7 @@ def save_new_card(request):
             return JsonResponse({"error": error_message})
         else: 
             custom_card = CustomCard.objects.create(
-                card_json={"card_type": card_info["card_type"]}, 
+                card_json={"card_type": card_info["card_type"], "author_username": request.user.username}, 
                 author=request.user, 
                 date_created=datetime.datetime.now()
             )
@@ -221,15 +222,13 @@ def create_card_save(request, required_key, event_name):
             print(error_message)
             return JsonResponse({"error": error_message})
         else: 
-            card_info = Card(card_info).as_dict(for_card_builder=True)
             custom_card = CustomCard.objects.get(id=info["card_id"])
             if custom_card.author != request.user:
                 error_message = "only the card's author can edit a CustomCard"
                 print(error_message)
                 return JsonResponse({"error": error_message})
-            if "strength" in card_info:
+            if card_info["card_type"] == Constants.mobCardType:
                 card_info["strength"] = int(card_info["strength"])    
-            if "hit_points" in card_info:
                 card_info["hit_points"] = int(card_info["hit_points"])    
             if "cost" in card_info:
                 card_info["cost"] = int(card_info["cost"])    
@@ -237,6 +236,7 @@ def create_card_save(request, required_key, event_name):
                 for e in card_info["effects"]:
                     if "amount" in e:
                         e["amount"] = int(e["amount"])    
+            card_info = Card(card_info).as_dict(for_card_builder=True)
             custom_card.card_json = card_info
             custom_card.save()
             Analytics.log_amplitude(request, event_name, {})
@@ -277,7 +277,7 @@ def save_name_and_image(request):
                 print(error_message)
                 return JsonResponse({"error": error_message})
 
-            custom_card.card_json = card_info
+            custom_card.card_json = Card(card_info).as_dict(for_card_builder=True)
             custom_card.save()
             Analytics.log_amplitude(request, "Save Card Name and Image", {})
             return JsonResponse({})

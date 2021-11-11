@@ -601,7 +601,7 @@
                         }
                     ],
                     "name": "Damage",
-                    "power_points": 14,
+                    "power_points": 12,
                     "target_type": "enemy_mobs"
                 }
             ],
@@ -695,7 +695,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 2,
-                    "description": "Your opponent discards 2 cards.",
+                    "description": "Your opponent discards 2 cards at random.",
                     "effect_type": "spell",
                     "id": "discard_random",
                     "legal_card_type_ids": [
@@ -796,13 +796,13 @@
                         }
                     ],
                     "name": "Damage",
-                    "power_points": 7,
+                    "power_points": 5,
                     "target_type": "any"
                 },
                 {
                     "ai_target_types": [],
                     "amount": 1,
-                    "description": "Discard a card.",
+                    "description": "Discard a card at random.",
                     "effect_type": "spell",
                     "id": "discard_random",
                     "legal_card_type_ids": [
@@ -1111,7 +1111,7 @@
                 "self"
             ],
             "amount": 1,
-            "description": "Discard a card.",
+            "description": "Discard a card at random.",
             "effect_type": "spell",
             "id": "discard_random",
             "legal_card_type_ids": [

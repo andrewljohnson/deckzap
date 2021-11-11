@@ -195,7 +195,7 @@ class Effects:
          points *= 4
       elif amount >= 10:
          points *= 2
-      elif amount >= 4:
+      elif amount >= 5:
          points += 2
 
       return points
@@ -227,7 +227,7 @@ class Effects:
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
          "effect_type": effect_type.id,
-         "description": Effects.description_for_cards_effect("discard", target_type, amount, effect_type),
+         "description": Effects.description_for_cards_effect("discard", target_type, amount, effect_type, is_random=True),
          "legal_card_type_ids": [key for key, value in card_types().items()],
          "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
          "legal_target_types": [
@@ -497,25 +497,29 @@ class Effects:
       return effects
 
    @staticmethod
-   def description_for_cards_effect(action_word, target_type, amount, effect_type):
+   def description_for_cards_effect(action_word, target_type, amount, effect_type, is_random=False):
       if target_type.id == "self":
          if amount == 1:
-            description = f"{action_word.capitalize()} a card."
+            description = f"{action_word.capitalize()} a card"
          else:
-            description = f"{action_word.capitalize()} {amount} cards."
+            description = f"{action_word.capitalize()} {amount} cards"
       elif target_type.id == "player": 
          if amount == 1: 
-            description = f"Target player {action_word}s a card."
+            description = f"Target player {action_word}s a card"
          else:
-            description = f"Target player {action_word}s {amount} cards."
+            description = f"Target player {action_word}s {amount} cards"
       else: #target_type.id == "opponent"
          if amount == 1:
-            description = f"Your opponent {action_word}s a card."
+            description = f"Your opponent {action_word}s a card"
          else:
-            description = f"Your opponent {action_word}s {amount} cards."
+            description = f"Your opponent {action_word}s {amount} cards"
+      if is_random:
+         description += " at random"
       if effect_type.description != None:
          description = description[0].lower() + description[1:]
-         description = f"{effect_type.description}, {description}" 
+         description = f"{effect_type.description}, {description}." 
+      else:
+         description += "."         
       return description   
 
 

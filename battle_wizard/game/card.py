@@ -11,6 +11,7 @@ class Card:
     def __init__(self, info):
         self.id = info["id"] if "id" in info else -1
         self.attacked = info["attacked"] if "attacked" in info else False
+        self.author_username = info["author_username"] if "author_username" in info else None
         # use by artifacts with activated abilities
         self.can_activate_effects = info["can_activate_effects"] if "can_activate_effects" in info else True
         self.can_attack_mobs = info["can_attack_mobs"] if "can_attack_mobs" in info else False
@@ -146,6 +147,7 @@ class Card:
     def as_dict(self, for_card_builder=False):
         if for_card_builder:
             return {
+                "author_username": self.author_username,
                 "card_type": self.card_type,
                 "cost": self.cost,
                 "effects": [e.as_dict(for_card_builder=True) for e in self.effects],
@@ -159,6 +161,7 @@ class Card:
 
         return {
             "attacked": self.attacked,
+            "author_username": self.author_username,
             "can_activate_effects": self.can_activate_effects,
             "can_attack_mobs": self.can_attack_mobs,
             "can_attack_players": self.can_attack_players,

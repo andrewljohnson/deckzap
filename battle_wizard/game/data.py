@@ -20,7 +20,7 @@ def default_deck():
         "cards": {
             "Fairy": 2,
             "Cat": 2,
-            "War Scorpion": 2,
+            "Scorpion": 2,
             "Hound": 2,
             "Vampire": 1,
             "Mammoth": 2,

@@ -294,6 +294,16 @@ export class Card {
             type.position.y = typeY + 6
             cardSprite.addChild(type);
         }
+        console.log(card)
+        if (useLargeSize && card.author_username) {
+            let authorY = ch/2 - Constants.defaultFontSize * 2;
+            let authorOptions = Constants.textOptions();
+            authorOptions.wordWrap = false;
+            let authorNameText = new PIXI.Text("Creator: " + card.author_username, authorOptions);
+            cardSprite.addChild(authorNameText);
+            authorNameText.anchor.set(.5);
+            authorNameText.position.y = authorY;
+        }
 
         if (attackEffect) {
             let strengthX = -cw/2 + Constants.padding * 2;
@@ -732,9 +742,11 @@ export class Card {
         options.stroke = Constants.blackColor;
         options.strokeThickness = 2;
         options.fill = Constants.whiteColor;
-        let powerText = new PIXI.Text(power, options);
-        powerText.anchor.set(.5);
-        sprite.addChild(powerText);
+        if (!pixiUX.game) {
+            let powerText = new PIXI.Text(power, options);
+            powerText.anchor.set(.5);
+            sprite.addChild(powerText);            
+        }
         return sprite;
     }
 
