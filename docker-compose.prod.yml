@@ -8,13 +8,13 @@ services:
       - static_volume:/usr/src/app/staticfiles
       - media_volume:/usr/src/app/mediafiles
     ports:
-      - 8000:8000
+      - 8000
     env_file: .env
   asgi:
     image: "${WEB_IMAGE}"
     command: daphne -b 0.0.0.0 -p 8000 deckzap.wsgi:application
     ports:
-      - 8000:8000
+      - 8000
     env_file: .env
   nginx:
     image: "${NGINX_IMAGE}"
