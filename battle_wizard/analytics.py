@@ -1,18 +1,18 @@
+import os
 import json
 import requests
 import time
-from decouple import config
 
 
 class Analytics:
     def __init__(self, api_key, api_uri="https://api2.amplitude.com/2/httpapi"):
         self.api_key = api_key
         self.api_uri = api_uri
-        
+
     def create_event(self,**kwargs):
         user_id = kwargs.get('user_id',None)
         device_id = kwargs.get('device_id', None)
-        username = kwargs.get('username', None)        
+        username = kwargs.get('username', None)
         event_type = kwargs.get('event_type', None)
 
         event = {}
@@ -31,9 +31,9 @@ class Analytics:
             print("No user_id or device_id provided for analytics call " + event_type)
             return
 
-        # integer epoch time in milliseconds 
+        # integer epoch time in milliseconds
         event["time"] = int(time.time()*1000)
-        
+
         event_properties = kwargs.get('event_properties', None)
         if event_properties is not None and type(event_properties) == dict:
             event["event_properties"] = event_properties
@@ -47,12 +47,12 @@ class Analytics:
     def log_event(self,event):
         result = requests.post(self.api_uri, data=json.dumps(event))
         return result
-    
+
     @staticmethod
     def log_amplitude(request, event_name, event_props):
-        amplitude_logger = Analytics(api_key = config("AMPLITUDE_API_KEY"))
+        amplitude_logger = Analytics(api_key = os.environ.get("AMPLITUDE_API_KEY"))
         event_args = {
-            "event_type":event_name, 
+            "event_type":event_name,
             "event_properties":event_props
         }
         if request.user.is_authenticated:
@@ -61,5 +61,4 @@ class Analytics:
         event_args["device_id"] = request.session._get_or_create_session_key()
         event = amplitude_logger.create_event(**event_args)
         amplitude_logger.log_event(event)
-                    
-                
+

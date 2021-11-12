@@ -12,15 +12,14 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from pathlib import Path
-from decouple import config
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
-SECRET_KEY = f'{config("SECRET_KEY")}'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = int(os.environ.get("DEBUG", default=0))
 
 ALLOWED_HOSTS = ["128.199.11.126", "127.0.0.1", "deckzap.com", "www.deckzap.com"]
 
@@ -51,7 +50,7 @@ MIDDLEWARE = [
 ]
 
 #ROOT_URLCONF = 'deckzap.urls'
-ROOT_URLCONF = f'{config("PROJECT_NAME")}.urls'
+ROOT_URLCONF = f'{os.environ.get("PROJECT_NAME")}.urls'
 
 TEMPLATES = [
     {
@@ -69,8 +68,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = f'{config("PROJECT_NAME")}.wsgi.application'
-ASGI_APPLICATION = f'{config("PROJECT_NAME")}.asgi.application'
+WSGI_APPLICATION = f'{os.environ.get("PROJECT_NAME")}.wsgi.application'
+ASGI_APPLICATION = f'{os.environ.get("PROJECT_NAME")}.asgi.application'
 
 
 # Database
@@ -79,11 +78,14 @@ ASGI_APPLICATION = f'{config("PROJECT_NAME")}.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': config("DB_NAME"),
-        'USER': config("DB_USER"),
-        'PASSWORD': config("DB_PASSWORD"),
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
+        'USER': os.environ.get("SQL_USER", "user"),
+        'PASSWORD': os.environ.get("SQL_PASSWORD", "password"),
+        'HOST': os.environ.get("SQL_HOST", "localhost"),
+        'PORT': os.environ.get("SQL_PORT", "5432"),
+    },
+    'TEST': {
+        'NAME': f'test_db_{os.environ.get("GITHUB_RUN_ID", "deckzap")}'
     }
 }
 
@@ -140,7 +142,7 @@ CHANNEL_LAYERS = {
         # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
         # 'CONFIG': {
         #     "hosts": [
-        #       'redis://h:<password>;@<redis Endpoint>:<port>' 
+        #       'redis://h:<password>;@<redis Endpoint>:<port>'
         #     ],
         # },
 

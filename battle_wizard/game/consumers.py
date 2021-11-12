@@ -1,6 +1,6 @@
 import datetime
 import json
-import copy 
+import copy
 import random
 import time
 
@@ -53,7 +53,7 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
         if len(queue_database["pvp"]["waiting_players"]) == 2:
             game_record = GameRecord.objects.create(date_created=datetime.datetime.now())
             game_record.save()
-            game_record_id = game_record.id            
+            game_record_id = game_record.id
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
@@ -70,11 +70,11 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
     def queue_database(self):
         try:
             json_data = open("database/queue_database.json")
-            queue_database = json.load(json_data) 
+            queue_database = json.load(json_data)
         except:
             queue_database = {"pvp": {"waiting_players":[]}}
         return queue_database
-    
+
     def matchfinder_message(self, event):
         message = event['message']
 
@@ -114,7 +114,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         if message["move_type"] == 'NAVIGATE_GAME':
             message["log_lines"] = []
-            message = self.navigate_game(message)  
+            message = self.navigate_game(message)
             self.send_game_message(self.game.as_dict(), message)
             return
 
@@ -127,17 +127,17 @@ class BattleWizardConsumer(WebsocketConsumer):
         info = game_object.game_json
         info["game_record_id"] = self.game_record_id
 
-        self.game = Game(self.player_type, info=info, player_decks=self.decks)        
+        self.game = Game(self.player_type, info=info, player_decks=self.decks)
 
         message["log_lines"] = []
         save = message["move_type"] not in [
-            "ATTACK", 
-            "ACTIVATE_ARTIFACT", 
+            "ATTACK",
+            "ACTIVATE_ARTIFACT",
             "PLAY_CARD",
             "RESOLVE_MOB_EFFECT",
             "SELECT_ARTIFACT",
         ]
-        message = self.game.play_move(message, should_add_to_move_list=save, is_reviewing=self.is_reviewing)   
+        message = self.game.play_move(message, should_add_to_move_list=save, is_reviewing=self.is_reviewing)
 
         if message and message["move_type"] == 'JOIN':
             if len(self.game.players) == 1 and self.game.player_type == "pvai":
@@ -158,6 +158,7 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         game_object.game_json = self.game.as_dict()
         game_object.save()
+        print('saved')
 
         if message:
             self.send_game_message(self.game.as_dict(), message)
@@ -237,7 +238,7 @@ class BattleWizardConsumer(WebsocketConsumer):
             if message["log_lines"] != []:
                 log_lines += message["log_lines"]
             index += 1
-        original_message["log_lines"] = log_lines  
+        original_message["log_lines"] = log_lines
         username = original_message['username']
         if original_message["index"] == -1:
             self.is_reviewing = False
