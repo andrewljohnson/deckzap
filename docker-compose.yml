@@ -2,18 +2,38 @@ version: "3.8"
 
 services:
   web:
-    build: .
+    image: web
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/usr/src/app/
-    ports:
-      - 8000:8000
     depends_on:
       - db
+    env_file: .env
+  asgi:
+    image: web
+    command: daphne -b 0.0.0.0 -p 8000 deckzap.asgi:application
+    volumes:
+      - .:/usr/src/app/
+    depends_on:
+      - web
+      - db
+    env_file: .env
+  nginx:
+    build: ./nginx
+    ports:
+      - 8000:80
+    depends_on:
+      - web
+      - asgi
+    env_file: .env
   db:
     image: postgres:13-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    env_file: .env
 
 volumes:
   postgres_data:
