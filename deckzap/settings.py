@@ -21,7 +21,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = ["128.199.11.126", "127.0.0.1", "deckzap.com", "www.deckzap.com"]
+ALLOWED_HOSTS = ["128.199.11.126", "143.110.159.226", "127.0.0.1", "deckzap.com", "www.deckzap.com"]
 
 
 # Application definition
