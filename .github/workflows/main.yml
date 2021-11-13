@@ -66,7 +66,7 @@ jobs:
           echo SQL_PORT=${{ secrets.SQL_PORT }} >> .env
           echo DATABASE=postgres >> .env
           echo AMPLITUDE_API_KEY=${{ secrets.AMPLITUDE_API_KEY }} >> .env
-          echo GITHUB_RUN_ID=${{ env.GITHUB_RUN_ID }} >> .env
+          echo GITHUB_RUN_ID=$GITHUB_RUN_ID >> .env
       - name: Set environment variables
         run: |
           echo "WEB_IMAGE=$(echo ${{env.WEB_IMAGE}} )" >> $GITHUB_ENV
