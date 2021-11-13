@@ -12,7 +12,7 @@ services:
     env_file: .env
   asgi:
     image: "${WEB_IMAGE}"
-    command: daphne -b 0.0.0.0 -p 8000 deckzap.wsgi:application
+    command: daphne -b 0.0.0.0 -p 8000 deckzap.asgi:application
     ports:
       - 8000
     env_file: .env
