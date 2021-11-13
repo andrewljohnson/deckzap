@@ -11,6 +11,10 @@ Copy `.env.example` and add a `SECRET_KEY`. Then run:
 
 `docker-compose up`
 
+## Running django-admin commands
+
+`docker-compose run web python manage.py <command>`
+
 ## CI
 
 Tests run automatically with GitHub Actions. The Docker images are also built here, and stored in GitHub Packages.
