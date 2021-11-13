@@ -15,6 +15,10 @@ Copy `.env.example` and add a `SECRET_KEY`. Then run:
 
 `docker-compose run web python manage.py <command>`
 
+## Connecting to the database
+
+`docker-compose run db psql "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@db/$POSTGRES_DB"`
+
 ## CI
 
 Tests run automatically with GitHub Actions. The Docker images are also built here, and stored in GitHub Packages.
