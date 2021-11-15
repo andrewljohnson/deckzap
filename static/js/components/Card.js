@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
 import * as Constants from '../Constants.js';
+import { OutlineFilter } from 'pixi-filters';
 
 
 export class Card {
@@ -58,6 +59,9 @@ export class Card {
         cardSprite.card = card;
         cardSprite.buttonMode = true;  // hand cursor
         let imageSprite = Card.framedSprite(loaderId, ch/2+Constants.defaultFontSize/2 + Constants.padding, cw - 6, pixiUX.app);
+        if (card.card_type == "spell") {
+            imageSprite.tint = Constants.lightBlueColor;
+        }
         let ellipseTopper = 0;
         if (card.card_type == Constants.mobCardType || card.card_type == Constants.artifactCardType) {
             ellipseTopper = Constants.padding * 2;
@@ -290,6 +294,16 @@ export class Card {
             type.position.y = typeY + 6
             cardSprite.addChild(type);
         }
+        console.log(card)
+        if (useLargeSize && card.author_username) {
+            let authorY = ch/2 - Constants.defaultFontSize * 2;
+            let authorOptions = Constants.textOptions();
+            authorOptions.wordWrap = false;
+            let authorNameText = new PIXI.Text("Creator: " + card.author_username, authorOptions);
+            cardSprite.addChild(authorNameText);
+            authorNameText.anchor.set(.5);
+            authorNameText.position.y = authorY;
+        }
 
         if (attackEffect) {
             let strengthX = -cw/2 + Constants.padding * 2;
@@ -302,6 +316,11 @@ export class Card {
             }
         }
 
+        let powerPointsEllipse = Card.powerPointsEllipse(card.power_points, pixiUX);
+        powerPointsEllipse.position.x = 0;
+        powerPointsEllipse.position.y = nameBackground.position.y + nameBackground.height + 1;
+        cardSprite.addChild(powerPointsEllipse);
+ 
         let currentPlayer = null;
         if (pixiUX.thisPlayer) {
 			currentPlayer = pixiUX.thisPlayer(game);        	
@@ -659,13 +678,13 @@ export class Card {
     }
 
     static ellipsifyImageSprite(imageSprite, card, width, height) {
-        let bg = Card.ellipseBackground(width, height, imageSprite.width);
+        let bg = Card.ellipseBackground(width, height);
         imageSprite.mask = bg;
         imageSprite.addChild(bg);        
         return imageSprite
     }
 
-    static ellipseBackground(width, height, imageSpriteWidth) {
+    static ellipseBackground(width, height) {
         const ellipseW = width;
         const ellipseH = height;
         const background = new PIXI.Graphics();
@@ -695,6 +714,40 @@ export class Card {
         sprite.mask = background;
         sprite.addChild(background);
         return background;
+    }
+
+    static powerPointsEllipse(power=0, pixiUX) {
+        const ellipseW = 6;
+        const ellipseH = 8;
+        const background = new PIXI.Graphics();
+        let color = Constants.whiteColor;
+        if (power == 2 || power == 3) {
+            color = Constants.blueColor;
+        }
+        if (power == 4 || power == 5) {
+            color = Constants.purpleColor;
+        }
+        if (power >= 6) {
+            color = Constants.redColor;
+        }
+        background.beginFill(color, 1);
+        background.drawEllipse(0, 0, ellipseW, ellipseH)
+        background.endFill();
+        const texture = pixiUX.app.renderer.generateTexture(background);
+        const sprite = new PIXI.Sprite(texture);
+        sprite.anchor.set(.5);
+        sprite.filters = [new OutlineFilter(1, Constants.blackColor)];
+
+        let options = Constants.textOptions();
+        options.stroke = Constants.blackColor;
+        options.strokeThickness = 2;
+        options.fill = Constants.whiteColor;
+        if (!pixiUX.game) {
+            let powerText = new PIXI.Text(power, options);
+            powerText.anchor.set(.5);
+            sprite.addChild(powerText);            
+        }
+        return sprite;
     }
 
     static showInfoPanels(cardSprite, card, cw, ch) {

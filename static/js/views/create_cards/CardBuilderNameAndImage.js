@@ -28,7 +28,9 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
             effects: this.originalCardInfo.effects, 
             strength: this.originalCardInfo.strength, 
             hit_points: this.originalCardInfo.hit_points, 
-            description:this.cardDescription()
+            description:this.cardDescription(),
+            power_points: this.originalCardInfo.power_points,
+            author_username: this.originalCardInfo.author_username
         };
     }
 

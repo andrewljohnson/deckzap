@@ -3,6 +3,8 @@ import json
 
 from battle_wizard.analytics import Analytics
 from battle_wizard.game.card import all_cards
+from battle_wizard.game.card import Card
+from battle_wizard.game.data import Constants
 from create_cards.cards_and_effects import Effects
 from create_cards.cards_and_effects import effect_types
 from create_cards.cards_and_effects import target_types
@@ -123,20 +125,30 @@ def get_effect_for_info(request):
             Analytics.log_amplitude(request, "Create Card Get Card Info", {})
             effect = card_info["effects"][-1]
             effect_def = None
-            if effect["id"] == "damage":
+            if effect["id"] == "ambush":
+                effect_def = Effects.ambush
+            elif effect["id"] == "damage":
                 effect_def = Effects.damage
             elif effect["id"] == "discard_random":
                 effect_def = Effects.discard_random
-            elif effect["id"] == "draw":
-                effect_def = Effects.draw
-            elif effect["id"] == "ambush":
-                effect_def = Effects.ambush
             elif effect["id"] == "drain":
                 effect_def = Effects.drain
+            elif effect["id"] == "draw":
+                effect_def = Effects.draw
             elif effect["id"] == "guard":
                 effect_def = Effects.guard
+            elif effect["id"] == "heal":
+                effect_def = Effects.heal
+            elif effect["id"] == "make_from_deck":
+                effect_def = Effects.make_from_deck
+            elif effect["id"] == "mana_increase_max":
+                effect_def = Effects.mana_increase_max
             elif effect["id"] == "shield":
                 effect_def = Effects.shield
+            elif effect["id"] == "take_extra_turn":
+                effect_def = Effects.take_extra_turn
+            elif effect["id"] == "unwind":
+                effect_def = Effects.unwind
             else:
                 return JsonResponse({"error": f"Unsupported effect id {effect['id']}"})
             if len(signature(effect_def).parameters) == 0:
@@ -144,14 +156,19 @@ def get_effect_for_info(request):
                 server_effect = effect_def()
             else:
                 # all non-ability-effects take 5 parameters
+                amount = None
+                if "amount" in effect:
+                    amount = int(effect["amount"])
                 server_effect = effect_def(
                     card_info["card_type"], 
-                    int(effect["amount"]), 
+                    amount, 
                     effect_types()[effect["effect_type"]], 
                     target_types()[effect["target_type"]], 
                     effect["ai_target_types"]
                 )
-            return JsonResponse({"server_effect": server_effect})
+            card_info["effects"][-1] = server_effect
+            power_points = Card(card_info).power_points_value()
+            return JsonResponse({"server_effect": server_effect, "power_points": power_points})
     else:
         return JsonResponse({"error": "Unsupported request type"})
 
@@ -168,7 +185,7 @@ def save_new_card(request):
             return JsonResponse({"error": error_message})
         else: 
             custom_card = CustomCard.objects.create(
-                card_json={"card_type": card_info["card_type"]}, 
+                card_json={"card_type": card_info["card_type"], "author_username": request.user.username}, 
                 author=request.user, 
                 date_created=datetime.datetime.now()
             )
@@ -210,9 +227,8 @@ def create_card_save(request, required_key, event_name):
                 error_message = "only the card's author can edit a CustomCard"
                 print(error_message)
                 return JsonResponse({"error": error_message})
-            if "strength" in card_info:
+            if card_info["card_type"] == Constants.mobCardType:
                 card_info["strength"] = int(card_info["strength"])    
-            if "hit_points" in card_info:
                 card_info["hit_points"] = int(card_info["hit_points"])    
             if "cost" in card_info:
                 card_info["cost"] = int(card_info["cost"])    
@@ -220,6 +236,7 @@ def create_card_save(request, required_key, event_name):
                 for e in card_info["effects"]:
                     if "amount" in e:
                         e["amount"] = int(e["amount"])    
+            card_info = Card(card_info).as_dict(for_card_builder=True)
             custom_card.card_json = card_info
             custom_card.save()
             Analytics.log_amplitude(request, event_name, {})
@@ -260,7 +277,7 @@ def save_name_and_image(request):
                 print(error_message)
                 return JsonResponse({"error": error_message})
 
-            custom_card.card_json = card_info
+            custom_card.card_json = Card(card_info).as_dict(for_card_builder=True)
             custom_card.save()
             Analytics.log_amplitude(request, "Save Card Name and Image", {})
             return JsonResponse({})

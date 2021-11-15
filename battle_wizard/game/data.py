@@ -12,6 +12,38 @@ def hash_for_deck(deck):
     strings.sort()
     return "".join(strings)
 
+def default_deck():
+    return {
+        "title": "Vanilla",
+        "url": "vanilla",
+        "discipline": "magic",
+        "cards": {
+            "Fairy": 2,
+            "Cat": 2,
+            "Scorpion": 2,
+            "Hound": 2,
+            "Vampire": 1,
+            "Mammoth": 2,
+            "Guard-goyle": 2,
+            "Demon": 1,
+            "Troll": 1,
+            "Ogre": 1,
+            "Demon": 1,
+            "Dragon": 1,
+            "Zap": 1,
+            "Heal": 1,
+            "Meditate": 2,
+            "Unwind": 1,
+            "Think": 1,
+            "Study the Masters": 1,
+            "Rolling Flames": 1,
+            "Explode": 1,
+            "Kill": 1,
+            "Tame Time": 1,
+            "Daze": 1,
+        }
+    }
+
 def default_deck_genie_wizard():
     return {
         "title": "Draw Go",

@@ -23,6 +23,8 @@ export class CardBuilderCost extends CardBuilderBase {
             hit_points: this.originalCardInfo.hit_points, 
             description: this.cardDescription(),
             cost: this.cardCost(), 
+            power_points: this.powerPoints ? this.powerPoints : this.originalCardInfo.power_points,
+            author_username: this.originalCardInfo.author_username
         };
     }
 

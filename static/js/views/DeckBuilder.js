@@ -50,13 +50,14 @@ export class DeckBuilder {
 	        if (this.decks[this.discipline].id != null) {
 	        	this.disciplinePicker.disable();
 	        }
+	        // todo: totally remove this maybe
+	        this.disciplinePicker.disciplineDescriptionText.parent.removeChild(this.disciplinePicker.disciplineDescriptionText);
+	        this.disciplinePicker.magic.parent.removeChild(this.disciplinePicker.magic);
+	        this.disciplinePicker.tech.parent.removeChild(this.disciplinePicker.tech);
 	}
 
 	addTitle() {
-		let title = "Build Deck";
-		if (this.decks[this.discipline].id != null) {
-			title = "Edit Deck"
-		}
+		let title = "Choose Cards for Deck";
 		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			title = "View Deck: " + this.decks[this.discipline].title			
 		}
@@ -64,6 +65,7 @@ export class DeckBuilder {
         	titleText.position.x = Constants.padding;
         	titleText.position.y = Constants.padding * 1.5;
         	this.app.stage.addChild(titleText);		
+        	this.titleText = titleText;
         	return titleText;
 	}
 
@@ -95,7 +97,15 @@ export class DeckBuilder {
 	                buttonWidth
 	            );
 	        this.app.stage.addChild(b);
+	        this.saveButton = b;
 	        return b;
+	}
+
+	toggleSaveButton() {
+		const enabled = this.deckIsFull() && this.salaryCap <= 50;
+		this.saveButton.background.interactive = enabled;
+		this.saveButton.background.buttonMode = enabled;
+		this.saveButton.background.tint = enabled ? Constants.blueColor : Constants.darkGrayColor;
 	}
 
 	addDeckTitleInput(x, y, buttonWidth) {
@@ -131,7 +141,9 @@ export class DeckBuilder {
     	this.discipline = disciplineID;
 		this.updateCards();
 		this.updateCardCountLabel();
+		this.updateSalaryCapLabel();
 		this.updateDeckCards();
+		this.toggleSaveButton();
 	}
 
 	updateCards() {
@@ -143,7 +155,11 @@ export class DeckBuilder {
 		}
 		if (!this.cardsContainer) {
 			let containerY = this.disciplinePicker.position.y+80;
-			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, this.disciplinePicker.position.x-45, containerY);
+			let containerX = this.disciplinePicker.position.x-45
+			// todo: totally remove disciplinePicker maybe
+			containerX = this.titleText.position.x;
+			containerY = this.titleText.position.y + this.titleText.height + Constants.padding * 2;
+			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, containerX, containerY);
 		}
 		this.cardsContainer.deck = {"cards":disciplineCards};
 		this.cardsContainer.redisplayDeck();				
@@ -164,11 +180,39 @@ export class DeckBuilder {
 		if (this.deckIsFull()) {
 			labelColor = Constants.blueColor;
 		}
-		this.cardCountLabel = new PIXI.Text(cardCountText, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor, stroke: labelColor, strokeThickness: 2});
+		this.cardCountLabel = new PIXI.Text("Card Count: " + cardCountText, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor, stroke: labelColor, strokeThickness: 2});
+        this.app.stage.addChild(this.cardCountLabel);
 
-	        this.cardCountLabel.position.x = this.deckTitleInput.position.x;
-	        this.cardCountLabel.position.y = this.deckTitleInput.position.y + this.deckTitleInput.height + Constants.padding * 2;
-	        this.app.stage.addChild(this.cardCountLabel);
+        this.cardCountLabel.position.x = this.deckTitleInput.position.x;
+        this.cardCountLabel.position.y = this.deckTitleInput.position.y + this.deckTitleInput.height + Constants.padding * 2;
+	}
+
+	updateSalaryCapLabel() {
+		if (this.salaryCapLabel)  {
+			this.salaryCapLabel.parent.removeChild(this.salaryCapLabel);
+			this.salaryCapLabel = null;
+		}
+		let salaryCapText = 0;
+		for (let dcName in this.decks[this.discipline].cards) {
+			let addedCard;
+			for (let card of this.allCards) {
+				if (card.name == dcName) {
+					addedCard = card;
+				}
+			}
+			console.log(dcName)
+			salaryCapText += this.decks[this.discipline]["cards"][dcName] * addedCard.power_points;
+		}
+		this.salaryCap = salaryCapText;
+		let labelColor = Constants.blueColor;
+		if (salaryCapText > 100) {
+			labelColor = Constants.redColor;
+		}
+		this.salaryCapLabel = new PIXI.Text("Salary Cap: " + salaryCapText + "/100", {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor, stroke: labelColor, strokeThickness: 2});
+        this.app.stage.addChild(this.salaryCapLabel);
+
+        this.salaryCapLabel.position.x = this.deckTitleInput.position.x;
+        this.salaryCapLabel.position.y = this.cardCountLabel.position.y + this.cardCountLabel.height + Constants.padding;
 	}
 
 	deckIsFull() {
@@ -192,7 +236,7 @@ export class DeckBuilder {
 
 	updateDeckCards() {
     	if (!this.deckContainer) {
-        	this.deckContainer = new DeckContainer(this, {"cards":[]}, this.allCards, this.cardCountLabel.position.x, this.cardCountLabel.position.y + 20);
+        	this.deckContainer = new DeckContainer(this, {"cards":[]}, this.allCards, this.salaryCapLabel.position.x, this.salaryCapLabel.position.y + this.salaryCapLabel.height + Constants.padding * 2);
     	}
 		this.deckContainer.deck = this.decks[this.discipline];
 		this.deckContainer.redisplayDeck();

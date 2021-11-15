@@ -26,7 +26,9 @@ export class CardBuilderEffects extends CardBuilderBase {
             strength: this.originalCardInfo.strength, 
             hit_points: this.originalCardInfo.hit_points, 
             effects: this.effects, 
-            description:this.cardDescription()
+            description:this.cardDescription(),
+            power_points: this.powerPoints ? this.powerPoints : this.originalCardInfo.power_points,
+            author_username: this.originalCardInfo.author_username
         };
     }
 
@@ -201,6 +203,7 @@ export class CardBuilderEffects extends CardBuilderBase {
                 alert("error fetching effect info");
             } else {
                 this.effect = data.server_effect
+                this.powerPoints = data["power_points"]
                 this.updateEffects();
                 this.updateCard();
                 if (successFunction) {

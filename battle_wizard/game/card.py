@@ -11,6 +11,7 @@ class Card:
     def __init__(self, info):
         self.id = info["id"] if "id" in info else -1
         self.attacked = info["attacked"] if "attacked" in info else False
+        self.author_username = info["author_username"] if "author_username" in info else None
         # use by artifacts with activated abilities
         self.can_activate_effects = info["can_activate_effects"] if "can_activate_effects" in info else True
         self.can_attack_mobs = info["can_attack_mobs"] if "can_attack_mobs" in info else False
@@ -45,6 +46,8 @@ class Card:
         self.hit_points = info["hit_points"] if "hit_points" in info else None
         self.turn_played = info["turn_played"] if "turn_played" in info else -1
 
+        self.power_points = info["power_points"] if "power_points" in info else self.power_points_value()
+
         # card.effects get mapped into these lists of defs defined on Card
         self.action_added_to_stack_effect_defs = []
         self.activated_effect_defs = []        
@@ -74,6 +77,17 @@ class Card:
 
         for effect in self.effects:
             self.create_effect_def(effect)
+
+    def power_points_value(self):
+        power_points = 0
+        for e in self.effects:
+            power_points += e.power_points
+        power_points -= self.cost * 2
+        if self.strength:
+            power_points += self.strength
+        if self.hit_points:
+            power_points += self.hit_points
+        return power_points
 
     def create_effect_def(self, effect):
         if effect.effect_type == "action_added_to_stack":
@@ -130,9 +144,24 @@ class Card:
     def __repr__(self):
         return f"{self.as_dict()}"
 
-    def as_dict(self):
+    def as_dict(self, for_card_builder=False):
+        if for_card_builder:
+            return {
+                "author_username": self.author_username,
+                "card_type": self.card_type,
+                "cost": self.cost,
+                "effects": [e.as_dict(for_card_builder=True) for e in self.effects],
+                "image": self.image,
+                "is_custom": self.is_custom,
+                "name": self.name,
+                "power_points": self.power_points,
+                "strength": self.strength,
+                "hit_points": self.hit_points
+            }
+
         return {
             "attacked": self.attacked,
+            "author_username": self.author_username,
             "can_activate_effects": self.can_activate_effects,
             "can_attack_mobs": self.can_attack_mobs,
             "can_attack_players": self.can_attack_players,
@@ -156,6 +185,7 @@ class Card:
             "name": self.name,
             "original_description": self.original_description,
             "owner_username": self.owner_username,
+            "power_points": self.power_points,
             "strength": self.strength,
             "show_level_up": self.show_level_up,
             "tokens": [t.as_dict() for t in self.tokens] if self.tokens else [],
@@ -425,8 +455,8 @@ class Card:
                 effect_targets.append({"id": player.username, "target_type":"player"})
             elif e.target_type == "opponent":          
                 effect_targets.append({"id": player.game.opponent().username, "target_type":"player"})
-            elif e.target_type == "opponents_mobs":          
-                effect_targets.append({"target_type":"opponents_mobs"})
+            elif e.target_type == "enemy_mobs":          
+                effect_targets.append({"target_type":"enemy_mobs"})
             elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "self_mobs" or e.target_type == "all":          
                 effect_targets.append({"target_type": e.target_type})
             elif e.target_type in ["all_cards_in_deck", "all_cards_in_played_pile"]:          
@@ -637,9 +667,9 @@ class Card:
         elif target_type == "player":
             target_player = Card.player_for_username(effect_owner.game, target_id)
             return self.do_damage_effect_on_player(effect, effect_owner, target_player, effect.amount, effect.amount_id)
-        elif target_type == "opponents_mobs":
+        elif target_type == "enemy_mobs":
             return self.damage_mobs(effect_owner.game, effect_owner.game.opponent().in_play, damage_amount, effect_owner.username, f"{effect_owner.game.opponent().username}'s mobs")
-        elif effect.target_type == "opponents_mob_random":
+        elif effect.target_type == "enemy_mob_random":
             if len(effect_owner.my_opponent().in_play) > 0:
                 mob = random.choice(effect_owner.my_opponent().in_play)
                 _, controller = effect_owner.game.get_in_play_for_id(mob.id)
@@ -1609,7 +1639,7 @@ class Card:
             while len(opponent.artifacts) > 0 and len(effect_owner.artifacts) < 3:
                 self.do_take_control_effect_on_artifact(effect_owner, opponent.artifacts[0], opponent)
             log_lines = [f"{effect_owner.username} takes control everything."]
-        elif effect.target_type == "opponents_mob_random": # song dragon
+        elif effect.target_type == "enemy_mob_random": # song dragon
             if len(opponent.in_play) > 0:
                 mob_to_target = random.choice(opponent.in_play)
                 self.do_take_control_effect_on_mob(effect_owner, mob_to_target, opponent)
@@ -1889,6 +1919,8 @@ class CardEffect:
         self.id = info["id"] if "id" in info else None         
         # the name of the effect
         self.name = info["name"] if "name" in info else None         
+        # the calculated strength of the effect
+        self.power_points = info["power_points"] if "power_points" in info else 0         
         # a flag to set on the effect to trigger an animation on the next repaint
         self.show_effect_animation = info["show_effect_animation"] if "show_effect_animation" in info else False
         # the target type for the effect, such as mob, enemy, artifact, self, etc
@@ -1926,7 +1958,21 @@ class CardEffect:
     def __repr__(self):
         return f"{self.as_dict()}"
 
-    def as_dict(self):
+    def as_dict(self, for_card_builder=False):
+        if for_card_builder:
+            return {
+                "ai_target_types": self.ai_target_types,
+                "amount": self.amount,
+                "amount_id": self.amount_id,
+                "cost": self.cost,
+                "description": self.description,
+                "description_expanded": self.description_expanded,
+                "effect_type": self.effect_type,
+                "id": self.id,
+                "name": self.name,
+                "power_points": self.power_points,
+                "target_type": self.target_type
+            }
         return {
             "ai_target_types": self.ai_target_types,
             "amount": self.amount,
@@ -1950,6 +1996,7 @@ class CardEffect:
             "name": self.name,
             "id_for_game": self.id_for_game,
             "other_info": self.other_info,
+            "power_points": self.power_points,
             "sacrifice_on_activate": self.sacrifice_on_activate,
             "show_effect_animation": self.show_effect_animation,
             "target_type": self.target_type,
@@ -1984,25 +2031,26 @@ class CardToken:
             "id": self.id,
         }
 
-def all_cards(require_images=False, include_tokens=True):
+def all_cards(require_images=False, include_tokens=True, include_old_cards=True):
     """
         Returns a list of all possible cards in the game. 
     """
     subset = []
 
-    json_data = open('battle_wizard/game/battle_wizard_cards.json')
-    all_cards = json.load(json_data)
-    for c in all_cards:
-        if include_tokens or ("is_token" not in c or c["is_token"] == False):
-            if "image" in c or not require_images:
-                subset.append(Card(c).as_dict())
+    if include_old_cards:
+        json_data = open('battle_wizard/game/battle_wizard_cards.json')
+        all_cards = json.load(json_data)
+        for c in all_cards:
+            if include_tokens or ("is_token" not in c or c["is_token"] == False):
+                if "image" in c or not require_images:
+                    subset.append(Card(c).as_dict())
 
-    json_data = open('battle_wizard/game/old_cards.json')
-    all_cards = json.load(json_data)
-    for c in all_cards:
-        if include_tokens or ("is_token" not in c or c["is_token"] == False):
-            if "image" in c or not require_images:
-                subset.append(Card(c).as_dict())
+        json_data = open('battle_wizard/game/old_cards.json')
+        all_cards = json.load(json_data)
+        for c in all_cards:
+            if include_tokens or ("is_token" not in c or c["is_token"] == False):
+                if "image" in c or not require_images:
+                    subset.append(Card(c).as_dict())
 
     json_data = open('create_cards/cards_and_effects.json')
     cards_and_effects = json.load(json_data)

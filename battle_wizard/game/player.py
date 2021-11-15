@@ -4,6 +4,7 @@ import random
 
 from battle_wizard.game.card import Card, CardEffect
 from battle_wizard.game.data import Constants
+from battle_wizard.game.data import default_deck 
 from battle_wizard.game.data import default_deck_genie_wizard 
 from battle_wizard.game.data import default_deck_dwarf_tinkerer
 from battle_wizard.game.data import default_deck_dwarf_bard
@@ -336,7 +337,7 @@ class Player:
                 effect_targets = []
                 has_targets = "effect_targets" in message
                 for idx, e in enumerate(effects):
-                    if e.target_type == "opponents_mob_random" and len(self.my_opponent().in_play) == 0:
+                    if e.target_type == "enemy_mob_random" and len(self.my_opponent().in_play) == 0:
                         continue
                     # todo think about this weird repeated setting of effect_targets in message
                     if not has_targets:
@@ -346,7 +347,7 @@ class Player:
                             effect_targets.append({"id": card.id, "target_type":"mob"})
                         elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "self_mobs":           
                             effect_targets.append({"target_type": e.target_type})
-                        elif e.target_type == "opponents_mob_random":           
+                        elif e.target_type == "enemy_mob_random":           
                             effect_targets.append({"id": random.choice(self.my_opponent().in_play).id, "target_type":"mob"})
                         elif e.target_type == None:           
                             effect_targets.append({})
@@ -737,7 +738,10 @@ class Player:
             deck_to_use = default_deck_dwarf_bard()
         elif id_or_url == "draw_go":
             deck_to_use = default_deck_genie_wizard()
+        elif id_or_url == "vanilla":
+            deck_to_use = default_deck()
         else:
-            deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
+            deck_to_use = default_deck()
+            # deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
 
         return deck_to_use
