@@ -15,7 +15,6 @@ import { OpponentChooser } from '../js/views/OpponentChooser';
 import { TopDecks } from '../js/views/TopDecks';
 import { TopPlayers } from '../js/views/TopPlayers';
 
-
 if (window.location.pathname.startsWith("/play")) {
     const DEBUG = document.getElementById("data_store").getAttribute("debug");
 	const gameUX = new GameUX(DEBUG);
@@ -43,32 +42,32 @@ if (window.location.pathname.startsWith("/play")) {
 } else if (window.location.pathname.startsWith("/create_card")) {
     if (window.location.pathname.includes("effects")) {
         new CardBuilderEffects(
-            "app", 
+            "app",
             JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             document.getElementById("data_store").getAttribute("card_id"),
             document.getElementById("data_store").getAttribute("effect_index"),
-        );        
+        );
     } else if (window.location.pathname.endsWith("name_and_image")) {
         new CardBuilderNameAndImage(
-            "app", 
+            "app",
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_id")),
             JSON.parse(document.getElementById("data_store").getAttribute("image_paths")),
-        );        
+        );
     } else if (window.location.pathname.endsWith("cost")) {
         new CardBuilderCost(
-            "app", 
+            "app",
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             document.getElementById("data_store").getAttribute("card_id"),
-        );        
+        );
     } else if (window.location.pathname.endsWith("mob_stats")) {
         new CardBuilderMobStats(
-            "app", 
+            "app",
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             document.getElementById("data_store").getAttribute("card_id"),
-        );        
+        );
     } else {
-        new CardBuilder("app");        
+        new CardBuilder("app");
     }
 }
