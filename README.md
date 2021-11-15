@@ -8,7 +8,7 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 
 ## Running locally
 
-Copy `.env.example` and add a `SECRET_KEY`. Then run:
+Copy `.env.example` to `.env` and add a `SECRET_KEY`. Then run:
 
 ```
 docker-compose build
