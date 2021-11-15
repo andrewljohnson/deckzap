@@ -1,4 +1,5 @@
 # DeckZap
+
 This is the code for game engine and website for DeckZap, a pre-alpha uncollectible card game platform: http://deckzap.com
 
 # Run the app locally for development
@@ -9,7 +10,10 @@ I have run the app on a Mac, and the server is Ubuntu Linux.
 
 Copy `.env.example` and add a `SECRET_KEY`. Then run:
 
-`docker-compose up`
+```
+docker-compose build
+docker-compose up
+```
 
 ## Running django-admin commands
 
