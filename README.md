@@ -15,6 +15,13 @@ docker-compose build
 docker-compose up
 ```
 
+Separately, start the Parcel bundler:
+
+```
+yarn
+yarn start
+```
+
 ## Running django-admin commands
 
 `docker-compose run web python manage.py <command>`
