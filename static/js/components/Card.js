@@ -539,9 +539,6 @@ export class Card {
     }
 
     static addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
-    	console.log(card);
-
-        
         let damage = 0;
     	if (card.damage) {
     		damage = card.damage;
