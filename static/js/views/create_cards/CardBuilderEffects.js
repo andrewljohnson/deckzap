@@ -19,17 +19,9 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     cardInfo() {
-        return {
-            name: this.defaultCardName(), 
-            image: this.defaultCardImageFilename(), 
-            card_type: this.originalCardInfo.card_type, 
-            strength: this.originalCardInfo.strength, 
-            hit_points: this.originalCardInfo.hit_points, 
-            effects: this.effects, 
-            description:this.cardDescription(),
-            power_points: this.powerPoints ? this.powerPoints : this.originalCardInfo.power_points,
-            author_username: this.originalCardInfo.author_username
-        };
+        let info = super.cardInfo();
+        info.effects = this.effects;
+        return info;
     }
 
     cardDescription() {

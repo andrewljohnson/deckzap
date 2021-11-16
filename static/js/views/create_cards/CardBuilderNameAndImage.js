@@ -19,19 +19,11 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
     }
 
     cardInfo() {
-        return {
-            name: this.cardName(), 
-            card_type: this.originalCardInfo.card_type, 
-            cost: this.originalCardInfo.cost, 
-            image: this.cardImage(), 
-            is_custom: true, 
-            effects: this.originalCardInfo.effects, 
-            strength: this.originalCardInfo.strength, 
-            hit_points: this.originalCardInfo.hit_points, 
-            description:this.cardDescription(),
-            power_points: this.originalCardInfo.power_points,
-            author_username: this.originalCardInfo.author_username
-        };
+        let info = super.cardInfo();
+        info.name = this.cardName();
+        info.image = this.cardImage();
+        info.is_custom = true;
+        return info;
     }
 
     loadUXAfterCardImageLoads() {

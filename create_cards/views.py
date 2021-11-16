@@ -172,6 +172,25 @@ def get_effect_for_info(request):
     else:
         return JsonResponse({"error": "Unsupported request type"})
 
+def get_power_points(request):
+    """
+        A POST view to get a calculated power_points for some info set by a form in the UX.
+    """
+    if request.method == "POST":
+        info = json.load(request)
+        card_info = info["card_info"]
+        if "cost" in card_info:
+            card_info["cost"] = int(card_info["cost"])
+        if "strength" in card_info:
+            card_info["strength"] = int(card_info["strength"])
+        if "hit_points" in card_info:
+            card_info["hit_points"] = int(card_info["hit_points"])
+        Analytics.log_amplitude(request, "Create Card Get Power Points", {})
+        power_points = Card(card_info).power_points_value()
+        return JsonResponse({"power_points": power_points})
+    else:
+        return JsonResponse({"error": "Unsupported request type"})
+
 def save_new_card(request):
     """
         A POST view to save a new card after the user selects the card type.
@@ -234,7 +253,7 @@ def create_card_save(request, required_key, event_name):
                 card_info["cost"] = int(card_info["cost"])    
             if "effects" in card_info:
                 for e in card_info["effects"]:
-                    if "amount" in e and e["amount"] != None:
+                    if e.get("amount") is not None:
                         e["amount"] = int(e["amount"])    
             card_info = Card(card_info).as_dict(for_card_builder=True)
             custom_card.card_json = card_info

@@ -16,13 +16,10 @@ export class CardBuilderMobStats extends CardBuilderBase {
     }
 
     cardInfo() {
-        return {
-            name: this.defaultCardName(), 
-            image: this.defaultCardImageFilename(),
-            card_type: this.originalCardInfo.card_type, 
-            strength: this.strength,
-            hit_points: this.hitPoints,
-        };
+        let info = super.cardInfo();
+        info.strength = this.strength;
+        info.hit_points = this.hitPoints;
+        return info;
     }
 
     loadUXAfterCardImageLoads() {
@@ -87,12 +84,24 @@ export class CardBuilderMobStats extends CardBuilderBase {
         input.position.y = label.position.y + label.height + Constants.padding * 4;
         this.app.stage.addChild(input);
         input.on('input', text => {
+            if (!Constants.isPositiveWholeNumber(text) && text && text != '0') {
+                if (variableToSet == "strength") {
+                    input.text = this.lastStrength;
+                } else {
+                    input.text = this.lastHitPoints;
+                }
+                return;
+            }
             if (variableToSet == "strength") {
                 this.strength = text;
+                this.lastStrength = text;
             } else {
                 this.hitPoints = text;                
+                this.lastHitPoints = text;
             }
-            this.updateCard();
+            if (text.length) {
+                this.getPowerPoints();
+            }
         })
     }
 
