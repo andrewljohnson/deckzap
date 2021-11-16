@@ -6,3 +6,4 @@ daphne==3.0.1
 psycopg2-binary==2.8.6
 python-decouple==3.3
 requests==2.26.0
+touca==0.2.6
