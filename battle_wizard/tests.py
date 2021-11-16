@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import time
+import touca
 from unittest import skip
 
 from channels.db import database_sync_to_async
@@ -14,12 +15,16 @@ from battle_wizard.models import Deck
 from battle_wizard.game.game import Game
 from battle_wizard.models import GameRecord
 from battle_wizard.models import GlobalDeck
+from battle_wizard.game.card import Card
 from battle_wizard.game.player import Player
 from battle_wizard.game.player_ai import PlayerAI
 from battle_wizard.views import add_default_decks
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth.models import User
 
+touca.add_serializer(Game, lambda game: game.as_dict())
+touca.add_serializer(Player, lambda player: player.as_dict())
+touca.add_serializer(Card, lambda card: card.as_dict())
 
 class GameObjectTests(TransactionTestCase):
 
@@ -147,6 +152,7 @@ class GameObjectTests(TransactionTestCase):
             game.play_move({"username": "a", "move_type": "END_TURN"})
             game.play_move({"username": "b", "move_type": "END_TURN"})
         self.assertEqual(len(game.current_player().hand), game.max_hand_size)
+        touca.check('hand_size', len(game.current_player().hand))
 
     def test_ten_mana_limit(self):
         """
