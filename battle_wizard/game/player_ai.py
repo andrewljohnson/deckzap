@@ -156,11 +156,7 @@ class PlayerAI(Player):
 
     def run_ai(self, moves, consumer):
         self.ai_running = True
-        if self.animation_time > 0:
-            time.sleep(self.animation_time)
-            self.animation_time = 0
 
-        self.last_move_time = datetime.datetime.now()
         if self.username == "random_bot":
             chosen_move = random.choice(moves)
         elif self.username == "pass_bot":
@@ -173,14 +169,6 @@ class PlayerAI(Player):
         print("AI playing " + str(chosen_move))
         chosen_move["log_lines"] = []
         message = consumer.receive(json.dumps(chosen_move))
-
-        if message and "show_spell" in message:
-            card = Card(message["show_spell"])
-            if card.show_level_up:
-                self.animation_time = 2.5
-
-        if message and message["move_type"] == "ATTACK":
-            self.animation_time = 1
 
         self.ai_running = False
 
@@ -252,12 +240,9 @@ class PlayerAI(Player):
         # run AI if it's the AI's move or if the other player just chose their discipline
         if (self.game.current_player() == self.game.players[1] or \
             (self.game.players[0].discipline != None and self.discipline == None)):                     
-            time_for_next_move = False
-            if not self.last_move_time or (datetime.datetime.now() - self.last_move_time).seconds >= 1:
-                time_for_next_move = True
             self.game.set_clickables(None)
             moves = self.legal_moves_for_ai()
-            if (time_for_next_move or len(moves) == 1) and not self.ai_running:
+            if not self.ai_running:
                 if self.game.players[0].hit_points > 0 and self.hit_points > 0: 
                     print("running AI, choosing from moves: " + str(moves))
                     self.run_ai(moves, consumer)

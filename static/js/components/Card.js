@@ -294,7 +294,6 @@ export class Card {
             type.position.y = typeY + 6
             cardSprite.addChild(type);
         }
-        console.log(card)
         if (useLargeSize && card.author_username) {
             let authorY = ch/2 - Constants.defaultFontSize * 2;
             let authorOptions = Constants.textOptions();
@@ -540,7 +539,7 @@ export class Card {
     }
 
     static addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
-    	let damage = 0;
+        let damage = 0;
     	if (card.damage) {
     		damage = card.damage;
     	}

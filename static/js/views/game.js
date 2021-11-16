@@ -44,6 +44,8 @@ export class GameUX {
         this.arrows = []
         // damage amounts used for animating damage effects on sprites
         this.spriteDamageCounts = {};
+        // a queue of actions sent by players, which sometimes need to be queued because they animate
+        this.actionQueue = []
         this.loadDataFromDOM();
         this.loadTextures();
         this.setUpPIXIView();
@@ -225,7 +227,9 @@ export class GameUX {
 
     // render images that aren't in the cache, then refresh display
     refresh(game, message) {
-        this.game = game;
+        if (message["log_lines"]) {
+            this.logMessage(message["log_lines"]);
+        }
         if (message["move_type"] == "NAVIGATE_GAME") {
             this.review_move_index = message["index"];
             this.is_reviewing = message["index"] != -1
@@ -239,21 +243,23 @@ export class GameUX {
             this.scrollboxBackground.parent.removeChild(this.scrollboxBackground)
             this.gameLogScrollbox = this.scrollbox()
         }
-        if (this.opponent(game)) {
-            let loadingImages = this.loadInPlayImages(game);
-            loadingImages = this.loadHandAndSelectionImages(game) || loadingImages;
-            loadingImages = this.loadStackSpellImages(game) || loadingImages;
-            loadingImages = this.loadCastingSpellImage(game, message) || loadingImages;
+        const currentGame = this.actionQueue[0].game
+        const currentMessage = this.actionQueue[0].message
+        if (this.opponent(currentGame)) {
+            let loadingImages = this.loadInPlayImages(currentGame);
+            loadingImages = this.loadHandAndSelectionImages(currentGame) || loadingImages;
+            loadingImages = this.loadStackSpellImages(currentGame) || loadingImages;
+            loadingImages = this.loadCastingSpellImage(currentGame, message) || loadingImages;
             if (loadingImages) {
                 this.app.loader.load(() => {
-                    this.finishRefresh(message)
+                    this.finishRefresh(currentGame, currentMessage)
                     this.app.loader.reset()
                 });
             } else {
-                this.finishRefresh(message)                        
+                this.finishRefresh(currentGame, currentMessage)                        
             }
         } else {
-            this.finishRefresh(message)                                    
+            this.finishRefresh(currentGame, currentMessage)                                    
         }
     }
 
@@ -289,8 +295,7 @@ export class GameUX {
         return false;
     }
 
-    finishRefresh(message) {
-        const game = this.game;
+    finishRefresh(game, message) {
         if (this.thisPlayer(game)) {
             if (message.show_spell && !this.thisPlayer(game).card_info_to_target.card_id) {
                 let spritesToRemove = [];
@@ -309,7 +314,7 @@ export class GameUX {
                 return;
             }
         }
-        this.refreshDisplay(message);
+        this.refreshDisplay(game, message);
     }
 
     showCardThatWasCast(card, game, player, message, showArrows=true) {
@@ -368,7 +373,7 @@ export class GameUX {
                     this.finishCastSpell(card, game, player, message, incrementGodrayTime);
                 }, oneThousandMS);                    
             }     
-            this.refreshDisplay(message);
+            this.refreshDisplay(game, message);
         }, oneThousandMS);
 
     }
@@ -410,17 +415,15 @@ export class GameUX {
         }
     }
 
-    refreshDisplay(message) {
-        const game = this.game;
+    refreshDisplay(game, message) {
         if (!this.thisPlayer(game) || !this.opponent(game)) {
             return; 
         }
         this.clearArrows()
-        this.animateEffects(message)
+        this.animateEffects(game, message)
     }
 
-    animateEffects(message, refresh=true, show_effects=false) {
-        const game = this.game;
+    animateEffects(game, message, refresh=true, show_effects=false) {
         if (!this.thisPlayer(game) || !this.opponent(game)) {
             return;
         }
@@ -456,20 +459,19 @@ export class GameUX {
                 this.app.ticker.remove(incrementShockwaveTime);
                 if (refresh) {
                     if (sprite === spritesToAnimate[spritesToAnimate.length - 1]) {                    
-                        this.refreshDisplayAfterAnyHandAnimations(message)
+                        this.refreshDisplayAfterAnyHandAnimations(game, message)
                     }                    
                 }
             }, oneThousandMS);
         }
         if (spritesToAnimate.length == 0) {        
             if (refresh) {
-                this.refreshDisplayAfterAnyHandAnimations(message)
+                this.refreshDisplayAfterAnyHandAnimations(game, message)
             }        
         }
     }
 
-    refreshDisplayAfterAnyHandAnimations(message) {
-        const game = this.game;
+    refreshDisplayAfterAnyHandAnimations(game, message) {
         let finishRefresh = () => {
             this.removeCardsFromStage(game)
             this.updateHand(game);
@@ -490,7 +492,11 @@ export class GameUX {
             this.maybeShowCardSelectionView(game);
             this.maybeShowRope(game);
             this.elevateTopZViews(game, message);
-            this.animateEffects(message, false, true);       
+            this.animateEffects(game, message, false, true);   
+            this.actionQueue.shift();   
+            if (this.actionQueue.length) {
+                this.refresh(this.actionQueue[0].game, this.actionQueue[0].message)
+            } 
         }
 
         var isAnimating = this.maybeAnimateMobOnMobAttacks(game, this.thisPlayer(game), message);
@@ -546,14 +552,14 @@ export class GameUX {
             this.gameNavigator = null;
         }
         if (this.isPlayersTurn(game) || this.parentGame) {
-            this.gameNavigator = new GameNavigator(this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
+            this.gameNavigator = new GameNavigator(game, this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
                 () => {
                     let index = null;
                     // the 2 is so players can't navigate before the initial join moves
                     if (this.parentGame && this.review_move_index > 2) {
                         index = this.review_move_index - 1;
                     } else if (!this.parentGame) {
-                        index = this.game.moves.length - 1;
+                        index = game.moves.length - 1;
                     }
                     if (index) {
                         this.gameRoom.sendPlayMoveEvent("NAVIGATE_GAME", {index});
@@ -592,10 +598,10 @@ export class GameUX {
             this.yardPile = null;
             this.deckPile = null;
         }
-        this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile("Opponent's Yard", this.opponent(game).played_pile)})
+        this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile(game, "Opponent's Yard", this.opponent(game).played_pile)})
         this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
         this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
-        this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile("My Deck", this.thisPlayer(game).deck, true)})
+        this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile(game, "My Deck", this.thisPlayer(game).deck, true)})
     }
 
     cardPile(x, y, game, labelText, cards, clickFunction) {
@@ -1402,7 +1408,7 @@ export class GameUX {
         }
     }
 
-    showCardPile(title, cards, isDeck=false) {
+    showCardPile(game, title, cards, isDeck=false) {
         this.setInteraction(false)
 
         if (isDeck) {
@@ -1412,15 +1418,15 @@ export class GameUX {
         let loadingImages = this.rasterizer.loadCardImages(cards);
         if (loadingImages) {
             this.app.loader.load(() => {
-                this.finishShowCardPile(title, cards, isDeck)
+                this.finishShowCardPile(game, title, cards, isDeck)
                 this.app.loader.reset()
             });
         } else {
-            this.finishShowCardPile(title, cards, isDeck)                      
+            this.finishShowCardPile(game, title, cards, isDeck)                      
         }
     }
 
-    finishShowCardPile(title, cards, isDeck=false) {
+    finishShowCardPile(game, title, cards, isDeck=false) {
         const container = new PIXI.Container();
         this.app.stage.addChild(container);
         let width = Card.cardWidth * 7 + Constants.padding * 2;
@@ -1436,7 +1442,7 @@ export class GameUX {
         container.addChild(cardContainer);
 
         for (let i=0;i<cards.length;i++) {
-            this.addSelectViewCard(this.game, cards[i], cardContainer, () =>{}, i)                
+            this.addSelectViewCard(game, cards[i], cardContainer, () =>{}, i)                
         }
 
         let text = new PIXI.Text("Hide " + title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.h2FontSize, fill : Constants.whiteColor});
@@ -1695,8 +1701,6 @@ export class GameUX {
         }
     }
 
-
-
     maybeShowSpellStack(game) {
         if (game.stack.length == 0) {
             return;
@@ -1884,7 +1888,7 @@ function onDragStart(event, cardSprite, gameUX, game) {
 
 function onDragEnd(cardSprite, gameUX) {
     let playedMove = false;
-    let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
+    let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite, gameUX.game);
 
     if (cardSprite.card.turn_played == -1) {
         if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
@@ -1948,22 +1952,22 @@ function onDragMove(dragSprite, gameUX, bump) {
     parent.removeChild(dragSprite);
     parent.addChild(dragSprite);
 
-    let collidedSprite = updateDraggedCardFilters(gameUX, dragSprite);
+    let collidedSprite = updateDraggedCardFilters(gameUX, dragSprite, gameUX.game);
     updatePlayerAvatarFilters(collidedSprite, gameUX.opponent(gameUX.game), gameUX.opponentAvatar);
     updatePlayerAvatarFilters(collidedSprite, gameUX.thisPlayer(gameUX.game), gameUX.playerAvatar);
     updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite);
 }
 
 
-function updateDraggedCardFilters(gameUX, cardSprite){
-    let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite);
+function updateDraggedCardFilters(gameUX, cardSprite, game){
+    let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite, game);
     let newFilters = [
         Constants.targettingGlowFilter(),
         Constants.dropshadowFilter()
     ];
     if(!gameUX.bump.hit(cardSprite, gameUX.handContainer) && cardSprite.card.can_be_clicked) {
-    } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
-    } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
+    } else if(gameUX.bump.hit(cardSprite, gameUX.opponentAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(game).can_be_clicked) {
+    } else if(gameUX.bump.hit(cardSprite, gameUX.playerAvatar) && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(game).can_be_clicked) {
     } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
     } else {
         newFilters = [Constants.dropshadowFilter()]
@@ -2107,13 +2111,13 @@ function clearDragFilters(cardSprite) {
 }
 
 
-function mostOverlappedNonInHandSprite(gameUX, cardSprite) {
+function mostOverlappedNonInHandSprite(gameUX, cardSprite, game) {
     let collidedSprite;
     let overlapArea = 0;
     for (let sprite of gameUX.app.stage.children) {
         if (gameUX.bump.hit(cardSprite, sprite) && cardSprite.card && sprite.card && cardSprite.card.id != sprite.card.id) {
             let inHand = false;
-            for (let card of gameUX.thisPlayer(gameUX.game).hand) {
+            for (let card of gameUX.thisPlayer(game).hand) {
                 if (card.id == sprite.card.id) {
                     inHand = true;
                 }

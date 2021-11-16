@@ -51,34 +51,36 @@ export class GameRoom {
         };
 
         this.gameSocket.onmessage = e => {
-            let data = JSON.parse(e.data)["payload"];
-            if (data["move_type"] == "NEXT_ROOM") {
+            let message = JSON.parse(e.data)["payload"];
+            if (message["move_type"] == "NEXT_ROOM") {
                 let usernameParameter = Constants.getSearchParameters()["username"];
-                if (data["username"] == usernameParameter) {
+                if (message["username"] == usernameParameter) {
                    window.location.href = this.nextRoomUrl();
                 } else {
                     setTimeout(() => {
                         window.location.href = this.nextRoomUrl();
                     }, 100); 
                 }
-            } else if (data["move_type"] == "GET_TIME") {
-                if (data["turn_time"] >= data["max_turn_time"]) {
+            } else if (message["move_type"] == "GET_TIME") {
+                if (message["turn_time"] >= message["max_turn_time"]) {
                     this.gameUX.maybeShowRope();   
                 }
             } else {
-                let game = data["game"];
-                if (!data["game"]) {
-                    console.log(data);                    
-                } else {
-                  this.gameUX.game = game;  
+                let game = message["game"];
+                if (!message["game"]) {
+                    console.log(message);                    
                 }
                 if (!this.gameUX.allCards) {
-                    this.gameUX.allCards = data["all_cards"]
+                    this.gameUX.allCards = message["all_cards"]
                 }
-                this.gameUX.refresh(game, data);
-                if (data["log_lines"]) {
-                    this.gameUX.logMessage(data["log_lines"]);
+                if (this.gameUX.actionQueue.length == 0) {
+                    this.gameUX.actionQueue.push({game, message});
+                    this.gameUX.refresh(game, message);
+                } else {
+                    this.gameUX.actionQueue.push({game, message});
                 }
+                // only used for onDragMove and onDragEnd
+                this.gameUX.game = game;
             }
         };
     }
