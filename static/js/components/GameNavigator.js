@@ -5,12 +5,12 @@ import * as Constants from '../Constants.js';
 
 export class GameNavigator {
 
-	constructor(pixiUX, xPosition, yPosition, backFunction, forwardFunction, resumeFunction) {
+	constructor(game, pixiUX, xPosition, yPosition, backFunction, forwardFunction, resumeFunction) {
 	    const buttonSize = 90;
 
         let backButtonColor = Constants.darkGrayColor;
         // the 2 is so players can't navigate before the initial join moves
-        if ((!pixiUX.parentGame && pixiUX.game.moves.length > 2 ) || 
+        if ((!pixiUX.parentGame && game.moves.length > 2 ) || 
             (pixiUX.parentGame && pixiUX.review_move_index > 2)) {
             backButtonColor = Constants.blueColor
         }

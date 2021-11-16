@@ -234,7 +234,7 @@ def create_card_save(request, required_key, event_name):
                 card_info["cost"] = int(card_info["cost"])    
             if "effects" in card_info:
                 for e in card_info["effects"]:
-                    if "amount" in e:
+                    if "amount" in e and e["amount"] != None:
                         e["amount"] = int(e["amount"])    
             card_info = Card(card_info).as_dict(for_card_builder=True)
             custom_card.card_json = card_info
