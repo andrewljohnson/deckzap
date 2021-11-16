@@ -16,5 +16,15 @@
   "scripts": {
     "build": "parcel build static/src/main.js --dist-dir static/dist --public-url ./",
     "start": "parcel static/src/main.js --hmr-port 34471 --dist-dir static/dist"
+  },
+  "targets": {
+    "browser": {
+      "engines": {
+        "browsers": [
+          "> 1%",
+          "not dead"
+        ]
+      }
+    }
   }
 }

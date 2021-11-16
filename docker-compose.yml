@@ -12,23 +12,8 @@ services:
     depends_on:
       - db
     env_file: .env
-  asgi:
-    image: web
-    command: daphne -b 0.0.0.0 -p 8000 deckzap.asgi:application
-    volumes:
-      - .:/usr/src/app/
-    depends_on:
-      - web
-      - db
-    env_file: .env
-  nginx:
-    build: ./nginx
     ports:
-      - 8000:80
-    depends_on:
-      - web
-      - asgi
-    env_file: .env
+     - 8000:8000
   db:
     image: postgres:13-alpine
     volumes:
