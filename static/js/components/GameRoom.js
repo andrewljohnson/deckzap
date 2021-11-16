@@ -79,6 +79,8 @@ export class GameRoom {
                 } else {
                     this.gameUX.actionQueue.push({game, message});
                 }
+                // only used for onDragMove
+                this.gameUX.game = game;
             }
         };
     }

@@ -1515,12 +1515,12 @@ export class GameUX {
             cardSprite
                 .on('mousedown',        function (e) {onDragStart(e, this, self, game)})
                 .on('touchstart',       function (e) {onDragStart(e, this, self, game)})
-                .on('mouseup',          function ()  {onDragEnd(this, self, game)})
-                .on('mouseupoutside',   function ()  {onDragEnd(this, self, game)})
-                .on('touchend',         function ()  {onDragEnd(this, self, game)})
-                .on('touchendoutside',  function ()  {onDragEnd(this, self, game)})
-                .on('mousemove',        function ()  {onDragMove(this, self, self.bump, game)})
-                .on('touchmove',        function ()  {onDragMove(this, self, self.bump, game)})
+                .on('mouseup',          function ()  {onDragEnd(this, self)})
+                .on('mouseupoutside',   function ()  {onDragEnd(this, self)})
+                .on('touchend',         function ()  {onDragEnd(this, self)})
+                .on('touchendoutside',  function ()  {onDragEnd(this, self)})
+                .on('mousemove',        function ()  {onDragMove(this, self, self.bump)})
+                .on('touchmove',        function ()  {onDragMove(this, self, self.bump)})
         }
     }
 
@@ -1886,15 +1886,15 @@ function onDragStart(event, cardSprite, gameUX, game) {
 }
 
 
-function onDragEnd(cardSprite, gameUX, game) {
+function onDragEnd(cardSprite, gameUX) {
     let playedMove = false;
-    let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite, game);
+    let collidedSprite = mostOverlappedNonInHandSprite(gameUX, cardSprite, gameUX.game);
 
     if (cardSprite.card.turn_played == -1) {
-        if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(game).can_be_clicked) {
+        if (collidedSprite == gameUX.opponentAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.opponent(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectOpponent, {});
             playedMove = true;
-        } else if(collidedSprite == gameUX.playerAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(game).can_be_clicked) {
+        } else if(collidedSprite == gameUX.playerAvatar && cardSprite.card.card_type == Constants.spellCardType && gameUX.thisPlayer(gameUX.game).can_be_clicked) {
             gameUX.gameRoom.sendPlayMoveEvent(moveTypeSelectSelf, {});
             playedMove = true;
         } else if(collidedSprite && collidedSprite.card && collidedSprite.card.can_be_clicked) {
@@ -1935,7 +1935,7 @@ function onDragEnd(cardSprite, gameUX, game) {
 }
 
 
-function onDragMove(dragSprite, gameUX, bump, game) {
+function onDragMove(dragSprite, gameUX, bump) {
     if (!dragSprite.dragging) {
         return;
     }
@@ -1952,9 +1952,9 @@ function onDragMove(dragSprite, gameUX, bump, game) {
     parent.removeChild(dragSprite);
     parent.addChild(dragSprite);
 
-    let collidedSprite = updateDraggedCardFilters(gameUX, dragSprite, game);
-    updatePlayerAvatarFilters(collidedSprite, gameUX.opponent(game), gameUX.opponentAvatar);
-    updatePlayerAvatarFilters(collidedSprite, gameUX.thisPlayer(game), gameUX.playerAvatar);
+    let collidedSprite = updateDraggedCardFilters(gameUX, dragSprite, gameUX.game);
+    updatePlayerAvatarFilters(collidedSprite, gameUX.opponent(gameUX.game), gameUX.opponentAvatar);
+    updatePlayerAvatarFilters(collidedSprite, gameUX.thisPlayer(gameUX.game), gameUX.playerAvatar);
     updateCardsInFieldSpriteFilters(gameUX, dragSprite, collidedSprite);
 }
 
