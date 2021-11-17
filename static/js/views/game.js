@@ -524,7 +524,6 @@ export class GameUX {
                         if (message["defending_card"]) {
                             for (let boardSprite of this.app.stage.children) {
                                 if (boardSprite.card && message["defending_card"].id == boardSprite.card.id) {
-                                    console.log("FOUND IT")
                                     this.animateAttack(sprite, boardSprite, true);
                                 }
                             }
