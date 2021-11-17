@@ -32,20 +32,17 @@ export class CardBuilder extends CardBuilderBase {
         return "Choose Type";
     }
 
-    nextButtonClicked() {
-        Constants.postData(`${this.baseURL()}/save_new`, { card_info: this.cardInfo() })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error saving card");
-            } else if (this.cardType == Constants.mobCardType) {
-                window.location.href = `${this.baseURL()}/${data.card_id}/mob_stats`
-            } else if (this.cardType == Constants.spellCardType) {
-                window.location.href = `${this.baseURL()}/${data.card_id}/effects`
-            } else {
-                console.log(`tried to save card with unknown type ${this.cardType}`);
-            }
-        });
-
+    async nextButtonClicked() {
+        const json = await Constants.postData(`${this.baseURL()}/save_new`, { card_info: this.cardInfo() })
+        if("error" in json) {
+            console.log(json); 
+            alert("error saving card");
+        } else if (this.cardType == Constants.mobCardType) {
+            window.location.href = `${this.baseURL()}/${json.card_id}/mob_stats`
+        } else if (this.cardType == Constants.spellCardType) {
+            window.location.href = `${this.baseURL()}/${json.card_id}/effects`
+        } else {
+            console.log(`tried to save card with unknown type ${this.cardType}`);
+        }
     }
 }

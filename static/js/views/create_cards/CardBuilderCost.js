@@ -36,16 +36,14 @@ export class CardBuilderCost extends CardBuilderBase {
         return "Choose Mana Cost"
     }
 
-    nextButtonClicked() {
-        Constants.postData(`${this.baseURL()}/save_cost`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error saving card");
-            } else {
-                window.location.href = `${this.baseURL()}/${this.cardID}/name_and_image`
-            }
-        })
+    async nextButtonClicked() {
+        const json = await Constants.postData(`${this.baseURL()}/save_cost`, { card_info: this.cardInfo(), card_id: this.cardID })
+        if("error" in json) {
+            console.log(json); 
+            alert("error saving card");
+        } else {
+            window.location.href = `${this.baseURL()}/${this.cardID}/name_and_image`
+        }
     }
 
     addCostInput(x, y) {

@@ -130,21 +130,19 @@ export class CardBuilderBase {
         return description;
     }
 
-    getPowerPoints() {
-        Constants.postData(`${this.baseURL()}/get_power_points`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error fetching power points");
-            } else {
-                this.powerPoints = data["power_points"]
-                this.updateCard();
+    async getPowerPoints() {
+        const json = await Constants.postData(`${this.baseURL()}/get_power_points`, { card_info: this.cardInfo(), card_id: this.cardID })
+        if("error" in json) {
+            console.log(json); 
+            alert("error fetching power points");
+        } else {
+            this.powerPoints = json.power_points;
+            this.updateCard();
 
-            }
-        });
+        }
     }
 
-    // functions override by subclasses 
+    // functions overriden by subclasses 
 
     cardInfo() {
         let info;
@@ -180,6 +178,5 @@ export class CardBuilderBase {
         return "Next";
     }
 
-    nextButtonClicked() { }
-
+    async nextButtonClicked() { }
 }

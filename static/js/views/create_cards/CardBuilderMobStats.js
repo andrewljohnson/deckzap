@@ -39,16 +39,14 @@ export class CardBuilderMobStats extends CardBuilderBase {
         return "Choose Strength and Hit Points"
     }
 
-    nextButtonClicked() {
-        Constants.postData(`${this.baseURL()}/save_mob_stats`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error saving card");
-            } else {
-                window.location.href = `${this.baseURL()}/${this.cardID}/effects`
-            }
-        })
+    async nextButtonClicked() {
+        const json = await Constants.postData(`${this.baseURL()}/save_mob_stats`, { card_info: this.cardInfo(), card_id: this.cardID })
+        if("error" in json) {
+            console.log(json); 
+            alert("error saving card");
+        } else {
+            window.location.href = `${this.baseURL()}/${this.cardID}/effects`
+        }
     }
 
     addMobStatsInputs(x, y, ) {
