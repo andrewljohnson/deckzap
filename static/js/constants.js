@@ -203,7 +203,6 @@ export function infoListText(discipline) {
 
 export async function postData(url, data) {
     const csrftoken = getCookie('csrftoken');
-    // Default options are marked with *
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -214,7 +213,7 @@ export async function postData(url, data) {
         },
         body: JSON.stringify(data) 
     });
-    return response.json(); // parses JSON response into native JavaScript objects
+    return await response.json();
 }
 
 function getCookie(name) {
