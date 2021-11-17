@@ -52,16 +52,14 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
         return "Choose Name and Image"
     }
 
-    nextButtonClicked() {
-        Constants.postData(`${this.baseURL()}/save_name_and_image`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert(data["error"]);
-            } else {
-                window.location.href = `/`
-            }
-        })
+    async nextButtonClicked() {
+        const json = await Constants.postData(`${this.baseURL()}/save_name_and_image`, { card_info: this.cardInfo(), card_id: this.cardID })
+        if("error" in json) {
+            console.log(json); 
+            alert(json.error);
+        } else {
+            window.location.href = "/";
+        }
     }
 
     nextButtonTitle() {

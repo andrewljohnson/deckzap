@@ -186,25 +186,23 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.getEffectForInfo();
     }
 
-    getEffectForInfo(successFunction=null) {
+    async getEffectForInfo(successFunction=null) {
         this.app.stage.interactiveChildren = false;  
-        Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error fetching effect info");
-            } else {
-                this.effect = data.server_effect
-                this.powerPoints = data["power_points"]
-                this.updateEffects();
-                this.updateCard();
-                if (successFunction) {
-                    successFunction();
-                }
-
+        let json = await Constants.postData(`${this.baseURL()}/get_effect_for_info`, { card_info: this.cardInfo(), card_id: this.cardID });
+        if("error" in json) {
+            console.log(json); 
+            alert("error fetching effect info");
+        } else {
+            this.effect = json.server_effect;
+            this.powerPoints = json.power_points;
+            this.updateEffects();
+            this.updateCard();
+            if (successFunction) {
+                successFunction();
             }
-            this.app.stage.interactiveChildren = true;  
-        });
+
+        }
+        this.app.stage.interactiveChildren = true;  
     }
 
     addAmountInput(x, y) {
@@ -339,20 +337,18 @@ export class CardBuilderEffects extends CardBuilderBase {
         this.nextButtonClicked(true);
     }
 
-    nextButtonClicked(additionalEffectButtonClicked=false) {
-        Constants.postData(`${this.baseURL()}/save_effects`, { card_info: this.cardInfo(), card_id: this.cardID })
-        .then(data => {
-            if("error" in data) {
-                console.log(data); 
-                alert("error saving card");
+    async nextButtonClicked(additionalEffectButtonClicked=false) {
+        const json = await Constants.postData(`${this.baseURL()}/save_effects`, { card_info: this.cardInfo(), card_id: this.cardID })
+        if("error" in json) {
+            console.log(json); 
+            alert("error saving card");
+        } else {
+            if(additionalEffectButtonClicked) {
+                window.location.href = `${this.baseURL()}/${this.cardID}/effects/${this.effects.length}`
             } else {
-                if(additionalEffectButtonClicked) {
-                    window.location.href = `${this.baseURL()}/${this.cardID}/effects/${this.effects.length}`
-                } else {
-                    window.location.href = `${this.baseURL()}/${this.cardID}/cost`
-                }
+                window.location.href = `${this.baseURL()}/${this.cardID}/cost`
             }
-        })
+        }
     }
 
 }
