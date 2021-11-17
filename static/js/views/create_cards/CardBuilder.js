@@ -12,11 +12,9 @@ export class CardBuilder extends CardBuilderBase {
     }
 
     cardInfo() {
-        return {
-            name: this.defaultCardName(), 
-            image: this.defaultCardImageFilename(),
-            card_type: this.cardType, 
-        };
+        const info = super.cardInfo();
+        info.card_type = this.cardType;
+        return info;
     }
 
     loadUXAfterCardImageLoads() {

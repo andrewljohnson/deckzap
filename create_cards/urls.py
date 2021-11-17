@@ -3,6 +3,7 @@ from create_cards.views import create_card
 from create_cards.views import cost
 from create_cards.views import effects
 from create_cards.views import get_effect_for_info
+from create_cards.views import get_power_points
 from create_cards.views import mob_stats
 from create_cards.views import name_and_image
 from create_cards.views import save_cost
@@ -23,5 +24,6 @@ urlpatterns = [
     path('<card_id>/mob_stats', mob_stats),
     path('<card_id>/name_and_image', name_and_image),
     path('get_effect_for_info', get_effect_for_info),    
+    path('get_power_points', get_power_points),    
     path('', create_card),    
  ]

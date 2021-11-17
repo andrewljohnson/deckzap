@@ -12,10 +12,10 @@ export class GameRoom {
     }
 
     connect() {
-        if (this.gameSocket == null) {
+        if (this.gameSocket === null) {
             this.setupSocket();
         }
-        if (this.gameSocket.readyState == WebSocket.OPEN) {
+        if (this.gameSocket.readyState === WebSocket.OPEN) {
             const deck_id = document.getElementById("data_store").getAttribute("deck_id");
             if (deck_id) {
                const opponent_deck_id = document.getElementById("data_store").getAttribute("opponent_deck_id");
@@ -51,10 +51,10 @@ export class GameRoom {
         };
 
         this.gameSocket.onmessage = e => {
-            let message = JSON.parse(e.data)["payload"];
-            if (message["move_type"] == "NEXT_ROOM") {
+            const message = JSON.parse(e.data)["payload"];
+            if (message["move_type"] === "NEXT_ROOM") {
                 let usernameParameter = Constants.getSearchParameters()["username"];
-                if (message["username"] == usernameParameter) {
+                if (message["username"] === usernameParameter) {
                    window.location.href = this.nextRoomUrl();
                 } else {
                     setTimeout(() => {
@@ -73,7 +73,7 @@ export class GameRoom {
                 if (!this.gameUX.allCards) {
                     this.gameUX.allCards = message["all_cards"]
                 }
-                if (this.gameUX.actionQueue.length == 0) {
+                if (this.gameUX.actionQueue.length === 0) {
                     this.gameUX.actionQueue.push({game, message});
                     this.gameUX.refresh(game, message);
                 } else {
@@ -88,7 +88,7 @@ export class GameRoom {
     roomSocketUrl() {
         const roomCode = document.getElementById("data_store").getAttribute("game_record_id");
         const url = new URL(window.location.href);
-        let protocol = url.protocol == 'https:' ? 'wss://' : 'ws://';
+        let protocol = url.protocol === 'https:' ? 'wss://' : 'ws://';
         let connectionString = protocol + window.location.host + '/ws/play/' + this.gameUX.playerType + '/' + roomCode + '/';
         const ai = document.getElementById("data_store").getAttribute("ai");
         if (ai && ai != "None") {
@@ -100,7 +100,7 @@ export class GameRoom {
     nextRoomUrl() {
         const ai = document.getElementById("data_store").getAttribute("ai");
         let url = location.host + location.pathname;
-        if (!ai || ai == "None") {
+        if (!ai || ai === "None") {
             const deckID = document.getElementById("data_store").getAttribute("deck_id");
             return `/find_match?deck_id=${deckID}`;
         }

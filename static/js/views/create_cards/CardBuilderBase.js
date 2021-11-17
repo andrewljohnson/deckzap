@@ -111,7 +111,7 @@ export class CardBuilderBase {
     }
 
     cardDescription() {
-        if (this.originalCardInfo.effects && this.originalCardInfo.effects.length) {
+        if (this.originalCardInfo && this.originalCardInfo.effects && this.originalCardInfo.effects.length) {
             return this.descriptionForEffects(this.originalCardInfo.effects);
         }
     }
@@ -130,10 +130,42 @@ export class CardBuilderBase {
         return description;
     }
 
+    getPowerPoints() {
+        Constants.postData(`${this.baseURL()}/get_power_points`, { card_info: this.cardInfo(), card_id: this.cardID })
+        .then(data => {
+            if("error" in data) {
+                console.log(data); 
+                alert("error fetching power points");
+            } else {
+                this.powerPoints = data["power_points"]
+                this.updateCard();
+
+            }
+        });
+    }
+
     // functions override by subclasses 
 
     cardInfo() {
-        return {};
+        let info;
+        if (this.originalCardInfo) {
+            info = this.originalCardInfo;
+        } else {
+            info = {};
+        }
+        if (!this.originalCardInfo || !this.originalCardInfo.name) {
+            info.name = this.defaultCardName();
+
+        }
+        if (!this.originalCardInfo || !this.originalCardInfo.image) {
+            info.image = this.defaultCardImageFilename();
+
+        }
+        info.description = this.cardDescription();
+        if (this.powerPoints != null) {
+            info.power_points = this.powerPoints;
+        }
+        return info;
     }
 
     initializeProperties() { }

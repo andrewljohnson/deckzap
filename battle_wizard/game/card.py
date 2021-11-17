@@ -87,7 +87,7 @@ class Card:
             power_points += self.strength
         if self.hit_points:
             power_points += self.hit_points
-        return power_points
+        return max(0, power_points)
 
     def create_effect_def(self, effect):
         if effect.effect_type == "action_added_to_stack":

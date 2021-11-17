@@ -14,18 +14,9 @@ export class CardBuilderCost extends CardBuilderBase {
     }
 
     cardInfo() {
-        return {
-            name: this.originalCardInfo.name, 
-            card_type: this.originalCardInfo.card_type, 
-            image: this.originalCardInfo.image, 
-            effects: this.originalCardInfo.effects, 
-            strength: this.originalCardInfo.strength, 
-            hit_points: this.originalCardInfo.hit_points, 
-            description: this.cardDescription(),
-            cost: this.cardCost(), 
-            power_points: this.powerPoints ? this.powerPoints : this.originalCardInfo.power_points,
-            author_username: this.originalCardInfo.author_username
-        };
+        const info = super.cardInfo();
+        info.cost = this.cardCost();
+        return info;
     }
 
     loadUXAfterCardImageLoads() {
@@ -88,7 +79,9 @@ export class CardBuilderCost extends CardBuilderBase {
             }
             this.userCardCost = text;
             this.lastText = text;
-            this.updateCard();
+            if (text.length) {
+                this.getPowerPoints();
+            }
         })
     }
 
