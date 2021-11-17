@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import * as Constants from '../../Constants.js';
+import * as Constants from '../../constants.js';
 import { Card } from '../../components/Card.js';
 import { SVGRasterizer } from '../../components/SVGRasterizer.js';
 

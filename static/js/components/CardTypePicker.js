@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { AdjustmentFilter, GlowFilter } from 'pixi-filters';
 import { Card } from './Card.js';
-import * as Constants from '../Constants.js';
+import * as Constants from '../constants.js';
 
 
 export class CardTypePicker {

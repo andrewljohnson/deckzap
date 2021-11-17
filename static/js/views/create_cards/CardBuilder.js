@@ -1,4 +1,4 @@
-import * as Constants from '../../Constants.js';
+import * as Constants from '../../constants.js';
 import { Card } from '../../components/Card.js';
 import { CardBuilderBase } from './CardBuilderBase.js'
 import { CardTypePicker } from '../../components/CardTypePicker.js';

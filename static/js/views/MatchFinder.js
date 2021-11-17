@@ -1,4 +1,4 @@
-import * as Constants from '../Constants.js';
+import * as Constants from '../constants.js';
 
 
 export class MatchFinder {

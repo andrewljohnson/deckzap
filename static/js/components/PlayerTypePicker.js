@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { GlowFilter } from 'pixi-filters';
-import * as Constants from '../Constants.js';
+import * as Constants from '../constants.js';
 
 
 export class PlayerTypePicker {

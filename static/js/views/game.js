@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import { GlowFilter, GodrayFilter, OutlineFilter, ShockwaveFilter, VoidFilter } from 'pixi-filters';
 import { Scrollbox } from 'pixi-scrollbox'
 import { Bump } from '../lib/bump.js';
-import * as Constants from '../Constants.js';
+import * as Constants from '../constants.js';
 import { Card } from '../components/Card.js';
 import { CardPile } from '../components/CardPile.js';
 import { GameNavigator } from '../components/GameNavigator.js';

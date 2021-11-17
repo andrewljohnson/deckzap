@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 const TextInput = require("pixi-text-input");
-import * as Constants from '../Constants.js';
+import * as Constants from '../constants.js';
 import { Card } from '../components/Card.js';
 import { CardsContainer } from '../components/CardsContainer.js';
 import { DeckContainer } from '../components/DeckContainer.js';

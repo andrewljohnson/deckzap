@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { GlowFilter, OutlineFilter } from 'pixi-filters';
 import { Card } from '../components/Card.js';
-import * as Constants from '../Constants.js';
+import * as Constants from '../constants.js';
 
 
 export class ButtonPicker {
