@@ -12,7 +12,6 @@ export class CardBuilderMobStats extends CardBuilderBase {
         this.cardID = cardID;
         this.strength = 0;
         this.hitPoints = 1;
-
         this.loadUX(containerID);
     }
 
