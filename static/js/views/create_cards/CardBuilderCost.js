@@ -14,7 +14,7 @@ export class CardBuilderCost extends CardBuilderBase {
     }
 
     cardInfo() {
-        let info = super.cardInfo();
+        const info = super.cardInfo();
         info.cost = this.cardCost();
         return info;
     }

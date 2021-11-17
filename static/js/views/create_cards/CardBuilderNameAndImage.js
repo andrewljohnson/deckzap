@@ -19,7 +19,7 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
     }
 
     cardInfo() {
-        let info = super.cardInfo();
+        const info = super.cardInfo();
         info.name = this.cardName();
         info.image = this.cardImage();
         info.is_custom = true;

@@ -19,7 +19,7 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     cardInfo() {
-        let info = super.cardInfo();
+        const info = super.cardInfo();
         info.effects = this.effects;
         return info;
     }

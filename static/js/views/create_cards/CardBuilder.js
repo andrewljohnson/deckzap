@@ -12,7 +12,7 @@ export class CardBuilder extends CardBuilderBase {
     }
 
     cardInfo() {
-        let info = super.cardInfo();
+        const info = super.cardInfo();
         info.card_type = this.cardType;
         return info;
     }
