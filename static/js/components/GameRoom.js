@@ -61,7 +61,7 @@ export class GameRoom {
                         window.location.href = this.nextRoomUrl();
                     }, 100); 
                 }
-            } else if (message["move_type"] === "GET_TIME") {
+            } else if (!message["move_type"]) {
                 if (message["turn_time"] >= message["max_turn_time"]) {
                     this.gameUX.maybeShowRope();   
                 }

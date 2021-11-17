@@ -152,7 +152,7 @@ class GameObjectTests(TransactionTestCase):
             game.play_move({"username": "a", "move_type": "END_TURN"})
             game.play_move({"username": "b", "move_type": "END_TURN"})
         self.assertEqual(len(game.current_player().hand), game.max_hand_size)
-        touca.add_result('hand_size', len(game.current_player().hand))
+        touca.check('hand_size', len(game.current_player().hand))
 
     def test_ten_mana_limit(self):
         """

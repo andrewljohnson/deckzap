@@ -158,11 +158,11 @@ class BattleWizardConsumer(WebsocketConsumer):
 
         game_object.game_json = self.game.as_dict()
         game_object.save()
-        print('saved')
 
         if message:
             self.send_game_message(self.game.as_dict(), message)
-            if message["move_type"] == "GET_TIME" and not self.is_reviewing:
+            # if there is no move_type, it's a GET_TIME
+            if "move_type" not in message and not self.is_reviewing:
                 if self.player_type == "pvai":
                     self.game.players[1].maybe_run_ai(self)
 
@@ -184,9 +184,17 @@ class BattleWizardConsumer(WebsocketConsumer):
         # send current-game-related message to players
         if DEBUG and message and message["move_type"] != "GET_TIME":
             self.print_move(message)
-        message["game"] = game_dict
         if message["move_type"] == "JOIN" and len(game_dict["players"]) == 1:
             message[ "all_cards"] = json.dumps(all_cards())
+        
+        if message["move_type"] == "GET_TIME":
+            if "game" in message:
+                del message["game"]
+            del message["move_type"]
+            del message["log_lines"]
+            del message["username"]
+        else:
+            message["game"] = game_dict
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
