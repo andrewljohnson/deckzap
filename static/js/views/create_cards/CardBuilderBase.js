@@ -12,21 +12,23 @@ export class CardBuilderBase {
 
     setUpPIXIApp() {
         const widthInCards = 9;
-        let appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
-        let appHeight = (Card.cardHeight) * 15;
+        const appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
+        const appHeight = (Card.cardHeight) * 15;
         Constants.setUpPIXIApp(this, appHeight, appWidth)
     }
 
     loadUX(containerID) {
-        let container = document.getElementById(containerID);
+        const container = document.getElementById(containerID);
         container.appendChild(this.app.view);
 
-        let background = Constants.background(0, 0, (Card.cardWidth + Constants.padding) * 5 + Constants.padding * 4, .1)
+        const background = Constants.background(0, 0, (Card.cardWidth + Constants.padding) * 5 + Constants.padding * 4, .1)
         background.tint = 0xEEEEEE;
         background.height = (Card.cardHeight) * 12
         this.app.stage.addChild(background);
-        let titleText = this.addTitle();
+        const titleText = this.addTitle();
         this.addNextButton();
+        this.addErrorText();
+        this.toggleNextButton(false);
         this.rasterizer = new SVGRasterizer(this.app);
         this.rasterizer.loadCardImages([this.cardInfo()]);
         this.app.loader.load(() => {
@@ -43,7 +45,7 @@ export class CardBuilderBase {
     }
 
     addTitle() {
-        let title = this.title();
+        const title = this.title();
         this.titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
         this.titleText.position.x = Constants.padding;
         this.titleText.position.y = Constants.padding * 1.5;
@@ -55,8 +57,8 @@ export class CardBuilderBase {
         const buttonWidth = Card.cardWidth * 1.25;
         const buttonHeight = 40;
         const buttonX = this.app.renderer.width / this.app.renderer.resolution - buttonWidth - Constants.padding - Card.cardWidth * 2 + Constants.padding * 2;
-        let buttonTitle = this.nextButtonTitle();
-        let b = Card.button(
+        const buttonTitle = this.nextButtonTitle();
+        const b = Card.button(
             buttonTitle, 
             Constants.blueColor, 
             Constants.whiteColor, 
@@ -70,11 +72,29 @@ export class CardBuilderBase {
         );
         this.nextButton = b
         this.app.stage.addChild(b);
-        this.toggleNextButton(false);
         return b;
     }
 
-    toggleNextButton(enabled) {
+    addErrorText() {
+        this.errorText = new PIXI.Text("", {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultFontSize, fill : Constants.redColor, wordWrap: true, wordWrapWidth: this.nextButton.width});
+        this.errorText.position.x = this.nextButton.position.x;
+        this.errorText.position.y = this.nextButton.position.y + this.nextButton.height + Constants.padding;
+        this.app.stage.addChild(this.errorText);                
+    }
+
+    toggleNextButton(enabled, errorMessage="") {
+        this.errorText.text = "";
+        if (this.errorArrow) {
+            this.errorArrow.parent.removeChild(this.errorArrow);
+            this.errorArrow = null;
+        }
+        if (this.powerPoints && this.powerPoints >= 100) {
+            enabled = false;
+            this.errorText.text = "Cards must have less than 100 power points.";
+            this.errorArrow = Constants.showArrow(this.app, this.errorText, this.card, {x:Constants.padding*2.5, y: Constants.padding*4}, {x:this.nextButton.width - 10, y: 10});
+        } else if (!enabled) {
+            this.errorText.text = errorMessage;
+        }
         this.nextButton.background.tint = enabled ? Constants.blueColor : Constants.darkGrayColor;
         this.nextButton.background.buttonMode = enabled;
         this.nextButton.background.interactive = enabled;
@@ -89,10 +109,10 @@ export class CardBuilderBase {
     }
 
     addCardSprite() {
-        let cardSprite = Card.sprite(this.cardInfo(), this);
-        let cardHeight = Card.cardHeight;
-        cardSprite.position.x = this.nextButton.position.x + Card.cardWidth * 1.25 / 2;
-        cardSprite.position.y = this.nextButton.position.y + 200;            
+        const cardSprite = Card.sprite(this.cardInfo(), this);
+        const cardHeight = Card.cardHeight;
+        cardSprite.position.x = this.errorText.position.x + Card.cardWidth * 1.25 / 2;
+        cardSprite.position.y = this.errorText.position.y + 140;            
         this.app.stage.addChild(cardSprite);
         cardSprite.interactive = true;
         this.card = cardSprite;
@@ -118,7 +138,7 @@ export class CardBuilderBase {
 
     descriptionForEffects(effects) {
         let description = "";
-        for (let effect of effects) {
+        for (const effect of effects) {
             description += effect.description;
             if (!effect.description.endsWith(".")) {
                 description += ".";

@@ -11,6 +11,7 @@ export class CardBuilderCost extends CardBuilderBase {
         this.originalCardInfo = originalCardInfo;
         this.cardID = cardID;
         this.loadUX(containerID);
+        console.log("FOOO")
     }
 
     cardInfo() {
@@ -75,19 +76,27 @@ export class CardBuilderCost extends CardBuilderBase {
         costInput.on('input', text => {
             if (!Constants.isPositiveWholeNumber(text) && text && text != '0') {
                 this.costInput.text = this.lastText;
+                console.log("here")
                 return;
             }
-            this.userCardCost = text;
+            console.log("there")
+            this.userCardCost = parseInt(text);
             this.lastText = text;
             if (text.length) {
                 this.getPowerPoints();
+            } else {
+                this.updateCard();
             }
         })
     }
 
     updateCard() {
         super.updateCard();
-        this.toggleNextButton(parseInt(this.userCardCost) >= 0 && parseInt(this.userCardCost) <= 10);
+        console.log(this.userCardCost);
+        this.toggleNextButton(
+            this.userCardCost >= 0 && this.userCardCost <= 10 && !isNaN(this.userCardCost), 
+            "Cards must cost at least 0 and no more than 10 mana."
+            );
     }
 
 }

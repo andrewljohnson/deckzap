@@ -12,6 +12,7 @@ export class CardBuilderMobStats extends CardBuilderBase {
         this.cardID = cardID;
         this.strength = 0;
         this.hitPoints = 1;
+
         this.loadUX(containerID);
     }
 
@@ -84,7 +85,7 @@ export class CardBuilderMobStats extends CardBuilderBase {
         input.position.y = label.position.y + label.height + Constants.padding * 4;
         this.app.stage.addChild(input);
         input.on('input', text => {
-            if (!Constants.isPositiveWholeNumber(text) && text && text != '0') {
+            if ((!Constants.isPositiveWholeNumber(text) && text && text != '0') || (text == '0' && variableToSet == "hitPoints")) {
                 if (variableToSet == "strength") {
                     input.text = this.lastStrength;
                 } else {
@@ -93,21 +94,31 @@ export class CardBuilderMobStats extends CardBuilderBase {
                 return;
             }
             if (variableToSet == "strength") {
-                this.strength = text;
+                this.strength = parseInt(text);
                 this.lastStrength = text;
             } else {
-                this.hitPoints = text;                
+                this.hitPoints = parseInt(text);                
                 this.lastHitPoints = text;
             }
-            if (text.length) {
+            if (this.strength.length && this.hitPoints.length) {
                 this.getPowerPoints();
+            } else {
+                this.updateCard();
             }
         })
     }
 
     updateCard() {
         super.updateCard();
-        this.toggleNextButton(parseInt(this.strength) >= 0 && parseInt(this.hitPoints) >= 1);
+        let errorMessage = "";
+        if ((this.strength < 0 || isNaN(this.strength)) && (this.hitPoints <= 0 || isNaN(this.hitPoints))) {
+            errorMessage = "Strength must be >= 0, and Hit Points must be >= 1.";
+        } else if (this.strength < 0 || isNaN(this.strength)) {
+            errorMessage = "Strength must be >= 0;";
+        } else if (this.hitPoints <= 0 || isNaN(this.hitPoints)) {
+            errorMessage = "Hit Points must be >= 1.";
+        }
+        this.toggleNextButton(parseInt(this.strength) >= 0 && parseInt(this.hitPoints) >= 1, errorMessage);
     }
 
 }
