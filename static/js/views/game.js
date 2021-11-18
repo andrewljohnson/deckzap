@@ -50,6 +50,8 @@ export class GameUX {
         this.loadTextures();
         this.setUpPIXIView();
         this.renderStaticGameElements();
+
+        this.useArtifacts = false;
     }
  
     loadDataFromDOM() {
@@ -104,6 +106,10 @@ export class GameUX {
         artifacts.position.x = x;
         artifacts.position.y = y;
         this.app.stage.addChild(artifacts);
+        if (!this.useArtifacts) {
+            artifacts.alpha = 0;
+        }
+
         return artifacts;
     }
 
@@ -940,6 +946,10 @@ export class GameUX {
             let menuButton = this.menuButton(game);
             menuButton.position.x = appWidth - menuButton.width - Constants.padding;
             menuButton.position.y = this.endTurnButton.position.y;
+            if (!this.useArtifacts) {
+                menuButton.position.x = this.turnLabel.position.x - menuButton.width / 2;
+                menuButton.position.y = this.turnLabel.position.y + 25;
+            }
             this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
         }
@@ -1360,6 +1370,10 @@ export class GameUX {
     showCardPile(game, title, cards, isDeck=false) {
         this.setInteraction(false)
 
+        if (!cards) {
+            cards = [];
+        }
+
         if (isDeck) {
             cards.sort((a, b) => (a.name > b.name) ? 1 : -1)
         }
@@ -1616,6 +1630,11 @@ export class GameUX {
         b.position.x = this.artifactsOpponent.position.x;
         b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 4;
 
+        if (!this.useArtifacts) {
+            b.position.x += Constants.padding * 4;
+        }
+
+
         if (this.isActivePlayer(game)) {
             if (this.thisPlayer(game).card_info_to_target.effect_type) {
                 b.buttonSprite.interactive = false;
@@ -1636,7 +1655,11 @@ export class GameUX {
         let textTitle = this.turnTitle(game);
         let turnText = new PIXI.Text(textTitle, {fontFamily : Constants.defaultFontFamily, fontSize: 14, fill : Constants.darkGrayColor, align: "center"});
         turnText.position.x = b.position.x + buttonWidth + Constants.padding * 20;
-        turnText.position.y = b.position.y + b.height / 2;
+        turnText.position.y = b.position.y + b.height / 2;        
+        if (!this.useArtifacts) {
+            turnText.position.x = b.position.x + b.width / 2;
+            turnText.position.y = b.position.y + b.height + Constants.padding * 4;
+        }
         turnText.anchor.set(0.5, 0.5);
         this.turnLabel = turnText;
         this.app.stage.addChild(turnText);
