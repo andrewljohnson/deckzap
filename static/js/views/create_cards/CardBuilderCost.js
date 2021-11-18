@@ -75,17 +75,22 @@ export class CardBuilderCost extends CardBuilderBase {
                 this.costInput.text = this.lastText;
                 return;
             }
-            this.userCardCost = text;
+            this.userCardCost = parseInt(text);
             this.lastText = text;
             if (text.length) {
                 this.getPowerPoints();
+            } else {
+                this.updateCard();
             }
         })
     }
 
     updateCard() {
         super.updateCard();
-        this.toggleNextButton(parseInt(this.userCardCost) >= 0 && parseInt(this.userCardCost) <= 10);
+        this.toggleNextButton(
+            this.userCardCost >= 0 && this.userCardCost <= 10 && !isNaN(this.userCardCost), 
+            "Cards must cost at least 0 and no more than 10 mana."
+            );
     }
 
 }

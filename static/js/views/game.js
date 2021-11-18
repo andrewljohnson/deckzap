@@ -976,20 +976,24 @@ export class GameUX {
                 }
                 if (attackingCardSprite.card.card_type == "mob") { // check if attacker and defender got turned into an artifact mid-attack
                     if(defending_id && defendingCardSprite && defendingCardSprite.card.card_type == "mob") {
-                        this.showArrow(
+                        const arrow = Constants.showArrow(
+                            this.app,
                             attackingCardSprite,
                             defendingCardSprite, 
-                            );                    
+                        );                    
+                       this.arrows.push(arrow);
                     } else {
                         let avatar = this.opponentAvatar;
                         if (this.activePlayer(game).username != this.opponent(game).username) {                        
                             avatar = this.playerAvatar;
                         }
-                        this.showArrow(
+                        const arrow = Constants.showArrow(
+                            this.app,
                             attackingCardSprite,
                             avatar,
                             {x:avatar.width / 4, y: avatar.height / 2} 
                         );                                        
+                        this.arrows.push(arrow);
                     }
                 }
             }
@@ -1148,60 +1152,6 @@ export class GameUX {
             return (1 - t / this.fadeDuration() ) * 2;
         }
         return 0;
-    }
-
-    showArrow(fromSprite, toSprite, adjustment={"x":0, "y": 0}){
-        let cpXY1 = [30,0];
-        let cpXY2 = [200,100];
-        let toXY = [toSprite.position.x - fromSprite.position.x + adjustment.x, toSprite.position.y - fromSprite.position.y + adjustment.y];
-        let fromXY = [fromSprite.position.x, fromSprite.position.y];
-        let toXYArc = [toSprite.position.x-fromSprite.position.x+toSprite.width/4,
-                        toSprite.position.y-fromSprite.position.y+toSprite.height/2];
-        let toXYArrow = [toSprite.position.x+toSprite.width/4,
-                        toSprite.position.y+toSprite.height/2 - Constants.padding];
-
-        const bezierArrow = new PIXI.Graphics();
-        bezierArrow.tint = Constants.redColor;
-        this.arrows.push(bezierArrow);
-        this.app.stage.addChild(bezierArrow); 
-        const normal = [
-            - (toXY[1] - cpXY2[1]),
-            toXY[0] - cpXY2[0],
-        ]
-        const l = Math.sqrt(normal[0] ** 2 + normal[1] ** 2);
-        normal[0] /= l;
-        normal[1] /= l;
-        
-        let arrowSize = 10;
-        const tangent = [
-            -normal[1] * arrowSize,
-            normal[0] * arrowSize
-        ]
-
-        normal[0] *= arrowSize;
-        normal[1] *= arrowSize;
-        
-        bezierArrow.position.set(fromXY[0], fromXY[1], 0);
-        
-        bezierArrow
-            .lineStyle(4, Constants.whiteColor, 1)
-            .bezierCurveTo(cpXY1[0],cpXY1[1],cpXY2[0],cpXY2[1],toXY[0],toXY[1])
-            .lineStyle(1, Constants.whiteColor, 1)
-            .beginFill(Constants.redColor, 1)
-            .moveTo(toXY[0] + normal[0] + tangent[0], toXY[1] + normal[1] + tangent[1])
-            .lineTo(toXY[0] , toXY[1] )
-            .lineTo(toXY[0] - normal[0] + tangent[0], toXY[1] - normal[1] + tangent[1])
-            .lineTo(toXY[0] + normal[0] + tangent[0]-1, toXY[1] + normal[1] + tangent[1])
-            .endFill();
-        
-        let sprite = new PIXI.Sprite(this.app.renderer.generateTexture(bezierArrow,{resolution:PIXI.settings.FILTER_RESOLUTION}))
-        bezierArrow.filters = [
-            new GlowFilter({ innerStrength: 0, outerStrength: 2, color: Constants.yellowColor}),
-            Constants.dropshadowFilter()
-        ];
-
-
-        return sprite;
     }
 
     // hax: prevents spurious onMouseover events from firing during rendering all the cards
@@ -1526,16 +1476,19 @@ export class GameUX {
     showArrowsForSpell(game, sprite, spellMessage, card) {
         if (spellMessage.effect_targets && spellMessage.effect_targets[0].target_type == "player") {
             if (spellMessage.effect_targets[0].id == this.opponent(game).username) {
-               this.showArrow(
+               const arrow = Constants.showArrow(
+                    this.app,
                     sprite, 
                     this.opponentAvatar,
                     {x:this.opponentAvatar.width/4, y: this.opponentAvatar.height/2});
+               this.arrows.push(arrow);
             } else {
-               this.showArrow(
+               const arrow = Constants.showArrow(
+                    this.app,
                     sprite, 
                     this.playerAvatar,
                     {x:this.playerAvatar.width/4, y: this.playerAvatar.height/2});
-
+               this.arrows.push(arrow);
             }
         } else if (spellMessage.effect_targets && ["mob", "artifact"].includes(spellMessage.effect_targets[0].target_type)) {
             let targetID = spellMessage.effect_targets[0].id;
@@ -1546,7 +1499,8 @@ export class GameUX {
                 }
             } 
             if(targetCardSprite && sprite != targetCardSprite) {
-                this.showArrow(sprite, targetCardSprite);
+                const arrow = Constants.showArrow(this.app, sprite, targetCardSprite);
+                this.arrows.push(arrow);
             }
         }
 
@@ -1556,11 +1510,12 @@ export class GameUX {
             if (spellMessage.effect_targets[1].id == this.opponent(game).username) {
                 avatar = this.opponentAvatar;
             }
-            this.showArrow(
+            const arrow = Constants.showArrow(
+                this.app,
                 sprite, avatar,
                 {x:avatar.width/4, y:avatar.height/2} 
                 );
-
+            this.arrows.push(arrow);
         }
     }
 

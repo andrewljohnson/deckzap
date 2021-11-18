@@ -237,3 +237,55 @@ export function isPositiveWholeNumber(value) {
     return /^-?\d+$/.test(value) && parseInt(value) >= 0;
 }
 
+export function showArrow(app, fromSprite, toSprite, adjustment={"x":0, "y": 0}, fromAdjustment={"x":0, "y": 0}){
+    let cpXY1 = [30,0];
+    let cpXY2 = [200,100];
+    let toXY = [toSprite.position.x - fromSprite.position.x + adjustment.x - fromAdjustment.x, toSprite.position.y - fromSprite.position.y + adjustment.y - fromAdjustment.y];
+    let fromXY = [fromSprite.position.x + fromAdjustment.x, fromSprite.position.y + fromAdjustment.y];
+    let toXYArc = [toSprite.position.x-fromSprite.position.x+toSprite.width/4,
+                    toSprite.position.y-fromSprite.position.y+toSprite.height/2];
+    let toXYArrow = [toSprite.position.x+toSprite.width/4,
+                    toSprite.position.y+toSprite.height/2 - padding];
+
+    const bezierArrow = new PIXI.Graphics();
+    bezierArrow.tint = redColor;
+    app.stage.addChild(bezierArrow); 
+    const normal = [
+        - (toXY[1] - cpXY2[1]),
+        toXY[0] - cpXY2[0],
+    ]
+    const l = Math.sqrt(normal[0] ** 2 + normal[1] ** 2);
+    normal[0] /= l;
+    normal[1] /= l;
+    
+    let arrowSize = 10;
+    const tangent = [
+        -normal[1] * arrowSize,
+        normal[0] * arrowSize
+    ]
+
+    normal[0] *= arrowSize;
+    normal[1] *= arrowSize;
+    
+    bezierArrow.position.set(fromXY[0], fromXY[1], 0);
+    
+    bezierArrow
+        .lineStyle(4, whiteColor, 1)
+        .bezierCurveTo(cpXY1[0],cpXY1[1],cpXY2[0],cpXY2[1],toXY[0],toXY[1])
+        .lineStyle(1, whiteColor, 1)
+        .beginFill(redColor, 1)
+        .moveTo(toXY[0] + normal[0] + tangent[0], toXY[1] + normal[1] + tangent[1])
+        .lineTo(toXY[0] , toXY[1] )
+        .lineTo(toXY[0] - normal[0] + tangent[0], toXY[1] - normal[1] + tangent[1])
+        .lineTo(toXY[0] + normal[0] + tangent[0]-1, toXY[1] + normal[1] + tangent[1])
+        .endFill();
+    
+    let sprite = new PIXI.Sprite(app.renderer.generateTexture(bezierArrow,{resolution:PIXI.settings.FILTER_RESOLUTION}))
+    bezierArrow.filters = [
+        new GlowFilter({ innerStrength: 0, outerStrength: 2, color: yellowColor}),
+        dropshadowFilter()
+    ];
+
+    return bezierArrow;
+}
+

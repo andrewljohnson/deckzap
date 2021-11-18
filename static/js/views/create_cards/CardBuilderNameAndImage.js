@@ -191,7 +191,15 @@ export class CardBuilderNameAndImage extends CardBuilderBase {
 
     updateCard() {
         super.updateCard();
-        this.toggleNextButton(this.userCardName && this.userCardImage);
+        let errorMessage = "";
+        if (!this.userCardName && !this.userCardImage) {
+            errorMessage = "Type a name and select an image for your card.";
+        } else if (!this.userCardName) {
+            errorMessage = "Type a name for your card.";
+        } else if (!this.userCardImage) {
+            errorMessage = "Select an image for your card.";
+        }
+        this.toggleNextButton(this.userCardName && this.userCardImage, errorMessage);
     }
 
 }
