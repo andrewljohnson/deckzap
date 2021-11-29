@@ -15,6 +15,15 @@ import { OpponentChooser } from '../js/views/OpponentChooser';
 import { TopDecks } from '../js/views/TopDecks';
 import { TopPlayers } from '../js/views/TopPlayers';
 
+// Reload window in dev
+if (process.env.NODE_ENV !== 'production') {
+    if (module.hot) {
+        module.hot.accept(function () {
+            location.reload();
+        });
+    }
+}
+
 if (window.location.pathname.startsWith("/play")) {
     const DEBUG = document.getElementById("data_store").getAttribute("debug");
 	const gameUX = new GameUX(DEBUG);
