@@ -12,6 +12,7 @@ then
 fi
 
 python manage.py migrate
+python manage.py collectstatic --noinput
 python create_cards/make_json.py
 
 exec "$@"
