@@ -1,3 +1,14 @@
+# build static files in node
+FROM node:latest AS static
+
+WORKDIR /home
+
+COPY package.json .
+COPY static ./static/
+
+RUN yarn
+RUN yarn build
+
 # pull official base image
 FROM python:3.9.5-slim
 
@@ -23,6 +34,8 @@ COPY ./entrypoint.prod.sh /usr/src/app/entrypoint.prod.sh
 
 # copy project
 COPY . /usr/src/app/
+
+COPY --from=static /home/static/dist /usr/src/app/static/dist
 
 # run entrypoint.prod.sh
 ENTRYPOINT ["/usr/src/app/entrypoint.prod.sh"]
