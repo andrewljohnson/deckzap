@@ -42,18 +42,19 @@ export class DeckBuilder {
 		background.height = (Card.cardHeight) * 12
 		this.app.stage.addChild(background);
 
-	        let titleText = this.addTitle();
-	        this.disciplinePicker = new DisciplinePicker(this, titleText.position.y + titleText.height + Constants.padding * 4, disciplineID => {this.switchClassFunction(disciplineID)} )
-	        let b = this.addSaveButton();
-	        this.addDeckTitleInput(b.position.x, b.position.y + b.height + Constants.padding, b.width);
-		    this.disciplinePicker.select(this.discipline)
-	        if (this.decks[this.discipline].id != null) {
-	        	this.disciplinePicker.disable();
-	        }
-	        // todo: totally remove this maybe
-	        this.disciplinePicker.disciplineDescriptionText.parent.removeChild(this.disciplinePicker.disciplineDescriptionText);
-	        this.disciplinePicker.magic.parent.removeChild(this.disciplinePicker.magic);
-	        this.disciplinePicker.tech.parent.removeChild(this.disciplinePicker.tech);
+        this.addTitle();
+        let createCardsText = this.addCreateCardsText();
+        this.disciplinePicker = new DisciplinePicker(this, createCardsText.position.y + createCardsText.height + Constants.padding * 4, disciplineID => {this.switchClassFunction(disciplineID)} )
+        let b = this.addSaveButton();
+        this.addDeckTitleInput(b.position.x, b.position.y + b.height + Constants.padding, b.width);
+	    this.disciplinePicker.select(this.discipline)
+        if (this.decks[this.discipline].id != null) {
+        	this.disciplinePicker.disable();
+        }
+        // todo: totally remove this maybe
+        this.disciplinePicker.disciplineDescriptionText.parent.removeChild(this.disciplinePicker.disciplineDescriptionText);
+        this.disciplinePicker.magic.parent.removeChild(this.disciplinePicker.magic);
+        this.disciplinePicker.tech.parent.removeChild(this.disciplinePicker.tech);
 	}
 
 	addTitle() {
@@ -61,12 +62,42 @@ export class DeckBuilder {
 		if (this.decks[this.discipline].username && this.decks[this.discipline].username != this.username) {
 			title = "View Deck: " + this.decks[this.discipline].title			
 		}
-        	let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
-        	titleText.position.x = Constants.padding;
-        	titleText.position.y = Constants.padding * 1.5;
-        	this.app.stage.addChild(titleText);		
-        	this.titleText = titleText;
-        	return titleText;
+    	let titleText = new PIXI.Text(title, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.titleFontSize, fill : Constants.blackColor});
+    	titleText.position.x = Constants.padding;
+    	titleText.position.y = Constants.padding * 1.5;
+    	this.app.stage.addChild(titleText);		
+    	this.titleText = titleText;
+    	return titleText;
+	}
+
+	addCreateCardsText() {
+		let createCardsString = "Missing a card you want? ";
+    	let createCardsText = new PIXI.Text(createCardsString, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.blackColor});
+    	createCardsText.position.x = Constants.padding;
+    	createCardsText.position.y = this.titleText.position.y + this.titleText.height + Constants.padding * 1.5;
+ 	  	this.app.stage.addChild(createCardsText);		
+ 
+		let buttonString = "Create your own cards.";
+    	let buttonText = new PIXI.Text(buttonString, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.blueColor});
+    	buttonText.position.x = createCardsText.position.x + createCardsText.width;
+    	buttonText.position.y = createCardsText.position.y;
+    	buttonText.interactive = true;
+    	buttonText.buttonMode = true;
+ 	  	this.app.stage.addChild(buttonText);		
+
+        buttonText
+            .on("click", () => { window.location.href = "/create_card/" })
+            .on("tap", () => { window.location.href = "/create_card/" })
+
+		const underline = new PIXI.Sprite(PIXI.Texture.WHITE);
+		underline.tint = Constants.blueColor;
+    	underline.position.y = buttonText.height;
+    	underline.width = buttonText.width;
+    	underline.height = 1;
+    	buttonText.addChild(underline);
+
+    	this.createCardsText = createCardsText;
+    	return createCardsText;
 	}
 
 	addSaveButton() {
@@ -157,8 +188,8 @@ export class DeckBuilder {
 			let containerY = this.disciplinePicker.position.y+80;
 			let containerX = this.disciplinePicker.position.x-45
 			// todo: totally remove disciplinePicker maybe
-			containerX = this.titleText.position.x;
-			containerY = this.titleText.position.y + this.titleText.height + Constants.padding * 2;
+			containerX = this.createCardsText.position.x;
+			containerY = this.createCardsText.position.y + this.createCardsText.height + Constants.padding * 2;
 			this.cardsContainer = new CardsContainer(this, [], this.allCards, 5, containerX, containerY);
 		}
 		this.cardsContainer.deck = {"cards":disciplineCards};
