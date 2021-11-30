@@ -739,6 +739,7 @@ class Game:
         attacking_card = self.current_player().in_play_card(card_id)
         self.stack.append([copy.deepcopy(message), attacking_card.as_dict()])
         self.current_player().reset_card_info_to_target()
+        self.actor_turn += 1
 
         self.reset_clickables(message["move_type"])
 
@@ -751,7 +752,6 @@ class Game:
                 card.resolve_effect(card.action_added_to_stack_effect_defs[idx], self.current_player(), effect, {}) 
 
         if not self.current_player().has_instants():
-            self.actor_turn += 1
             message = self.attack(message)
             self.reset_clickables(message["move_type"], cancel_damage=False)
             return message
@@ -761,10 +761,9 @@ class Game:
             defending_card = self.current_player().in_play_card(defending_card_id)
             message["log_lines"].append(f"{attacking_card.name} intends to attack {defending_card.name}")
         else:
-            message["log_lines"].append(f"{attacking_card.name} intends to attack {self.opponent().username} for {attacking_card.strength_with_tokens(self.opponent())}.")
-        self.actor_turn += 1
-
+            message["log_lines"].append(f"{attacking_card.name} intends to attack {self.current_player().username} for {attacking_card.strength_with_tokens(self.opponent())}.")
         # todo rope
+
         return message
 
     def attack(self, message):
