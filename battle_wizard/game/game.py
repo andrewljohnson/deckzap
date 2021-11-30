@@ -132,7 +132,8 @@ class Game:
             message = self.initiate_attack(message)            
         elif move_type == 'RESOLVE_NEXT_STACK':
             if self.stack[-1][0]["move_type"] == "ATTACK":
-                message = self.attack(message)          
+                message = self.attack(message) 
+
             else:  
                 self.actor_turn += 1
                 message = self.current_player().play_card(self.stack[-1][0]["card"], message)
@@ -764,6 +765,7 @@ class Game:
             message["log_lines"].append(f"{attacking_card.name} intends to attack {self.current_player().username} for {attacking_card.strength_with_tokens(self.opponent())}.")
         # todo rope
 
+        message["move_type"] = "INITIATE_ATTACK"
         return message
 
     def attack(self, message):
