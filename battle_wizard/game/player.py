@@ -94,6 +94,8 @@ class Player:
         return 4
 
     def has_instants(self):
+        # todo: delete instants code or re-add it back
+        return False
         for c in self.hand + self.in_play:
             if c.can_be_clicked:
                 return True

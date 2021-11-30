@@ -1304,6 +1304,8 @@ class GameObjectTests(TransactionTestCase):
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
         self.assertEqual(game.opponent().hit_points, 30)
 
+    # skipping this test because instants are disabled, may reinstate later
+    @skip
     def test_quickster_conjure_vs_attack(self):
         """
             Test Quickster can use Conjure effect to be cast as an instant
@@ -1436,6 +1438,8 @@ class GameObjectTests(TransactionTestCase):
         game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
         self.assertEqual(game.players[1].selected_spell(), None)
 
+    # skipping this test because instants are disabled, may reinstate later
+    @skip
     def test_redirect_mob_spell_effect(self):
         game = self.game_for_decks([["Stone Elemental", "Send Minion"], ["Mayor's Brandy"]])
         game.players[0].mana += game.players[0].hand[1].cost
