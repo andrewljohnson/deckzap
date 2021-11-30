@@ -37,7 +37,9 @@ export class CardBuilderEffects extends CardBuilderBase {
         let effects = this.effectsAndTypes.effects.filter(effect => {
                 return effect.legal_card_type_ids.includes(this.cardInfo().card_type);
             })
+
         let unusedOrDuplicableEffects = [];
+
         for (let effect of effects) {
             let used = false;
             for (let usedEffect of this.effects) {
@@ -150,12 +152,26 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     addTargetTypePicker (yPosition) {
+        const targettedEffectTypes = ["any", "mob", "enemy_mob", "friendly_mob", "player"];
+        let alreadyHasTargettedEffect = false;
+        for (let effect of this.effects) {
+            if (targettedEffectTypes.includes(effect.target_type)) {
+                alreadyHasTargettedEffect = true;
+            }
+        }
+        let legalTargeTypes = [];
+        for(let targetType of this.effect.legal_target_types) {
+            if (alreadyHasTargettedEffect && targettedEffectTypes.includes(targetType.id)) {
+                continue;
+            }
+            legalTargeTypes.push(targetType)
+        }
         this.removeTargetControl();
         const targetTypePicker = new ButtonPicker(
             Constants.padding, 
             yPosition, 
             "Target", 
-            this.effect.legal_target_types,
+            legalTargeTypes,
             target_id => { this.selectTarget(target_id) }).container;
         this.app.stage.addChild(targetTypePicker);
         this.targetTypePicker = targetTypePicker;
@@ -171,7 +187,6 @@ export class CardBuilderEffects extends CardBuilderBase {
         if (this.targetDescription) {
             this.targetDescription.parent.removeChild(this.targetDescription);
         }
-        console.log(this.target)
         let description = this.target.name;
         this.targetDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
         this.targetDescription.position.x = Constants.padding;
