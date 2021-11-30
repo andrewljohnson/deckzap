@@ -152,6 +152,7 @@ export class CardBuilderEffects extends CardBuilderBase {
     }
 
     addTargetTypePicker (yPosition) {
+        // todo: have the server enforce this instead of the client would be nice
         const targettedEffectTypes = ["any", "mob", "enemy_mob", "friendly_mob", "player"];
         let alreadyHasTargettedEffect = false;
         for (let effect of this.effects) {
