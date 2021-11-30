@@ -135,6 +135,5 @@ database/
 .DS_Store
 staticfiles/
 
-static/images/card-art-custom
 create_cards/management/commands/unprocessed-images
 static/dist/*
