@@ -25,11 +25,11 @@
 					<li><a href=/login>Log In</a></li>
 				{% endif %}
 				{% if user.is_authenticated %}
-					<li><a href=/u/{{user.username}}>My Decks</a></li>
+					<li><a class="footer-highlightable" href=/u/{{user.username}}>My Decks</a></li>
 				{% endif %}
-					<li><a href=/create_card>Create Cards</a></li>
-					<li><a href=/top_players>Top Players</a></li>
-					<li><a href=/top_decks>Top Decks</a></li>
+					<li><a class="footer-highlightable" href=/create_card/>Create Cards</a></li>
+					<li><a class="footer-highlightable" href=/top_players>Top Players</a></li>
+					<li><a class="footer-highlightable" href=/top_decks>Top Decks</a></li>
 				{% if user.is_authenticated %}
 					<li><a class="gray-link" href=/logout>Logout</a></li>
 				{% endif %}
@@ -45,5 +45,16 @@
 		{% endif %}
 	{% endif %}
 	{% block javascript %}{% endblock javascript %}
+	<script>
+		let current = 0;
+		for (var i = 0; i < document.links.length; i++) {
+		    if (document.links[i].href === document.URL && document.links[i].className == 
+		    	"footer-highlightable") {
+		        current = i;
+		    }
+		}
+		document.links[current].className = 'current';		
+	</script>
+
 </body>
 </html>

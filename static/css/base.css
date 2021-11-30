@@ -58,6 +58,11 @@ a.white-link {
 	text-decoration:none;
 }
 
+a.current {
+	text-decoration: none;
+	color: white !important;
+}
+
 span.subtitle {
 	color:#CCC;
 	font-size:12px;
