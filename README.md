@@ -42,6 +42,18 @@ The app is deployed automatically to prod from the master branch once tests pass
 GitHub Repository Secrets. The production Docker containers run on a DigitalOcean droplet. The Docker images are
 pulled from GitHub packages with the same access token that is used in CI.
 
+## SSH in production
+
+Once you've SSH'd in to the DigitalOcean droplet, run `docker ps` to get the name of the container:
+
+`docker ps`
+
+You'll get something like `app_web_1` for the WSGI container, `app_asgi_1` for the ASGI container and `app_nginx_1` for the Nginx container.
+
+Then SSH in to the container:
+
+`docker exec -it app_web_1 /bin/bash`
+
 # Graphics
 
 Graphics from: https://game-icons.net/
