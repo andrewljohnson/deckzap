@@ -463,7 +463,11 @@ export class GameUX {
                 shockwave.time += this.app.ticker.elapsedMS / oneThousandMS;
             }
             this.app.ticker.add(incrementShockwaveTime)
-            sprite.filters = [shockwave];
+            if (sprite.filters) {
+                sprite.filters.push(shockwave);
+            } else{
+                sprite.filters = [shockwave];
+            }
             setTimeout(() => { 
                 this.app.ticker.remove(incrementShockwaveTime);
                 if (refresh) {
