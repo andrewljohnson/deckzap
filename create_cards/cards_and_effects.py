@@ -246,14 +246,20 @@ class Effects:
       """
          Returns the power_points for an effect that returns mobs to their owner's hand.
       """
+      points = 0
       if target_type.id == "opponent":
-         return amount * 3
+         points = amount * 4
       elif target_type.id == "self":
-         return -amount * 3
+         points = -amount * 4
       elif target_type.id == "player":
-         return amount * 3 + 1
+         points = amount * 4 + 1
       else:
          print(f"unsupported target_type {target_type.id} for discard effect")
+
+      if amount > 2:
+         points *= 2
+
+      return points
 
    @staticmethod
    def drain():

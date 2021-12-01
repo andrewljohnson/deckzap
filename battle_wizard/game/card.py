@@ -87,7 +87,12 @@ class Card:
             power_points += self.strength
         if self.hit_points:
             power_points += self.hit_points
-        return max(0, power_points)
+        if self.cost == 0:
+            power_points *= 2 
+        if self.cost == 1:
+            power_points *= 1.5 
+
+        return max(0, math.ceil(power_points))
 
     def create_effect_def(self, effect):
         if effect.effect_type == "action_added_to_stack":
