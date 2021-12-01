@@ -46,14 +46,16 @@
 	{% endif %}
 	{% block javascript %}{% endblock javascript %}
 	<script>
-		let current = 0;
+		let current = -1;
 		for (var i = 0; i < document.links.length; i++) {
 		    if (document.links[i].href === document.URL && document.links[i].className == 
 		    	"footer-highlightable") {
 		        current = i;
 		    }
 		}
-		document.links[current].className = 'current';		
+		if (current > -1) {
+			document.links[current].className = 'current';		
+		}
 	</script>
 
 </body>

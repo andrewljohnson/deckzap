@@ -8,7 +8,7 @@ import { CardPile } from '../components/CardPile.js';
 import { GameNavigator } from '../components/GameNavigator.js';
 import { SVGRasterizer } from '../components/SVGRasterizer.js';
 
-const appWidth = 1585;
+const appWidth = 1510;
 const appHeight = 855;
 const avatarHeight = 128;
 const avatarWidth = 300;
@@ -240,17 +240,20 @@ export class GameUX {
             this.review_move_index = message["index"];
             this.is_reviewing = message["index"] != -1
         }
+
+        let currentGame = this.actionQueue[0].game
+        const currentMessage = this.actionQueue[0].message
+
         if (this.is_reviewing) {
             this.parentGame = game;
-            this.game = message["review_game"];
+            currentGame = message["review_game"];
             this.messageNumber = null;
             this.lastTextSprite = null;
             this.gameLogScrollbox.parent.removeChild(this.gameLogScrollbox)
             this.scrollboxBackground.parent.removeChild(this.scrollboxBackground)
             this.gameLogScrollbox = this.scrollbox()
         }
-        const currentGame = this.actionQueue[0].game
-        const currentMessage = this.actionQueue[0].message
+
         if (this.opponent(currentGame)) {
             let loadingImages = this.loadInPlayImages(currentGame);
             loadingImages = this.loadHandAndSelectionImages(currentGame) || loadingImages;
@@ -490,8 +493,8 @@ export class GameUX {
             this.updateOpponentInPlay(game);
             this.updateCardPiles(game);
             this.renderEndTurnButton(game, message);
-            this.addMenuButton(game);
             this.updateGameNavigator(game);
+            this.addMenuButton(game);
             this.maybeShowSpellStack(game);
             this.maybeShowGameOver(game);
             this.maybeShowAttackIntent(game);
@@ -557,7 +560,7 @@ export class GameUX {
             this.gameNavigator = null;
         }
         if (this.isPlayersTurn(game) || this.parentGame) {
-            this.gameNavigator = new GameNavigator(game, this, this.gameLogScrollbox.position.x + scrollBoxWidth + 50, this.gameLogScrollbox.position.y,
+            this.gameNavigator = new GameNavigator(game, this, this.gameLogScrollbox.position.x + scrollBoxWidth + 48, this.gameLogScrollbox.position.y,
                 () => {
                     let index = null;
                     // the 2 is so players can't navigate before the initial join moves
@@ -947,8 +950,13 @@ export class GameUX {
             menuButton.position.x = appWidth - menuButton.width - Constants.padding;
             menuButton.position.y = this.endTurnButton.position.y;
             if (!this.useArtifacts) {
-                menuButton.position.x = this.turnLabel.position.x - menuButton.width / 2;
-                menuButton.position.y = this.turnLabel.position.y + 25;
+                if (this.gameNavigator) {
+                    menuButton.position.x = this.gameNavigator.position.x + this.gameNavigator.width + Constants.padding;
+                    menuButton.position.y = this.gameNavigator.position.y;
+                } else {
+                    menuButton.position.x = this.gameLogScrollbox.position.x + scrollBoxWidth + Constants.padding * 2;
+                    menuButton.position.y = this.gameLogScrollbox.position.y + menuButton.height;
+                }
             }
             this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
@@ -1631,7 +1639,7 @@ export class GameUX {
         b.position.y = this.artifactsOpponent.position.y + this.artifactsOpponent.height + b.height / 4;
 
         if (!this.useArtifacts) {
-            b.position.x += Constants.padding * 4;
+            b.position.x += Constants.padding;
         }
 
 

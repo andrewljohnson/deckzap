@@ -66,6 +66,7 @@ export class GameNavigator {
         this.backButton = backButton;
         this.forwardButton = forwardButton;
         this.resumeButton = resumeButton;
+        this.width = this.resumeButton.position.x + this.resumeButton.width - this.backButton.position.x;
 
 	}
 
