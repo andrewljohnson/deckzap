@@ -39,7 +39,7 @@ const menuString = "Menu";
 export class GameUX {
 
     constructor(debug) {
-        this.debug = debug;
+        this.debug = parseInt(debug);
         // arrows that get temporarily drawn when attacking ans casting spells
         this.arrows = []
         // damage amounts used for animating damage effects on sprites
@@ -144,9 +144,6 @@ export class GameUX {
           new OutlineFilter(1, Constants.blackColor),
         ]
         this.app.stage.addChild(scrollbox);
-        if (!this.debug) {
-            scrollbox.alpha = 0;
-        }
         return scrollbox;
     }
 
@@ -954,13 +951,8 @@ export class GameUX {
             menuButton.position.x = appWidth - menuButton.width - Constants.padding;
             menuButton.position.y = this.endTurnButton.position.y;
             if (!this.useArtifacts) {
-                if (this.gameNavigator) {
-                    menuButton.position.x = this.gameNavigator.position.x + this.gameNavigator.width + Constants.padding;
-                    menuButton.position.y = this.gameNavigator.position.y;
-                } else {
-                    menuButton.position.x = this.gameLogScrollbox.position.x + scrollBoxWidth + Constants.padding * 2;
-                    menuButton.position.y = this.gameLogScrollbox.position.y + menuButton.height;
-                }
+                menuButton.position.x = this.inPlayOpponent.position.x + this.inPlayOpponent.width + Constants.padding * 2;
+                menuButton.position.y = this.inPlay.position.y + this.inPlay.height - menuButton.height;
             }
             this.app.stage.addChild(menuButton);
             this.menuButtonAdded = true;
