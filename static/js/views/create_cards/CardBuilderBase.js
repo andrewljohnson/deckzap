@@ -13,7 +13,7 @@ export class CardBuilderBase {
     setUpPIXIApp() {
         const widthInCards = 9;
         const appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
-        const appHeight = (Card.cardHeight) * 15;
+        const appHeight = (Card.cardHeight) * 5;
         Constants.setUpPIXIApp(this, appHeight, appWidth)
     }
 
