@@ -133,7 +133,7 @@ export class DeckBuilder {
 	}
 
 	toggleSaveButton() {
-		const enabled = this.deckIsFull() && this.salaryCap <= 50;
+		const enabled = this.deckIsFull() && this.salaryCap <= 100;
 		this.saveButton.background.interactive = enabled;
 		this.saveButton.background.buttonMode = enabled;
 		this.saveButton.background.tint = enabled ? Constants.blueColor : Constants.darkGrayColor;
@@ -231,10 +231,9 @@ export class DeckBuilder {
 					addedCard = card;
 				}
 			}
-			console.log(dcName)
 			salaryCapText += this.decks[this.discipline]["cards"][dcName] * addedCard.power_points;
 		}
-		this.salaryCap = salaryCapText;
+		this.salaryCap = parseInt(salaryCapText);
 		let labelColor = Constants.blueColor;
 		if (salaryCapText > 100) {
 			labelColor = Constants.redColor;
