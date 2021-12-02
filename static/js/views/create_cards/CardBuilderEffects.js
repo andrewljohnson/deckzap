@@ -156,12 +156,15 @@ export class CardBuilderEffects extends CardBuilderBase {
         const targettedEffectTypes = ["any", "mob", "enemy_mob", "friendly_mob", "player"];
         let alreadyHasTargettedEffect = false;
         for (let effect of this.effects) {
+            if (effect == this.effect) {
+                continue;
+            }
             if (targettedEffectTypes.includes(effect.target_type)) {
                 alreadyHasTargettedEffect = true;
             }
         }
         let legalTargeTypes = [];
-        for(let targetType of this.effect.legal_target_types) {
+        for (let targetType of this.effect.legal_target_types) {
             if (alreadyHasTargettedEffect && targettedEffectTypes.includes(targetType.id)) {
                 continue;
             }
@@ -305,13 +308,18 @@ export class CardBuilderEffects extends CardBuilderBase {
     updateCard() {
         super.updateCard();
         const choseMobAbility = this.effect && !this.effect.legal_target_types;
-        const completedNonMobAbilityEffect = this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0;
+        let completedNonMobAbilityEffect = this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0;
+        if (this.effect && !("amount" in this.effect)) {
+            completedNonMobAbilityEffect = this.targetSelected;
+        }
         const formComplete = choseMobAbility || completedNonMobAbilityEffect
         this.toggleNextButton(formComplete);
         if (formComplete) {
             let yPosition = Constants.padding * 4;
             if (this.amountInput) {
                 yPosition += this.amountInput.position.y + this.amountLabel.height;
+            } else if (this.targetTypePicker) {
+                yPosition += this.targetTypePicker.position.y + this.targetTypePicker.height;
             } else {
                 yPosition += this.effectPicker.position.y + this.effectPicker.height;
 
