@@ -180,8 +180,6 @@ def play_ai_game(request, player_type, deck_id, ai):
         Redirect to start a game with an AI player.
     """
     opponent_deck_id = request.GET.get("opponent_deck_id", None)
-    # if deck_id:
-
     game_record = GameRecord.objects.create(date_created=datetime.datetime.now())
     game_record.save()
     game_record_id = game_record.id

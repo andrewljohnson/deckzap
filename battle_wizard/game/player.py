@@ -743,7 +743,7 @@ class Player:
         elif id_or_url == "vanilla":
             deck_to_use = default_deck()
         else:
-            deck_to_use = default_deck()
+            deck_to_use = deck_to_use if deck_to_use else default_deck()
             # deck_to_use = deck_to_use if deck_to_use else random.choice([default_deck_genie_wizard(), default_deck_dwarf_tinkerer(), default_deck_dwarf_bard(), default_deck_vampire_lich()])
 
         return deck_to_use
