@@ -5,8 +5,8 @@ import { OutlineFilter } from 'pixi-filters';
 
 export class Card {
 
-	static cardHeight = 190;
-	static cardWidth = 150;
+    static cardHeight = 190;
+    static cardWidth = 150;
     static cardTexture = PIXI.Texture.from("/static/images/card.png");
     static cardBackTexture = PIXI.Texture.from("/static/images/card-back.png");
     static cardLargeTexture = PIXI.Texture.from("/static/images/card-large.png");
@@ -35,7 +35,7 @@ export class Card {
         return cardSprite
     }
 
-	static sprite(card, pixiUX, game, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
+    static sprite(card, pixiUX, game, player, dont_attach_listeners=false, useLargeSize=false, overrideClickable=false) {
         let cw = Card.cardWidth;
         let ch = Card.cardHeight;
         let spellY = Card.cardHeight/2 + Constants.padding;
@@ -116,15 +116,15 @@ export class Card {
         let activatedEffects = [];
         let attackEffect = null;
         if ("effects" in card) {
-	        for (let e of card.effects) {
-	            if (e.effect_type == "activated" && e.enabled) {
-	                activatedEffects.push(e)
-	                if (e.id == "create_random_townie") {
-	                    attackEffect = e;
-	                }
-	            }
-	        }
-	    }
+            for (let e of card.effects) {
+                if (e.effect_type == "activated" && e.enabled) {
+                    activatedEffects.push(e)
+                    if (e.id == "create_random_townie") {
+                        attackEffect = e;
+                    }
+                }
+            }
+        }
 
         let costX = Constants.padding * 3 - Card.cardWidth/2;
         let costY = Constants.padding * 3 - Card.cardHeight/2;
@@ -161,7 +161,7 @@ export class Card {
         let color = Constants.darkGrayColor;
         if ("effects" in card) {
             let describe_effects = []
-	        for (let e of card.effects) {
+            for (let e of card.effects) {
                 if (e.description && (e.description_on_card)) {
                     describe_effects.push(e);
                 }
@@ -176,18 +176,18 @@ export class Card {
                         effectsText += ", ";
                     }
                 }               
-	        }
+            }
 
-	        if ("tokens" in card) {
-		        for (let c of card.tokens) {
-		           if (c.set_can_act == false) {
-		            if (effectsText.length) {
-		                effectsText += ", ";
-		            }
-		            effectsText += "Can't Attack";
-		           }
-		        }        	
-		    }
+            if ("tokens" in card) {
+                for (let c of card.tokens) {
+                   if (c.set_can_act == false) {
+                    if (effectsText.length) {
+                        effectsText += ", ";
+                    }
+                    effectsText += "Can't Attack";
+                   }
+                }            
+            }
         }
 
         /// todo: move serverside
@@ -322,7 +322,7 @@ export class Card {
  
         let currentPlayer = null;
         if (pixiUX.thisPlayer) {
-			currentPlayer = pixiUX.thisPlayer(game);        	
+            currentPlayer = pixiUX.thisPlayer(game);            
         }
  
         Card.setCardFilters(card, cardSprite, currentPlayer, overrideClickable, useLargeSize);
@@ -332,11 +332,11 @@ export class Card {
         }
 
         if (pixiUX.setCardDragListeners) {
-	        pixiUX.setCardDragListeners(card, cardSprite, game);
+            pixiUX.setCardDragListeners(card, cardSprite, game);
         }
         if (!useLargeSize) {
             Card.setCardMouseoverListeners(cardSprite, game, pixiUX);
-        }        	
+        }            
 
         Card.setCardAnchors(cardSprite);
 
@@ -540,9 +540,9 @@ export class Card {
 
     static addStats(card, cardSprite, player, aFX, aFY, cw, ch, useLargeSize) {
         let damage = 0;
-    	if (card.damage) {
-    		damage = card.damage;
-    	}
+        if (card.damage) {
+            damage = card.damage;
+        }
         let cardStrength = card.strength;
         let cardHitPoints = card.hit_points - damage;
         if (card.tokens && !useLargeSize) {
@@ -614,10 +614,10 @@ export class Card {
         cardSprite.addChild(defense);        
 
         if (card.id && card.id > -1 && window.location.hostname.startsWith("127.")) {
-	        let cardId = new PIXI.Text("id: " + card.id, ptOptions);
-	        cardId.position.x = defenseX - Card.cardWidth/4 - 5;
-	        cardId.position.y = strengthY;
-	        cardSprite.addChild(cardId);                	
+            let cardId = new PIXI.Text("id: " + card.id, ptOptions);
+            cardId.position.x = defenseX - Card.cardWidth/4 - 5;
+            cardId.position.y = strengthY;
+            cardSprite.addChild(cardId);                    
         }
 
     }
@@ -750,9 +750,9 @@ export class Card {
     }
 
     static showInfoPanels(cardSprite, card, cw, ch) {
-    	if (!card.effects) {
-    		return;
-    	}
+        if (!card.effects) {
+            return;
+        }
         let options = Constants.textOptions();
         options.fontSize = 18;
         options.wordWrapWidth = cw - 8;
@@ -764,11 +764,11 @@ export class Card {
         cardSprite.addChild(textContainer);
         let yPosition = 0;
         let infoText = new PIXI.Text("", options);
-    	if (card.effects) {
-	        for (let e of card.effects) {
+        if (card.effects) {
+            for (let e of card.effects) {
                 if (e.description_expanded != undefined) {
                     infoText.text += `${e.description} - ${e.description_expanded}\n\n`;
-                }                   	        
+                }                               
                 if (e.effects) {
                     for (let ee of e.effects) {
                         if (ee.description_expanded != undefined) {
@@ -777,7 +777,7 @@ export class Card {
                     }
                 }                
             }
-	    }
+        }
 
         if (infoText.text) {
             infoText.position.x -= cw/2 - 4;
@@ -899,19 +899,19 @@ export class Card {
                     pixiUX.app.loader.load(() => {
                         Card.addHoverCard(cardSprite, game, pixiUX);
                     });                     
-            	} else {
+                } else {
                     Card.addHoverCard(cardSprite, game, pixiUX);
-            	}
+                }
             }
         }, 300);
 
     }
 
     static addHoverCard(cardSprite, game, pixiUX) {
-    	let player = null;
-    	if (pixiUX.thisPlayer) {
-    		player = pixiUX.thisPlayer(game);
-    	}
+        let player = null;
+        if (pixiUX.thisPlayer) {
+            player = pixiUX.thisPlayer(game);
+        }
         let sprite = Card.sprite(cardSprite.card, pixiUX, game, player, false, true);
         sprite.position.x = cardSprite.position.x + Card.cardWidth/2;
         sprite.position.y = cardSprite.position.y - Card.cardHeight*1.5;

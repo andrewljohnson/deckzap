@@ -4,13 +4,13 @@ import * as Constants from '../constants.js';
 
 export class SVGRasterizer {
 
-	constructor(app) {		
+    constructor(app) {        
         // keys for images that have been rendered to the cache already
         this.loadedImageKeys = new Set()
         this.app = app
-	}
+    }
 
-	loadCardImages(cards) {
+    loadCardImages(cards) {
         let loadingImages = false;
         for (let card of cards) {
             const loaderURL = this.fullImagePath(card);

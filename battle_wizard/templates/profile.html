@@ -17,15 +17,15 @@
   <h2 style="margin-bottom:0">Decks</h2>
   <ul style="padding:0;margin-top:0">
   {% for deck in decks %}
-	    <li>{% if user.is_authenticated and user.username in request.path %}<a class="button button-small" href=/build_deck?deck_id={{deck.id}}>Edit</a>{% endif %} {% firstof deck.title deck.id 'My Deck' %} ({{ deck.global_deck.deck_json.discipline }})</li>
+        <li>{% if user.is_authenticated and user.username in request.path %}<a class="button button-small" href=/build_deck?deck_id={{deck.id}}>Edit</a>{% endif %} {% firstof deck.title deck.id 'My Deck' %} ({{ deck.global_deck.deck_json.discipline }})</li>
   {% endfor %}
 </div>
 
 <style>
-	li {
-		list-style: none;
-		list-style-image: none;
-	}
+    li {
+        list-style: none;
+        list-style-image: none;
+    }
 </style>
 
 {% endblock content %}

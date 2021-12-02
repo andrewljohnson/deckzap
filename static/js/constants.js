@@ -40,11 +40,11 @@ export const padding = 5;
 
 export function textOptions() {
     return {
-    	fontFamily : defaultFontFamily, 
-    	fontSize: defaultFontSize, 
-    	fill : blackColor, 
-    	wordWrap: true, 
-    	wordWrapWidth: 75
+        fontFamily : defaultFontFamily, 
+        fontSize: defaultFontSize, 
+        fill : blackColor, 
+        wordWrap: true, 
+        wordWrapWidth: 75
     };
 }
 

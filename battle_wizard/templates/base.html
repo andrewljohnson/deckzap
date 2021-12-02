@@ -5,58 +5,58 @@
     <meta charset="UTF-8">
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
     <title>DeckZap - Uncollectible Card Games</title>
-	<link rel="stylesheet" href="/static/css/base.css">
-	{% block css %}{% endblock %}
+    <link rel="stylesheet" href="/static/css/base.css">
+    {% block css %}{% endblock %}
 </head>
 <body>
-	{% if not "/play/" in request.path  %}
-		<h1 class="blue-header blue-header-tall"><a class="white-link" href=/{% if user.is_authenticated %}u/{{user.username}}{% endif %}>DeckZap</a><br/><span class=subtitle>Uncollectible Card Games</span></h1>
-	{% endif %}
-	{% block content %}{% endblock content %}
-	<div id=footer>
-		<div class="footer-content">
-			{% if request.path != '/signup' and request.path != '/login' and not '/play/' in request.path %}
-			<ul class="right-menu">
-					<li><a href=https://github.com/andrewljohnson/deckzap target=_new>GitHub</a>
-					<li><a href=https://deckzap.substack.com/ target=_new>Substack</a></li>					
-			</ul>
-			<ul>
-				{% if not user.is_authenticated %}
-					<li><a href=/login>Log In</a></li>
-				{% endif %}
-				{% if user.is_authenticated %}
-					<li><a class="footer-highlightable" href=/u/{{user.username}}>My Decks</a></li>
-				{% endif %}
-					<li><a class="footer-highlightable" href=/create_card/>Create Cards</a></li>
-					<li><a class="footer-highlightable" href=/top_players>Top Players</a></li>
-					<li><a class="footer-highlightable" href=/top_decks>Top Decks</a></li>
-				{% if user.is_authenticated %}
-					<li><a class="gray-link" href=/logout>Logout</a></li>
-				{% endif %}
-			</ul>
-			{% endif %}
-		</div>
-	</div>
-	{% if request.path != "/" %}
-		{% if request.META.HTTP_HOST == "127.0.0.1:8000" %}
-		    <script src="http://localhost:1234/main.js"></script>
-		{% else %}
-		    <script src="{% static 'dist/main.js' %}"></script>
-		{% endif %}
-	{% endif %}
-	{% block javascript %}{% endblock javascript %}
-	<script>
-		let current = -1;
-		for (var i = 0; i < document.links.length; i++) {
-		    if (document.links[i].href === document.URL && document.links[i].className == 
-		    	"footer-highlightable") {
-		        current = i;
-		    }
-		}
-		if (current > -1) {
-			document.links[current].className = 'current';		
-		}
-	</script>
+    {% if not "/play/" in request.path  %}
+        <h1 class="blue-header blue-header-tall"><a class="white-link" href=/{% if user.is_authenticated %}u/{{user.username}}{% endif %}>DeckZap</a><br/><span class=subtitle>Uncollectible Card Games</span></h1>
+    {% endif %}
+    {% block content %}{% endblock content %}
+    <div id=footer>
+        <div class="footer-content">
+            {% if request.path != '/signup' and request.path != '/login' and not '/play/' in request.path %}
+            <ul class="right-menu">
+                    <li><a href=https://github.com/andrewljohnson/deckzap target=_new>GitHub</a>
+                    <li><a href=https://deckzap.substack.com/ target=_new>Substack</a></li>                    
+            </ul>
+            <ul>
+                {% if not user.is_authenticated %}
+                    <li><a href=/login>Log In</a></li>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    <li><a class="footer-highlightable" href=/u/{{user.username}}>My Decks</a></li>
+                {% endif %}
+                    <li><a class="footer-highlightable" href=/create_card/>Create Cards</a></li>
+                    <li><a class="footer-highlightable" href=/top_players>Top Players</a></li>
+                    <li><a class="footer-highlightable" href=/top_decks>Top Decks</a></li>
+                {% if user.is_authenticated %}
+                    <li><a class="gray-link" href=/logout>Logout</a></li>
+                {% endif %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+    {% if request.path != "/" %}
+        {% if request.META.HTTP_HOST == "127.0.0.1:8000" %}
+            <script src="http://localhost:1234/main.js"></script>
+        {% else %}
+            <script src="{% static 'dist/main.js' %}"></script>
+        {% endif %}
+    {% endif %}
+    {% block javascript %}{% endblock javascript %}
+    <script>
+        let current = -1;
+        for (var i = 0; i < document.links.length; i++) {
+            if (document.links[i].href === document.URL && document.links[i].className == 
+                "footer-highlightable") {
+                current = i;
+            }
+        }
+        if (current > -1) {
+            document.links[current].className = 'current';        
+        }
+    </script>
 
 </body>
 </html>

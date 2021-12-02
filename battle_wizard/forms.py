@@ -10,6 +10,6 @@ class SignUpForm(UserCreationForm):
         fields = ('username', 'password1', 'email' )
 
     def __init__(self, *args, **kwargs):
-    	super(SignUpForm, self).__init__(*args, **kwargs)
-    	del self.fields['password2']
-    	self.fields['email'].label = 'Email - Optional. Add this if you want to be on the mailing list.'
+        super(SignUpForm, self).__init__(*args, **kwargs)
+        del self.fields['password2']
+        self.fields['email'].label = 'Email - Optional. Add this if you want to be on the mailing list.'

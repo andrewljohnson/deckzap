@@ -26,9 +26,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 if (window.location.pathname.startsWith("/play")) {
     const DEBUG = document.getElementById("data_store").getAttribute("debug");
-	const gameUX = new GameUX(DEBUG);
-	const gameRoom = new GameRoom(gameUX);
-	gameRoom.connect();
+    const gameUX = new GameUX(DEBUG);
+    const gameRoom = new GameRoom(gameUX);
+    gameRoom.connect();
 } else if (window.location.pathname.startsWith("/choose_deck_for_match")) {
     const decks = JSON.parse(document.getElementById("data_store").getAttribute("json_decks"));
     const allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"))
