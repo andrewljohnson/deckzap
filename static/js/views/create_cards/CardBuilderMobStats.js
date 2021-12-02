@@ -12,6 +12,7 @@ export class CardBuilderMobStats extends CardBuilderBase {
         this.cardID = cardID;
         this.strength = 0;
         this.hitPoints = 1;
+        this.powerPoints = 2;
         this.loadUX(containerID);
     }
 
@@ -97,11 +98,7 @@ export class CardBuilderMobStats extends CardBuilderBase {
                 this.hitPoints = parseInt(text);                
                 this.lastHitPoints = text;
             }
-            if (this.strength.length && this.hitPoints.length) {
-                this.getPowerPoints();
-            } else {
-                this.updateCard();
-            }
+            this.getPowerPoints();
         })
     }
 
