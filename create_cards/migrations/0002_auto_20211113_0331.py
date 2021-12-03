@@ -8,6 +8,9 @@ import zipfile
 
 
 def load_images_to_db(apps, schema_editor):
+    if os.environ.get("CI"):
+        return
+
     CustomCardImage = apps.get_model('create_cards', 'CustomCardImage')
 
     dirname = os.path.dirname(__file__)
@@ -16,7 +19,6 @@ def load_images_to_db(apps, schema_editor):
 
     with zipfile.ZipFile(file_to_unzip, 'r') as zip_ref:
         zip_ref.extractall(extract_to_dir)
-
 
     dir_to_store_images = os.path.join(dirname, "..", "..", "static", "images", "card-art-custom")
     if not os.path.isdir(dir_to_store_images):
