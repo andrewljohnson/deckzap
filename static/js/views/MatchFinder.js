@@ -35,10 +35,11 @@ export class MatchFinder {
     setupSocket(deckID) {
         this.gameSocket = new WebSocket(this.roomSocketUrl());
 
+        const self = this;
         this.gameSocket.onclose = e => {
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
             setTimeout(function () {
-                this.connect();
+                self.connect();
             }, 1000);
         };
 
