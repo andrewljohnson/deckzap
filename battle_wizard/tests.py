@@ -197,7 +197,7 @@ class GameObjectTests(TransactionTestCase):
         self.assertEqual(len(game.current_player().in_play), 1)
 
     def test_play_summoning_sickness(self):
-        game = self.game_for_decks([["Stone Elemental"], []])
+        game = self.game_for_decks([["Stone Elemental"], ["Cat", "Cat", "Cat", "Cat"]])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0})
@@ -207,7 +207,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Training Master's target's strength doubles and can still attack.
         """
-        game = self.game_for_decks([["Stone Elemental", "Training Master"], []])
+        game = self.game_for_decks([["Stone Elemental", "Training Master"], ["Cat", "Cat", "Cat", "Cat", "Cat", ]])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -243,7 +243,7 @@ class GameObjectTests(TransactionTestCase):
 
             2 effects card.
         """
-        game = self.game_for_decks([["Stone Elemental", "Stiff Wind"], []])
+        game = self.game_for_decks([["Stone Elemental", "Stiff Wind"], ["Cat", "Cat", "Cat", "Cat"]])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -260,7 +260,7 @@ class GameObjectTests(TransactionTestCase):
 
             2 Effects card.
         """
-        game = self.game_for_decks([["Siz Pop", "Siz Pop"], []])
+        game = self.game_for_decks([["Siz Pop", "Siz Pop", "Cat", "Cat", "Cat", "Cat", "Cat"], ["Cat", "Cat", "Cat", "Cat", "Cat"]])
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0})
@@ -291,14 +291,14 @@ class GameObjectTests(TransactionTestCase):
         """
             Test take_control effect lets caster attack with a mob that has the add_fast effect.
         """
-        game = self.game_for_decks([["OG Vamp"], ["Mind Manacles"]])
+        game = self.game_for_decks([["OG Vamp", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat"], ["Mind Manacles", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat"]])
         for x in range(0,5):
             game.play_move({"username": "a", "move_type": "END_TURN"})
             game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK"})
         game.play_move({"username": "a", "move_type": "END_TURN"})
-        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 1})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 9})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
         game.play_move({"username": "b", "move_type": "SELECT_OPPONENT"})
@@ -424,7 +424,7 @@ class GameObjectTests(TransactionTestCase):
 
     def test_bewitching_lights(self):
         """
-            Test Bewitching Lights makes a Artifact from deck into in play.
+            Test Bewitching Lights.
         """
         game = self.game_for_decks([["Bewitching Lights"], ["LionKin"]])
         game.play_move({"username": "a", "move_type": "END_TURN"})
@@ -436,7 +436,6 @@ class GameObjectTests(TransactionTestCase):
         game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT"})
-        self.assertEqual(game.opponent().hit_points, 28)
         self.assertEqual(len(game.opponent().hand), 0)
         self.assertEqual(len(game.opponent().played_pile), 1)
 
@@ -471,19 +470,19 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Taunted Bear Fast and Stomp effects.
         """
-        game = self.game_for_decks([["War Scorpion"], ["Taunted Bear"]])
+        game = self.game_for_decks([["War Scorpion", "Cat", "Cat", "Cat"], ["Taunted Bear"]])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "END_TURN"})
-        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
-        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 1})
+        game.play_move({"username": "b", "move_type": "PLAY_CARD_IN_HAND", "card": 4})
+        game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 4})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
-        self.assertEqual(game.opponent().hit_points, 29)
+        self.assertEqual(game.players[0].hit_points, 29)
 
     def test_war_scorpion_gain_symbiotic_fast_effect(self):
         """
             Test War Scorpion.
         """
-        game = self.game_for_decks([["War Scorpion", "Taunted Bear"], []])
+        game = self.game_for_decks([["War Scorpion", "Taunted Bear"], ["Cat", "Cat", "Cat", "Cat", ]])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -499,7 +498,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test War Scorpion stps being Fast if the only Fast guy dies
         """
-        game = self.game_for_decks([["War Scorpion", "Taunted Bear", "Zap"], []])
+        game = self.game_for_decks([["War Scorpion", "Taunted Bear", "Zap"], ["Cat", "Cat", "Cat", "Cat", ]])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -529,12 +528,12 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Frenzy one card.
         """
-        game = self.game_for_decks([["Frenzy", "Frenzy", "Frenzy", "Frenzy"], []])
+        game = self.game_for_decks([["Frenzy", "Frenzy", "Frenzy", "Frenzy", "Frenzy", "Frenzy"], []])
         game.players[0].mana = 2
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
-        self.assertEqual(len(game.current_player().hand), 3)
+        self.assertEqual(len(game.current_player().hand), 4)
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 1})
-        self.assertEqual(len(game.current_player().hand), 3)
+        self.assertEqual(len(game.current_player().hand), 4)
 
     def test_frenzy_two_cards(self):
         """
@@ -553,7 +552,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Impale.
         """
-        game = self.game_for_decks([["War Scorpion", "Impale"], []])
+        game = self.game_for_decks([["War Scorpion", "Impale"], ["Cat", "Cat", "Cat", "Cat"]])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -694,7 +693,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test you can attack past a mob with Guard+Lurker.
         """
-        game = self.game_for_decks([["Stone Elemental"], ["Air Elemental", "Hide"]])
+        game = self.game_for_decks([["Stone Elemental"], ["Air Elemental", "Hide", "Cat", "Cat", "Cat"]])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -742,7 +741,7 @@ class GameObjectTests(TransactionTestCase):
         """
 
         deck1 = ["Town Fighter"]
-        deck2 = ["Riftwalker Djinn"]
+        deck2 = ["Riftwalker Djinn", "Cat", "Cat", "Cat", "Cat", "Cat"]
         game = self.game_for_decks([deck1,deck2])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_MOB", "card": 0})
@@ -824,7 +823,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Enraged Stomper damages its controller.
         """
-        game = self.game_for_decks([["Enraged Stomper"], []])
+        game = self.game_for_decks([["Enraged Stomper", "Cat", "Cat", "Cat", "Cat"], []])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -869,8 +868,8 @@ class GameObjectTests(TransactionTestCase):
             Test Push Soul.
         """
 
-        deck1 = ["Stone Elemental", "Zap"]
-        deck2 = ["Push Soul"]
+        deck1 = ["Stone Elemental", "Zap", "Cat", "Cat", "Cat"]
+        deck2 = ["Push Soul", "Cat", "Cat", "Cat", "Cat", "Cat", ]
         game = self.game_for_decks([deck1,deck2])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "END_TURN"})
@@ -880,7 +879,7 @@ class GameObjectTests(TransactionTestCase):
         game.play_move({"username": "b", "move_type": "RESOLVE_NEXT_STACK", "card": 1})
         self.assertEqual(game.current_player().hit_points, 27)
         game.play_move({"username": "a", "move_type": "END_TURN"})
-        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 2})
+        game.play_move({"username": "b", "move_type": "SELECT_CARD_IN_HAND", "card": 5})
         game.play_move({"username": "b", "move_type": "SELECT_MOB", "card": 0})
         self.assertEqual(game.opponent().hit_points, 29)
         self.assertEqual(len(game.opponent().in_play), 0)
@@ -989,7 +988,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Resonant Frequency
         """
-        game = self.game_for_decks([["Stone Elemental", "LionKin", "Mirror of Fate", "Leyline Amulet", "Resonant Frequency", "Akbar's Pan Pipes"], []])
+        game = self.game_for_decks([["Stone Elemental", "LionKin", "Mirror of Fate", "Leyline Amulet", "Resonant Frequency", "Akbar's Pan Pipes", "Resonant Frequency"], []])
         for x in range(0,9):
             game.play_move({"username": "a", "move_type": "END_TURN"})
             game.play_move({"username": "b", "move_type": "END_TURN"})
@@ -1010,7 +1009,7 @@ class GameObjectTests(TransactionTestCase):
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.play_move({"username": "b", "move_type": "END_TURN"})
         self.assertEqual(len(game.current_player().artifacts), 2)
-        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 4})
+        game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 6})
         self.assertEqual(len(game.current_player().artifacts), 1)
         self.assertEqual(len(game.current_player().in_play), 1)
 
@@ -1057,7 +1056,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Ilra, Lady of Wind and Music
         """
-        game = self.game_for_decks([["Stone Elemental", "Ilra, Lady of Wind and Music", "Lute"], []])
+        game = self.game_for_decks([["Stone Elemental", "Ilra, Lady of Wind and Music", "Lute"], ["Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat", "Cat"]])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         for x in range(0,8):
             game.play_move({"username": "a", "move_type": "END_TURN"})
@@ -1156,11 +1155,13 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Rolling Thunder
         """
-        game = self.game_for_decks([["Rolling Thunder"], []])
+        game = self.game_for_decks([["Rolling Thunder"], ["Cat", "Cat", "Cat", "Cat", "Cat"]])
         damage = game.players[0].hand[0].effects[0].amount
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "SELECT_OPPONENT"})
         self.assertEqual(Player.max_hit_points - damage, game.players[1].hit_points)
+        game.players[0].hand.append(game.players[0].played_pile[0])
+        game.players[0].played_pile.pop()
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "SELECT_CARD_IN_HAND", "card": 0})
@@ -1174,6 +1175,8 @@ class GameObjectTests(TransactionTestCase):
         game = self.game_for_decks([["Tame Shop Demon"], []])
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         self.assertEqual(1, len(game.players[0].in_play))
+        game.players[0].hand.append(game.players[0].played_pile[0])
+        game.players[0].played_pile.pop()
         game.play_move({"username": "a", "move_type": "END_TURN"})
         game.play_move({"username": "b", "move_type": "END_TURN"})
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -1215,7 +1218,7 @@ class GameObjectTests(TransactionTestCase):
         """
 
         deck1 = ["Inferno Elemental"]
-        deck2 = []
+        deck2 = ["Cat", "Cat", "Cat", "Cat"]
         game = self.game_for_decks([deck1, deck2])
         game.players[0].mana = game.players[0].hand[0].cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
@@ -1229,7 +1232,7 @@ class GameObjectTests(TransactionTestCase):
         """
 
         deck1 = ["Stone Elemental", "Wind of Mercury"]
-        deck2 = []
+        deck2 = ["Cat", "Cat", "Cat", "Cat", "Cat"]
         game = self.game_for_decks([deck1, deck2])
         for card in game.players[0].hand:
             game.players[0].mana += card.cost
@@ -1295,7 +1298,7 @@ class GameObjectTests(TransactionTestCase):
         """
             Test Taunted Bear Fast and Stomp effects.
         """
-        game = self.game_for_decks([["Riftwalker Djinn"], ["Taunted Bear"]])
+        game = self.game_for_decks([["Riftwalker Djinn", "Cat", "Cat", "Cat"], ["Taunted Bear"]])
         game.players[0].mana += game.players[0].hand[0].cost
         game.play_move({"username": "a", "move_type": "PLAY_CARD_IN_HAND", "card": 0})
         game.play_move({"username": "a", "move_type": "END_TURN"})
