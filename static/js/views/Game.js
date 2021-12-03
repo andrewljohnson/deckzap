@@ -1858,7 +1858,7 @@ function onDragStart(event, cardSprite, gameUX, game) {
         }
         let dragging = true;
         for (let e of enabled_effects) {
-            if (!["any", "any_enemy", "mob", "opponents_mob", "self_mob", "artifact", "any_player"].includes(e.target_type)) {
+            if (!["any", "any_enemy", "mob", "enemy_mob", "friendly_mob", "artifact", "any_player"].includes(e.target_type)) {
                // e.target_type is in ["self", "opponent", Constants.artifactCardType, "all"]
                cardSprite.dragging = false; 
             }

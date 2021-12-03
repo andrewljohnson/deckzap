@@ -66,7 +66,7 @@ class PlayerAI(Player):
                 "effect_targets": [effect_target]})
 
         if len(mob_to_target.effects) == 2:
-            if mob_to_target.effects[1].target_type == "mob" or mob_to_target.effects[1].target_type == "opponents_mob":
+            if mob_to_target.effects[1].target_type == "mob" or mob_to_target.effects[1].target_type == "enemy_mob":
                 # hack for animal trainer
                 moves[-1]["effect_targets"].append({"id": effect_target["id"], "target_type":"mob"})            
             else:
@@ -186,7 +186,7 @@ class PlayerAI(Player):
                 being_cast = self.game.current_player().in_hand_card(move["card"])
                 if being_cast.card_type in ["mob", "artifact"]:                        
                     if len(being_cast.effects) > 0:
-                        if "opponents_mob" in being_cast.effects[0].ai_target_types and self.game.opponent().has_mob_target():
+                        if "enemy_mob" in being_cast.effects[0].ai_target_types and self.game.opponent().has_mob_target():
                             good_moves.insert(0, move)
         for move in moves:
             if move["move_type"] == "PLAY_CARD":
@@ -194,12 +194,12 @@ class PlayerAI(Player):
                 target, _ = self.game.get_in_play_for_id(move["effect_targets"][0].id)
                 if target in self.game.opponent().in_play: 
                     if len(being_cast.effects) > 0:
-                        if "opponents_mob" in being_cast.effects[0].ai_target_types:
+                        if "enemy_mob" in being_cast.effects[0].ai_target_types:
                             good_moves.insert(0, move)
 
                 if target in self.game.current_player().in_play: 
                     if len(being_cast.effects) > 0:
-                        if "self_mob" in being_cast.effects[0].ai_target_types:
+                        if "friendly_mob" in being_cast.effects[0].ai_target_types:
                             good_moves.insert(0, move)
         for move in moves:
             if move["move_type"] == "RESOLVE_MOB_EFFECT":
@@ -210,7 +210,7 @@ class PlayerAI(Player):
                     pass
                 elif target and target.id in [card.id for card in self.game.opponent().in_play]:
                     if len(coming_into_play.effects) > 0:
-                        if "opponents_mob" in coming_into_play.effects[0].ai_target_types:
+                        if "enemy_mob" in coming_into_play.effects[0].ai_target_types:
                             good_moves.insert(0, move)
         for move in moves:
             if move["move_type"] == "SELECT_OPPONENT":
@@ -223,8 +223,8 @@ class PlayerAI(Player):
         elif chosen_move["move_type"] == "SELECT_CARD_IN_HAND":
             being_cast = self.game.current_player().in_hand_card(chosen_move["card"])
             if len(being_cast.effects) > 0:
-                if ("opponents_mob" in being_cast.effects[0].ai_target_types and not "opponent" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_mob_target()) or \
-                   ("self_mob" in being_cast.effects[0].ai_target_types and not self.game.current_player().has_mob_target()) or \
+                if ("enemy_mob" in being_cast.effects[0].ai_target_types and not "opponent" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_mob_target()) or \
+                   ("friendly_mob" in being_cast.effects[0].ai_target_types and not self.game.current_player().has_mob_target()) or \
                    ("opponents_artifact" in being_cast.effects[0].ai_target_types and not self.game.opponent().has_artifact_target()):
                     chosen_move = self.pass_move()
 

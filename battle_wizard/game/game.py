@@ -242,7 +242,7 @@ class Game:
                     effect_can_be_used = True
                     if card.needs_mob_target_for_activated_effect(x):
                         effect_can_be_used = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
-                    if card.needs_self_mob_target_for_activated_effect(x):
+                    if card.needs_friendly_mob_target_for_activated_effect(x):
                         effect_can_be_used = False if len(cp.in_play) == 0 else True
                     if card.needs_hand_target_for_activated_effect(x):
                         effect_can_be_used = False if len(cp.hand) == 0 else True
@@ -262,7 +262,7 @@ class Game:
                     effect_can_be_used = True
                     if card.needs_mob_target_for_activated_effect(x):
                         effect_can_be_used = False if len(cp.in_play) == 0 and len(opp.in_play) == 0 else True
-                    if card.needs_self_mob_target_for_activated_effect(x):
+                    if card.needs_friendly_mob_target_for_activated_effect(x):
                         effect_can_be_used = False
                         if len(cp.in_play) > 0:
                             for mob in cp.in_play:
@@ -292,8 +292,10 @@ class Game:
                         card.can_be_clicked = False
                     if card.card_type != Constants.spellCardType and len(self.stack) > 0:
                         card.can_be_clicked = False
-                    if card.card_type == Constants.spellCardType and card.needs_opponent_mob_target_for_spell():
-                        card.can_be_clicked = cp.has_opponents_mob_target()
+                    if card.card_type == Constants.spellCardType and card.needs_enemy_mob_target_for_spell():
+                        card.can_be_clicked = cp.has_enemy_mob_target()
+                    if card.card_type == Constants.spellCardType and card.needs_friendly_mob_target_for_spell():
+                        card.can_be_clicked = cp.has_friendly_mob_target()
                     if card.card_type == Constants.spellCardType and len(self.stack) > 0 and card.card_subtype == "turn-only":
                         card.can_be_clicked = False  
                     if card.id == cp.card_info_to_target["card_id"]:
@@ -373,9 +375,9 @@ class Game:
             self.opponent().set_targets_for_mob_effect()
             self.current_player().set_targets_for_artifact_effect()
             self.opponent().set_targets_for_artifact_effect()
-        elif target_type == "opponents_mob":
+        elif target_type == "enemy_mob":
             self.opponent().set_targets_for_player_mob_effect()
-        elif target_type == "self_mob":
+        elif target_type == "friendly_mob":
             self.current_player().set_targets_for_player_mob_effect()
         elif target_type == "being_cast_mob":
             self.set_targets_for_being_cast_mob_effect()
@@ -565,8 +567,8 @@ class Game:
                 print(f"this mob was probably made untargettable")
                 return None                
             # todo handle cards with multiple effects
-            if cp.selected_spell().effects[0].target_type == "opponents_mob" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
-                print(f"can't target own mob with opponents_mob effect from {cp.selected_spell().name}")
+            if cp.selected_spell().effects[0].target_type == "enemy_mob" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().in_play:
+                print(f"can't target own mob with enemy_mob effect from {cp.selected_spell().name}")
                 return None
             message["defending_card"] = message["card"]
             message = self.select_mob_target_for_spell(cp.selected_spell(), message)
@@ -603,7 +605,7 @@ class Game:
                     return None                                            
             elif cp.selected_artifact():
                 effect_can_be_used = True
-                if cp.selected_artifact().needs_self_mob_target_for_activated_effect(cp.card_info_to_target["effect_index"]):
+                if cp.selected_artifact().needs_friendly_mob_target_for_activated_effect(cp.card_info_to_target["effect_index"]):
                     effect_can_be_used = False if defending_card in self.opponent().in_play else True
                 if effect_can_be_used:
                     return self.activate_artifact_on_mob(message, defending_card, defending_player, cp.card_info_to_target["effect_index"])
@@ -844,7 +846,7 @@ class Game:
                 message["log_lines"].append(artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {})) 
             elif e.target_type == "artifact_in_deck":
                 message["log_lines"].append(artifact.resolve_effect(artifact.activated_effect_defs[0], self.current_player(), e, {"id": message["username"], "target_type": e.target_type})) 
-            elif e.target_type == "self_mob":
+            elif e.target_type == "friendly_mob":
                 message = self.select_mob_target_for_artifact_activated_effect(artifact, message)
             else:
                 target_player = self.players[0]
@@ -929,7 +931,7 @@ class Game:
         effect_targets.append({"id": selected_card.id, "target_type":"mob"})            
         if not activated_effect:
             if len(card_to_target.effects) == 2:
-                if card_to_target.effects[1].target_type == "mob" or card_to_target.effects[1].target_type == "opponents_mob":
+                if card_to_target.effects[1].target_type == "mob" or card_to_target.effects[1].target_type == "enemy_mob":
                     # hack for animal trainer
                     effect_targets.append({"id": selected_card.id, "target_type":"mob"})            
         new_message["effect_targets"] = effect_targets

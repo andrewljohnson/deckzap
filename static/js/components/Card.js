@@ -550,7 +550,7 @@ export class Card {
             for (let c of card.tokens) {
                 if (c.multiplier == "self_artifacts" && player.artifacts) {
                     cardStrength += c.strength_modifier * player.artifacts.length;                        
-                } else if (c.multiplier == "self_mobs_and_artifacts") {
+                } else if (c.multiplier == "friendly_mobs_and_artifacts") {
                     if (player.artifacts) {
                         cardStrength += c.strength_modifier * player.artifacts.length;                        
                     }

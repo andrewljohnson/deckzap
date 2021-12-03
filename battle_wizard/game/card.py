@@ -462,7 +462,7 @@ class Card:
                 effect_targets.append({"id": player.game.opponent().username, "target_type":"player"})
             elif e.target_type == "enemy_mobs":          
                 effect_targets.append({"target_type":"enemy_mobs"})
-            elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "self_mobs" or e.target_type == "all":          
+            elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "friendly_mobs" or e.target_type == "all":          
                 effect_targets.append({"target_type": e.target_type})
             elif e.target_type in ["all_cards_in_deck", "all_cards_in_played_pile"]:          
                 effect_targets.append({"target_type": "player", "id": player.username})
@@ -539,7 +539,7 @@ class Card:
 
     def do_add_tokens_effect(self, effect_owner, effect, target_info):
         print("do_add_tokens_effect")
-        if effect.target_type == 'self_mobs':
+        if effect.target_type == 'friendly_mobs':
             for token in effect.tokens:
                 for mob in effect_owner.in_play:
                     self.do_add_token_effect_on_mob(effect, effect_owner, mob, effect_owner)
@@ -553,10 +553,10 @@ class Card:
     def do_add_token_effect_on_mob(self, effect, effect_owner, target_mob, controller):
         token = copy.deepcopy(effect.tokens[0])
         token.id = effect.id_for_game
-        if token.multiplier and token.multiplier == "half_self_mobs":
+        if token.multiplier and token.multiplier == "half_friendly_mobs":
             for x in range(0, math.floor(len(effect_owner.in_play)/2)):
                 target_mob.tokens.append(token)
-        elif token.multiplier and token.multiplier == "self_mobs":
+        elif token.multiplier and token.multiplier == "friendly_mobs":
             for x in range(0, len(effect_owner.in_play)):
                 target_mob.tokens.append(token)
         else:
@@ -825,7 +825,7 @@ class Card:
             target_id = target_info["id"]
         target_player = Card.player_for_username(effect_owner.game, target_id)
         amount_to_draw = effect.amount
-        if effect.multiplier == "self_mobs":
+        if effect.multiplier == "friendly_mobs":
             amount_to_draw = amount_to_draw * len(effect_owner.in_play)
         target_player.draw(amount_to_draw)
         return [f"{target_player.username} draws {amount_to_draw} from {self.name}."]
@@ -1387,7 +1387,7 @@ class Card:
             self.can_be_clicked = has_targets
 
     def do_remove_tokens_effect(self, effect_owner, effect, target_info):
-        if effect.target_type == "self_mobs":
+        if effect.target_type == "friendly_mobs":
             for mob in effect_owner.in_play:
                 tokens_to_keep = []
                 for token in mob.tokens:
@@ -1432,7 +1432,7 @@ class Card:
         return [f"{player.username} riffled for {effect.amount} and chose a card."]
 
     def do_set_can_attack_effect(self, effect_owner, effect, target_info):
-        if effect.target_type == "self_mobs":
+        if effect.target_type == "friendly_mobs":
             player = effect_owner
             for e in player.in_play:
                 e.can_attack_mobs = True
@@ -1620,7 +1620,7 @@ class Card:
         
         if self.card_type == "mob": # code for Spirit of the Stampede and Vamp Leader
             self.do_add_token_effect_on_mob(effect, effect_owner, self, effect_owner)
-        elif effect.target_type == "self_mobs": # Arsenal
+        elif effect.target_type == "friendly_mobs": # Arsenal
             for e in effect_owner.my_opponent().in_play:
                 for token in e.tokens:
                     if token.id == self.id:
@@ -1739,8 +1739,8 @@ class Card:
             "being_cast_mob", 
             "mob", 
             "mob_or_artifact",
-            "opponents_mob", 
-            "self_mob", 
+            "enemy_mob", 
+            "friendly_mob", 
         ]:
             return True
         return False 
@@ -1757,7 +1757,7 @@ class Card:
         if len(self.effects) == 0:
             return False
         e = self.effects[0]
-        if e.target_type  in ["mob", "opponents_mob", "self_mob"]:
+        if e.target_type  in ["mob", "enemy_mob", "friendly_mob"]:
             return True
         return False
 
@@ -1765,7 +1765,7 @@ class Card:
         if len(self.effects) == 0:
             return False
         e = self.effects[0]
-        if e.target_type  in ["mob", "opponents_mob", "any_enemy", "any", "self_mob", "mob_or_artifact"]:
+        if e.target_type  in ["mob", "enemy_mob", "any_enemy", "any", "friendly_mob", "mob_or_artifact"]:
             return True
         return False
 
@@ -1817,27 +1817,27 @@ class Card:
                 return True
         return False
 
-    def needs_opponent_mob_target_for_spell(self):
+    def needs_enemy_mob_target_for_spell(self):
         e = self.effects_for_type("spell")[0]
-        if e.target_type in ["opponents_mob"]:
+        if e.target_type in ["enemy_mob"]:
             return True
         return False
 
-    def needs_opponent_mob_target_for_spell(self):
+    def needs_friendly_mob_target_for_spell(self):
         e = self.effects_for_type("spell")[0]
-        if e.target_type in ["opponents_mob"]:
+        if e.target_type in ["friendly_mob"]:
             return True
         return False
 
     def needs_mob_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]
-        if e.target_type in ["mob", "opponents_mob", "self_mob"]:
+        if e.target_type in ["mob", "enemy_mob", "friendly_mob"]:
             return True
         return False
 
-    def needs_self_mob_target_for_activated_effect(self, index=0):
+    def needs_friendly_mob_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]
-        if e.target_type in ["self_mob"]:
+        if e.target_type in ["friendly_mob"]:
             return True
         return False
 
@@ -1858,7 +1858,7 @@ class Card:
         for t in self.tokens:
             if t.multiplier == "self_artifacts":
                 strength += t.strength_modifier * len(player.artifacts)
-            elif t.multiplier == "self_mobs_and_artifacts":
+            elif t.multiplier == "friendly_mobs_and_artifacts":
                 strength += t.strength_modifier * (len(player.artifacts) + len(player.in_play))
             else:
                 strength += t.strength_modifier

@@ -103,8 +103,11 @@ class Player:
                 return True
         return False
 
-    def has_opponents_mob_target(self):
+    def has_enemy_mob_target(self):
         return len(self.my_opponent().in_play) > 0
+
+    def has_friendly_mob_target(self):
+        return len(self.in_play) > 0
 
     def my_opponent(self):
         if self == self.game.players[0]:
@@ -322,14 +325,14 @@ class Player:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
-            elif effects[0].target_type in ["opponents_mob"]:
+            elif effects[0].target_type in ["enemy_mob"]:
                 if self.my_opponent().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
-            elif effects[0].target_type in ["self_mob"]:
+            elif effects[0].target_type in ["friendly_mob"]:
                 if self.game.current_player().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
@@ -348,7 +351,7 @@ class Player:
                             effect_targets.append({"id": username, "target_type":"player"})
                         elif e.target_type == "this":           
                             effect_targets.append({"id": card.id, "target_type":"mob"})
-                        elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "self_mobs":           
+                        elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "friendly_mobs":           
                             effect_targets.append({"target_type": e.target_type})
                         elif e.target_type == "enemy_mob_random":           
                             effect_targets.append({"id": random.choice(self.my_opponent().in_play).id, "target_type":"mob"})

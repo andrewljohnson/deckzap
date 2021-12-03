@@ -36,7 +36,7 @@
                 "effect_type": "enter_play",
                 "target_type": "mob",
                 "ai_target_types": [
-                    "opponents_mob"
+                    "enemy_mob"
                 ],
                 "id": "unwind"
             }
@@ -75,7 +75,7 @@
                 "amount": 1,
                 "ai_target_types": [
                     "opponent",
-                    "opponents_mob"
+                    "enemy_mob"
                 ],
                 "id": "damage"
             },
@@ -99,7 +99,7 @@
             {
                 "name": "Take Control",
                 "effect_type": "spell",
-                "target_type": "opponents_mob",
+                "target_type": "enemy_mob",
                 "id": "take_control"
             }
         ]
@@ -161,7 +161,7 @@
                 "amount": 1,
                 "ai_target_types": [
                     "opponent",
-                    "opponents_mob"
+                    "enemy_mob"
                 ],
                 "id": "damage"
             },
@@ -227,14 +227,14 @@
             {
                 "name": "Add Tokens",
                 "effect_type": "enter_play",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "tokens": [
                     {
                         "turns": 1,
-                        "target_type": "self_mobs",
+                        "target_type": "friendly_mobs",
                         "strength_modifier": 1,
                         "hit_points_modifier": 1,
-                        "multiplier": "half_self_mobs"
+                        "multiplier": "half_friendly_mobs"
                     }
                 ],
                 "id": "add_tokens"
@@ -398,7 +398,7 @@
                 "target_type": "mob",
                 "amount": 3,
                 "ai_target_types": [
-                    "opponents_mob"
+                    "enemy_mob"
                 ],
                 "id": "damage"
             },
@@ -423,7 +423,7 @@
             {
                 "name": "Add Tokens",
                 "effect_type": "enter_play",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "tokens": [
                     {
                         "strength_modifier": 1,
@@ -436,13 +436,13 @@
             {
                 "name": "Remove Tokens",
                 "effect_type": "leave_play",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "id": "remove_tokens"
             },
             {
                 "name": "Set Token",
                 "effect_type": "mob_changes_zones",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "tokens": [
                     {
                         "strength_modifier": 1,
@@ -467,7 +467,7 @@
             {
                 "name": "Add Tokens",
                 "effect_type": "enter_play",
-                "target_type": "self_mob",
+                "target_type": "friendly_mob",
                 "tokens": [
                     {
                         "strength_modifier": 2,
@@ -490,7 +490,7 @@
                     }
                 ],
                 "ai_target_types": [
-                    "self_mob"
+                    "friendly_mob"
                 ],
                 "id": "add_mob_effects"
             }
@@ -625,7 +625,7 @@
                     {
                         "strength_modifier": 1,
                         "hit_points_modifier": 0,
-                        "multiplier": "self_mobs_and_artifacts"
+                        "multiplier": "friendly_mobs_and_artifacts"
                     }
                 ],
                 "id": "set_token"
@@ -1029,7 +1029,7 @@
                     }
                 ],
                 "ai_target_types": [
-                    "self_mob"
+                    "friendly_mob"
                 ],
                 "id": "add_mob_effects"
             },
@@ -1507,7 +1507,7 @@
                     }
                 ],
                 "ai_target_types": [
-                    "self_mob"
+                    "friendly_mob"
                 ],
                 "id": "add_tokens"
             }
@@ -1733,7 +1733,7 @@
                 "effect_type": "spell",
                 "target_type": "mob",
                 "ai_target_types": [
-                    "opponents_mob"
+                    "enemy_mob"
                 ],
                 "id": "gain_for_hit_points"
             },
@@ -1850,7 +1850,7 @@
                 "effect_type": "spell",
                 "target_type": "mob_or_artifact",
                 "ai_target_types": [
-                    "opponents_mob",
+                    "enemy_mob",
                     "opponents_artifact"
                 ],
                 "id": "kill"
@@ -1874,7 +1874,7 @@
             {
                 "name": "Add Tokens",
                 "effect_type": "spell",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "tokens": [
                     {
                         "strength_modifier": 2,
@@ -1898,7 +1898,7 @@
                 "effect_type": "spell",
                 "target_type": "mob_or_artifact",
                 "ai_target_types": [
-                    "opponents_mob",
+                    "enemy_mob",
                     "opponents_artifact"
                 ],
                 "id": "kill"
@@ -1976,7 +1976,7 @@
                 "effect_type": "spell",
                 "target_type": "mob",
                 "ai_target_types": [
-                    "opponents_mob"
+                    "enemy_mob"
                 ],
                 "id": "mob_to_artifact"
             }
@@ -2151,7 +2151,7 @@
             {
                 "name": "Add Tokens",
                 "effect_type": "enter_play",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "tokens": [
                     {
                         "strength_modifier": 1,
@@ -2164,12 +2164,12 @@
             {
                 "name": "Remove Tokens",
                 "effect_type": "leave_play",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "id": "remove_tokens"
             },
             {
                 "name": "Set Token",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "effect_type": "mob_changes_zones",
                 "tokens": [
                     {

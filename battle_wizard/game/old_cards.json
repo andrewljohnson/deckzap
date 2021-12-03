@@ -274,7 +274,7 @@
             {
                 "name": "Kill",
                 "effect_type": "enter_play",
-                "target_type": "opponents_mob",
+                "target_type": "enemy_mob",
                 "id": "kill"
             },
             {
@@ -599,7 +599,7 @@
             {
                 "name": "Add Tokens",
                 "effect_type": "spell",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "tokens": [
                     {
                         "turns": 1,
@@ -1225,7 +1225,7 @@
                 "effect_type": "spell",
                 "target_type": "self",
                 "amount": 1,
-                "multiplier": "self_mobs",
+                "multiplier": "friendly_mobs",
                 "id": "draw"
             }
         ]
@@ -1276,7 +1276,7 @@
             {
                 "name": "Add Tokens",
                 "effect_type": "enter_play",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "tokens": [
                     {
                         "turns": 1,
@@ -1289,7 +1289,7 @@
             {
                 "name": "Set Can Attack",
                 "effect_type": "enter_play",
-                "target_type": "self_mobs",
+                "target_type": "friendly_mobs",
                 "id": "set_can_attack"
             },
             {
@@ -1401,7 +1401,7 @@
                     }
                 ],
                 "ai_target_types": [
-                    "self_mob"
+                    "friendly_mob"
                 ],
                 "id": "add_mob_effects"
             }
@@ -1438,7 +1438,7 @@
             {
                 "name": "Double Strength",
                 "effect_type": "enter_play",
-                "target_type": "self_mob",
+                "target_type": "friendly_mob",
                 "id": "double_strength"
             }
         ]
