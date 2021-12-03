@@ -1745,6 +1745,22 @@ class Card:
             return True
         return False 
 
+    def needs_random_friendly_target_for_spell(self):
+        if len(self.effects_for_type("spell")) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type == "friendly_mob_random": 
+            return True
+        return False 
+
+    def needs_random_enemy_target_for_spell(self):
+        if len(self.effects_for_type("spell")) == 0:
+            return False
+        e = self.effects[0]
+        if e.target_type == "enemy_mob_random": 
+            return True
+        return False 
+
     def needs_mob_or_artifact_target(self):
         if len(self.effects) == 0:
             return False
@@ -1819,25 +1835,25 @@ class Card:
 
     def needs_enemy_mob_target_for_spell(self):
         e = self.effects_for_type("spell")[0]
-        if e.target_type in ["enemy_mob"]:
+        if e.target_type in ["enemy_mob", "enemy_mob_random"]:
             return True
         return False
 
     def needs_friendly_mob_target_for_spell(self):
         e = self.effects_for_type("spell")[0]
-        if e.target_type in ["friendly_mob"]:
+        if e.target_type in ["friendly_mob", "friendly_mob_random"]:
             return True
         return False
 
     def needs_mob_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]
-        if e.target_type in ["mob", "enemy_mob", "friendly_mob"]:
+        if e.target_type in ["mob", "enemy_mob", "friendly_mob", "friendly_mob_random", "enemy_mob_random"]:
             return True
         return False
 
     def needs_friendly_mob_target_for_activated_effect(self, index=0):
         e = self.enabled_activated_effects()[index]
-        if e.target_type in ["friendly_mob"]:
+        if e.target_type in ["friendly_mob", "friendly_mob_random"]:
             return True
         return False
 

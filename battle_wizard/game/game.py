@@ -518,6 +518,16 @@ class Game:
             print(f"can't play that Card, it needs a target, needs_targets_for_spell")
             return None
 
+        if card.needs_random_friendly_target_for_spell(): 
+            message["defending_card"] = random.choice(self.current_player().in_play).id
+            message = self.select_mob_target_for_spell(self.current_player().selected_spell(), message)
+            return message
+
+        if card.needs_random_enemy_target_for_spell(): 
+            message["defending_card"] = random.choice(self.opponent().in_play).id
+            message = self.select_mob_target_for_spell(self.current_player().selected_spell(), message)
+            return message
+
         self.current_player().reset_card_info_to_target()
         message["card_name"] = card.name
         message["move_type"] = "PLAY_CARD"
