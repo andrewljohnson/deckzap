@@ -31,6 +31,7 @@ class Player:
         self.deck = [Card(c_info) for c_info in info["deck"]] if "deck" in info else []
         self.deck_id = info["deck_id"] if "deck_id" in info else None
         self.discipline = info["discipline"] if "discipline" in info else None
+        self.deck_exhaustion = info["deck_exhaustion"] if "deck_exhaustion" in info else 0
         self.hand = [Card(c_info) for c_info in info["hand"]] if "hand" in info else []
         self.hit_points = info["hit_points"] if "hit_points" in info else Player.max_hit_points
         # used for replays, todo: use a random seed to make replays easier per @silberman
@@ -65,6 +66,7 @@ class Player:
             "damage_this_turn": self.damage_this_turn,
             "damage_to_show": self.damage_to_show,
             "deck": [c.as_dict() for c in self.deck],
+            "deck_exhaustion": self.deck_exhaustion,
             "deck_id": self.deck_id,
             "discipline": self.discipline,
             "hand": [c.as_dict() for c in self.hand],
@@ -163,20 +165,19 @@ class Player:
             log_lines = [f"{self.username} drew {number_of_cards} card for their turn."]
         for i in range(0, number_of_cards):
             if len(self.deck) == 0:
-                for c in self.played_pile:
-                    self.deck.append(c)
-                self.played_pile = [] 
-            if len(self.deck) == 0 or len(self.hand) == self.game.max_hand_size:
+                self.deck_exhaustion += 1
+                self.hit_points -= self.deck_exhaustion
                 continue
             drawn_card = self.deck.pop()
-            self.hand.append(drawn_card)
-            for idx, effect in enumerate(drawn_card.effects_for_type("was_drawn")):
-                effect.show_effect_animation = True
-                log_lines.append(drawn_card.resolve_effect(drawn_card.was_drawn_effect_defs[idx], self, effect, {})) 
-            for m in self.in_play + self.artifacts + [drawn_card]:
-                for idx, effect in enumerate(m.effects_for_type("draw")):
+            if len(self.hand) != self.game.max_hand_size:            
+                self.hand.append(drawn_card)
+                for idx, effect in enumerate(drawn_card.effects_for_type("was_drawn")):
                     effect.show_effect_animation = True
-                    log_lines.append(m.resolve_effect(m.draw_effect_defs[idx], self, effect, {})) 
+                    log_lines.append(drawn_card.resolve_effect(drawn_card.was_drawn_effect_defs[idx], self, effect, {})) 
+                for m in self.in_play + self.artifacts + [drawn_card]:
+                    for idx, effect in enumerate(m.effects_for_type("draw")):
+                        effect.show_effect_animation = True
+                        log_lines.append(m.resolve_effect(m.draw_effect_defs[idx], self, effect, {})) 
         return log_lines if len(log_lines) > 0 else None
 
     def spend_mana(self, amount):

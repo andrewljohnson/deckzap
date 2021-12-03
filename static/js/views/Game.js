@@ -1739,19 +1739,21 @@ export class GameUX {
     }
 
     damageSprite(spriteToDamage, spriteId, damage_to_show) {
+        let glow = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: Constants.redColor});
+        spriteToDamage.filters = [glow];
           setTimeout(() => { 
                 this.spriteDamageCounts[spriteId] += 1;
                 if (!this.spriteDamageCounts[spriteId] && this.spriteDamageCounts[spriteId] != 0) {
                     this.spriteDamageCounts[spriteId] = 0                    
-                    let godray = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: Constants.redColor});
-                    spriteToDamage.filters = [godray];
+                    let glow = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: Constants.redColor});
+                    spriteToDamage.filters = [glow];
                     this.damageSprite(spriteToDamage, spriteId, damage_to_show);                    
                 } else if (this.spriteDamageCounts[spriteId] >= damage_to_show*3) {
                     this.spriteDamageCounts[spriteId] = 0
                     spriteToDamage.filters = []; 
                 } else {
-                    let godray = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: Constants.redColor});
-                    spriteToDamage.filters = [godray];
+                    let glow = new GlowFilter({ outerStrength: 8, innerStrength: 2 , color: Constants.redColor});
+                    spriteToDamage.filters = [glow];
                     setTimeout(() => { 
                         spriteToDamage.filters = [];
                     }, 100); 
