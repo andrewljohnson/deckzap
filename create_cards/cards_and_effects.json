@@ -723,7 +723,7 @@
                         }
                     ],
                     "name": "Discard Random",
-                    "power_points": 6,
+                    "power_points": 8,
                     "target_type": "opponent"
                 }
             ],
@@ -830,7 +830,7 @@
                         }
                     ],
                     "name": "Discard Random",
-                    "power_points": -3,
+                    "power_points": -4,
                     "target_type": "self"
                 }
             ],
@@ -1139,7 +1139,7 @@
                 }
             ],
             "name": "Discard Random",
-            "power_points": -3,
+            "power_points": -4,
             "target_type": "self"
         },
         {

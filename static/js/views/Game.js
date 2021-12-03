@@ -422,19 +422,16 @@ export class GameUX {
     }
 
     refreshDisplay(game, message) {
-        if (!this.thisPlayer(game) || !this.opponent(game)) {
-            return; 
-        }
         this.clearArrows()
         this.animateEffects(game, message)
     }
 
     animateEffects(game, message, refresh=true, show_effects=false) {
-        if (!this.thisPlayer(game) || !this.opponent(game)) {
-            return;
-        }
         let IDsToAnimate = [];
         for (let player of [this.thisPlayer(game), this.opponent(game)]) {
+            if (!player) {
+                continue;
+            }
             for (let card of player.hand.concat(player.in_play).concat(player.artifacts)) {
                 if (refresh && card.show_level_up) {
                     IDsToAnimate.push(card.id);
@@ -488,21 +485,23 @@ export class GameUX {
             this.updatePlayer(game, this.thisPlayer(game), this.opponent(game), this.playerAvatar);
             this.updateThisPlayerArtifacts(game);
             this.updateThisPlayerInPlay(game);
-            this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
-            this.updateOpponentHand(game);
-            this.updateOpponentArtifacts(game);
-            this.updateOpponentInPlay(game);
-            this.updateCardPiles(game);
-            this.renderEndTurnButton(game, message);
-            this.updateGameNavigator(game);
-            this.addMenuButton(game);
-            this.maybeShowSpellStack(game);
-            this.maybeShowGameOver(game);
-            this.maybeShowAttackIntent(game);
-            this.maybeShowCardSelectionView(game);
-            this.maybeShowRope(game);
-            this.elevateTopZViews(game, message);
-            this.animateEffects(game, message, false, true);   
+            if (this.opponent(game)) {
+                this.updatePlayer(game, this.opponent(game), this.thisPlayer(game), this.opponentAvatar);
+                this.updateOpponentHand(game);
+                this.updateOpponentArtifacts(game);
+                this.updateOpponentInPlay(game);
+                this.updateCardPiles(game);
+                this.renderEndTurnButton(game, message);
+                this.updateGameNavigator(game);
+                this.addMenuButton(game);
+                this.maybeShowSpellStack(game);
+                this.maybeShowGameOver(game);
+                this.maybeShowAttackIntent(game);
+                this.maybeShowCardSelectionView(game);
+                this.maybeShowRope(game);
+                this.elevateTopZViews(game, message);
+                this.animateEffects(game, message, false, true);   
+            }
             this.actionQueue.shift();   
             if (this.actionQueue.length) {
                 this.refresh(this.actionQueue[0].game, this.actionQueue[0].message)
