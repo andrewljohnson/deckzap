@@ -3,12 +3,13 @@
 from django.db import migrations
 from scripts.update_svgs import resize_svg
 import os
+import sys
 import shutil
 import zipfile
 
 
 def load_images_to_db(apps, schema_editor):
-    if os.environ.get("CI"):
+    if os.environ.get("CI") or 'test' in sys.argv:
         return
 
     CustomCardImage = apps.get_model('create_cards', 'CustomCardImage')
