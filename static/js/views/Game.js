@@ -608,7 +608,7 @@ export class GameUX {
         }
         this.opponentYardPile = this.cardPile(this.opponentAvatar.position.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerTwoY, game, "Yard", this.opponent(game).played_pile, () => {this.showCardPile(game, "Opponent's Yard", this.opponent(game).played_pile)})
         this.opponentDeckPile = this.cardPile(this.opponentYardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*2, playerTwoY, game, "Deck", this.opponent(game).deck, () => {alert("that would be rude")})
-        this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile("My Yard", this.thisPlayer(game).played_pile)})
+        this.yardPile = this.cardPile(this.playerAvatar.x - Card.spriteCardBack(null, game, this, true).width - Constants.padding*2, playerOneY, game, "Yard", this.thisPlayer(game).played_pile, () => {this.showCardPile(game, "My Yard", this.thisPlayer(game).played_pile)})
         this.deckPile = this.cardPile(this.yardPile.pileSprite.position.x - Card.spriteCardBack(null, game, this, true).width*1.5 - Constants.padding*4, playerOneY, game, "Deck", this.thisPlayer(game).deck, () => {this.showCardPile(game, "My Deck", this.thisPlayer(game).deck, true)})
     }
 
