@@ -250,6 +250,7 @@ class Effects:
       if target_type.id == "opponent":
          points = amount * 4
       elif target_type.id == "self":
+         amount = min(amount, 2)
          points = -amount * 4
       elif target_type.id == "player":
          points = amount * 4 + 1
@@ -300,6 +301,7 @@ class Effects:
          Returns the power_points for an effect that returns mobs to their owner's hand.
       """
       if target_type.id == "opponent":
+         amount = min(amount, 2)
          return -amount * 3
       elif target_type.id == "self":
          return amount * 3
