@@ -11,6 +11,3 @@ echo SQL_PORT=$SQL_PORT >> .env
 echo DATABASE=$DATABASE >> .env
 echo AMPLITUDE_API_KEY=$AMPLITUDE_API_KEY >> .env
 echo GITHUB_RUN_ID=$GITHUB_RUN_ID >> .env
-echo WEB_IMAGE=${{ env.WEB_IMAGE }} >> .env
-echo NAMESPACE=${{ secrets.NAMESPACE }} >> .env
-echo PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }} >> .env
