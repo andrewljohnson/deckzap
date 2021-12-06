@@ -5,8 +5,7 @@ import { ButtonPicker } from '../../components/ButtonPicker.js';
 import { Card } from '../../components/Card.js';
 import { CardBuilderMobAndSpellBase } from './CardBuilderMobAndSpellBase.js'
 
-
-export class CardBuilderEffects extends CardBuilderMobAndSpellBase {
+export class CardBuilderSpell extends CardBuilderMobAndSpellBase {
 
     constructor(containerID, effectsAndTypes, originalCardInfo, cardID, effectIndex) {
         super(containerID, effectsAndTypes, originalCardInfo, cardID, effectIndex);
@@ -14,19 +13,34 @@ export class CardBuilderEffects extends CardBuilderMobAndSpellBase {
     }
 
     title() {
-        return "Choose Additional Effects"
+        return "Create Spell"
+    }
+
+    addInputs(x, y) {
+        this.addInput(x, y, "Mana Cost");
+        return 100;
+    }
+
+    async nextButtonClicked(additionalEffectButtonClicked=false) {
+        super.nextButtonClicked("save_spell", additionalEffectButtonClicked);
     }
 
     updateCard() {
         super.updateCard();
-        const choseMobAbility = this.effect && !this.effect.legal_target_types;
+        let errorMessage = "";
+        const hasManaCost = this.userCardCost >= 0 && this.userCardCost <= 10 && !isNaN(this.userCardCost);
+        if (!hasManaCost) {
+            errorMessage += "Cards must cost at least 0 and no more than 10 mana."
+        }
+
         let completedNonMobAbilityEffect = this.targetSelected && this.amountInput && parseInt(this.amountInput.text) > 0;
         if (this.effect && !("amount" in this.effect)) {
             completedNonMobAbilityEffect = this.targetSelected;
         }
-        const formComplete = choseMobAbility || completedNonMobAbilityEffect
-        this.toggleNextButton(formComplete);
-        if (formComplete) {
+        const effectFormComplete = completedNonMobAbilityEffect
+        this.toggleNextButton(hasManaCost && effectFormComplete, errorMessage);
+
+        if (effectFormComplete) {
             let yPosition = Constants.padding * 4;
             if (this.amountInput) {
                 yPosition += this.amountInput.position.y + this.amountLabel.height;
@@ -40,7 +54,4 @@ export class CardBuilderEffects extends CardBuilderMobAndSpellBase {
         }
     }
 
-    async nextButtonClicked(additionalEffectButtonClicked=false) {
-        super.nextButtonClicked("save_effects", additionalEffectButtonClicked);
-    }
 }

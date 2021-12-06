@@ -13,7 +13,7 @@ export class CardBuilderBase {
     setUpPIXIApp() {
         const widthInCards = 9;
         const appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
-        const appHeight = (Card.cardHeight) * 5;
+        const appHeight = (Card.cardHeight) * 7;
         Constants.setUpPIXIApp(this, appHeight, appWidth)
     }
 
@@ -112,7 +112,7 @@ export class CardBuilderBase {
         const cardSprite = Card.sprite(this.cardInfo(), this);
         const cardHeight = Card.cardHeight;
         cardSprite.position.x = this.errorText.position.x + Card.cardWidth * 1.25 / 2;
-        cardSprite.position.y = this.errorText.position.y + 140;            
+        cardSprite.position.y = this.errorText.position.y + 150;            
         this.app.stage.addChild(cardSprite);
         cardSprite.interactive = true;
         this.card = cardSprite;

@@ -30,16 +30,31 @@ def create_card(request):
     )
     return render(request, "create_card.html", {})
 
-def effects(request, card_id, effect_index=0):
+def mob(request, card_id):
+    """
+        A view to create the effects for a new mob card.
+    """
+    return effect_page(request, "Page View - Create Card Mob", "create card mob", card_id, 0)
+
+def spell(request, card_id):
+    """
+        A view to create the effects for a new spell card.
+    """
+    return effect_page(request, "Page View - Create Card Spell", "create card spell", card_id, 0)
+
+def effects(request, card_id, effect_index):
     """
         A view to create the effects for a new card.
     """
+    return effect_page(request, "Page View - Create Card Effects", "create card effects", card_id, effect_index)
+
+def effect_page(request, analytics_title, analytics_page, card_id, effect_index):
     if not request.user.is_authenticated:
         return redirect(f"/signup?next={request.path}")
     Analytics.log_amplitude(
         request, 
-        "Page View - Create Card Effects", 
-        {"page":"create card effects"}
+        analytics_title, 
+        {"page":analytics_page}
     )
     json_data = json.load(open('create_cards/cards_and_effects.json'))
     del json_data["cards"]
@@ -50,40 +65,6 @@ def effects(request, card_id, effect_index=0):
             "card_info": json.dumps(CustomCard.objects.get(id=card_id).card_json), 
             "effects_and_types": json.dumps(json_data)
         }
-    )
-
-def cost(request, card_id):
-    """
-        A view to set the mana cost for a new card.
-    """
-    if not request.user.is_authenticated:
-        return redirect(f"/signup?next={request.path}")
-    Analytics.log_amplitude(
-        request, 
-        "Page View - Create Card Cost", 
-        {"page":"create card cost"}
-    )
-    return render(
-        request, 
-        "create_card_cost.html", 
-        {"card_id":card_id, "card_info": json.dumps(CustomCard.objects.get(id=card_id).card_json)}
-    )
-
-def mob_stats(request, card_id):
-    """
-        A view to create the effects for a new card.
-    """
-    if not request.user.is_authenticated:
-        return redirect(f"/signup?next={request.path}")
-    Analytics.log_amplitude(
-        request, 
-        "Page View - Create Card Mob Stats", 
-        {"page":"create card mob stats"}
-    )
-    return render(
-        request, 
-        "create_card_mob_stats.html", 
-        {"card_id":card_id, "card_info": json.dumps(CustomCard.objects.get(id=card_id).card_json)}
     )
 
 def name_and_image(request, card_id):
@@ -209,23 +190,23 @@ def save_new_card(request):
         Analytics.log_amplitude(request, "Save New Card", {})
         return JsonResponse({"card_id": custom_card.id})
 
-def save_cost(request):
-    """
-        A POST view to save the mana cost for a new card.
-    """
-    return create_card_save(request, "card_id", "Save Card Cost")
-
-def save_mob_stats(request):
-    """
-        A POST view to save the mana cost for a new card.
-    """
-    return create_card_save(request, "card_id", "Save Mob Stats")
-
 def save_effects(request):
     """
-        A POST view to save the effects for a new card.
+        A POST view to save the additional effects for a new card.
     """
     return create_card_save(request, "card_id", "Save Card Effects")
+
+def save_mob(request):
+    """
+        A POST view to save the cost, strength, hit points, and effects for a new mob.
+    """
+    return create_card_save(request, "card_id", "Save Mob")
+
+def save_spell(request):
+    """
+        A POST view to save the cost and effects for a new spell.
+    """
+    return create_card_save(request, "card_id", "Save Spell")
 
 @require_POST
 def create_card_save(request, required_key, event_name):

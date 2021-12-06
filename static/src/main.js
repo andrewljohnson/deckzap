@@ -1,11 +1,11 @@
 // this import due to: https://flaviocopes.com/parcel-regeneratorruntime-not-defined/
 import 'regenerator-runtime/runtime'
 
-import { CardBuilder } from '../js/views/create_cards/CardBuilder';
-import { CardBuilderCost } from '../js/views/create_cards/CardBuilderCost';
 import { CardBuilderEffects } from '../js/views/create_cards/CardBuilderEffects';
-import { CardBuilderMobStats } from '../js/views/create_cards/CardBuilderMobStats';
+import { CardBuilderMob } from '../js/views/create_cards/CardBuilderMob';
+import { CardBuilderSpell } from '../js/views/create_cards/CardBuilderSpell';
 import { CardBuilderNameAndImage } from '../js/views/create_cards/CardBuilderNameAndImage';
+import { CardBuilderType } from '../js/views/create_cards/CardBuilderType';
 import { DeckBuilder } from '../js/views/DeckBuilder';
 import { DeckViewer } from '../js/views/DeckViewer';
 import { GameRoom } from '../js/components/GameRoom';
@@ -64,19 +64,23 @@ if (window.location.pathname.startsWith("/play")) {
             JSON.parse(document.getElementById("data_store").getAttribute("card_id")),
             JSON.parse(document.getElementById("data_store").getAttribute("image_paths")),
         );
-    } else if (window.location.pathname.endsWith("cost")) {
-        new CardBuilderCost(
+    } else if (window.location.pathname.endsWith("spell")) {
+        new CardBuilderSpell(
             "app",
+            JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             document.getElementById("data_store").getAttribute("card_id"),
+            document.getElementById("data_store").getAttribute("effect_index"),
         );
-    } else if (window.location.pathname.endsWith("mob_stats")) {
-        new CardBuilderMobStats(
+    } else if (window.location.pathname.endsWith("mob")) {
+        new CardBuilderMob(
             "app",
+            JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             document.getElementById("data_store").getAttribute("card_id"),
+            document.getElementById("data_store").getAttribute("effect_index"),
         );
     } else {
-        new CardBuilder("app");
+        new CardBuilderType("app");
     }
 }
