@@ -54,8 +54,8 @@ export class CardBuilderMobAndSpellBase extends CardBuilderBase {
             yPosition, 
             "Effect Name", 
             effectNamesAndIDs,
-            effect_id => { this.selectEffect(effect_id) }).container;
-        this.app.stage.addChild(effectPicker);
+            effect_id => { this.selectEffect(effect_id) });
+        this.app.stage.addChild(effectPicker.container);
         this.effectPicker = effectPicker;
 
 
@@ -135,40 +135,47 @@ export class CardBuilderMobAndSpellBase extends CardBuilderBase {
 
     selectEffect(effect_id) {
         this.removeAddEffectButton();
-        for (let effect of this.effectsAndTypes.effects) {
-            if (effect.id == effect_id) {
-                this.effect = effect;
-            }
-        }
         if (this.effectDescription) {
             this.effectDescription.parent.removeChild(this.effectDescription);
+            this.effectDescription = null;
         }
         this.targetSelected = false;
         this.removeTargetControl();
         this.removeEffectTypeControl();
         this.removeAmountControl();
-        let description = this.effect.description_expanded ? this.effect.description_expanded : this.effect.description;
-        this.effectDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
-        this.effectDescription.position.x = Constants.padding;
-        this.effectDescription.position.y = this.effectPicker.position.y + this.effectPicker.height + Constants.padding * 2;
-        this.app.stage.addChild(this.effectDescription);     
-
-        let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
-        
-        this.updateEffects();
-        this.getEffectForInfo(
-            () => {
-                if (this.originalCardInfo.card_type == Constants.mobCardType && this.effect.legal_target_types) {
-                    this.addEffectTypePicker()
-                } else if (this.originalCardInfo.card_type == Constants.spellCardType) {
-                    let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
-                    this.addTargetTypePicker(yPosition);
-                } else {
-                    // it's a mob ability like Ambush, Drain, Guard, or Shield
-                    this.getEffectForInfo();
-                }                
+        if (this.effect && this.effect.id == effect_id) {
+            this.effects.pop();
+            this.effect = null;
+            this.effectPicker.unselect();
+        } else {
+            for (let effect of this.effectsAndTypes.effects) {
+                if (effect.id == effect_id) {
+                    this.effect = effect;
+                }
             }
-        );
+            let description = this.effect.description_expanded ? this.effect.description_expanded : this.effect.description;
+            this.effectDescription = new PIXI.Text(description, {fontFamily : Constants.defaultFontFamily, fontSize: Constants.defaultButtonFontSize, fill : Constants.darkGrayColor});
+            this.effectDescription.position.x = Constants.padding;
+            this.effectDescription.position.y = this.effectPicker.container.position.y + this.effectPicker.container.height + Constants.padding * 2;
+            this.app.stage.addChild(this.effectDescription);     
+
+            let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
+            
+            this.updateEffects();
+            this.getEffectForInfo(
+                () => {
+                    if (this.originalCardInfo.card_type == Constants.mobCardType && this.effect.legal_target_types) {
+                        this.addEffectTypePicker()
+                    } else if (this.originalCardInfo.card_type == Constants.spellCardType) {
+                        let yPosition = this.effectDescription.position.y + this.effectDescription.height + Constants.padding * 4;
+                        this.addTargetTypePicker(yPosition);
+                    } else {
+                        // it's a mob ability like Ambush, Drain, Guard, or Shield
+                        this.getEffectForInfo();
+                    }                
+                }
+            );            
+        }
     }
 
     updateEffects() {
@@ -177,7 +184,6 @@ export class CardBuilderMobAndSpellBase extends CardBuilderBase {
         } else {
             this.effects[this.effects.length - 1] = this.effect            
         }
-
     }
 
     addEffectTypePicker() {

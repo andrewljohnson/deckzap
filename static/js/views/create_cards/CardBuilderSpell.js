@@ -47,7 +47,7 @@ export class CardBuilderSpell extends CardBuilderMobAndSpellBase {
             } else if (this.targetTypePicker) {
                 yPosition += this.targetTypePicker.position.y + this.targetTypePicker.height;
             } else {
-                yPosition += this.effectPicker.position.y + this.effectPicker.height;
+                yPosition += this.effectPicker.container.position.y + this.effectPicker.container.height;
 
             }
             this.addAdditionalEffectButton(yPosition);
