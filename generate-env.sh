@@ -1,7 +1,7 @@
 #!/bin/bash
 echo DEBUG=$DEBUG >> .env
 echo PROJECT_NAME=$PROJECT_NAME >> .env
-echo SECRET_KEY=$SECRET_KEY >> .env
+echo SECRET_KEY="$SECRET_KEY" >> .env
 echo SQL_ENGINE=$SQL_ENGINE >> .env
 echo SQL_DATABASE=$SQL_DATABASE >> .env
 echo SQL_USER=$SQL_USER >> .env
