@@ -1,48 +1,65 @@
+import React, { Component } from "react";
 import * as Constants from '../../constants.js';
 import { Card } from '../../components/Card.js';
-import { CardBuilderBase } from './CardBuilderBase.js'
-import { CardTypePicker } from '../../components/CardTypePicker.js';
+import Button from '@mui/material/Button';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import NewCardBuilderBase from './NewCardBuilderBase';
 
-export class CardBuilderType extends CardBuilderBase {
 
-    constructor(containerID, cardsAndEffects, originalCardInfo, cardID) {
-        super(containerID);
-        this.cardType = Constants.spellCardType;
-        this.loadUX(containerID);
+class CardBuilderType extends NewCardBuilderBase {
+    state = {
+        cardType: Constants.mobCardType,
+    };
+
+    changeType = (event, cardType) => {
+        this.setState({cardType});
+        this.props.cardView.setCardType(cardType);
     }
 
-    cardInfo() {
-        const info = super.cardInfo();
-        info.card_type = this.cardType;
-        return info;
-    }
-
-    loadUXAfterCardImageLoads() {
-        this.cardTypePicker = new CardTypePicker(
-            this, 
-            this.titleText.position.y + this.titleText.height + Constants.padding * 4, 
-            cardTypeID => {this.cardType = cardTypeID; this.updateCard();} 
-        );
-        this.cardTypePicker.select(this.cardType);
-        super.loadUXAfterCardImageLoads();
-        this.toggleNextButton(true);
-    }
-
-    title() {
-        return "Choose Type";
-    }
-
-    async nextButtonClicked() {
-        const json = await Constants.postData(`${this.baseURL()}/save_new`, { card_info: this.cardInfo() })
+    nextButtonClicked = async () => {
+        const json = await Constants.postData(`${this.baseURL()}/save_new`, { card_info: this.props.cardBuilderCard.cardInfo() })
         if("error" in json) {
             console.log(json); 
             alert("error saving card");
-        } else if (this.cardType == Constants.mobCardType) {
+        } else if (this.state.cardType == Constants.mobCardType) {
             window.location.href = `${this.baseURL()}/${json.card_id}/mob`
-        } else if (this.cardType == Constants.spellCardType) {
+        } else if (this.state.cardType == Constants.spellCardType) {
             window.location.href = `${this.baseURL()}/${json.card_id}/spell`
         } else {
             console.log(`tried to save card with unknown type ${this.cardType}`);
         }
     }
+
+    render() {
+        const control = {
+            value: this.state.cardType,
+            onChange: this.changeType,
+            exclusive: true,
+        };
+
+        return (
+            <div>
+                <h1>Choose Card Type</h1>
+                <ToggleButtonGroup size="large" {...control}>
+                    <ToggleButton value={Constants.mobCardType} key={Constants.mobCardType}>
+                        Mob
+                    </ToggleButton>,
+                    <ToggleButton value={Constants.spellCardType} key={Constants.spellCardType}>
+                        Spell
+                    </ToggleButton>,
+                </ToggleButtonGroup>
+                <br /><br />
+                <Button 
+                    variant="contained"
+                    onClick={this.nextButtonClicked}
+                >
+                    Next
+                </Button> 
+                <br /><br />     
+            </div>
+        );
+    }
 }
+
+export default CardBuilderType;

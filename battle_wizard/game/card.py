@@ -1922,6 +1922,8 @@ class CardEffect:
         self.amount = info["amount"] if "amount" in info else None
         # a string to be used to size the effect
         self.amount_id = info["amount_id"] if "amount_id" in info else None
+        # a string that labels what the amount is of, i.e. damage, hit points, cards, etc
+        self.amount_name = info["amount_name"] if "amount_name" in info else None
         # the cost in mana of the effect
         self.cost = info["cost"] if "cost" in info else 0
         # a one word description to maybe show on the card, but definitely show on hover
@@ -1985,6 +1987,7 @@ class CardEffect:
                 "ai_target_types": self.ai_target_types,
                 "amount": self.amount,
                 "amount_id": self.amount_id,
+                "amount_name": self.amount_name,
                 "cost": self.cost,
                 "description": self.description,
                 "description_expanded": self.description_expanded,
@@ -1998,6 +2001,7 @@ class CardEffect:
             "ai_target_types": self.ai_target_types,
             "amount": self.amount,
             "amount_id": self.amount_id,
+            "amount_name": self.amount_name,
             "card_descriptions": self.card_descriptions,
             "card_names": self.card_names,
             "counters": self.counters,

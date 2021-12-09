@@ -173,6 +173,7 @@
                         "enemy_mob"
                     ],
                     "amount": 3,
+                    "amount_name": "damage",
                     "description": "Deal 3 damage to any target.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -246,6 +247,7 @@
                         "friendly_mob"
                     ],
                     "amount": 3,
+                    "amount_name": "hit points",
                     "description": "Heal any target for 3.",
                     "effect_type": "spell",
                     "id": "heal",
@@ -396,6 +398,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 2,
+                    "amount_name": "cards",
                     "description": "Draw 2 cards.",
                     "effect_type": "spell",
                     "id": "draw",
@@ -438,6 +441,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 1,
+                    "amount_name": "mana",
                     "description": "You get 1 extra mana on upcoming turns.",
                     "effect_type": "spell",
                     "id": "mana_increase_max",
@@ -475,6 +479,7 @@
                         "enemy_mob"
                     ],
                     "amount": 6,
+                    "amount_name": "damage",
                     "description": "Deal 6 damage to any target.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -545,6 +550,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 4,
+                    "amount_name": "damage",
                     "description": "Deal 4 damage to all enemy mobs.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -695,6 +701,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 2,
+                    "amount_name": "cards",
                     "description": "Your opponent discards 2 cards at random.",
                     "effect_type": "spell",
                     "id": "discard_random",
@@ -740,6 +747,7 @@
                         "enemy_mob"
                     ],
                     "amount": 4,
+                    "amount_name": "damage",
                     "description": "Deal 4 damage to any target.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -802,6 +810,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 1,
+                    "amount_name": "cards",
                     "description": "Discard a card at random.",
                     "effect_type": "spell",
                     "id": "discard_random",
@@ -925,6 +934,7 @@
                 {
                     "ai_target_types": null,
                     "amount": 1,
+                    "amount_name": "damage",
                     "description": "When you play a mob, deal 1 damage to a random enemy mob.",
                     "effect_type": "play_friendly_mob",
                     "id": "damage",
@@ -1047,6 +1057,7 @@
         {
             "ai_target_types": [],
             "amount": 0,
+            "amount_name": "damage",
             "description": "Deal 0 damage to any target.",
             "effect_type": "spell",
             "id": "damage",
@@ -1111,6 +1122,7 @@
                 "self"
             ],
             "amount": 1,
+            "amount_name": "cards",
             "description": "Discard a card at random.",
             "effect_type": "spell",
             "id": "discard_random",
@@ -1158,6 +1170,7 @@
                 "self"
             ],
             "amount": 1,
+            "amount_name": "cards",
             "description": "Draw a card.",
             "effect_type": "spell",
             "id": "draw",
@@ -1203,6 +1216,7 @@
         {
             "ai_target_types": [],
             "amount": 0,
+            "amount_name": "hit points",
             "description": "Heal any target for 0.",
             "effect_type": "spell",
             "id": "heal",
@@ -1291,6 +1305,7 @@
         {
             "ai_target_types": [],
             "amount": 1,
+            "amount_name": "mana",
             "description": "You get 1 extra mana on upcoming turns.",
             "effect_type": "spell",
             "id": "mana_increase_max",

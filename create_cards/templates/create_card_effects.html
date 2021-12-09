@@ -2,7 +2,9 @@
 
 {% block content %}
 <div class="wrapper">
+    <div id="card" style="float:right"></div>
     <div id="app"></div>
+    <br/><br/><br/>
 </div>
 
 <div id="data_store" csrf_token='{% csrf_token %}' effects_and_types="{{effects_and_types}}" card_info="{{card_info}}" card_id={{card_id}} effect_index={{effect_index}}></div>

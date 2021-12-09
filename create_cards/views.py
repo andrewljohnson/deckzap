@@ -140,14 +140,27 @@ def get_effect_for_info(request):
             # all non-ability-effects take 5 parameters
             amount = None
             if "amount" in effect:
-                amount = int(effect["amount"])
+                amount = effect["amount"]
+            effect_type = effect_types()[effect["effect_type"]]
             server_effect = effect_def(
                 card_info["card_type"], 
                 amount, 
-                effect_types()[effect["effect_type"]], 
+                effect_type, 
                 target_types()[effect["target_type"]], 
                 effect["ai_target_types"]
             )
+            is_legal_type = False
+            for legal_type in server_effect["legal_effect_types"]:
+                if effect_type.id == legal_type["id"]:
+                    is_legal_type = True
+            if not is_legal_type:
+                server_effect = effect_def(
+                    card_info["card_type"], 
+                    amount, 
+                    effect_types()[server_effect["legal_effect_types"][0]["id"]], 
+                    target_types()[effect["target_type"]], 
+                    effect["ai_target_types"]
+                )
         card_info["effects"][-1] = server_effect
         power_points = Card(card_info).power_points_value()
         return JsonResponse({"server_effect": server_effect, "power_points": power_points})
@@ -160,11 +173,11 @@ def get_power_points(request):
     info = json.load(request)
     card_info = info["card_info"]
     if card_info.get("cost") is not None:
-        card_info["cost"] = int(card_info["cost"])
+        card_info["cost"] = card_info["cost"]
     if card_info.get("strength") is not None:
-        card_info["strength"] = int(card_info["strength"])
+        card_info["strength"] = card_info["strength"]
     if card_info.get("hit_points") is not None:
-        card_info["hit_points"] = int(card_info["hit_points"])
+        card_info["hit_points"] = card_info["hit_points"]
     Analytics.log_amplitude(request, "Create Card Get Power Points", {})
     power_points = Card(card_info).power_points_value()
     return JsonResponse({"power_points": power_points})
@@ -223,14 +236,14 @@ def create_card_save(request, required_key, event_name):
             print(error_message)
             return JsonResponse({"error": error_message})
         if card_info["card_type"] == Constants.mobCardType:
-            card_info["strength"] = int(card_info["strength"])    
-            card_info["hit_points"] = int(card_info["hit_points"])    
+            card_info["strength"] = card_info["strength"]   
+            card_info["hit_points"] = card_info["hit_points"]    
         if "cost" in card_info:
-            card_info["cost"] = int(card_info["cost"])    
+            card_info["cost"] = card_info["cost"]   
         if "effects" in card_info:
             for e in card_info["effects"]:
                 if e.get("amount") is not None:
-                    e["amount"] = int(e["amount"])    
+                    e["amount"] = e["amount"]   
         card_info = Card(card_info).as_dict(for_card_builder=True)
         custom_card.card_json = card_info
         custom_card.save()

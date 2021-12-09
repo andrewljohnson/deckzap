@@ -11,9 +11,9 @@ export class CardBuilderBase {
     }
 
     setUpPIXIApp() {
-        const widthInCards = 9;
-        const appWidth = Card.cardWidth * widthInCards + Constants.padding * widthInCards
-        const appHeight = (Card.cardHeight) * 7;
+        const widthInCards = 1;
+        const appWidth = Card.cardWidth;
+        const appHeight = (Card.cardHeight) + Constants.padding * 2;
         Constants.setUpPIXIApp(this, appHeight, appWidth)
     }
 
@@ -111,8 +111,10 @@ export class CardBuilderBase {
     addCardSprite() {
         const cardSprite = Card.sprite(this.cardInfo(), this);
         const cardHeight = Card.cardHeight;
-        cardSprite.position.x = this.errorText.position.x + Card.cardWidth * 1.25 / 2;
-        cardSprite.position.y = this.errorText.position.y + 150;            
+        cardSprite.position.x = Card.cardWidth / 2;
+        cardSprite.position.y = Card.cardHeight / 2 + Constants.padding * 2;
+        // cardSprite.position.x = this.errorText.position.x + Card.cardWidth * 1.25 / 2;
+        // cardSprite.position.y = this.errorText.position.y + 150;            
         this.app.stage.addChild(cardSprite);
         cardSprite.interactive = true;
         this.card = cardSprite;
@@ -131,10 +133,19 @@ export class CardBuilderBase {
     }
 
     cardDescription() {
+        if (this.effects && this.effects.length) {
+            return this.descriptionForEffects(this.effects);
+        }
         if (this.originalCardInfo && this.originalCardInfo.effects && this.originalCardInfo.effects.length) {
             return this.descriptionForEffects(this.originalCardInfo.effects);
         }
     }
+    /*
+    cardDescription() {
+        if (this.originalCardInfo && this.originalCardInfo.effects && this.originalCardInfo.effects.length) {
+            return this.descriptionForEffects(this.originalCardInfo.effects);
+        }
+    }*/
 
     descriptionForEffects(effects) {
         let description = "";

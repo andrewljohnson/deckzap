@@ -5,7 +5,6 @@ import { CardBuilderEffects } from '../js/views/create_cards/CardBuilderEffects'
 import { CardBuilderMob } from '../js/views/create_cards/CardBuilderMob';
 import { CardBuilderSpell } from '../js/views/create_cards/CardBuilderSpell';
 import { CardBuilderNameAndImage } from '../js/views/create_cards/CardBuilderNameAndImage';
-import { CardBuilderType } from '../js/views/create_cards/CardBuilderType';
 import { DeckBuilder } from '../js/views/DeckBuilder';
 import { DeckViewer } from '../js/views/DeckViewer';
 import { GameRoom } from '../js/components/GameRoom';
@@ -14,6 +13,11 @@ import { MatchFinder } from '../js/views/MatchFinder';
 import { OpponentChooser } from '../js/views/OpponentChooser';
 import { TopDecks } from '../js/views/TopDecks';
 import { TopPlayers } from '../js/views/TopPlayers';
+
+import ReactDOM from "react-dom";
+import CardBuilderType from '../js/views/create_cards/CardBuilderType';
+import CardView from '../js/views/create_cards/CardView';
+import NewCardBuilderMob from '../js/views/create_cards/NewCardBuilderMob';
 
 // Reload window in dev
 if (process.env.NODE_ENV !== 'production') {
@@ -73,14 +77,24 @@ if (window.location.pathname.startsWith("/play")) {
             document.getElementById("data_store").getAttribute("effect_index"),
         );
     } else if (window.location.pathname.endsWith("mob")) {
-        new CardBuilderMob(
+            const effectsAndTypes = JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types"));
+            const cardInfo = JSON.parse(document.getElementById("data_store").getAttribute("card_info"));
+            const cardID = document.getElementById("data_store").getAttribute("card_id");
+
+            // const effect_index = document.getElementById("data_store").getAttribute("effect_index");
+
+        const cardView = new CardView("card");
+        ReactDOM.render(<NewCardBuilderMob cardView={cardView} cardID={cardID} originalCardInfo={cardInfo} effectsAndTypes={effectsAndTypes} />, document.getElementById("app"));
+
+        /*new CardBuilderMob(
             "app",
             JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
             JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
             document.getElementById("data_store").getAttribute("card_id"),
             document.getElementById("data_store").getAttribute("effect_index"),
-        );
+        );*/
     } else {
-        new CardBuilderType("app");
+        const cardView = new CardView("card");
+        ReactDOM.render(<CardBuilderType cardView={cardView} />, document.getElementById("app"));
     }
 }

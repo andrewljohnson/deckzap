@@ -66,13 +66,6 @@ export class CardBuilderMobAndSpellBase extends CardBuilderBase {
         return 0;
     }
 
-    cardDescription() {
-        if (this.effects && this.effects.length) {
-            return this.descriptionForEffects(this.effects);
-        }
-        return super.cardDescription()
-    }
-
     cardCost() {
         if (this.userCardCost || this.userCardCost == 0) {
             return this.userCardCost;

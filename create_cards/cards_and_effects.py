@@ -151,6 +151,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "damage",
          "effect_type": effect_type.id,
          "description": description,
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -226,6 +227,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "cards",
          "effect_type": effect_type.id,
          "description": Effects.description_for_cards_effect("discard", target_type, amount, effect_type, is_random=True),
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -280,6 +282,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "cards",
          "effect_type": effect_type.id,
          "description": Effects.description_for_cards_effect("draw", target_type, amount, effect_type),
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -332,6 +335,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "hit points",
          "effect_type": effect_type.id,
          "description": description,
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -389,6 +393,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "mana",
          "effect_type": effect_type.id,
          "description": f"You get {amount} extra mana on upcoming turns.",
          "legal_card_type_ids": [key for key, value in card_types().items()],
