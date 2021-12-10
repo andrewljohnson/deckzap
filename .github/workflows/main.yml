@@ -4,10 +4,7 @@ on: [push]
 
 env:
   WEB_IMAGE: ghcr.io/nathancahill/deckzap/web
-<<<<<<< HEAD
-=======
-  DEPLOY_DIR: /app
->>>>>>> 8e9d1d6 (add dev deploy branch)
+  DEPLOY_DIR: "/app"
   DEBUG: 0
   PROJECT_NAME: deckzap
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
