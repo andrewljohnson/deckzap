@@ -31,7 +31,7 @@ jobs:
       - name: Set image env
         if: endsWith(github.ref, '/develop')
         run: |
-          echo "WEB_IMAGE=${{ env.BASE_IMAGE }}:dev" >> $GITHUB_ENV
+          echo "WEB_IMAGE=${{ env.WEB_IMAGE }}:dev" >> $GITHUB_ENV
       - name: Pull images
         run: |
           docker pull ${{ env.WEB_IMAGE }} || true
