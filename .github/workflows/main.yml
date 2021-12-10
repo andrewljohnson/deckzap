@@ -48,7 +48,6 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
-    needs: [build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v1
@@ -57,7 +56,7 @@ jobs:
       - name: Set image env
         if: endsWith(github.ref, '/develop')
         run: |
-          echo "WEB_IMAGE=${{ env.BASE_IMAGE }}:dev" >> $GITHUB_ENV
+          echo "WEB_IMAGE=${{ env.WEB_IMAGE }}:dev" >> $GITHUB_ENV
       - name: Pull images
         run: |
           docker pull ${{ env.WEB_IMAGE }} || true
@@ -79,7 +78,7 @@ jobs:
       - name: Set image env
         if: endsWith(github.ref, '/develop')
         run: |
-          echo "WEB_IMAGE=${{ env.BASE_IMAGE }}:dev" >> $GITHUB_ENV
+          echo "WEB_IMAGE=${{ env.WEB_IMAGE }}:dev" >> $GITHUB_ENV
           echo "DEPLOY_DIR=${{ env.DEPLOY_DIR }}-dev" >> $GITHUB_ENV
       - name: Add environment variables to .env
         run: |
