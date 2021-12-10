@@ -4,6 +4,10 @@ on: [push]
 
 env:
   WEB_IMAGE: ghcr.io/nathancahill/deckzap/web
+<<<<<<< HEAD
+=======
+  DEPLOY_DIR: /app
+>>>>>>> 8e9d1d6 (add dev deploy branch)
   DEBUG: 0
   PROJECT_NAME: deckzap
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -21,12 +25,16 @@ jobs:
   build:
     name: Build Docker Images
     runs-on: ubuntu-latest
-    if: endsWith(github.ref, '/main')
+    if: endsWith(github.ref, '/main') || endsWith(github.ref, '/develop')
     steps:
       - name: Checkout code
         uses: actions/checkout@v1
       - name: Log in to GitHub Packages
         run: echo ${PERSONAL_ACCESS_TOKEN} | docker login ghcr.io -u ${{ secrets.NAMESPACE }} --password-stdin
+      - name: Set image env
+        if: endsWith(github.ref, '/develop')
+        run: |
+          echo "WEB_IMAGE=${{ env.BASE_IMAGE }}:dev" >> $GITHUB_ENV
       - name: Pull images
         run: |
           docker pull ${{ env.WEB_IMAGE }} || true
@@ -43,11 +51,16 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
+    needs: [build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v1
       - name: Log in to GitHub Packages
         run: echo ${PERSONAL_ACCESS_TOKEN} | docker login ghcr.io -u ${{ secrets.NAMESPACE }} --password-stdin
+      - name: Set image env
+        if: endsWith(github.ref, '/develop')
+        run: |
+          echo "WEB_IMAGE=${{ env.BASE_IMAGE }}:dev" >> $GITHUB_ENV
       - name: Pull images
         run: |
           docker pull ${{ env.WEB_IMAGE }} || true
@@ -62,10 +75,15 @@ jobs:
     name: Deploy to DigitalOcean
     runs-on: ubuntu-latest
     needs: [build, test]
-    if: github.ref == 'refs/heads/main'
+    if: endsWith(github.ref, '/main') || endsWith(github.ref, '/develop')
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1
+      - name: Set image env
+        if: endsWith(github.ref, '/develop')
+        run: |
+          echo "WEB_IMAGE=${{ env.BASE_IMAGE }}:dev" >> $GITHUB_ENV
+          echo "DEPLOY_DIR=${{ env.DEPLOY_DIR }}-dev" >> $GITHUB_ENV
       - name: Add environment variables to .env
         run: |
           "${GITHUB_WORKSPACE}/generate-env.sh"
@@ -84,10 +102,10 @@ jobs:
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          scp  -o StrictHostKeyChecking=no -r ./.env ./docker-compose.prod.yml root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}:/app
+          scp  -o StrictHostKeyChecking=no -r ./.env ./docker-compose.prod.yml root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}:${{ env.DEPLOY_DIR }}
           ssh -o StrictHostKeyChecking=no root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }} << 'ENDSSH'
             set -e
-            cd /app
+            cd ${{ env.DEPLOY_DIR }}
             source .env
             docker login ghcr.io -u $NAMESPACE -p $PERSONAL_ACCESS_TOKEN
             docker pull $WEB_IMAGE
