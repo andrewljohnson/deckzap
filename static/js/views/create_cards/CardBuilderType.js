@@ -14,11 +14,11 @@ class CardBuilderType extends NewCardBuilderBase {
 
     changeType = (event, cardType) => {
         this.setState({cardType});
-        this.props.cardView.setCardType(cardType);
+        this.props.cardView.setProperty("card_type", cardType);
     }
 
     nextButtonClicked = async () => {
-        const json = await Constants.postData(`${this.baseURL()}/save_new`, { card_info: this.props.cardBuilderCard.cardInfo() })
+        const json = await Constants.postData(`${this.baseURL()}/save_new`, { card_info: this.props.cardView.cardInfo })
         if("error" in json) {
             console.log(json); 
             alert("error saving card");
