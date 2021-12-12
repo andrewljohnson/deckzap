@@ -1069,9 +1069,9 @@
         },
         {
             "ai_target_types": [],
-            "amount": 0,
+            "amount": 1,
             "amount_name": "damage",
-            "description": "Deal 0 damage to any target.",
+            "description": "Deal 1 damage to any target.",
             "effect_type": "spell",
             "id": "damage",
             "legal_card_type_ids": [
@@ -1127,7 +1127,7 @@
                 }
             ],
             "name": "Damage",
-            "power_points": 1,
+            "power_points": 2,
             "target_type": "any"
         },
         {
@@ -1230,9 +1230,9 @@
         },
         {
             "ai_target_types": [],
-            "amount": 0,
+            "amount": 1,
             "amount_name": "hit points",
-            "description": "Heal any target for 0.",
+            "description": "Heal any target for 1.",
             "effect_type": "spell",
             "id": "heal",
             "legal_card_type_ids": [

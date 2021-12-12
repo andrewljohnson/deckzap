@@ -39,13 +39,15 @@ class CardBuilderMob extends CardBuilderBase {
   
         return (
             <ThemeProvider theme={this.theme()}>
-                <h1>Create Mob</h1>
-                <div style={{display: "flex"}}>
-                    {this.sliderDiv("Mana Cost", "Mana", this.manaMarks(), this.changeManaCost, () => this.getPowerPoints())}
-                    {this.sliderDiv("Strength", "Strength", strengthMarks, this.changeStrength, () => this.getPowerPoints())}
-                    {this.sliderDiv("Hit Points", "Hit Points", hitPointMarks, this.changeHitPoints, () => this.getPowerPoints(), 1)}
+                <div>
+                    <h1>Create Mob</h1>
+                    <div style={{display: "flex"}}>
+                        {this.sliderDiv("Mana Cost", "Mana", this.manaMarks(), this.changeManaCost, () => this.getPowerPoints())}
+                        {this.sliderDiv("Strength", "Strength", strengthMarks, this.changeStrength, () => this.getPowerPoints())}
+                        {this.sliderDiv("Hit Points", "Hit Points", hitPointMarks, this.changeHitPoints, () => this.getPowerPoints(), 1)}
+                    </div>
+                    {this.effectGroup()}
                 </div>
-                {this.effectGroup()}
             </ThemeProvider>
         );
     }

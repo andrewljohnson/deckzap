@@ -162,9 +162,9 @@ class CardBuilderBase extends Component {
         this.setState({effect, effects}, () => { this.getEffectForInfo(this.state.effect) });
     };
 
-    changeEffectAmount = (event) => {
+    changeEffectAmount = (event, value) => {
         const effect = this.state.effect;
-        effect.amount = event.target.value;
+        effect.amount = value;
         const effects = this.state.effects;
         effects[effects.length - 1] = effect;
         this.setState({effect, effects});
@@ -219,20 +219,22 @@ class CardBuilderBase extends Component {
         return toggleButtonGroup;
     }
 
-    sliderDiv = (title, ariaLabel, marks, action, onChangeCommitted, min=0) => {
+    sliderDiv = (title, ariaLabel, marks, onChange, onChangeCommitted, min=0) => {
         return <div style={{width:"33%"}}>
             <h2>{title}</h2>
             <Box sx={{ width: 120, paddingLeft:"12px", paddingTop: 1 }}>
                 <Slider
                   aria-label={title}
                   getAriaValueText={(value) => { return `${value} ${ariaLabel}`; }}
-                  defaultValue={this.state.manaCost ? this.state.manaCost : 0}
+                  value={title == "Mana Cost" ? this.state.manaCost
+                         : title == "Strength" ? this.state.strength
+                         : title == "Hit Points" ? this.state.hitPoints : null}
                   valueLabelDisplay="auto"
                   step={1}
                   marks={marks}
                   min={min}
                   max={10}
-                  onChange={action}
+                  onChange={onChange}
                   onChangeCommitted={onChangeCommitted}
                 />
             </Box>
@@ -248,7 +250,6 @@ class CardBuilderBase extends Component {
                 <Slider
                       aria-label={title}
                       getAriaValueText={(value) => { return `${value} ${ariaLabel}`; }}
-                      defaultValue={this.state.effect && this.state.effect.amount ? this.state.effect.amount : 0}
                       valueLabelDisplay="auto"
                       step={1}
                       marks={marks}
@@ -374,7 +375,6 @@ class CardBuilderBase extends Component {
                 </div>
             }
 
-            console.log(this.state.effect)
             if (this.state.effect.legal_target_types) {
                 let legalTargetTypes = this.legalTargetTypes(this.state.effect);
                 for (let i=0;i<legalTargetTypes.length;i++) {
@@ -409,35 +409,40 @@ class CardBuilderBase extends Component {
 
         return (
             <ThemeProvider theme={this.theme()}>
-                <h2>Effect</h2>
-                {this.effectButtonGroup()}
-                <br /><br />
-                {effectTriggerMenuItems.length > 1 && effectTriggerSelect}
-                {targetTypeMenuItems.length > 1 && targetTypeSelect}
-                {amountSlider}
-                <Button 
-                    color="secondary"
-                    disabled={this.state.disableAdditionalEffect}
-                    variant="contained"
-                    onClick={this.additionalEffectButtonClicked}
-                    style={{marginRight: 30}}
-                >
-                    + Effect
-                </Button> 
-                <Button 
-                    color="primary"
-                    disabled={this.state.disableSave}
-                    variant="contained"
-                    onClick={this.nextButtonClicked}
-                >
-                    Choose Name & Image
-                </Button> 
-                {this.state.powerPoints > 100 &&
-                    <p style={{color: "red"}}>
-                        A card cannot have more than 100 power points.
-                    </p> 
-                }
-                <br /><br />     
+                <div>
+                    <div>
+                        <h2>Effect</h2>
+                        {this.effectButtonGroup()}
+                        <br /><br />
+                        {effectTriggerMenuItems.length > 1 && effectTriggerSelect}
+                        {targetTypeMenuItems.length > 1 && targetTypeSelect}
+                        {amountSlider}
+                    </div>
+                    <div>
+                        <Button 
+                            color="secondary"
+                            disabled={this.state.disableAdditionalEffect}
+                            variant="contained"
+                            onClick={this.additionalEffectButtonClicked}
+                            style={{marginRight: 30}}
+                        >
+                            + Effect
+                        </Button> 
+                        <Button 
+                            color="primary"
+                            disabled={this.state.disableSave}
+                            variant="contained"
+                            onClick={this.nextButtonClicked}
+                        >
+                            Choose Name & Image
+                        </Button> 
+                        {this.state.powerPoints > 100 &&
+                            <p style={{color: "red"}}>
+                                A card cannot have more than 100 power points.
+                            </p> 
+                        }
+                    </div>
+                </div>
             </ThemeProvider>
         );
     }

@@ -195,7 +195,7 @@ def save_new_card(request):
         return JsonResponse({"error": error_message})
     else: 
         custom_card = CustomCard.objects.create(
-            card_json={"card_type": card_info["card_type"], "author_username": request.user.username}, 
+            card_json={"card_type": card_info["card_type"], "author_username": request.user.username, "is_custom": True}, 
             author=request.user, 
             date_created=datetime.datetime.now()
         )

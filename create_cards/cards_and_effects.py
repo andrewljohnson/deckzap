@@ -502,12 +502,12 @@ class Effects:
       self_target_type = target_types()["self"]
       effects = [
          Effects.ambush(),
-         Effects.damage(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
+         Effects.damage(card_types()["spell"].id, 1, spell_effect_type, any_target_type, []),
          Effects.discard_random(card_types()["spell"].id, 1, spell_effect_type, opponent_target_type, [opponent_target_type.id]),
          Effects.drain(),
          Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.guard(),
-         Effects.heal(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
+         Effects.heal(card_types()["spell"].id, 1, spell_effect_type, any_target_type, []),
          Effects.make_from_deck(card_types()["spell"].id, None, spell_effect_type, self_target_type, []),
          Effects.mana_increase_max(card_types()["spell"].id, 1, spell_effect_type, self_target_type, []),
          Effects.shield(),         

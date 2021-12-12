@@ -28,7 +28,6 @@ class CardBuilderNameAndImage extends CardBuilderBase {
     }
 
     selectImage = (event, newValue) => {
-        this.props.cardView.setProperty("is_custom", true);
         if (newValue) {
             this.setState({image: newValue.filename}, this.toggleSaveButton);
             this.props.cardView.setProperty("image", newValue.filename);
