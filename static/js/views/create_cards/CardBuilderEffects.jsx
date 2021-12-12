@@ -1,9 +1,9 @@
 import React from "react";
 import { ThemeProvider } from '@mui/material/styles';
-import NewCardBuilderBase from './NewCardBuilderBase';
+import CardBuilderBase from './CardBuilderBase';
 
 
-class NewCardBuilderEffects extends NewCardBuilderBase {
+class CardBuilderEffects extends CardBuilderBase {
     render() {
         return (
             <ThemeProvider theme={this.theme()}>
@@ -14,4 +14,4 @@ class NewCardBuilderEffects extends NewCardBuilderBase {
     }
 }
 
-export default NewCardBuilderEffects;
+export default CardBuilderEffects;

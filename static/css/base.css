@@ -5,6 +5,20 @@ body {
 
 .wrapper {
     margin:10px;    
+    max-width:  1024px;
+    min-height:  800px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#app {
+    min-width:  600px;
+}
+
+#card {
+    margin-left:  60px;
+    margin-top:  20px;
 }
 
 

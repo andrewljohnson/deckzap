@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="wrapper" style="max-width:1024px">
+<div style="max-width:1024px; margin:10px">
   <h1>{{username}}</h1>
   {% if player_rank > 0 %} 
     <p>{{username}} is <a href=/top_players>ranked #{{player_rank}}</a> on deckzap.com.</p>

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import * as Constants from '../../constants.js';
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -12,7 +12,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 
-class NewCardBuilderBase extends Component {
+class CardBuilderBase extends Component {
     state = {
         cardType: Constants.mobCardType,
         strength: this.props.originalCardInfo.strength ? this.props.originalCardInfo.strength : 0,
@@ -20,7 +20,8 @@ class NewCardBuilderBase extends Component {
         manaCost: this.props.originalCardInfo.cost ? this.props.originalCardInfo.cost : 0,
         powerPoints: this.props.originalCardInfo.power_points ? this.props.originalCardInfo.power_points : 0,
         effects: this.props.originalCardInfo.effects ? this.props.originalCardInfo.effects : [],
-        effect: null,
+        effect: this.props.originalCardInfo.effects && this.props.originalCardInfo.effects.length > this.props.effectIndex ? this.props.originalCardInfo.effects[this.props.originalCardInfo.effects.length - 1] : null,
+        disableAdditionalEffect: true
     };
 
     baseURL = () => {
@@ -34,6 +35,7 @@ class NewCardBuilderBase extends Component {
         info.hit_points = this.state.hitPoints;
         info.effects = this.state.effects;
         info.power_points = this.state.powerPoints;
+        info.description = Constants.cardDescription(info);
         return info;
     };
 
@@ -50,7 +52,6 @@ class NewCardBuilderBase extends Component {
         if (!this.props.originalCardInfo || !this.props.originalCardInfo.image) {
             info.image = this.defaultCardImageFilename();
         }
-        info.description = Constants.cardDescription(this.cardInfo());
         return info;
     }
 
@@ -86,12 +87,12 @@ class NewCardBuilderBase extends Component {
     }
 
     getPowerPoints = async () => {
-        const json = await Constants.postData(`${this.baseURL()}/get_power_points`, { card_info: this.cardInfo(), card_id: this.props.cardID })
+        const json = await Constants.postData(`${this.baseURL()}/get_power_points`, { card_info: this.cardInfo(), card_id: this.props.cardID });
         if("error" in json) {
             console.log(json); 
             alert("error fetching power points");
         } else {
-            this.setState({powerPoints:json.power_points});
+            this.setState({powerPoints:json.power_points}, this.toggleButtons);
             this.props.cardView.setProperty("power_points", json.power_points);
         }
     }
@@ -109,14 +110,18 @@ class NewCardBuilderBase extends Component {
             }
             let newEffects = this.state.effects;
             newEffects[newEffects.length - 1] = json.server_effect            
-            this.setState({effect:json.server_effect, effects:newEffects, powerPoints:json.power_points});
+            this.setState({effect:json.server_effect, effects:newEffects, powerPoints:json.power_points}, this.toggleButtons);
             this.props.cardView.setProperty("effects", newEffects);
             this.props.cardView.setProperty("power_points", json.power_points);
             if (successFunction) {
                 successFunction();
             }
-
         }
+    }
+
+    toggleButtons = () => {
+        this.setState({"disableSave": this.state.powerPoints > 100 || (this.state.effect == null && this.state.cardType != Constants.mobCardType)});
+        this.setState({"disableAdditionalEffect": this.state.powerPoints > 100 || this.state.effect == null});        
     }
 
     nextButtonClicked = async (event) => {
@@ -144,19 +149,25 @@ class NewCardBuilderBase extends Component {
     changeEffectTrigger = (event) => {
         const effect = this.state.effect;
         effect.effect_type = event.target.value;
-        this.setState({effect, effects:[effect]}, () => { this.getEffectForInfo(this.state.effect) });
+        const effects = this.state.effects;
+        effects[effects.length - 1] = effect;
+        this.setState({effect, effects}, () => { this.getEffectForInfo(this.state.effect) });
     };
 
     changeTargetType = (event) => {
         const effect = this.state.effect;
         effect.target_type = event.target.value;
-        this.setState({effect, effects:[effect]}, () => { this.getEffectForInfo(this.state.effect) });
+        const effects = this.state.effects;
+        effects[effects.length - 1] = effect;
+        this.setState({effect, effects}, () => { this.getEffectForInfo(this.state.effect) });
     };
 
     changeEffectAmount = (event) => {
         const effect = this.state.effect;
         effect.amount = event.target.value;
-        this.setState({effect, effects:[effect]});
+        const effects = this.state.effects;
+        effects[effects.length - 1] = effect;
+        this.setState({effect, effects});
     };
 
     effectButtonGroup = () => {
@@ -169,12 +180,14 @@ class NewCardBuilderBase extends Component {
         for (let effect of effects) {
             let used = false;
             for (let usedEffect of this.state.effects) {
-                if (usedEffect.id == effect.id && (!this.state.effect || 
-                    (this.state.effect.id != usedEffect.id || this.state.effect.target_type != usedEffect.target_type))) {
+                if (this.state.effect && usedEffect.id === this.state.effect.id) {
+                    continue;
+                }
+                if (usedEffect.id === effect.id && effect.one_per_card) {
                     used = true;
                 }
             }
-            if (effect.effect_type == "spell" || !used) {
+            if (!used) {
                 if (this.legalTargetTypes(effect).length > 0) {
                     unusedOrDuplicableEffects.push(effect);
                 }
@@ -213,7 +226,7 @@ class NewCardBuilderBase extends Component {
                 <Slider
                   aria-label={title}
                   getAriaValueText={(value) => { return `${value} ${ariaLabel}`; }}
-                  defaultValue={0}
+                  defaultValue={this.state.manaCost ? this.state.manaCost : 0}
                   valueLabelDisplay="auto"
                   step={1}
                   marks={marks}
@@ -235,7 +248,7 @@ class NewCardBuilderBase extends Component {
                 <Slider
                       aria-label={title}
                       getAriaValueText={(value) => { return `${value} ${ariaLabel}`; }}
-                      defaultValue={0}
+                      defaultValue={this.state.effect && this.state.effect.amount ? this.state.effect.amount : 0}
                       valueLabelDisplay="auto"
                       step={1}
                       marks={marks}
@@ -268,6 +281,9 @@ class NewCardBuilderBase extends Component {
     };
 
     legalTargetTypes = (effect) => {
+        if (!effect.legal_target_types) {
+            return [];
+        }
         const targettedEffectTypes = ["any", "mob", "enemy_mob", "friendly_mob", "player"];
         let alreadyHasTargettedEffect = false;
         for (let effect of this.state.effects) {
@@ -291,16 +307,28 @@ class NewCardBuilderBase extends Component {
 
     theme = () => {
         return createTheme({
-          components: {
-            // Name of the component
-            MuiSlider: {
-              styleOverrides: {
-                 markLabel: {
-                    transform: 'translateX(-12%)',
-                },
-              },
+            palette: {
+                primary: {
+                    light: '#0000FF',
+                    main: '#0000FF',
+                    dark: '#0000FF',
+                    contrastText: '#fff',
+                },            
             },
-          },
+            components: {
+                MuiSlider: {
+                  styleOverrides: {
+                     markLabel: {
+                        transform: 'translateX(-12%)',
+                    },
+                  },
+                },
+                MuiButton: { 
+                    styleOverrides: { 
+                        root: { minWidth: 150, minHeight: 60 } 
+                    } 
+                }
+            },
         });
     }
 
@@ -346,6 +374,7 @@ class NewCardBuilderBase extends Component {
                 </div>
             }
 
+            console.log(this.state.effect)
             if (this.state.effect.legal_target_types) {
                 let legalTargetTypes = this.legalTargetTypes(this.state.effect);
                 for (let i=0;i<legalTargetTypes.length;i++) {
@@ -368,40 +397,52 @@ class NewCardBuilderBase extends Component {
                     </FormControl>
                 </div>;                
             }
-
-            if ("amount" in this.state.effect) {
+            if ("amount" in this.state.effect && this.state.effect.amount !== null) {
                 amountSlider = this.amountSliderDiv(this.state.effect.amount_name, this.state.effect.amount_name, this.amountMarks(this.state.effect.amount_name), () => this.getEffectForInfo(this.state.effect));
             } 
         }
 
+        let disableSave = false;
+        if (this.state.disableSave) {
+            disableSave = true;
+        }
+
         return (
-            <div>
+            <ThemeProvider theme={this.theme()}>
                 <h2>Effect</h2>
                 {this.effectButtonGroup()}
                 <br /><br />
                 {effectTriggerMenuItems.length > 1 && effectTriggerSelect}
                 {targetTypeMenuItems.length > 1 && targetTypeSelect}
                 {amountSlider}
-                {this.state.effect &&
-                    <Button 
-                        variant="contained"
-                        onClick={this.additionalEffectButtonClicked}
-                        style={{marginRight: 30}}
-                    >
-                        Additional Effect
-                    </Button> 
-                }
                 <Button 
+                    color="secondary"
+                    disabled={this.state.disableAdditionalEffect}
+                    variant="contained"
+                    onClick={this.additionalEffectButtonClicked}
+                    style={{marginRight: 30}}
+                >
+                    + Effect
+                </Button> 
+                <Button 
+                    color="primary"
+                    disabled={this.state.disableSave}
                     variant="contained"
                     onClick={this.nextButtonClicked}
                 >
-                    Next
+                    Choose Name & Image
                 </Button> 
+                {this.state.powerPoints > 100 &&
+                    <p style={{color: "red"}}>
+                        A card cannot have more than 100 power points.
+                    </p> 
+                }
                 <br /><br />     
-            </div>
+            </ThemeProvider>
         );
     }
 
 }
 
-export default NewCardBuilderBase;
+
+export default CardBuilderBase;

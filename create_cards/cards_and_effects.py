@@ -137,6 +137,7 @@ class Effects:
          "description": "Ambush",
          "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
          "effect_type": effect_types()["mob_changes_zones"].id,
+         "one_per_card": True,
          "legal_card_type_ids": [card_types()["mob"].id],
          "power_points": 1,
       }      
@@ -274,6 +275,7 @@ class Effects:
          "description_expanded": f"Gain hit points equal to this mob's strength {effect_type.description}.",
          "effect_type": effect_type.id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "one_per_card": True,
          "power_points": 1,
       }
 
@@ -322,6 +324,7 @@ class Effects:
          "description_expanded": "Guard mobs must be attacked before other enemies.",
          "effect_type": effect_types()["select_mob_target"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "one_per_card": True,
          "power_points": 1,
       }      
 
@@ -385,6 +388,7 @@ class Effects:
          "id": "make_from_deck",
          "name": "Make from Deck",
          "target_type": target_type.id,
+         "one_per_card": True,
          "power_points": 3,
       }
 
@@ -403,6 +407,7 @@ class Effects:
          ],
          "id": "mana_increase_max",
          "name": "Mana Increase Max",
+         "one_per_card": True,
          "power_points": amount * 5, 
          "target_type": target_type.id,
       }
@@ -416,6 +421,7 @@ class Effects:
          "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
          "effect_type": effect_types()["before_is_damaged"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "one_per_card": True,
          "power_points": 3,
          "ui_info": {
             "effect_type": "glow",
@@ -438,6 +444,7 @@ class Effects:
          ],
          "id": "take_extra_turn",
          "name": "Take Extra Turn",
+         "one_per_card": True,
          "target_type": target_type.id,
          "power_points": 17,
       }

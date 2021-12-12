@@ -4,10 +4,11 @@ import { Card } from '../../components/Card.js';
 import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import NewCardBuilderBase from './NewCardBuilderBase';
+import CardBuilderBase from './CardBuilderBase';
+import { ThemeProvider } from '@mui/material/styles';
 
 
-class CardBuilderType extends NewCardBuilderBase {
+class CardBuilderType extends CardBuilderBase {
     state = {
         cardType: Constants.mobCardType,
     };
@@ -39,8 +40,14 @@ class CardBuilderType extends NewCardBuilderBase {
         };
 
         return (
-            <div>
+            <ThemeProvider theme={this.theme()}>
                 <h1>Choose Card Type</h1>
+                <p>
+                    <b>Mobs</b> have strength and hit points, and they can attack your opponent and their mobs.
+                </p>
+                <p>
+                    <b>Spells</b> have an effect on the game when you play them and then go to your discard pile.
+                </p>
                 <ToggleButtonGroup size="large" {...control}>
                     <ToggleButton value={Constants.mobCardType} key={Constants.mobCardType}>
                         Mob
@@ -49,15 +56,15 @@ class CardBuilderType extends NewCardBuilderBase {
                         Spell
                     </ToggleButton>,
                 </ToggleButtonGroup>
-                <br /><br />
+                <br /><br /><br /><br />
                 <Button 
                     variant="contained"
                     onClick={this.nextButtonClicked}
                 >
                     Next
                 </Button> 
-                <br /><br />     
-            </div>
+                <br /><br /><br /> 
+            </ThemeProvider>
         );
     }
 }

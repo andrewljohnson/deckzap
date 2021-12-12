@@ -1942,6 +1942,8 @@ class CardEffect:
         self.id = info["id"] if "id" in info else None         
         # the name of the effect
         self.name = info["name"] if "name" in info else None         
+        # this effect can only occur once per card
+        self.one_per_card = info["one_per_card"] if "one_per_card" in info else False         
         # the calculated strength of the effect
         self.power_points = info["power_points"] if "power_points" in info else 0         
         # a flag to set on the effect to trigger an animation on the next repaint
@@ -1994,6 +1996,7 @@ class CardEffect:
                 "effect_type": self.effect_type,
                 "id": self.id,
                 "name": self.name,
+                "one_per_card": self.one_per_card,
                 "power_points": self.power_points,
                 "target_type": self.target_type
             }

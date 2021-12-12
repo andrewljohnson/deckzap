@@ -1,9 +1,15 @@
 import React from "react";
 import { ThemeProvider } from '@mui/material/styles';
-import NewCardBuilderBase from './NewCardBuilderBase';
+import CardBuilderBase from './CardBuilderBase';
+import * as Constants from '../../constants.js';
 
 
-class NewCardBuilderMob extends NewCardBuilderBase {
+class CardBuilderMob extends CardBuilderBase {
+    state = { 
+        ...this.state,
+        disableSave: true        
+    };
+
     render() {
         return (
             <ThemeProvider theme={this.theme()}>
@@ -17,4 +23,4 @@ class NewCardBuilderMob extends NewCardBuilderBase {
     }
 }
 
-export default NewCardBuilderMob;
+export default CardBuilderMob;

@@ -23,6 +23,7 @@
                         "mob"
                     ],
                     "name": "Shield",
+                    "one_per_card": true,
                     "power_points": 3,
                     "ui_info": {
                         "color": "white",
@@ -59,6 +60,7 @@
                         "mob"
                     ],
                     "name": "Ambush",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -89,6 +91,7 @@
                         "mob"
                     ],
                     "name": "Drain",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -119,6 +122,7 @@
                         "mob"
                     ],
                     "name": "Guard",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -338,6 +342,7 @@
                         }
                     ],
                     "name": "Make from Deck",
+                    "one_per_card": true,
                     "power_points": 3,
                     "target_type": "self"
                 }
@@ -462,6 +467,7 @@
                         }
                     ],
                     "name": "Mana Increase Max",
+                    "one_per_card": true,
                     "power_points": 5,
                     "target_type": "self"
                 }
@@ -687,6 +693,7 @@
                         }
                     ],
                     "name": "Take Extra Turn",
+                    "one_per_card": true,
                     "power_points": 17,
                     "target_type": "self"
                 }
@@ -859,6 +866,7 @@
                         "mob"
                     ],
                     "name": "Guard",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -880,6 +888,7 @@
                         "mob"
                     ],
                     "name": "Ambush",
+                    "one_per_card": true,
                     "power_points": 1
                 },
                 {
@@ -891,6 +900,7 @@
                         "mob"
                     ],
                     "name": "Drain",
+                    "one_per_card": true,
                     "power_points": 1
                 },
                 {
@@ -902,6 +912,7 @@
                         "mob"
                     ],
                     "name": "Guard",
+                    "one_per_card": true,
                     "power_points": 1
                 },
                 {
@@ -913,6 +924,7 @@
                         "mob"
                     ],
                     "name": "Shield",
+                    "one_per_card": true,
                     "power_points": 3,
                     "ui_info": {
                         "color": "white",
@@ -1052,6 +1064,7 @@
                 "mob"
             ],
             "name": "Ambush",
+            "one_per_card": true,
             "power_points": 1
         },
         {
@@ -1163,6 +1176,7 @@
                 "mob"
             ],
             "name": "Drain",
+            "one_per_card": true,
             "power_points": 1
         },
         {
@@ -1211,6 +1225,7 @@
                 "mob"
             ],
             "name": "Guard",
+            "one_per_card": true,
             "power_points": 1
         },
         {
@@ -1299,6 +1314,7 @@
                 }
             ],
             "name": "Make from Deck",
+            "one_per_card": true,
             "power_points": 3,
             "target_type": "self"
         },
@@ -1326,6 +1342,7 @@
                 }
             ],
             "name": "Mana Increase Max",
+            "one_per_card": true,
             "power_points": 5,
             "target_type": "self"
         },
@@ -1338,6 +1355,7 @@
                 "mob"
             ],
             "name": "Shield",
+            "one_per_card": true,
             "power_points": 3,
             "ui_info": {
                 "color": "white",
@@ -1369,6 +1387,7 @@
                 }
             ],
             "name": "Take Extra Turn",
+            "one_per_card": true,
             "power_points": 17,
             "target_type": "self"
         },

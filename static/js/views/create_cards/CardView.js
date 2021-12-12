@@ -1,24 +1,31 @@
 import * as Constants from '../../constants.js';
 import { Card } from '../../components/Card.js';
-import { CardBuilderBase } from './CardBuilderBase.js'
 import { SVGRasterizer } from '../../components/SVGRasterizer.js';
 import * as PIXI from 'pixi.js'
 
-export class CardView extends CardBuilderBase {
+class CardView {
 
     constructor(containerID, cardInfo) {
-        super(containerID);
+        this.setUpPIXIApp();
         this.cardInfo = cardInfo;
         this.loadUX(containerID);
     }
 
+    setUpPIXIApp() {
+        const widthInCards = 1;
+        const appWidth = Card.cardWidth;
+        const appHeight = (Card.cardHeight) + Constants.padding * 2;
+        Constants.setUpPIXIApp(this, appHeight, appWidth)
+    }
+
     setProperty(key, value) {
         this.cardInfo[key] = value;
-        if (key == "name") {
-            this.cardInfo.name = value;
+        if (key == "name" || key == "image") {
             const cardImagesPath = this.customImagesURL();
             this.clearTextureCache(cardImagesPath, this.cardInfo.image);
-            this.clearTextureCache("/static/images/card-art/", this.cardInfo.image);
+            if (key === "name") {
+                this.clearTextureCache("/static/images/card-art/", this.cardInfo.image);
+            }
             const rasterizer = new SVGRasterizer(this.app);
             rasterizer.loadCardImages([this.cardInfo]);
             this.app.loader.load(() => {
@@ -67,6 +74,16 @@ export class CardView extends CardBuilderBase {
         cardSprite.interactive = true;
         this.card = cardSprite;
     }
+
+    updateCard() {
+        if (this.card) {
+            this.card.parent.removeChild(this.card);
+            this.card = null;
+        }
+        this.addCardSprite();
+    }
 }
 
 export default CardView;
+
+

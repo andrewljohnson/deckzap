@@ -1,9 +1,9 @@
 import React from "react";
 import { ThemeProvider } from '@mui/material/styles';
-import NewCardBuilderBase from './NewCardBuilderBase';
+import CardBuilderBase from './CardBuilderBase';
 
 
-class NewCardBuilderMob extends NewCardBuilderBase {
+class CardBuilderMob extends CardBuilderBase {
     changeStrength = (event, value) => {
         this.setState({strength: value});
         this.props.cardView.setProperty("strength", value);
@@ -51,4 +51,4 @@ class NewCardBuilderMob extends NewCardBuilderBase {
     }
 }
 
-export default NewCardBuilderMob;
+export default CardBuilderMob;

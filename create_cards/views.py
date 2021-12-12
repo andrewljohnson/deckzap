@@ -286,3 +286,23 @@ def save_name_and_image(request):
         custom_card.save()
         Analytics.log_amplitude(request, "Save Card Name and Image", {})
         return JsonResponse({})
+
+@require_POST
+def get_card_info(request):
+    """
+        A view to return card json for a card ID.
+    """
+    info = json.load(request)
+    card_id = info["card_id"]
+    card_info = CustomCard.objects.get(id=card_id).card_json
+    if "effects" in card_info:
+        all_effects = json.load(open('create_cards/cards_and_effects.json'))["effects"]
+        for effect in card_info["effects"]:
+            for ae in all_effects:
+                if "legal_target_types" in ae:
+                    if ae["id"]== effect["id"]:
+                        effect["legal_target_types"] = ae["legal_target_types"]
+                if "legal_effect_types" in ae:
+                    if ae["id"]== effect["id"]:
+                        effect["legal_effect_types"] = ae["legal_effect_types"]
+    return JsonResponse({"card_info": json.dumps(card_info)})
