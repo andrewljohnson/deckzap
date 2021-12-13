@@ -72,6 +72,7 @@ if (window.location.pathname.startsWith("/play")) {
         fetchCardInfo(cardID)
             .then(json => {
                 let cardInfo = JSON.parse(json.card_info);
+                console.log(cardInfo);
                 cardInfo.name = cardInfo.name ? cardInfo.name : "Unnamed Card";
                 cardInfo.image = cardInfo.image ? cardInfo.image : "uncertainty.svg";
                 cardInfo.description = Constants.cardDescription(cardInfo);

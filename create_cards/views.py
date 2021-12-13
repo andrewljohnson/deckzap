@@ -284,7 +284,10 @@ def save_name_and_image(request):
             print(error_message)
             return JsonResponse({"error": error_message})
 
-        custom_card.card_json = Card(card_info).as_dict(for_card_builder=True)
+        new_info = custom_card.card_json
+        new_info["name"] = card_info["name"]
+        new_info["image"] = card_info["image"]
+        custom_card.card_json = Card(new_info).as_dict(for_card_builder=True)
         custom_card.save()
         Analytics.log_amplitude(request, "Save Card Name and Image", {})
         return JsonResponse({})
