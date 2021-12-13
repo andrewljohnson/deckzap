@@ -1032,19 +1032,19 @@
     "effect_types": {
         "after_deals_damage": {
             "description": "after it deals damage",
-            "description_for_card_creator": "This effect will trigger whenever this card deals damage.",
+            "description_for_card_creator": "The effect will trigger whenever this card deals damage.",
             "id": "after_deals_damage",
             "name": "After This Deals Damage"
         },
         "before_is_damaged": {
             "description": null,
-            "description_for_card_creator": "This effect will trigger before this card receives damage.",
+            "description_for_card_creator": "The effect will trigger before this card receives damage.",
             "id": "before_is_damaged",
             "name": "Before This is Damaged"
         },
         "enters_play": {
             "description": "When this enters play",
-            "description_for_card_creator": "This effect will trigger when card mob enters play.",
+            "description_for_card_creator": "The effect will trigger when this mob enters play.",
             "id": "enters_play",
             "name": "Enters Play"
         },
@@ -1056,7 +1056,7 @@
         },
         "play_friendly_mob": {
             "description": "When you play a mob",
-            "description_for_card_creator": "This effect will trigger when this mob is in play and it's controller play another mob.",
+            "description_for_card_creator": "The effect will trigger when this mob is in play and it's controller plays another mob.",
             "id": "play_friendly_mob",
             "name": "Play Friendly Mob"
         },
