@@ -10,7 +10,7 @@ import { OpponentChooser } from '../js/views/OpponentChooser';
 import { TopDecks } from '../js/views/TopDecks';
 import { TopPlayers } from '../js/views/TopPlayers';
 
-import * as Constants from '../js/Constants';
+import * as Constants from '../js/constants';
 import ReactDOM from "react-dom";
 import CardBuilderType from '../js/views/create_cards/CardBuilderType';
 import CardView from '../js/views/create_cards/CardView';
