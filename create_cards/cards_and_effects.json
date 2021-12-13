@@ -1032,36 +1032,43 @@
     "effect_types": {
         "after_deals_damage": {
             "description": "after it deals damage",
+            "description_for_card_creator": "This effect will trigger whenever this card deals damage.",
             "id": "after_deals_damage",
             "name": "After This Deals Damage"
         },
         "before_is_damaged": {
             "description": null,
+            "description_for_card_creator": "This effect will trigger before this card receives damage.",
             "id": "before_is_damaged",
             "name": "Before This is Damaged"
         },
         "enters_play": {
             "description": "When this enters play",
+            "description_for_card_creator": "This effect will trigger when card mob enters play.",
             "id": "enters_play",
             "name": "Enters Play"
         },
         "mob_changes_zones": {
             "description": null,
+            "description_for_card_creator": null,
             "id": "mob_changes_zones",
             "name": "Mob Changes Zones"
         },
         "play_friendly_mob": {
             "description": "When you play a mob",
+            "description_for_card_creator": "This effect will trigger when this mob is in play and it's controller play another mob.",
             "id": "play_friendly_mob",
             "name": "Play Friendly Mob"
         },
         "select_mob_target": {
             "description": null,
+            "description_for_card_creator": null,
             "id": "select_mob_target",
             "name": "When Selecting a Target"
         },
         "spell": {
             "description": null,
+            "description_for_card_creator": null,
             "id": "spell",
             "name": "Spell"
         }
