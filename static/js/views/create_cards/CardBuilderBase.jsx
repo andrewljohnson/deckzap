@@ -345,7 +345,7 @@ class CardBuilderBase extends Component {
                         {effectTriggerMenuItems}
                       </Select>
                     </FormControl>
-                    <p style={{marginTop:5, marginLeft:4, color: "gray"}}>{this.props.effectsAndTypes.effect_types[this.state.effect.effect_type].description_for_card_creator}</p>
+                    <p style={{marginTop:5, marginLeft:4, color: "gray"}}><i>{this.props.effectsAndTypes.effect_types[this.state.effect.effect_type].description_for_card_creator}</i></p>
                 </div>
             }
 

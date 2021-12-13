@@ -88,13 +88,13 @@ def card_types(as_dicts=False):
  
 def effect_types(as_dicts=False):
    all_effect_types = {
-      "after_deals_damage": EffectType("after_deals_damage", "After This Deals Damage", "after it deals damage", "This effect will trigger whenever this card deals damage."),
-      "before_is_damaged": EffectType("before_is_damaged", "Before This is Damaged", None, "This effect will trigger before this card receives damage."),
-      "enters_play": EffectType("enters_play", "Enters Play", "When this enters play", "This effect will trigger when card mob enters play."),
+      "after_deals_damage": EffectType("after_deals_damage", "After This Deals Damage", "after it deals damage", "The effect will trigger whenever this card deals damage."),
+      "before_is_damaged": EffectType("before_is_damaged", "Before This is Damaged", None, "The effect will trigger before this card receives damage."),
+      "enters_play": EffectType("enters_play", "Enters Play", "When this enters play", "The effect will trigger when this mob enters play."),
       "select_mob_target": EffectType("select_mob_target", "When Selecting a Target", None, None), 
       "mob_changes_zones": EffectType("mob_changes_zones", "Mob Changes Zones", None, None),
       "spell": EffectType("spell", "Spell", None, None),
-      "play_friendly_mob": EffectType("play_friendly_mob", "Play Friendly Mob", "When you play a mob", "This effect will trigger when this mob is in play and it's controller play another mob.")
+      "play_friendly_mob": EffectType("play_friendly_mob", "Play Friendly Mob", "When you play a mob", "The effect will trigger when this mob is in play and it's controller plays another mob.")
    }
    if as_dicts:
       return dictify(all_effect_types)
