@@ -422,7 +422,7 @@ class CardBuilderBase extends Component {
                         {amountSlider}
                     </div>
                     <div>
-                        {this.props.effectIndex <= 1 &&
+                        {this.props.effectIndex == 0 &&
                             <Button 
                                 color="secondary"
                                 disabled={this.state.disableAdditionalEffect}
