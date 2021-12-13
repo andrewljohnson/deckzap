@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
 const TextInput = require("pixi-text-input");
+import { OutlineFilter } from 'pixi-filters';
 import * as Constants from '../constants.js';
 import { Card } from '../components/Card.js';
 import { CardsContainer } from '../components/CardsContainer.js';
@@ -133,10 +134,15 @@ export class DeckBuilder {
     }
 
     toggleSaveButton() {
-        const enabled = this.deckIsFull() && this.salaryCap <= 100;
+        const enabled = this.deckIsFull() && this.salaryCap <= 100 && this.deckTitleInput.text.length > 0;
         this.saveButton.background.interactive = enabled;
         this.saveButton.background.buttonMode = enabled;
         this.saveButton.background.tint = enabled ? Constants.blueColor : Constants.darkGrayColor;
+        if (this.deckIsFull() && this.salaryCap <= 100 && this.deckTitleInput.text.length == 0) {
+            this.deckTitleInput.filters = [new OutlineFilter(1, Constants.redColor)];
+        } else {
+            this.deckTitleInput.filters = [];
+        }
     }
 
     addDeckTitleInput(x, y, buttonWidth) {
@@ -152,7 +158,7 @@ export class DeckBuilder {
                     borderStyle: 'solid',
                 }
             })
-               deckTitleInput.placeholder = 'My Deck'
+               deckTitleInput.placeholder = 'Name Your Deck'
                deckTitleInput.text = this.decks[this.discipline].title ? this.decks[this.discipline].title != undefined : ""
               deckTitleInput.position.x = x;
             deckTitleInput.position.y = y;
@@ -164,7 +170,8 @@ export class DeckBuilder {
             this.deckTitleInput = deckTitleInput;
 
             this.deckTitleInput.on('input', text => {
-                this.decks[this.discipline].title = text
+                this.decks[this.discipline].title = text;
+                this.toggleSaveButton();
             })
     }
 
