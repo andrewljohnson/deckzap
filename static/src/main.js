@@ -1,11 +1,6 @@
 // this import due to: https://flaviocopes.com/parcel-regeneratorruntime-not-defined/
 import 'regenerator-runtime/runtime'
 
-import { CardBuilderEffects } from '../js/views/create_cards/CardBuilderEffects';
-import { CardBuilderMob } from '../js/views/create_cards/CardBuilderMob';
-import { CardBuilderSpell } from '../js/views/create_cards/CardBuilderSpell';
-import { CardBuilderNameAndImage } from '../js/views/create_cards/CardBuilderNameAndImage';
-import { CardBuilderType } from '../js/views/create_cards/CardBuilderType';
 import { DeckBuilder } from '../js/views/DeckBuilder';
 import { DeckViewer } from '../js/views/DeckViewer';
 import { GameRoom } from '../js/components/GameRoom';
@@ -14,6 +9,15 @@ import { MatchFinder } from '../js/views/MatchFinder';
 import { OpponentChooser } from '../js/views/OpponentChooser';
 import { TopDecks } from '../js/views/TopDecks';
 import { TopPlayers } from '../js/views/TopPlayers';
+
+import * as Constants from '../js/Constants';
+import ReactDOM from "react-dom";
+import CardBuilderType from '../js/views/create_cards/CardBuilderType';
+import CardView from '../js/views/create_cards/CardView';
+import CardBuilderEffects from '../js/views/create_cards/CardBuilderEffects';
+import CardBuilderMob from '../js/views/create_cards/CardBuilderMob';
+import CardBuilderSpell from '../js/views/create_cards/CardBuilderSpell';
+import CardBuilderNameAndImage from '../js/views/create_cards/CardBuilderNameAndImage';
 
 // Reload window in dev
 if (process.env.NODE_ENV !== 'production') {
@@ -50,37 +54,61 @@ if (window.location.pathname.startsWith("/play")) {
     new TopDecks("app", JSON.parse(document.getElementById("data_store").getAttribute("decks")));
 } else if (window.location.pathname.startsWith("/create_card")) {
     if (window.location.pathname.includes("effects")) {
-        new CardBuilderEffects(
-            "app",
-            JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
-            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
-            document.getElementById("data_store").getAttribute("card_id"),
-            document.getElementById("data_store").getAttribute("effect_index"),
-        );
+        const effectsAndTypes = JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types"));
+        const cardInfo = JSON.parse(document.getElementById("data_store").getAttribute("card_info"));
+        const cardID = document.getElementById("data_store").getAttribute("card_id");
+        fetchCardInfo(cardID)
+            .then(json => {
+                let cardInfo = JSON.parse(json.card_info);
+                cardInfo.name = cardInfo.name ? cardInfo.name : "Unnamed Card";
+                cardInfo.image = cardInfo.image ? cardInfo.image : "uncertainty.svg";
+                const effectIndex = parseInt(document.getElementById("data_store").getAttribute("effect_index"));
+                const cardView = new CardView("card", cardInfo);
+                ReactDOM.render(<CardBuilderEffects effectIndex={effectIndex} cardView={cardView} cardID={cardID} originalCardInfo={cardInfo} effectsAndTypes={effectsAndTypes} />, document.getElementById("app"));
+            });
     } else if (window.location.pathname.endsWith("name_and_image")) {
-        new CardBuilderNameAndImage(
-            "app",
-            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
-            JSON.parse(document.getElementById("data_store").getAttribute("card_id")),
-            JSON.parse(document.getElementById("data_store").getAttribute("image_paths")),
-        );
+        const cardID = document.getElementById("data_store").getAttribute("card_id");
+        const imagePaths = JSON.parse(document.getElementById("data_store").getAttribute("image_paths"));
+        fetchCardInfo(cardID)
+            .then(json => {
+                let cardInfo = JSON.parse(json.card_info);
+                cardInfo.name = cardInfo.name ? cardInfo.name : "Unnamed Card";
+                cardInfo.image = cardInfo.image ? cardInfo.image : "uncertainty.svg";
+                cardInfo.description = Constants.cardDescription(cardInfo);
+                const cardView = new CardView("card", cardInfo);
+                ReactDOM.render(<CardBuilderNameAndImage cardView={cardView} cardID={cardID} originalCardInfo={cardInfo} imagePaths={imagePaths}  />, document.getElementById("app"));
+            });
     } else if (window.location.pathname.endsWith("spell")) {
-        new CardBuilderSpell(
-            "app",
-            JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
-            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
-            document.getElementById("data_store").getAttribute("card_id"),
-            document.getElementById("data_store").getAttribute("effect_index"),
-        );
+        const effectsAndTypes = JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types"));
+        const cardID = document.getElementById("data_store").getAttribute("card_id");
+        fetchCardInfo(cardID)
+            .then(json => {
+                let cardInfo = JSON.parse(json.card_info);
+                cardInfo.name = cardInfo.name ? cardInfo.name : "Unnamed Spell";
+                cardInfo.image = cardInfo.image ? cardInfo.image : "uncertainty.svg";
+                const cardView = new CardView("card", cardInfo);
+                ReactDOM.render(<CardBuilderSpell effectIndex={0} cardView={cardView} cardID={cardID} originalCardInfo={cardInfo} effectsAndTypes={effectsAndTypes} />, document.getElementById("app"));           
+            });
     } else if (window.location.pathname.endsWith("mob")) {
-        new CardBuilderMob(
-            "app",
-            JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types")),
-            JSON.parse(document.getElementById("data_store").getAttribute("card_info")),
-            document.getElementById("data_store").getAttribute("card_id"),
-            document.getElementById("data_store").getAttribute("effect_index"),
-        );
+        const effectsAndTypes = JSON.parse(document.getElementById("data_store").getAttribute("effects_and_types"));
+        const cardID = document.getElementById("data_store").getAttribute("card_id");
+        fetchCardInfo(cardID)
+            .then(json => {
+                let cardInfo = JSON.parse(json.card_info);
+                cardInfo.name = cardInfo.name ? cardInfo.name : "Unnamed Mob";
+                cardInfo.image = cardInfo.image ? cardInfo.image : "uncertainty.svg";
+                const cardView = new CardView("card", cardInfo);
+                ReactDOM.render(<CardBuilderMob effectIndex={0} cardView={cardView} cardID={cardID} originalCardInfo={cardInfo} effectsAndTypes={effectsAndTypes} />, document.getElementById("app"));
+            });
     } else {
-        new CardBuilderType("app");
+        const cardInfo = {name: "Unnamed Card", image: "uncertainty.svg", card_type: Constants.mobCardType};
+        const cardView = new CardView("card", cardInfo);
+        ReactDOM.render(<CardBuilderType cardView={cardView} originalCardInfo={cardInfo} />, document.getElementById("app"));
     }
+}
+
+
+async function fetchCardInfo(cardID) {
+    const json = await Constants.postData(`/create_card/get_card_info`, { card_id: cardID });
+    return json;
 }

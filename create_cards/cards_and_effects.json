@@ -23,6 +23,7 @@
                         "mob"
                     ],
                     "name": "Shield",
+                    "one_per_card": true,
                     "power_points": 3,
                     "ui_info": {
                         "color": "white",
@@ -59,6 +60,7 @@
                         "mob"
                     ],
                     "name": "Ambush",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -89,6 +91,7 @@
                         "mob"
                     ],
                     "name": "Drain",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -119,6 +122,7 @@
                         "mob"
                     ],
                     "name": "Guard",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -173,6 +177,7 @@
                         "enemy_mob"
                     ],
                     "amount": 3,
+                    "amount_name": "damage",
                     "description": "Deal 3 damage to any target.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -246,6 +251,7 @@
                         "friendly_mob"
                     ],
                     "amount": 3,
+                    "amount_name": "hit points",
                     "description": "Heal any target for 3.",
                     "effect_type": "spell",
                     "id": "heal",
@@ -336,6 +342,7 @@
                         }
                     ],
                     "name": "Make from Deck",
+                    "one_per_card": true,
                     "power_points": 3,
                     "target_type": "self"
                 }
@@ -396,7 +403,12 @@
                 {
                     "ai_target_types": [],
                     "amount": 2,
+                    "amount_disadvantage_limit": 3,
+                    "amount_name": "cards",
                     "description": "Draw 2 cards.",
+                    "disadvantage_target_types": [
+                        "opponent"
+                    ],
                     "effect_type": "spell",
                     "id": "draw",
                     "legal_card_type_ids": [
@@ -438,6 +450,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 1,
+                    "amount_name": "mana",
                     "description": "You get 1 extra mana on upcoming turns.",
                     "effect_type": "spell",
                     "id": "mana_increase_max",
@@ -458,6 +471,7 @@
                         }
                     ],
                     "name": "Mana Increase Max",
+                    "one_per_card": true,
                     "power_points": 5,
                     "target_type": "self"
                 }
@@ -475,6 +489,7 @@
                         "enemy_mob"
                     ],
                     "amount": 6,
+                    "amount_name": "damage",
                     "description": "Deal 6 damage to any target.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -545,6 +560,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 4,
+                    "amount_name": "damage",
                     "description": "Deal 4 damage to all enemy mobs.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -681,6 +697,7 @@
                         }
                     ],
                     "name": "Take Extra Turn",
+                    "one_per_card": true,
                     "power_points": 17,
                     "target_type": "self"
                 }
@@ -695,7 +712,12 @@
                 {
                     "ai_target_types": [],
                     "amount": 2,
+                    "amount_disadvantage_limit": 3,
+                    "amount_name": "cards",
                     "description": "Your opponent discards 2 cards at random.",
+                    "disadvantage_target_types": [
+                        "self"
+                    ],
                     "effect_type": "spell",
                     "id": "discard_random",
                     "legal_card_type_ids": [
@@ -740,6 +762,7 @@
                         "enemy_mob"
                     ],
                     "amount": 4,
+                    "amount_name": "damage",
                     "description": "Deal 4 damage to any target.",
                     "effect_type": "spell",
                     "id": "damage",
@@ -802,7 +825,12 @@
                 {
                     "ai_target_types": [],
                     "amount": 1,
+                    "amount_disadvantage_limit": 3,
+                    "amount_name": "cards",
                     "description": "Discard a card at random.",
+                    "disadvantage_target_types": [
+                        "self"
+                    ],
                     "effect_type": "spell",
                     "id": "discard_random",
                     "legal_card_type_ids": [
@@ -850,6 +878,7 @@
                         "mob"
                     ],
                     "name": "Guard",
+                    "one_per_card": true,
                     "power_points": 1
                 }
             ],
@@ -871,6 +900,7 @@
                         "mob"
                     ],
                     "name": "Ambush",
+                    "one_per_card": true,
                     "power_points": 1
                 },
                 {
@@ -882,6 +912,7 @@
                         "mob"
                     ],
                     "name": "Drain",
+                    "one_per_card": true,
                     "power_points": 1
                 },
                 {
@@ -893,6 +924,7 @@
                         "mob"
                     ],
                     "name": "Guard",
+                    "one_per_card": true,
                     "power_points": 1
                 },
                 {
@@ -904,6 +936,7 @@
                         "mob"
                     ],
                     "name": "Shield",
+                    "one_per_card": true,
                     "power_points": 3,
                     "ui_info": {
                         "color": "white",
@@ -925,6 +958,7 @@
                 {
                     "ai_target_types": null,
                     "amount": 1,
+                    "amount_name": "damage",
                     "description": "When you play a mob, deal 1 damage to a random enemy mob.",
                     "effect_type": "play_friendly_mob",
                     "id": "damage",
@@ -1042,12 +1076,14 @@
                 "mob"
             ],
             "name": "Ambush",
+            "one_per_card": true,
             "power_points": 1
         },
         {
             "ai_target_types": [],
-            "amount": 0,
-            "description": "Deal 0 damage to any target.",
+            "amount": 1,
+            "amount_name": "damage",
+            "description": "Deal 1 damage to any target.",
             "effect_type": "spell",
             "id": "damage",
             "legal_card_type_ids": [
@@ -1103,15 +1139,20 @@
                 }
             ],
             "name": "Damage",
-            "power_points": 1,
+            "power_points": 2,
             "target_type": "any"
         },
         {
             "ai_target_types": [
-                "self"
+                "opponent"
             ],
             "amount": 1,
-            "description": "Discard a card at random.",
+            "amount_disadvantage_limit": 3,
+            "amount_name": "cards",
+            "description": "Your opponent discards a card at random.",
+            "disadvantage_target_types": [
+                "self"
+            ],
             "effect_type": "spell",
             "id": "discard_random",
             "legal_card_type_ids": [
@@ -1139,8 +1180,8 @@
                 }
             ],
             "name": "Discard Random",
-            "power_points": -4,
-            "target_type": "self"
+            "power_points": 4,
+            "target_type": "opponent"
         },
         {
             "description": "Drain",
@@ -1151,6 +1192,7 @@
                 "mob"
             ],
             "name": "Drain",
+            "one_per_card": true,
             "power_points": 1
         },
         {
@@ -1158,7 +1200,12 @@
                 "self"
             ],
             "amount": 1,
+            "amount_disadvantage_limit": 3,
+            "amount_name": "cards",
             "description": "Draw a card.",
+            "disadvantage_target_types": [
+                "opponent"
+            ],
             "effect_type": "spell",
             "id": "draw",
             "legal_card_type_ids": [
@@ -1198,12 +1245,14 @@
                 "mob"
             ],
             "name": "Guard",
+            "one_per_card": true,
             "power_points": 1
         },
         {
             "ai_target_types": [],
-            "amount": 0,
-            "description": "Heal any target for 0.",
+            "amount": 1,
+            "amount_name": "hit points",
+            "description": "Heal any target for 1.",
             "effect_type": "spell",
             "id": "heal",
             "legal_card_type_ids": [
@@ -1263,6 +1312,44 @@
             "target_type": "any"
         },
         {
+            "ai_target_types": [
+                "enemy_mob"
+            ],
+            "description": "Kill a mob.",
+            "effect_type": "spell",
+            "id": "kill",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
+            ],
+            "legal_target_types": [
+                {
+                    "description": "a mob",
+                    "id": "mob",
+                    "name": "Mob"
+                },
+                {
+                    "description": "an enemy mob",
+                    "id": "enemy_mob",
+                    "name": "Enemy Mob"
+                },
+                {
+                    "description": "a friendly mob",
+                    "id": "friendly_mob",
+                    "name": "Friendly Mob"
+                }
+            ],
+            "name": "Kill",
+            "power_points": 10,
+            "target_type": "mob"
+        },
+        {
             "ai_target_types": [],
             "description": "Make a card from your deck.",
             "effect_type": "spell",
@@ -1285,12 +1372,14 @@
                 }
             ],
             "name": "Make from Deck",
+            "one_per_card": true,
             "power_points": 3,
             "target_type": "self"
         },
         {
             "ai_target_types": [],
             "amount": 1,
+            "amount_name": "mana",
             "description": "You get 1 extra mana on upcoming turns.",
             "effect_type": "spell",
             "id": "mana_increase_max",
@@ -1311,6 +1400,7 @@
                 }
             ],
             "name": "Mana Increase Max",
+            "one_per_card": true,
             "power_points": 5,
             "target_type": "self"
         },
@@ -1323,6 +1413,7 @@
                 "mob"
             ],
             "name": "Shield",
+            "one_per_card": true,
             "power_points": 3,
             "ui_info": {
                 "color": "white",
@@ -1354,6 +1445,7 @@
                 }
             ],
             "name": "Take Extra Turn",
+            "one_per_card": true,
             "power_points": 17,
             "target_type": "self"
         },

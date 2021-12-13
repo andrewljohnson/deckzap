@@ -137,6 +137,7 @@ class Effects:
          "description": "Ambush",
          "description_expanded": "Ambush mobs may attack other mobs the turn they come into play (or switch sides).",
          "effect_type": effect_types()["mob_changes_zones"].id,
+         "one_per_card": True,
          "legal_card_type_ids": [card_types()["mob"].id],
          "power_points": 1,
       }      
@@ -151,6 +152,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "damage",
          "effect_type": effect_type.id,
          "description": description,
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -198,6 +200,9 @@ class Effects:
       elif amount >= 5:
          points += 2
 
+      if points < 0:
+         points = max(points, -4)
+
       return points
 
    @staticmethod
@@ -226,6 +231,9 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "cards",
+         "amount_disadvantage_limit": 3,
+         "disadvantage_target_types": [target_types()["self"].id],
          "effect_type": effect_type.id,
          "description": Effects.description_for_cards_effect("discard", target_type, amount, effect_type, is_random=True),
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -250,7 +258,6 @@ class Effects:
       if target_type.id == "opponent":
          points = amount * 4
       elif target_type.id == "self":
-         amount = min(amount, 2)
          points = -amount * 4
       elif target_type.id == "player":
          points = amount * 4 + 1
@@ -259,6 +266,9 @@ class Effects:
 
       if amount > 2:
          points *= 2
+
+      if points < 0:
+         points = max(points, -4)
 
       return points
 
@@ -272,6 +282,7 @@ class Effects:
          "description_expanded": f"Gain hit points equal to this mob's strength {effect_type.description}.",
          "effect_type": effect_type.id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "one_per_card": True,
          "power_points": 1,
       }
 
@@ -280,6 +291,9 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_disadvantage_limit": 3,
+         "amount_name": "cards",
+         "disadvantage_target_types": [target_types()["opponent"].id],
          "effect_type": effect_type.id,
          "description": Effects.description_for_cards_effect("draw", target_type, amount, effect_type),
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -300,15 +314,21 @@ class Effects:
       """
          Returns the power_points for an effect that returns mobs to their owner's hand.
       """
+      points = None
       if target_type.id == "opponent":
-         amount = min(amount, 2)
-         return -amount * 3
+         points = -amount * 3
       elif target_type.id == "self":
-         return amount * 3
+         points = amount * 3
       elif target_type.id == "player":
-         return amount * 3 + 1
+         points = amount * 3 + 1
       else:
          print(f"unsupported target_type {target_type.id} for draw effect")
+
+      if points < 0:
+         points = max(points, -4)
+
+      return points
+
 
    @staticmethod
    def guard():
@@ -319,6 +339,7 @@ class Effects:
          "description_expanded": "Guard mobs must be attacked before other enemies.",
          "effect_type": effect_types()["select_mob_target"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "one_per_card": True,
          "power_points": 1,
       }      
 
@@ -332,6 +353,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "hit points",
          "effect_type": effect_type.id,
          "description": description,
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -381,6 +403,7 @@ class Effects:
          "id": "make_from_deck",
          "name": "Make from Deck",
          "target_type": target_type.id,
+         "one_per_card": True,
          "power_points": 3,
       }
 
@@ -389,6 +412,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_name": "mana",
          "effect_type": effect_type.id,
          "description": f"You get {amount} extra mana on upcoming turns.",
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -398,6 +422,7 @@ class Effects:
          ],
          "id": "mana_increase_max",
          "name": "Mana Increase Max",
+         "one_per_card": True,
          "power_points": amount * 5, 
          "target_type": target_type.id,
       }
@@ -411,6 +436,7 @@ class Effects:
          "description_expanded": "Shielded mobs don't take damage the first time they get damaged.",
          "effect_type": effect_types()["before_is_damaged"].id,
          "legal_card_type_ids": [card_types()["mob"].id],
+         "one_per_card": True,
          "power_points": 3,
          "ui_info": {
             "effect_type": "glow",
@@ -433,6 +459,7 @@ class Effects:
          ],
          "id": "take_extra_turn",
          "name": "Take Extra Turn",
+         "one_per_card": True,
          "target_type": target_type.id,
          "power_points": 17,
       }
@@ -485,17 +512,19 @@ class Effects:
    def all():
       spell_effect_type = effect_types()["spell"]
       any_target_type = target_types()["any"]
+      enemy_mob_target_type = target_types()["enemy_mob"]
       mob_target_type = target_types()["mob"]
-      opponent_target_type = target_types()["self"]
+      opponent_target_type = target_types()["opponent"]
       self_target_type = target_types()["self"]
       effects = [
          Effects.ambush(),
-         Effects.damage(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
+         Effects.damage(card_types()["spell"].id, 1, spell_effect_type, any_target_type, []),
          Effects.discard_random(card_types()["spell"].id, 1, spell_effect_type, opponent_target_type, [opponent_target_type.id]),
          Effects.drain(),
          Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.guard(),
-         Effects.heal(card_types()["spell"].id, 0, spell_effect_type, any_target_type, []),
+         Effects.heal(card_types()["spell"].id, 1, spell_effect_type, any_target_type, []),
+         Effects.kill(card_types()["spell"].id, 1, spell_effect_type, mob_target_type, [enemy_mob_target_type.id]),
          Effects.make_from_deck(card_types()["spell"].id, None, spell_effect_type, self_target_type, []),
          Effects.mana_increase_max(card_types()["spell"].id, 1, spell_effect_type, self_target_type, []),
          Effects.shield(),         

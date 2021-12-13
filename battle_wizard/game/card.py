@@ -1922,6 +1922,12 @@ class CardEffect:
         self.amount = info["amount"] if "amount" in info else None
         # a string to be used to size the effect
         self.amount_id = info["amount_id"] if "amount_id" in info else None
+        # a string that labels what the amount is of, i.e. damage, hit points, cards, etc
+        self.amount_name = info["amount_name"] if "amount_name" in info else None
+        # the highest amount for an effect that disadvantageously affects the player, such as letting opponent draw cards
+        # these limits prevent turning disadvantageous effects into advantageous ones
+        self.amount_disadvantage_limit = info["amount_disadvantage_limit"] if "amount_disadvantage_limit" in info else None
+        self.disadvantage_target_types = info["disadvantage_target_types"] if "disadvantage_target_types" in info else []
         # the cost in mana of the effect
         self.cost = info["cost"] if "cost" in info else 0
         # a one word description to maybe show on the card, but definitely show on hover
@@ -1940,6 +1946,8 @@ class CardEffect:
         self.id = info["id"] if "id" in info else None         
         # the name of the effect
         self.name = info["name"] if "name" in info else None         
+        # this effect can only occur once per card
+        self.one_per_card = info["one_per_card"] if "one_per_card" in info else False         
         # the calculated strength of the effect
         self.power_points = info["power_points"] if "power_points" in info else 0         
         # a flag to set on the effect to trigger an animation on the next repaint
@@ -1985,12 +1993,16 @@ class CardEffect:
                 "ai_target_types": self.ai_target_types,
                 "amount": self.amount,
                 "amount_id": self.amount_id,
+                "amount_name": self.amount_name,
+                "amount_disadvantage_limit": self.amount_disadvantage_limit,
                 "cost": self.cost,
                 "description": self.description,
                 "description_expanded": self.description_expanded,
+                "disadvantage_target_types": self.disadvantage_target_types,
                 "effect_type": self.effect_type,
                 "id": self.id,
                 "name": self.name,
+                "one_per_card": self.one_per_card,
                 "power_points": self.power_points,
                 "target_type": self.target_type
             }
@@ -1998,6 +2010,7 @@ class CardEffect:
             "ai_target_types": self.ai_target_types,
             "amount": self.amount,
             "amount_id": self.amount_id,
+            "amount_name": self.amount_name,
             "card_descriptions": self.card_descriptions,
             "card_names": self.card_names,
             "counters": self.counters,
@@ -2081,7 +2094,7 @@ def all_cards(require_images=False, include_tokens=True, include_old_cards=True)
                 c["discipline"] = "magic"
                 subset.append(Card(c).as_dict())
 
-    custom_cards = CustomCard.objects.all().exclude(card_json__name="Unnamed Card")
+    custom_cards = CustomCard.objects.all().exclude(card_json__name__startswith="Unnamed")
     for card in custom_cards:
         card.card_json["discipline"] = "magic"
         subset.append(Card(card.card_json).as_dict())

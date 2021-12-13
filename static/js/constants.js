@@ -289,3 +289,25 @@ export function showArrow(app, fromSprite, toSprite, adjustment={"x":0, "y": 0},
     return bezierArrow;
 }
 
+export function cardDescription (cardInfo) {
+    if (cardInfo && cardInfo.effects && cardInfo.effects.length) {
+        return descriptionForEffects(cardInfo.effects);
+    }
+}
+
+function descriptionForEffects (effects) {
+    let description = "";
+    for (const effect of effects) {
+        description += effect.description;
+        if (!effect.description.endsWith(".")) {
+            description += ".";
+        }
+        if (effect != effects[effects.length - 1]) {
+            description += " ";
+        }
+    }
+    return description;
+}
+
+
+

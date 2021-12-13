@@ -40,6 +40,7 @@ export class ButtonPicker {
                         new GlowFilter({ innerStrength: 0, outerStrength: 2, color: Constants.yellowColor})
                     ];
                     this.tint = Constants.blueColor;
+                    self.selectedButton = this;
                     clickFunction(info.id)
                 },
                 null,
@@ -53,6 +54,13 @@ export class ButtonPicker {
                 positionX = Constants.padding + buttonWidth / 2;
                 positionY += buttonHeight + Constants.padding * 4;
             }
+        }
+    }
+
+    unselect() {
+        for (let button of this.buttons) {
+            button.background.filters = [];
+            button.background.tint = Constants.darkGrayColor;
         }
     }
 

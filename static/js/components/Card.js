@@ -247,7 +247,7 @@ export class Card {
             cardSprite.addChild(description);
         }
         description.position.x = name.position.x;
-        description.position.y = name.position.y + 45;
+        description.position.y = name.position.y + 50;
         if (useLargeSize) {
             description.position.y += Card.cardHeight/4;
         }
@@ -317,7 +317,7 @@ export class Card {
 
         let powerPointsEllipse = Card.powerPointsEllipse(card.power_points, pixiUX);
         powerPointsEllipse.position.x = 0;
-        powerPointsEllipse.position.y = nameBackground.position.y + nameBackground.height + 1;
+        powerPointsEllipse.position.y = nameBackground.position.y + nameBackground.height;
         cardSprite.addChild(powerPointsEllipse);
  
         let currentPlayer = null;

@@ -3,7 +3,8 @@
 {% block content %}
 <div class="wrapper">
     <div id="app"></div>
+    <div id="card"></div>
 </div>
 
-<div id="data_store" csrf_token='{% csrf_token %}' effects_and_types="{{effects_and_types}}" card_info="{{card_info}}" card_id={{card_id}} effect_index={{effect_index}}></div>
+<div id="data_store" csrf_token='{% csrf_token %}' effects_and_types="{{effects_and_types}}" card_id={{card_id}} effect_index={{effect_index}}></div>
 {% endblock content %}
