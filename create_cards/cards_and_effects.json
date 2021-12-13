@@ -403,8 +403,12 @@
                 {
                     "ai_target_types": [],
                     "amount": 2,
+                    "amount_disadvantage_limit": 3,
                     "amount_name": "cards",
                     "description": "Draw 2 cards.",
+                    "disadvantage_target_types": [
+                        "opponent"
+                    ],
                     "effect_type": "spell",
                     "id": "draw",
                     "legal_card_type_ids": [
@@ -708,8 +712,12 @@
                 {
                     "ai_target_types": [],
                     "amount": 2,
+                    "amount_disadvantage_limit": 3,
                     "amount_name": "cards",
                     "description": "Your opponent discards 2 cards at random.",
+                    "disadvantage_target_types": [
+                        "self"
+                    ],
                     "effect_type": "spell",
                     "id": "discard_random",
                     "legal_card_type_ids": [
@@ -817,8 +825,12 @@
                 {
                     "ai_target_types": [],
                     "amount": 1,
+                    "amount_disadvantage_limit": 3,
                     "amount_name": "cards",
                     "description": "Discard a card at random.",
+                    "disadvantage_target_types": [
+                        "self"
+                    ],
                     "effect_type": "spell",
                     "id": "discard_random",
                     "legal_card_type_ids": [
@@ -1132,11 +1144,15 @@
         },
         {
             "ai_target_types": [
-                "self"
+                "opponent"
             ],
             "amount": 1,
+            "amount_disadvantage_limit": 3,
             "amount_name": "cards",
-            "description": "Discard a card at random.",
+            "description": "Your opponent discards a card at random.",
+            "disadvantage_target_types": [
+                "self"
+            ],
             "effect_type": "spell",
             "id": "discard_random",
             "legal_card_type_ids": [
@@ -1164,8 +1180,8 @@
                 }
             ],
             "name": "Discard Random",
-            "power_points": -4,
-            "target_type": "self"
+            "power_points": 4,
+            "target_type": "opponent"
         },
         {
             "description": "Drain",
@@ -1184,8 +1200,12 @@
                 "self"
             ],
             "amount": 1,
+            "amount_disadvantage_limit": 3,
             "amount_name": "cards",
             "description": "Draw a card.",
+            "disadvantage_target_types": [
+                "opponent"
+            ],
             "effect_type": "spell",
             "id": "draw",
             "legal_card_type_ids": [
@@ -1290,6 +1310,44 @@
             "name": "Heal",
             "power_points": 1,
             "target_type": "any"
+        },
+        {
+            "ai_target_types": [
+                "enemy_mob"
+            ],
+            "description": "Kill a mob.",
+            "effect_type": "spell",
+            "id": "kill",
+            "legal_card_type_ids": [
+                "mob",
+                "spell"
+            ],
+            "legal_effect_types": [
+                {
+                    "id": "spell",
+                    "name": "Spell"
+                }
+            ],
+            "legal_target_types": [
+                {
+                    "description": "a mob",
+                    "id": "mob",
+                    "name": "Mob"
+                },
+                {
+                    "description": "an enemy mob",
+                    "id": "enemy_mob",
+                    "name": "Enemy Mob"
+                },
+                {
+                    "description": "a friendly mob",
+                    "id": "friendly_mob",
+                    "name": "Friendly Mob"
+                }
+            ],
+            "name": "Kill",
+            "power_points": 10,
+            "target_type": "mob"
         },
         {
             "ai_target_types": [],

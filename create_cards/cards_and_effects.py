@@ -200,6 +200,9 @@ class Effects:
       elif amount >= 5:
          points += 2
 
+      if points < 0:
+         points = max(points, -4)
+
       return points
 
    @staticmethod
@@ -229,6 +232,8 @@ class Effects:
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
          "amount_name": "cards",
+         "amount_disadvantage_limit": 3,
+         "disadvantage_target_types": [target_types()["self"].id],
          "effect_type": effect_type.id,
          "description": Effects.description_for_cards_effect("discard", target_type, amount, effect_type, is_random=True),
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -253,7 +258,6 @@ class Effects:
       if target_type.id == "opponent":
          points = amount * 4
       elif target_type.id == "self":
-         amount = min(amount, 2)
          points = -amount * 4
       elif target_type.id == "player":
          points = amount * 4 + 1
@@ -262,6 +266,9 @@ class Effects:
 
       if amount > 2:
          points *= 2
+
+      if points < 0:
+         points = max(points, -4)
 
       return points
 
@@ -284,7 +291,9 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_disadvantage_limit": 3,
          "amount_name": "cards",
+         "disadvantage_target_types": [target_types()["opponent"].id],
          "effect_type": effect_type.id,
          "description": Effects.description_for_cards_effect("draw", target_type, amount, effect_type),
          "legal_card_type_ids": [key for key, value in card_types().items()],
@@ -305,15 +314,21 @@ class Effects:
       """
          Returns the power_points for an effect that returns mobs to their owner's hand.
       """
+      points = None
       if target_type.id == "opponent":
-         amount = min(amount, 2)
-         return -amount * 3
+         points = -amount * 3
       elif target_type.id == "self":
-         return amount * 3
+         points = amount * 3
       elif target_type.id == "player":
-         return amount * 3 + 1
+         points = amount * 3 + 1
       else:
          print(f"unsupported target_type {target_type.id} for draw effect")
+
+      if points < 0:
+         points = max(points, -4)
+
+      return points
+
 
    @staticmethod
    def guard():
@@ -497,8 +512,9 @@ class Effects:
    def all():
       spell_effect_type = effect_types()["spell"]
       any_target_type = target_types()["any"]
+      enemy_mob_target_type = target_types()["enemy_mob"]
       mob_target_type = target_types()["mob"]
-      opponent_target_type = target_types()["self"]
+      opponent_target_type = target_types()["opponent"]
       self_target_type = target_types()["self"]
       effects = [
          Effects.ambush(),
@@ -508,6 +524,7 @@ class Effects:
          Effects.draw(card_types()["spell"].id, 1, spell_effect_type, self_target_type, [self_target_type.id]),
          Effects.guard(),
          Effects.heal(card_types()["spell"].id, 1, spell_effect_type, any_target_type, []),
+         Effects.kill(card_types()["spell"].id, 1, spell_effect_type, mob_target_type, [enemy_mob_target_type.id]),
          Effects.make_from_deck(card_types()["spell"].id, None, spell_effect_type, self_target_type, []),
          Effects.mana_increase_max(card_types()["spell"].id, 1, spell_effect_type, self_target_type, []),
          Effects.shield(),         

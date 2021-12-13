@@ -7,7 +7,7 @@ class CardBuilderEffects extends CardBuilderBase {
     render() {
         return (
             <ThemeProvider theme={this.theme()}>
-                <h1>Add More Effects</h1>
+                <h1>Add Another Effect</h1>
                 {this.effectGroup()}
             </ThemeProvider>
         );

@@ -241,7 +241,7 @@ class CardBuilderBase extends Component {
         </div>
     }
 
-    amountSliderDiv = (title, ariaLabel, marks, onChangeCommitted) => {
+    amountSliderDiv = (title, ariaLabel, marks, onChangeCommitted, max) => {
         return <div style={{marginBottom:20, paddingLeft:"12px"}}>
                 <Box sx={{ width: 120}}>
                 <Typography id="input-slider" style={{"marginLeft": "-10px", color: "gray", fontSize: "12px"}} gutterBottom>
@@ -254,7 +254,7 @@ class CardBuilderBase extends Component {
                       step={1}
                       marks={marks}
                       min={1}
-                      max={10}
+                      max={max}
                       onChange={this.changeEffectAmount}
                       onChangeCommitted={onChangeCommitted}
                       value={this.state.effect.amount}
@@ -263,15 +263,15 @@ class CardBuilderBase extends Component {
             </div>;
     }
 
-    amountMarks = (label) => {
+    amountMarks = (label, max=10) => {
         return [
           {
             value: 1,
             label: `1 ${label}`,
           },
           {
-            value: 10,
-            label: `10 ${label}`,
+            value: max,
+            label: `${max} ${label}`,
           },
         ];
     }
@@ -398,7 +398,10 @@ class CardBuilderBase extends Component {
                 </div>;                
             }
             if ("amount" in this.state.effect && this.state.effect.amount !== null) {
-                amountSlider = this.amountSliderDiv(this.state.effect.amount_name, this.state.effect.amount_name, this.amountMarks(this.state.effect.amount_name), () => this.getEffectForInfo(this.state.effect));
+                amountSlider = this.amountSliderDiv(this.state.effect.amount_name, this.state.effect.amount_name, this.amountMarks(this.state.effect.amount_name), () => this.getEffectForInfo(this.state.effect), 10);
+                if (this.state.effect.disadvantage_target_types && this.state.effect.disadvantage_target_types.includes(this.state.effect.target_type)) {
+                    amountSlider = this.amountSliderDiv(this.state.effect.amount_name, this.state.effect.amount_name, this.amountMarks(this.state.effect.amount_name, this.state.effect.amount_disadvantage_limit), () => this.getEffectForInfo(this.state.effect), this.state.effect.amount_disadvantage_limit);
+                }
             } 
         }
 
@@ -419,15 +422,17 @@ class CardBuilderBase extends Component {
                         {amountSlider}
                     </div>
                     <div>
-                        <Button 
-                            color="secondary"
-                            disabled={this.state.disableAdditionalEffect}
-                            variant="contained"
-                            onClick={this.additionalEffectButtonClicked}
-                            style={{marginRight: 30}}
-                        >
-                            + Effect
-                        </Button> 
+                        {this.props.effectIndex <= 1 &&
+                            <Button 
+                                color="secondary"
+                                disabled={this.state.disableAdditionalEffect}
+                                variant="contained"
+                                onClick={this.additionalEffectButtonClicked}
+                                style={{marginRight: 30}}
+                            >
+                                + Effect
+                            </Button> 
+                        }
                         <Button 
                             color="primary"
                             disabled={this.state.disableSave}

@@ -121,6 +121,8 @@ def get_effect_for_info(request):
             effect_def = Effects.guard
         elif effect["id"] == "heal":
             effect_def = Effects.heal
+        elif effect["id"] == "kill":
+            effect_def = Effects.kill
         elif effect["id"] == "make_from_deck":
             effect_def = Effects.make_from_deck
         elif effect["id"] == "mana_increase_max":
