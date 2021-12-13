@@ -1,3 +1,4 @@
+import * as Constants from '../../constants.js';
 import React from "react";
 import { ThemeProvider } from '@mui/material/styles';
 import CardBuilderBase from './CardBuilderBase';
@@ -38,7 +39,7 @@ class CardBuilderMob extends CardBuilderBase {
         ];
   
         return (
-            <ThemeProvider theme={this.theme()}>
+            <ThemeProvider theme={Constants.theme()}>
                 <div>
                     <h1>Create Mob</h1>
                     <div style={{display: "flex"}}>

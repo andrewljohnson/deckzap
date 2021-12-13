@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { AdjustmentFilter, DropShadowFilter, GlowFilter } from 'pixi-filters';
 import { Card } from './components/Card.js';
+import { createTheme } from '@mui/material/styles';
 
 
 // constants recognized by the game rules engine
@@ -308,6 +309,34 @@ function descriptionForEffects (effects) {
     }
     return description;
 }
+
+export function theme () {
+    return createTheme({
+        palette: {
+            primary: {
+                light: '#0000FF',
+                main: '#0000FF',
+                dark: '#0000FF',
+                contrastText: '#fff',
+            },            
+        },
+        components: {
+            MuiSlider: {
+              styleOverrides: {
+                 markLabel: {
+                    transform: 'translateX(-12%)',
+                },
+              },
+            },
+            MuiButton: { 
+                styleOverrides: { 
+                    root: { minWidth: 150, minHeight: 60 } 
+                } 
+            }
+        },
+    });
+}
+
 
 
 

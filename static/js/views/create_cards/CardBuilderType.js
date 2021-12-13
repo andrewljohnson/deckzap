@@ -40,7 +40,7 @@ class CardBuilderType extends CardBuilderBase {
         };
 
         return (
-            <ThemeProvider theme={this.theme()}>
+            <ThemeProvider theme={Constants.theme()}>
                 <h1>Choose Card Type</h1>
                 <p>
                     <b>Mobs</b> have strength and hit points, and they can attack your opponent and their mobs.

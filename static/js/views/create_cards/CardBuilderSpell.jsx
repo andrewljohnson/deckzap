@@ -12,7 +12,7 @@ class CardBuilderMob extends CardBuilderBase {
 
     render() {
         return (
-            <ThemeProvider theme={this.theme()}>
+            <ThemeProvider theme={Constants.theme()}>
                 <h1>Create Spell</h1>
                 <div style={{display: "flex"}}>
                     {this.sliderDiv("Mana Cost", "Mana", this.manaMarks(), this.changeManaCost, () => this.getPowerPoints())}

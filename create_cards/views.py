@@ -5,6 +5,7 @@ from battle_wizard.analytics import Analytics
 from battle_wizard.game.card import all_cards
 from battle_wizard.game.card import Card
 from battle_wizard.game.data import Constants
+from battle_wizard.models import GlobalDeck
 from create_cards.cards_and_effects import Effects
 from create_cards.cards_and_effects import effect_types
 from create_cards.cards_and_effects import target_types
@@ -311,3 +312,26 @@ def get_card_info(request):
                     if ae["id"]== effect["id"]:
                         effect["legal_effect_types"] = ae["legal_effect_types"]
     return JsonResponse({"card_info": json.dumps(card_info)})
+
+@require_POST
+def delete(request):
+    info = json.load(request)
+    card_id = info["card_id"]
+    custom_card = CustomCard.objects.get(id=card_id)
+    if custom_card.author != request.user:
+        error_message = "only the card's author can delete a CustomCard"
+        print(error_message)
+        return JsonResponse({"error": error_message})
+    card_is_used = False
+    for gd in GlobalDeck.objects.all():
+        for name, _ in gd.deck_json.items():
+            for card_name, _ in gd.deck_json["cards"].items():
+                if card_name == custom_card.card_json["name"]:
+                    card_is_used = True
+    if card_is_used:
+        error_message = "can't delete custom cards used in a Deck"
+        print(error_message)
+        return JsonResponse({"error": error_message})
+    custom_card.delete()
+    Analytics.log_amplitude(request, "Delete Card", {})
+    return JsonResponse({})

@@ -13,6 +13,7 @@ from battle_wizard.forms import SignUpForm
 from battle_wizard.models import Deck
 from battle_wizard.models import GameRecord
 from battle_wizard.models import GlobalDeck
+from create_cards.models import CustomCard
 from deckzap.settings import DEBUG
 from django.contrib.auth import authenticate 
 from django.contrib.auth import login
@@ -55,10 +56,25 @@ def profile(request, username):
         if player["username"] == username:
             player_rank = index
 
+    cards = CustomCard.objects.filter(author__username=username).exclude(card_json__name__startswith="Unnamed").order_by("-date_created")
+    cards_as_json = []
+    for c in cards:
+        if "name" not in c.card_json:
+            continue
+        card_info = {}
+        card_info["id"] = c.id
+        card_info["name"] = c.card_json["name"]
+        card_info["used_count"] = 0
+        for gd in GlobalDeck.objects.all():
+            for card_name, _ in gd.deck_json["cards"].items():
+                if card_name == card_info["name"]:
+                    card_info["used_count"] += 1
+        cards_as_json.append(card_info)
 
     return render(request, "profile.html", 
         {
-            "decks": decks,
+            "decks": json.dumps([d.as_dict() for d in decks]),
+            "cards": json.dumps(cards_as_json),
             "username": username, 
             "account_number": User.objects.get(username=username).id - 3,
             "player_rank": player_rank

@@ -1,5 +1,6 @@
 from django.urls import path
 from create_cards.views import create_card
+from create_cards.views import delete
 from create_cards.views import effects
 from create_cards.views import get_card_info
 from create_cards.views import get_effect_for_info
@@ -14,6 +15,7 @@ from create_cards.views import save_spell
 from create_cards.views import spell
 
 urlpatterns = [
+    path('delete', delete),    
     path('save_effects', save_effects),    
     path('save_mob', save_mob),    
     path('save_name_and_image', save_name_and_image),    

@@ -81,7 +81,7 @@ class CardBuilderNameAndImage extends CardBuilderBase {
             disableSave = true;
         }
         return (
-            <ThemeProvider theme={this.theme()}>
+            <ThemeProvider theme={Constants.theme()}>
                 <h1>Chooose Name and Image</h1>
                 <TextField 
                     id="outlined-basic" 

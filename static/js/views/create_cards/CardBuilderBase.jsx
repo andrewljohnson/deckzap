@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import * as Constants from '../../constants.js';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -306,33 +306,6 @@ class CardBuilderBase extends Component {
 
     }
 
-    theme = () => {
-        return createTheme({
-            palette: {
-                primary: {
-                    light: '#0000FF',
-                    main: '#0000FF',
-                    dark: '#0000FF',
-                    contrastText: '#fff',
-                },            
-            },
-            components: {
-                MuiSlider: {
-                  styleOverrides: {
-                     markLabel: {
-                        transform: 'translateX(-12%)',
-                    },
-                  },
-                },
-                MuiButton: { 
-                    styleOverrides: { 
-                        root: { minWidth: 150, minHeight: 60 } 
-                    } 
-                }
-            },
-        });
-    }
-
     manaMarks = () => {
         return [
             {
@@ -411,7 +384,7 @@ class CardBuilderBase extends Component {
         }
 
         return (
-            <ThemeProvider theme={this.theme()}>
+            <ThemeProvider theme={Constants.theme()}>
                 <div>
                     <div>
                         <h2>Effect</h2>

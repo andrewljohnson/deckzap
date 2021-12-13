@@ -9,6 +9,7 @@ import { MatchFinder } from '../js/views/MatchFinder';
 import { OpponentChooser } from '../js/views/OpponentChooser';
 import { TopDecks } from '../js/views/TopDecks';
 import { TopPlayers } from '../js/views/TopPlayers';
+import Profile from '../js/views/Profile';
 
 import * as Constants from '../js/constants';
 import ReactDOM from "react-dom";
@@ -37,6 +38,14 @@ if (window.location.pathname.startsWith("/play")) {
     const decks = JSON.parse(document.getElementById("data_store").getAttribute("json_decks"));
     const allCards = JSON.parse(document.getElementById("data_store").getAttribute("all_cards"))
     new DeckViewer(decks, allCards, "app");
+} else if (window.location.pathname.startsWith("/u/")) {
+    const playerRank = document.getElementById("data_store").getAttribute("player_rank");
+    const accountNumber = document.getElementById("data_store").getAttribute("account_number");
+    const username = document.getElementById("data_store").getAttribute("username");
+    const userOwnsProfile = document.getElementById("data_store").getAttribute("user_owns_profile");
+    const decks = JSON.parse(document.getElementById("data_store").getAttribute("decks"));
+    const cards = JSON.parse(document.getElementById("data_store").getAttribute("cards"));
+    ReactDOM.render(<Profile playerRank={playerRank} username={username} cards={cards} decks={decks} accountNumber={accountNumber} userOwnsProfile={userOwnsProfile} />, document.getElementById("app"));
 } else if (window.location.pathname.startsWith("/choose_opponent")) {
     const opponentDecks = JSON.parse(document.getElementById("data_store").getAttribute("json_opponent_decks"));
     const deckID = JSON.parse(document.getElementById("data_store").getAttribute("deck_id"));

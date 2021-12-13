@@ -14,6 +14,12 @@ class Deck(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     title = models.TextField(null=True)
 
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+        }
+
 class GameRecord(models.Model):
     """
         A GameRecord is created when a game starts, and updated when it ends.
