@@ -250,6 +250,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_limit": 3,
          "amount_name": "cards",
          "amount_disadvantage_limit": 3,
          "disadvantage_target_types": [target_types()["self"].id],
@@ -431,6 +432,7 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "amount": amount,
+         "amount_limit": 2,
          "amount_name": "mana",
          "effect_type": effect_type.id,
          "description": f"You get {amount} extra mana on upcoming turns.",

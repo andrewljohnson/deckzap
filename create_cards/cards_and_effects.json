@@ -450,6 +450,7 @@
                 {
                     "ai_target_types": [],
                     "amount": 1,
+                    "amount_limit": 2,
                     "amount_name": "mana",
                     "description": "You get 1 extra mana on upcoming turns.",
                     "effect_type": "spell",
@@ -713,6 +714,7 @@
                     "ai_target_types": [],
                     "amount": 2,
                     "amount_disadvantage_limit": 3,
+                    "amount_limit": 3,
                     "amount_name": "cards",
                     "description": "Your opponent discards 2 cards at random.",
                     "disadvantage_target_types": [
@@ -826,6 +828,7 @@
                     "ai_target_types": [],
                     "amount": 1,
                     "amount_disadvantage_limit": 3,
+                    "amount_limit": 3,
                     "amount_name": "cards",
                     "description": "Discard a card at random.",
                     "disadvantage_target_types": [
@@ -1155,6 +1158,7 @@
             ],
             "amount": 1,
             "amount_disadvantage_limit": 3,
+            "amount_limit": 3,
             "amount_name": "cards",
             "description": "Your opponent discards a card at random.",
             "disadvantage_target_types": [
@@ -1386,6 +1390,7 @@
         {
             "ai_target_types": [],
             "amount": 1,
+            "amount_limit": 2,
             "amount_name": "mana",
             "description": "You get 1 extra mana on upcoming turns.",
             "effect_type": "spell",

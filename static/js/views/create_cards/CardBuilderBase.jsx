@@ -231,6 +231,7 @@ class CardBuilderBase extends Component {
                          : title == "Hit Points" ? this.state.hitPoints : null}
                   valueLabelDisplay="auto"
                   step={1}
+                  key={title}
                   marks={marks}
                   min={min}
                   max={10}
@@ -252,6 +253,7 @@ class CardBuilderBase extends Component {
                       getAriaValueText={(value) => { return `${value} ${ariaLabel}`; }}
                       valueLabelDisplay="auto"
                       step={1}
+                      key={title}
                       marks={marks}
                       min={1}
                       max={max}
@@ -263,7 +265,7 @@ class CardBuilderBase extends Component {
             </div>;
     }
 
-    amountMarks = (label, max=10) => {
+    amountMarks = (label, max) => {
         return [
           {
             value: 1,
@@ -372,9 +374,21 @@ class CardBuilderBase extends Component {
                 </div>;                
             }
             if ("amount" in this.state.effect && this.state.effect.amount !== null) {
-                amountSlider = this.amountSliderDiv(this.state.effect.amount_name, this.state.effect.amount_name, this.amountMarks(this.state.effect.amount_name), () => this.getEffectForInfo(this.state.effect), 10);
                 if (this.state.effect.disadvantage_target_types && this.state.effect.disadvantage_target_types.includes(this.state.effect.target_type)) {
-                    amountSlider = this.amountSliderDiv(this.state.effect.amount_name, this.state.effect.amount_name, this.amountMarks(this.state.effect.amount_name, this.state.effect.amount_disadvantage_limit), () => this.getEffectForInfo(this.state.effect), this.state.effect.amount_disadvantage_limit);
+                    amountSlider = this.amountSliderDiv(
+                        this.state.effect.amount_name, 
+                        this.state.effect.amount_name, 
+                        this.amountMarks(this.state.effect.amount_name, this.state.effect.amount_disadvantage_limit), 
+                        () => this.getEffectForInfo(this.state.effect), 
+                        this.state.effect.amount_disadvantage_limit);
+                } else {
+                    const amountLimit = this.state.effect.amount_limit ? this.state.effect.amount_limit : 10;
+                    amountSlider = this.amountSliderDiv(
+                        this.state.effect.amount_name, 
+                        this.state.effect.amount_name, 
+                        this.amountMarks(this.state.effect.amount_name, amountLimit), 
+                        () => this.getEffectForInfo(this.state.effect), 
+                        amountLimit);                    
                 }
             } 
         }

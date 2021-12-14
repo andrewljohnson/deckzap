@@ -1927,6 +1927,8 @@ class CardEffect:
         # the highest amount for an effect that disadvantageously affects the player, such as letting opponent draw cards
         # these limits prevent turning disadvantageous effects into advantageous ones
         self.amount_disadvantage_limit = info["amount_disadvantage_limit"] if "amount_disadvantage_limit" in info else None
+        # the highest amount for an effect that advantageously affects the player, such as letting opponent draw cards
+        self.amount_limit = info["amount_limit"] if "amount_limit" in info else 10
         self.disadvantage_target_types = info["disadvantage_target_types"] if "disadvantage_target_types" in info else []
         # the cost in mana of the effect
         self.cost = info["cost"] if "cost" in info else 0
@@ -1995,6 +1997,7 @@ class CardEffect:
                 "amount_id": self.amount_id,
                 "amount_name": self.amount_name,
                 "amount_disadvantage_limit": self.amount_disadvantage_limit,
+                "amount_limit": self.amount_limit,
                 "cost": self.cost,
                 "description": self.description,
                 "description_expanded": self.description_expanded,
