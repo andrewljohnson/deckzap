@@ -480,7 +480,7 @@ class Effects:
          "name": "Take Extra Turn",
          "one_per_card": True,
          "target_type": target_type.id,
-         "power_points": 17,
+         "power_points": 25,
       }
 
    @staticmethod
@@ -819,7 +819,7 @@ class Cards:
          CardInfo(
                "Tame Time", 
                "pocket-watch.svg",
-               8,
+               10,
                card_types()["spell"],
                [
                   Effects.take_extra_turn(card_types()["spell"].id, None, effect_types()["spell"], target_types()["self"], [])

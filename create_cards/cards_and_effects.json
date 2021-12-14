@@ -672,7 +672,7 @@
         },
         {
             "card_type": "spell",
-            "cost": 8,
+            "cost": 10,
             "effects": [
                 {
                     "ai_target_types": [],
@@ -698,7 +698,7 @@
                     ],
                     "name": "Take Extra Turn",
                     "one_per_card": true,
-                    "power_points": 17,
+                    "power_points": 25,
                     "target_type": "self"
                 }
             ],
@@ -1453,7 +1453,7 @@
             ],
             "name": "Take Extra Turn",
             "one_per_card": true,
-            "power_points": 17,
+            "power_points": 25,
             "target_type": "self"
         },
         {
