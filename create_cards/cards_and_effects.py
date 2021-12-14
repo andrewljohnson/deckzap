@@ -229,6 +229,23 @@ class Effects:
          ]
 
    @staticmethod
+   def effect_types_for_blocking_card_type_id(card_type_id):      
+      if card_type_id == card_types()["mob"].id:
+         return [
+            {
+               "id": effect_types()["enters_play"].id,
+               "name": effect_types()["enters_play"].name,
+            }
+         ]
+      else: # the other card_type_id is spell
+         return [
+            {
+               "id": effect_types()["spell"].id,
+               "name": effect_types()["spell"].name,
+            }
+         ]
+
+   @staticmethod
    def discard_random(card_type_id, amount, effect_type, target_type, ai_target_type_ids=None):
       return {
          "ai_target_types": ai_target_type_ids,
@@ -398,7 +415,7 @@ class Effects:
          "effect_type": effect_type.id,
          "description": "Make a card from your deck.",
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_effect_types": Effects.effect_types_for_blocking_card_type_id(card_type_id),
          "legal_target_types": [
             target_types()["self"].as_dict(),
          ],
@@ -455,7 +472,7 @@ class Effects:
          "effect_type": effect_type.id,
          "description": "Take an extra turn.",
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_effect_types": Effects.effect_types_for_blocking_card_type_id(card_type_id),
          "legal_target_types": [
             target_types()["self"].as_dict(),
          ],
