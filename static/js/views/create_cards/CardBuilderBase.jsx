@@ -31,8 +31,10 @@ class CardBuilderBase extends Component {
     cardInfo = () => {
         let info = this.baseCardInfo();
         info.cost = this.state.manaCost;
-        info.strength = this.state.strength;
-        info.hit_points = this.state.hitPoints;
+        if (this.cardType === Constants.mobCardType) {
+            info.strength = this.state.strength;
+            info.hit_points = this.state.hitPoints;
+        }
         info.effects = this.state.effects;
         info.power_points = this.state.powerPoints;
         info.description = Constants.cardDescription(info);
@@ -188,7 +190,7 @@ class CardBuilderBase extends Component {
                 }
             }
             if (!used) {
-                if (this.legalTargetTypes(effect).length > 0) {
+                if (this.legalTargetTypes(effect).length > 0 || !effect.legal_target_types) {
                     unusedOrDuplicableEffects.push(effect);
                 }
             } 

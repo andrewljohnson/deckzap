@@ -16,6 +16,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from inspect import signature
+from operator import attrgetter
 from operator import itemgetter
 
 def create_card(request):
@@ -166,6 +167,8 @@ def get_effect_for_info(request):
                 )
         card_info["effects"][-1] = server_effect
         power_points = Card(card_info).power_points_value()
+        card_info["power_points"] = power_points
+        card_is_duplicate(card_info)
         return JsonResponse({"server_effect": server_effect, "power_points": power_points})
 
 @require_POST
@@ -183,6 +186,8 @@ def get_power_points(request):
         card_info["hit_points"] = card_info["hit_points"]
     Analytics.log_amplitude(request, "Create Card Get Power Points", {})
     power_points = Card(card_info).power_points_value()
+    card_info["power_points"] = power_points
+    dupe_card = card_is_duplicate(card_info)
     return JsonResponse({"power_points": power_points})
 
 @require_POST
@@ -335,3 +340,72 @@ def delete(request):
     custom_card.delete()
     Analytics.log_amplitude(request, "Delete Card", {})
     return JsonResponse({})
+
+def card_is_duplicate(card_info):
+    new_card = Card(card_info)
+    possible_dupes = []
+    for ac_info in all_cards(include_old_cards=False):
+        card = Card(ac_info)
+        if card.cost != new_card.cost:
+            continue
+        if card.power_points != new_card.power_points:
+            continue
+        if card.card_type != new_card.card_type:
+            continue
+        if len(card.effects) != len(new_card.effects):
+            continue
+        if card.card_type == Constants.mobCardType:
+            if card.strength != new_card.strength:
+                continue
+            if card.hit_points != new_card.hit_points:
+                continue
+        possible_dupes.append(card)
+
+    if len(possible_dupes) == 1 and len(new_card.effects) == 0:
+        print("this is a dupe of " + possible_dupes[0].name)
+        print(possible_dupes[0].as_dict(for_card_builder=True))
+        return possible_dupes[0]
+
+    if len(possible_dupes) == 0:
+        print("no dupes")
+        print(new_card.as_dict(for_card_builder=True))
+        return None
+
+    new_card_effects = new_card.effects
+    new_card_effects.sort(key=attrgetter('target_type'))
+    new_card_effects.sort(key=attrgetter('effect_type'))
+    new_card_effects.sort(key=attrgetter('amount'))
+    new_card_effects.sort(key=attrgetter('id'))
+    dupe_card = None
+    for card in possible_dupes:
+        card_effects = card.effects
+        card_effects.sort(key=attrgetter('target_type'))
+        card_effects.sort(key=attrgetter('effect_type'))
+        card_effects.sort(key=attrgetter('amount'))
+        card_effects.sort(key=attrgetter('id'))
+        i = -1
+        for effect in card_effects:
+            i += 1
+            if effect.id != new_card_effects[i].id:
+                continue
+            if effect.amount != new_card_effects[i].amount:
+                continue
+            if effect.effect_type != new_card_effects[i].effect_type:
+                continue
+            if effect.target_type != new_card_effects[i].target_type:
+                continue
+            dupe_card = card
+            break
+        if dupe_card:
+            break
+    if dupe_card:
+        print("this is a dupe of " + dupe_card.name)
+    return dupe_card
+
+
+
+
+
+
+
+
