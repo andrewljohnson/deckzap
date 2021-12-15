@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 
 class CardBuilderBase extends Component {
     state = {
-        cardType: Constants.mobCardType,
+        cardType: this.props.originalCardInfo.card_type ? this.props.originalCardInfo.card_type : Constants.mobCardType,
         strength: this.props.originalCardInfo.strength ? this.props.originalCardInfo.strength : 0,
         hitPoints: this.props.originalCardInfo.hit_points ? this.props.originalCardInfo.hit_points : 1,
         manaCost: this.props.originalCardInfo.cost ? this.props.originalCardInfo.cost : 0,
@@ -31,7 +31,7 @@ class CardBuilderBase extends Component {
     cardInfo = () => {
         let info = this.baseCardInfo();
         info.cost = this.state.manaCost;
-        if (this.cardType === Constants.mobCardType) {
+        if (this.state.cardType === Constants.mobCardType) {
             info.strength = this.state.strength;
             info.hit_points = this.state.hitPoints;
         }

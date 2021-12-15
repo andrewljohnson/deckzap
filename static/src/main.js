@@ -108,7 +108,9 @@ if (window.location.pathname.startsWith("/play")) {
                 cardInfo.name = cardInfo.name ? cardInfo.name : "Unnamed Mob";
                 cardInfo.image = cardInfo.image ? cardInfo.image : "uncertainty.svg";
                 const cardView = new CardView("card", cardInfo);
-                ReactDOM.render(<CardBuilderMob effectIndex={0} cardView={cardView} cardID={cardID} originalCardInfo={cardInfo} effectsAndTypes={effectsAndTypes} />, document.getElementById("app"));
+                const cardBuilder = ReactDOM.render(<CardBuilderMob effectIndex={0} cardView={cardView} cardID={cardID} originalCardInfo={cardInfo} effectsAndTypes={effectsAndTypes} />, document.getElementById("app"));
+                cardView.cardInfo = cardBuilder.cardinfo();
+                cardView.updateCard();
             });
     } else {
         const cardInfo = {name: "Unnamed Card", image: "uncertainty.svg", card_type: Constants.mobCardType};

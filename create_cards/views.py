@@ -243,15 +243,6 @@ def create_card_save(request, required_key, event_name):
             error_message = "only the card's author can edit a CustomCard"
             print(error_message)
             return JsonResponse({"error": error_message})
-        if card_info["card_type"] == Constants.mobCardType:
-            card_info["strength"] = card_info["strength"]   
-            card_info["hit_points"] = card_info["hit_points"]    
-        if "cost" in card_info:
-            card_info["cost"] = card_info["cost"]   
-        if "effects" in card_info:
-            for e in card_info["effects"]:
-                if e.get("amount") is not None:
-                    e["amount"] = e["amount"]   
         card_info = Card(card_info).as_dict(for_card_builder=True)
         custom_card.card_json = card_info
         custom_card.save()
