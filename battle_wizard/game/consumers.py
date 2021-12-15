@@ -1,6 +1,7 @@
 import datetime
 import json
 import copy
+import os
 import random
 import time
 
@@ -68,6 +69,7 @@ class BattleWizardMatchFinderConsumer(WebsocketConsumer):
             print("waiting for match")
 
     def queue_database(self):
+        os.makedirs('database', exist_ok=True)
         try:
             json_data = open("database/queue_database.json")
             queue_database = json.load(json_data)
