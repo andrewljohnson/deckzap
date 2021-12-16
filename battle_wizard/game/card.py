@@ -405,11 +405,11 @@ class Card:
         if self.card_type != Constants.spellCardType:
             spell_to_resolve = player.play_mob_or_artifact(self, spell_to_resolve)
 
-        if len(self.effects) > 0 and self.card_type != Constants.mobCardType:
+        if len(self.effects) > 0 and self.card_type == Constants.spellCardType:
             if not "effect_targets" in spell_to_resolve:
                 spell_to_resolve["effect_targets"] = []
 
-            for target in self.unchosen_targets(player):
+            for target in self.unchosen_targets(player, "spell"):
                 spell_to_resolve["effect_targets"].append(target)
 
             for idx, effect_def in enumerate(self.spell_effect_defs):
@@ -422,6 +422,16 @@ class Card:
                 log_lines = self.resolve_effect(effect_def, player, self.effects_for_type("spell")[idx], spell_to_resolve["effect_targets"][idx])
                 if log_lines:
                     [spell_to_resolve["log_lines"].append(line) for line in log_lines]
+
+            if len(spell_to_resolve["effect_targets"]) == 0:
+                spell_to_resolve["effect_targets"] = None
+
+        if len(self.effects) > 0 and self.card_type == Constants.artifactCardType:
+            if not "effect_targets" in spell_to_resolve:
+                spell_to_resolve["effect_targets"] = []
+
+            for target in self.unchosen_targets(player, "enter_play"):
+                spell_to_resolve["effect_targets"].append(target)
 
             for idx, effect_def in enumerate(self.enter_play_effect_defs):
                 target_info = spell_to_resolve["effect_targets"][idx]
@@ -450,23 +460,27 @@ class Card:
 
         return spell_to_resolve
 
-    def unchosen_targets(self, player, effect_type=None):
+    def unchosen_targets(self, player, effect_type):
         effect_targets = []
-        effects = self.effects_for_type("spell")  + self.effects_for_type("enter_play") 
-        if effect_type:
-            effects = self.effects_for_type(effect_type)
+        effects = self.effects_for_type(effect_type)
         for e in effects:
-            if e.target_type == "self":           
+            if e.target_type == "friendly_mob_random" and len(self.in_play) == 0:
+                continue
+            if e.target_type == "enemy_mob_random" and len(self.my_opponent().in_play) == 0:
+                continue
+            if e.target_type in ["self", "all_cards_in_deck", "artifact", "all_cards_in_played_pile"]:  
                 effect_targets.append({"id": player.username, "target_type":"player"})
-            elif e.target_type == "opponent":          
-                effect_targets.append({"id": player.game.opponent().username, "target_type":"player"})
-            elif e.target_type == "enemy_mobs":          
-                effect_targets.append({"target_type":"enemy_mobs"})
-            elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "friendly_mobs" or e.target_type == "all":          
+            elif e.target_type in ["opponent"]:  
+                effect_targets.append({"id": player.my_opponent().username, "target_type":"player"})
+            elif e.target_type == "this":           
+                effect_targets.append({"id": card.id, "target_type":"mob"})
+            elif e.target_type == "all" or e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "friendly_mobs" or e.target_type == "enemy_mobs":           
                 effect_targets.append({"target_type": e.target_type})
-            elif e.target_type in ["all_cards_in_deck", "all_cards_in_played_pile"]:          
-                effect_targets.append({"target_type": "player", "id": player.username})
-            elif e.target_type == None: # improve_damage_when_used has no target_type     
+            elif e.target_type == "enemy_mob_random":           
+                effect_targets.append({"id": random.choice(self.my_opponent().in_play).id, "target_type":"mob"})
+            elif e.target_type == "friendly_mob_random":           
+                effect_targets.append({"id": random.choice(self.in_play).id, "target_type":"mob"})
+            elif e.target_type == None: # improve_damage_when_used has no target_type           
                 effect_targets.append({})
         return effect_targets
 

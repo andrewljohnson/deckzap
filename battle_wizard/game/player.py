@@ -311,68 +311,66 @@ class Player:
         effects = card.effects_for_type("enter_play")
         if is_activated_effect:
             effects = card.effects_for_type("activated")
-        if len(effects) > 0:
-            if effects[0].target_type == "any":
+        if len(effects) == 0:
+            return message
+
+        targeted_effect = None
+        for e in effects:
+            if e.target_type in ["any", "mob", "enemy_mob", "friendly_mob"]:
+                targeted_effect = e
+
+        if targeted_effect:
+            if targeted_effect.target_type == "any":
                 self.card_info_to_target["card_id"] = card.id
                 if is_activated_effect:
                     self.card_info_to_target["effect_type"] = "mob_activated"
                 else:
                     self.card_info_to_target["effect_type"] = "mob_comes_into_play"
-            elif effects[0].target_type in ["mob"]:
+            elif targeted_effect.target_type in ["mob"]:
                 if self.game.players[0].has_target_for_mob_effect() or self.game.players[1].has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
-            elif effects[0].target_type in ["enemy_mob"]:
+            elif targeted_effect.target_type in ["enemy_mob"]:
                 if self.my_opponent().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
-            elif effects[0].target_type in ["friendly_mob"]:
+            elif targeted_effect.target_type in ["friendly_mob"]:
                 if self.game.current_player().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
                     if is_activated_effect:
                         self.card_info_to_target["effect_type"] = "mob_activated"
                     else:
                         self.card_info_to_target["effect_type"] = "mob_comes_into_play"
-            else:
-                effect_targets = []
-                has_targets = "effect_targets" in message
-                for idx, e in enumerate(effects):
-                    if e.target_type == "enemy_mob_random" and len(self.my_opponent().in_play) == 0:
-                        continue
-                    # todo think about this weird repeated setting of effect_targets in message
-                    if not has_targets:
-                        if e.target_type in ["self", "all_cards_in_deck", "artifact", "all_cards_in_played_pile"]:  
-                            effect_targets.append({"id": username, "target_type":"player"})
-                        elif e.target_type == "this":           
-                            effect_targets.append({"id": card.id, "target_type":"mob"})
-                        elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "friendly_mobs":           
-                            effect_targets.append({"target_type": e.target_type})
-                        elif e.target_type == "enemy_mob_random":           
-                            effect_targets.append({"id": random.choice(self.my_opponent().in_play).id, "target_type":"mob"})
-                        elif e.target_type == None:           
-                            effect_targets.append({})
-                        message["effect_targets"] = effect_targets
-                    message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, effect_targets[idx])) 
+        else:
+            effect_targets = card.unchosen_targets(self, "enter_play")
+            message["effect_targets"] = effect_targets
+            for idx, e in enumerate(effects):
+                message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, effect_targets[idx])) 
 
         return message
 
     def resolve_mob_effect(self, card_id, message):
+        print(message)
         card = None
         for c in self.in_play:
             if c.id == card_id:
                 card = c
+        if not "effect_targets" in message:
+            message["effect_targets"] = []
         for idx, e in enumerate(card.effects_for_type("enter_play")):
-            if not "effect_targets" in message:
-                effect_targets = []
+            print(idx)
+            print(e)
+            if len(message["effect_targets"]) <= idx:
                 if e.target_type == "self":           
-                    effect_targets.append({"id": message["username"], "target_type":"player"})
-                message["effect_targets"] = effect_targets
+                    message["effect_targets"].append({"id": message["username"], "target_type":"player"})
+                elif e.target_type == "opponent":           
+                    message["effect_targets"].append({"id": self.my_opponent().username, "target_type":"player"})
             message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, message["effect_targets"][idx])) 
         
         self.reset_card_info_to_target()
@@ -496,7 +494,11 @@ class Player:
         target_type = None
         card = self.selected_mob()
         if self.card_info_to_target["effect_type"] == "mob_comes_into_play":
-            target_type = card.effects[0].target_type
+            targeted_effect = None
+            for e in card.effects:
+                if e.target_type in ["any", "mob", "enemy_mob", "friendly_mob"]:
+                    targeted_effect = e
+            target_type = targeted_effect.target_type
         elif self.card_info_to_target["effect_type"] == "mob_activated":
             target_type = card.effects_for_type("activated")[0].target_type
         self.game.set_targets_for_target_type(target_type)

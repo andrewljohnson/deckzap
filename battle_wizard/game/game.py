@@ -491,7 +491,7 @@ class Game:
 
         for mob in self.current_player().in_play + self.current_player().artifacts:
             # this works because all end_turn triggered effects dont have targets to choose
-            effect_targets = mob.unchosen_targets(self.current_player(), effect_type="end_turn")            
+            effect_targets = mob.unchosen_targets(self.current_player(), "end_turn")            
             for idx, effect in enumerate(mob.effects_for_type("end_turn")):
                 log_lines = mob.resolve_effect(mob.end_turn_effect_defs[idx], self.current_player(), effect, effect_targets[idx])
                 if log_lines:
@@ -938,12 +938,27 @@ class Game:
         if not selected_card:
             selected_card = self.opponent().in_play_card(message["defending_card"])
         effect_targets = []
-        effect_targets.append({"id": selected_card.id, "target_type":"mob"})            
-        if not activated_effect:
-            if len(card_to_target.effects) == 2:
-                if card_to_target.effects[1].target_type == "mob" or card_to_target.effects[1].target_type == "enemy_mob":
-                    # hack for animal trainer
-                    effect_targets.append({"id": selected_card.id, "target_type":"mob"})            
+        for e in card_to_target.effects:
+            if e.target_type == "friendly_mob_random" and len(self.my_().in_play) == 0:
+                continue
+            if e.target_type == "enemy_mob_random" and len(self.opponent().in_play) == 0:
+                continue
+            if e.target_type in ["friendly_mob", "enemy_mob", "mob", "any", "mob_or_artifact"]:
+                effect_targets.append({"id": selected_card.id, "target_type":"mob"})          
+            elif e.target_type in ["self", "all_cards_in_deck", "artifact", "all_cards_in_played_pile"]:  
+                effect_targets.append({"id": self.current_player().username, "target_type":"player"})
+            elif e.target_type in ["opponent"]:  
+                effect_targets.append({"id": self.opponent().username, "target_type":"player"})
+            elif e.target_type == "this":           
+                effect_targets.append({"id": card_to_target.id, "target_type":"mob"})
+            elif e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "friendly_mobs":           
+                effect_targets.append({"target_type": e.target_type})
+            elif e.target_type == "enemy_mob_random":           
+                effect_targets.append({"id": random.choice(self.opponent().in_play).id, "target_type":"mob"})
+            elif e.target_type == "friendly_mob_random":           
+                effect_targets.append({"id": random.choice(self.my_().in_play).id, "target_type":"mob"})
+            elif e.target_type == None:           
+                effect_targets.append({})
         new_message["effect_targets"] = effect_targets
         new_message["card"] = card_to_target.id
         new_message["card_name"] = card_to_target.name

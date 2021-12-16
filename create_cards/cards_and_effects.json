@@ -971,7 +971,7 @@
                     ],
                     "legal_effect_types": [
                         {
-                            "id": "enters_play",
+                            "id": "enter_play",
                             "name": "Enters Play"
                         },
                         {
@@ -1045,10 +1045,10 @@
             "id": "before_is_damaged",
             "name": "Before This is Damaged"
         },
-        "enters_play": {
+        "enter_play": {
             "description": "When this enters play",
             "description_for_card_creator": "The effect will trigger when this mob enters play.",
-            "id": "enters_play",
+            "id": "enter_play",
             "name": "Enters Play"
         },
         "mob_changes_zones": {
