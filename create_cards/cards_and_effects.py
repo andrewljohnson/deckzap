@@ -90,7 +90,7 @@ def effect_types(as_dicts=False):
    all_effect_types = {
       "after_deals_damage": EffectType("after_deals_damage", "After This Deals Damage", "after it deals damage", "The effect will trigger whenever this card deals damage."),
       "before_is_damaged": EffectType("before_is_damaged", "Before This is Damaged", None, "The effect will trigger before this card receives damage."),
-      "enters_play": EffectType("enters_play", "Enters Play", "When this enters play", "The effect will trigger when this mob enters play."),
+      "enter_play": EffectType("enter_play", "Enters Play", "When this enters play", "The effect will trigger when this mob enters play."),
       "select_mob_target": EffectType("select_mob_target", "When Selecting a Target", None, None), 
       "mob_changes_zones": EffectType("mob_changes_zones", "Mob Changes Zones", None, None),
       "spell": EffectType("spell", "Spell", None, None),
@@ -212,8 +212,8 @@ class Effects:
       if card_type_id == card_types()["mob"].id:
          return [
             {
-               "id": effect_types()["enters_play"].id,
-               "name": effect_types()["enters_play"].name,
+               "id": effect_types()["enter_play"].id,
+               "name": effect_types()["enter_play"].name,
             },
             {
                "id": effect_types()["play_friendly_mob"].id,
@@ -233,8 +233,8 @@ class Effects:
       if card_type_id == card_types()["mob"].id:
          return [
             {
-               "id": effect_types()["enters_play"].id,
-               "name": effect_types()["enters_play"].name,
+               "id": effect_types()["enter_play"].id,
+               "name": effect_types()["enter_play"].name,
             }
          ]
       else: # the other card_type_id is spell
