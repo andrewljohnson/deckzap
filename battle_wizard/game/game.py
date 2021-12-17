@@ -556,17 +556,14 @@ class Game:
 
     def select_mob(self, message):
         cp = self.current_player()
-        if cp.card_info_to_target["effect_type"] in ["mob_comes_into_play", "mob_activated"]:
+        if cp.card_info_to_target["effect_type"] == "mob_comes_into_play":
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
             if not defending_card.can_be_clicked:
                 print(f"this mob was probably made untargettable")
                 return None                
             message["defending_card"] = message["card"]
             card = cp.selected_mob()
-            if cp.card_info_to_target["effect_type"] == "mob_comes_into_play":
-                message = self.select_mob_target_for_mob_effect(card, message)
-            elif cp.card_info_to_target["effect_type"] == "mob_activated": 
-                message = self.select_mob_target_for_mob_activated_effect(card, message)
+            message = self.select_mob_target_for_mob_effect(card, message)
         elif cp.card_info_to_target["effect_type"] == "spell_cast":
             selected_card = cp.selected_spell()
             defending_card, defending_player = self.get_in_play_for_id(message["card"])
@@ -665,8 +662,6 @@ class Game:
         message["effect_index"] = effect_index
         if cp.card_info_to_target["effect_type"] in ["mob_comes_into_play"]:
             message = self.select_artifact_target_for_mob_effect(cp.selected_mob(), message)
-        elif cp.card_info_to_target["effect_type"] in ["mob_activated"]:
-            message = self.select_artifact_target_for_artifact_effect(cp.selected_mob(), message)
         elif cp.selected_spell():  
             # todo handle cards with multiple effects
             if cp.selected_spell().effects[effect_index].target_type == "opponents_artifact" and self.get_in_play_for_id(message["card"])[0] not in self.opponent().artifacts:
@@ -710,7 +705,7 @@ class Game:
         return message
 
     def select_player(self, move_type, message):
-        if self.current_player().selected_mob() and self.current_player().card_info_to_target["effect_type"] in ["mob_activated", "mob_comes_into_play"]:
+        if self.current_player().selected_mob() and self.current_player().card_info_to_target["effect_type"] == "mob_comes_into_play":
             if move_type == 'SELECT_OPPONENT':
                 message = self.select_player_target(self.opponent().username, self.current_player().selected_mob(), message, "RESOLVE_MOB_EFFECT")
             else:

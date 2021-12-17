@@ -24,7 +24,7 @@ class PlayerAI(Player):
 
         moves = []
         has_action_selected = self.selected_mob() or self.selected_artifact() or self.selected_spell()
-        if self.card_info_to_target["effect_type"] in ["mob_activated", "mob_comes_into_play"]:
+        if self.card_info_to_target["effect_type"] == "mob_comes_into_play":
             moves = self.add_resolve_mob_effects_moves(moves)
         elif self.card_choice_info["choice_type"] in ["make", "make_with_option"]:
             moves = self.add_resolve_make_moves(moves)

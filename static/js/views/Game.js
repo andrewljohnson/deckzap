@@ -786,7 +786,7 @@ export class GameUX {
     updateInPlay(game, player, opponent, opponentAvatarSprite, inPlaySprite) {
         let cardIdToHide = null
         for (let card of player.in_play) {
-            if (player.card_info_to_target.card_id && card.id == player.card_info_to_target.card_id && player.card_info_to_target["effect_type"] != "mob_comes_into_play" && player.card_info_to_target["effect_type"] != "mob_activated") {
+            if (player.card_info_to_target.card_id && card.id == player.card_info_to_target.card_id && player.card_info_to_target["effect_type"] != "mob_comes_into_play") {
                 cardIdToHide = card.id;
                 break;
             }

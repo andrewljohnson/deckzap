@@ -307,10 +307,8 @@ class Player:
         self.artifacts.append(artifact)
         artifact.turn_played = self.game.turn
 
-    def target_or_do_mob_effects(self, card, message, username, is_activated_effect=False):
+    def target_or_do_mob_effects(self, card, message, username):
         effects = card.effects_for_type("enter_play")
-        if is_activated_effect:
-            effects = card.effects_for_type("activated")
         if len(effects) == 0:
             return message
 
@@ -320,33 +318,18 @@ class Player:
                 targeted_effect = e
 
         if targeted_effect:
+            self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             if targeted_effect.target_type == "any":
                 self.card_info_to_target["card_id"] = card.id
-                if is_activated_effect:
-                    self.card_info_to_target["effect_type"] = "mob_activated"
-                else:
-                    self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif targeted_effect.target_type in ["mob"]:
                 if self.game.players[0].has_target_for_mob_effect() or self.game.players[1].has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
-                    if is_activated_effect:
-                        self.card_info_to_target["effect_type"] = "mob_activated"
-                    else:
-                        self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif targeted_effect.target_type in ["enemy_mob"]:
                 if self.my_opponent().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
-                    if is_activated_effect:
-                        self.card_info_to_target["effect_type"] = "mob_activated"
-                    else:
-                        self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             elif targeted_effect.target_type in ["friendly_mob"]:
                 if self.game.current_player().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
-                    if is_activated_effect:
-                        self.card_info_to_target["effect_type"] = "mob_activated"
-                    else:
-                        self.card_info_to_target["effect_type"] = "mob_comes_into_play"
         else:
             effect_targets = card.unchosen_targets(self, "enter_play")
             message["effect_targets"] = effect_targets
@@ -356,7 +339,6 @@ class Player:
         return message
 
     def resolve_mob_effect(self, card_id, message):
-        print(message)
         card = None
         for c in self.in_play:
             if c.id == card_id:
@@ -364,8 +346,6 @@ class Player:
         if not "effect_targets" in message:
             message["effect_targets"] = []
         for idx, e in enumerate(card.effects_for_type("enter_play")):
-            print(idx)
-            print(e)
             if len(message["effect_targets"]) <= idx:
                 if e.target_type == "self":           
                     message["effect_targets"].append({"id": message["username"], "target_type":"player"})
@@ -490,17 +470,13 @@ class Player:
         return True
 
     def set_targets_for_selected_mob(self):
-        # todo artifacts?
         target_type = None
         card = self.selected_mob()
-        if self.card_info_to_target["effect_type"] == "mob_comes_into_play":
-            targeted_effect = None
-            for e in card.effects:
-                if e.target_type in ["any", "mob", "enemy_mob", "friendly_mob"]:
-                    targeted_effect = e
-            target_type = targeted_effect.target_type
-        elif self.card_info_to_target["effect_type"] == "mob_activated":
-            target_type = card.effects_for_type("activated")[0].target_type
+        targeted_effect = None
+        for e in card.effects:
+            if e.target_type in ["any", "mob", "enemy_mob", "friendly_mob"]:
+                targeted_effect = e
+        target_type = targeted_effect.target_type
         self.game.set_targets_for_target_type(target_type)
 
     def remove_temporary_tokens(self):
