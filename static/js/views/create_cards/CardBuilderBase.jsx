@@ -151,6 +151,9 @@ class CardBuilderBase extends Component {
     changeEffectTrigger = (event) => {
         const effect = this.state.effect;
         effect.effect_type = event.target.value;
+        if (this.legalTargetTypes(effect).length > 0) {
+            effect.target_type = this.legalTargetTypes(effect)[0].id;
+        }        
         const effects = this.state.effects;
         effects[effects.length - 1] = effect;
         this.setState({effect, effects}, () => { this.getEffectForInfo(this.state.effect) });
@@ -304,6 +307,11 @@ class CardBuilderBase extends Component {
             if (alreadyHasTargettedEffect && targettedEffectTypes.includes(targetType.id)) {
                 continue;
             }
+            if (!["spell", "enter_play"].includes(effect.effect_type)) {
+                if (!["enemy_mob_random", "friendly_mob_random", "self", "opponent"].includes(targetType.id)) {
+                    continue;
+                }
+            }
             legalTargetTypes.push(targetType)
         }
         return legalTargetTypes;
@@ -412,7 +420,7 @@ class CardBuilderBase extends Component {
                         {amountSlider}
                     </div>
                     <div>
-                        {this.props.effectIndex == 0 &&
+                        {false && this.props.effectIndex == 0 &&
                             <Button 
                                 color="secondary"
                                 disabled={this.state.disableAdditionalEffect}

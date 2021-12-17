@@ -229,7 +229,7 @@ class Effects:
          ]
 
    @staticmethod
-   def effect_types_for_blocking_card_type_id(card_type_id):      
+   def effect_types_spell_enter_play_only(card_type_id):      
       if card_type_id == card_types()["mob"].id:
          return [
             {
@@ -401,7 +401,9 @@ class Effects:
          "legal_target_types": [
             target_types()["mob"].as_dict(),
             target_types()["enemy_mob"].as_dict(),
-            target_types()["friendly_mob"].as_dict()
+            target_types()["friendly_mob"].as_dict(),
+            target_types()["enemy_mob_random"].as_dict(),
+            target_types()["friendly_mob_random"].as_dict()
          ],
          "id": "kill",
          "name": "Kill",
@@ -414,9 +416,9 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "effect_type": effect_type.id,
-         "description": "Make a card from your deck.",
+         "description": "When this enters play, make a card from your deck." if effect_type.id == "enter_play" else "Make a card from your deck.",
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_types": Effects.effect_types_for_blocking_card_type_id(card_type_id),
+         "legal_effect_types": Effects.effect_types_spell_enter_play_only(card_type_id),
          "legal_target_types": [
             target_types()["self"].as_dict(),
          ],
@@ -435,9 +437,9 @@ class Effects:
          "amount_limit": 2,
          "amount_name": "mana",
          "effect_type": effect_type.id,
-         "description": f"You get {amount} extra mana on upcoming turns.",
+         "description": Effects.mana_increase_max_description(amount, effect_type), 
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_effect_types": Effects.effect_types_spell_enter_play_only(card_type_id),
          "legal_target_types": [
             {"id": target_types()["self"].id, "name": target_types()["self"].name},
          ],
@@ -447,6 +449,13 @@ class Effects:
          "power_points": amount * 5, 
          "target_type": target_type.id,
       }
+
+   @staticmethod
+   def mana_increase_max_description(amount, effect_type):
+      if amount == 1:
+         return "When this enters play, you get an extra mana gem." if effect_type.id == "enter_play" else "You get an extra mana gem."
+      else:
+         return f"When this enters play, you get {amount} extra mana gems." if effect_type.id == "enter_play" else f"You get {amount} extra mana gems."
 
    @staticmethod
    def shield():
@@ -472,9 +481,9 @@ class Effects:
       return {
          "ai_target_types": ai_target_type_ids,
          "effect_type": effect_type.id,
-         "description": "Take an extra turn.",
+         "description": "When this enters play, take an extra turn." if effect_type.id == "enter_play" else "Take an extra turn.",
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_types": Effects.effect_types_for_blocking_card_type_id(card_type_id),
+         "legal_effect_types": Effects.effect_types_spell_enter_play_only(card_type_id),
          "legal_target_types": [
             target_types()["self"].as_dict(),
          ],
@@ -497,11 +506,13 @@ class Effects:
          "effect_type": effect_type.id,
          "description": description,
          "legal_card_type_ids": [key for key, value in card_types().items()],
-         "legal_effect_types": Effects.effect_types_for_card_type_id(card_type_id),
+         "legal_effect_types": Effects.effect_types_spell_enter_play_only(card_type_id),
          "legal_target_types": [
             target_types()["mob"].as_dict(),
             target_types()["enemy_mob"].as_dict(),
-            target_types()["friendly_mob"].as_dict()
+            target_types()["friendly_mob"].as_dict(),
+            target_types()["enemy_mob_random"].as_dict(),
+            target_types()["friendly_mob_random"].as_dict(),
          ],
          "id": "unwind",
          "name": "Unwind",
@@ -526,6 +537,10 @@ class Effects:
          return 12
       elif target_type.id == "enemy_mobs":
          return 20
+      elif target_type.id == "friendly_mob_random":
+         return -5
+      elif target_type.id == "enemy_mob_random":
+         return 3
       else:
          print(f"unsupported target_type {target_type.id} for unwind effect")
 

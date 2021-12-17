@@ -386,6 +386,16 @@
                             "description": "a friendly mob",
                             "id": "friendly_mob",
                             "name": "Friendly Mob"
+                        },
+                        {
+                            "description": "a random enemy mob",
+                            "id": "enemy_mob_random",
+                            "name": "Enemy Mob (random)"
+                        },
+                        {
+                            "description": "a random friendly mob",
+                            "id": "friendly_mob_random",
+                            "name": "Friendly Mob (random)"
                         }
                     ],
                     "name": "Unwind",
@@ -452,7 +462,7 @@
                     "amount": 1,
                     "amount_limit": 2,
                     "amount_name": "mana",
-                    "description": "You get 1 extra mana on upcoming turns.",
+                    "description": "You get an extra mana gem.",
                     "effect_type": "spell",
                     "id": "mana_increase_max",
                     "legal_card_type_ids": [
@@ -661,6 +671,16 @@
                             "description": "a friendly mob",
                             "id": "friendly_mob",
                             "name": "Friendly Mob"
+                        },
+                        {
+                            "description": "a random enemy mob",
+                            "id": "enemy_mob_random",
+                            "name": "Enemy Mob (random)"
+                        },
+                        {
+                            "description": "a random friendly mob",
+                            "id": "friendly_mob_random",
+                            "name": "Friendly Mob (random)"
                         }
                     ],
                     "name": "Kill",
@@ -1354,6 +1374,16 @@
                     "description": "a friendly mob",
                     "id": "friendly_mob",
                     "name": "Friendly Mob"
+                },
+                {
+                    "description": "a random enemy mob",
+                    "id": "enemy_mob_random",
+                    "name": "Enemy Mob (random)"
+                },
+                {
+                    "description": "a random friendly mob",
+                    "id": "friendly_mob_random",
+                    "name": "Friendly Mob (random)"
                 }
             ],
             "name": "Kill",
@@ -1392,7 +1422,7 @@
             "amount": 1,
             "amount_limit": 2,
             "amount_name": "mana",
-            "description": "You get 1 extra mana on upcoming turns.",
+            "description": "You get an extra mana gem.",
             "effect_type": "spell",
             "id": "mana_increase_max",
             "legal_card_type_ids": [
@@ -1493,6 +1523,16 @@
                     "description": "a friendly mob",
                     "id": "friendly_mob",
                     "name": "Friendly Mob"
+                },
+                {
+                    "description": "a random enemy mob",
+                    "id": "enemy_mob_random",
+                    "name": "Enemy Mob (random)"
+                },
+                {
+                    "description": "a random friendly mob",
+                    "id": "friendly_mob_random",
+                    "name": "Friendly Mob (random)"
                 }
             ],
             "name": "Unwind",

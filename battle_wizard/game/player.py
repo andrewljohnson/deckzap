@@ -290,7 +290,7 @@ class Player:
             for c in self.in_play + self.artifacts:
                 for idx, effect in enumerate(c.effects_for_type("play_friendly_mob")):
                     effect.show_effect_animation = True
-                    spell_to_resolve["log_lines"].append(c.resolve_effect(c.play_friendly_mob_effect_defs[idx], self, effect, {}))
+                    spell_to_resolve["log_lines"].append(c.resolve_effect(c.play_friendly_mob_effect_defs[idx], self, effect, c.effect_targets(self, "play_friendly_mob")[0]))
 
             self.play_mob(card)
         elif card.card_type == Constants.artifactCardType:
@@ -318,17 +318,20 @@ class Player:
                 targeted_effect = e
 
         if targeted_effect:
-            self.card_info_to_target["effect_type"] = "mob_comes_into_play"
             if targeted_effect.target_type == "any":
+                self.card_info_to_target["effect_type"] = "mob_comes_into_play"
                 self.card_info_to_target["card_id"] = card.id
             elif targeted_effect.target_type in ["mob"]:
                 if self.game.players[0].has_target_for_mob_effect() or self.game.players[1].has_target_for_mob_effect():
+                    self.card_info_to_target["effect_type"] = "mob_comes_into_play"
                     self.card_info_to_target["card_id"] = card.id
             elif targeted_effect.target_type in ["enemy_mob"]:
                 if self.my_opponent().has_target_for_mob_effect():
+                    self.card_info_to_target["effect_type"] = "mob_comes_into_play"
                     self.card_info_to_target["card_id"] = card.id
             elif targeted_effect.target_type in ["friendly_mob"]:
                 if self.game.current_player().has_target_for_mob_effect():
+                    self.card_info_to_target["effect_type"] = "mob_comes_into_play"
                     self.card_info_to_target["card_id"] = card.id
         else:
             effect_targets = card.effect_targets(self, "enter_play")

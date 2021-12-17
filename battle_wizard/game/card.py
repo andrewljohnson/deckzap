@@ -405,7 +405,6 @@ class Card:
         if self.card_type != Constants.spellCardType:
             spell_to_resolve = player.play_mob_or_artifact(self, spell_to_resolve)
 
-        print(spell_to_resolve)
         if len(self.effects) > 0 and self.card_type == Constants.spellCardType:
             if not "effect_targets" in spell_to_resolve:
                 spell_to_resolve["effect_targets"] = self.effect_targets(player, "spell")
@@ -462,9 +461,9 @@ class Card:
         else:
             effects = self.effects_for_type(effect_type)
         for e in effects:
-            if e.target_type == "friendly_mob_random" and len(self.in_play) == 0:
+            if e.target_type == "friendly_mob_random" and len(player.in_play) == 0:
                 continue
-            if e.target_type == "enemy_mob_random" and len(self.my_opponent().in_play) == 0:
+            if e.target_type == "enemy_mob_random" and len(player.my_opponent().in_play) == 0:
                 continue
             if e.target_type in ["self", "all_cards_in_deck", "artifact", "all_cards_in_played_pile"]:  
                 effect_targets.append({"id": player.username, "target_type":"player"})
@@ -475,9 +474,9 @@ class Card:
             elif e.target_type == "all" or e.target_type == "all_players" or e.target_type == "all_mobs" or e.target_type == "friendly_mobs" or e.target_type == "enemy_mobs":           
                 effect_targets.append({"target_type": e.target_type})
             elif e.target_type == "enemy_mob_random":           
-                effect_targets.append({"id": random.choice(self.my_opponent().in_play).id, "target_type":"mob"})
+                effect_targets.append({"id": random.choice(player.my_opponent().in_play).id, "target_type":"mob"})
             elif e.target_type == "friendly_mob_random":           
-                effect_targets.append({"id": random.choice(self.in_play).id, "target_type":"mob"})
+                effect_targets.append({"id": random.choice(player.in_play).id, "target_type":"mob"})
             elif e.target_type == None: # improve_damage_when_used has no target_type           
                 effect_targets.append({})
             elif selected_card and e.target_type in ["friendly_mob", "enemy_mob", "mob", "any", "mob_or_artifact"]:
