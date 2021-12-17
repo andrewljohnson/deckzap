@@ -331,7 +331,7 @@ class Player:
                 if self.game.current_player().has_target_for_mob_effect():
                     self.card_info_to_target["card_id"] = card.id
         else:
-            effect_targets = card.unchosen_targets(self, "enter_play")
+            effect_targets = card.effect_targets(self, "enter_play")
             message["effect_targets"] = effect_targets
             for idx, e in enumerate(effects):
                 message["log_lines"].append(card.resolve_effect(card.enter_play_effect_defs[idx], self, e, effect_targets[idx])) 

@@ -405,12 +405,10 @@ class Card:
         if self.card_type != Constants.spellCardType:
             spell_to_resolve = player.play_mob_or_artifact(self, spell_to_resolve)
 
+        print(spell_to_resolve)
         if len(self.effects) > 0 and self.card_type == Constants.spellCardType:
             if not "effect_targets" in spell_to_resolve:
-                spell_to_resolve["effect_targets"] = []
-
-            for target in self.unchosen_targets(player, "spell"):
-                spell_to_resolve["effect_targets"].append(target)
+                spell_to_resolve["effect_targets"] = self.effect_targets(player, "spell")
 
             for idx, effect_def in enumerate(self.spell_effect_defs):
                 target_info = spell_to_resolve["effect_targets"][idx]
@@ -428,10 +426,7 @@ class Card:
 
         if len(self.effects) > 0 and self.card_type == Constants.artifactCardType:
             if not "effect_targets" in spell_to_resolve:
-                spell_to_resolve["effect_targets"] = []
-
-            for target in self.unchosen_targets(player, "enter_play"):
-                spell_to_resolve["effect_targets"].append(target)
+                spell_to_resolve["effect_targets"] = self.effect_targets(player, "enter_play")
 
             for idx, effect_def in enumerate(self.enter_play_effect_defs):
                 target_info = spell_to_resolve["effect_targets"][idx]
@@ -460,9 +455,12 @@ class Card:
 
         return spell_to_resolve
 
-    def unchosen_targets(self, player, effect_type):
+    def effect_targets(self, player, effect_type=None, selected_card=None, selected_username=None):
         effect_targets = []
-        effects = self.effects_for_type(effect_type)
+        if effect_type == None:
+            effects = self.effects
+        else:
+            effects = self.effects_for_type(effect_type)
         for e in effects:
             if e.target_type == "friendly_mob_random" and len(self.in_play) == 0:
                 continue
@@ -482,6 +480,10 @@ class Card:
                 effect_targets.append({"id": random.choice(self.in_play).id, "target_type":"mob"})
             elif e.target_type == None: # improve_damage_when_used has no target_type           
                 effect_targets.append({})
+            elif selected_card and e.target_type in ["friendly_mob", "enemy_mob", "mob", "any", "mob_or_artifact"]:
+                effect_targets.append({"id": selected_card.id, "target_type":"mob"})          
+            elif selected_username and e.target_type in ["player", "any"]:
+                effect_targets.append({"id": selected_username, "target_type":"player"})          
         return effect_targets
 
     def resolve_effect(self, effect_def, effect_owner, effect, target_info):
